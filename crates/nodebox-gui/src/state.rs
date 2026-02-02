@@ -1,5 +1,6 @@
 //! Application state management.
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use nodebox_core::geometry::{Path as GeoPath, Color};
 use nodebox_core::node::{Node, NodeLibrary, Port, PortRange};
@@ -27,6 +28,9 @@ pub struct AppState {
 
     /// The node library (document).
     pub library: NodeLibrary,
+
+    /// Per-node error messages (node_name -> error message).
+    pub node_errors: HashMap<String, String>,
 }
 
 impl Default for AppState {
@@ -42,7 +46,11 @@ impl AppState {
         let library = Self::create_demo_library();
 
         // Evaluate the network to get the initial geometry
-        let geometry = eval::evaluate_network(&library);
+        let (geometry, errors) = eval::evaluate_network(&library);
+        let node_errors: HashMap<String, String> = errors
+            .into_iter()
+            .map(|e| (e.node_name, e.message))
+            .collect();
 
         Self {
             current_file: None,
@@ -52,13 +60,25 @@ impl AppState {
             selected_node: None,
             background_color: Color::WHITE,
             library,
+            node_errors,
         }
     }
 
     /// Re-evaluate the network and update the geometry.
     #[allow(dead_code)]
     pub fn evaluate(&mut self) {
-        self.geometry = eval::evaluate_network(&self.library);
+        let (geometry, errors) = eval::evaluate_network(&self.library);
+        if errors.is_empty() {
+            // Success: update geometry and clear errors
+            self.geometry = geometry;
+            self.node_errors.clear();
+        } else {
+            // Errors: keep last geometry, populate errors
+            self.node_errors = errors
+                .into_iter()
+                .map(|e| (e.node_name, e.message))
+                .collect();
+        }
     }
 
     /// Create a demo node library with a single rect node.
@@ -88,6 +108,7 @@ impl AppState {
         self.dirty = false;
         self.geometry.clear();
         self.selected_node = None;
+        self.node_errors.clear();
     }
 
     /// Load a file.
@@ -105,7 +126,17 @@ impl AppState {
         self.selected_node = None;
 
         // Evaluate the network
-        self.geometry = eval::evaluate_network(&self.library);
+        let (geometry, errors) = eval::evaluate_network(&self.library);
+        if errors.is_empty() {
+            self.geometry = geometry;
+            self.node_errors.clear();
+        } else {
+            // Keep previous geometry on error, update error state
+            self.node_errors = errors
+                .into_iter()
+                .map(|e| (e.node_name, e.message))
+                .collect();
+        }
 
         Ok(())
     }

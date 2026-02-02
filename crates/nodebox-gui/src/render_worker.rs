@@ -4,6 +4,7 @@ use std::sync::mpsc;
 use std::thread;
 use nodebox_core::geometry::Path as GeoPath;
 use nodebox_core::node::NodeLibrary;
+use crate::eval::NodeError;
 
 /// Unique identifier for a render request.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -20,9 +21,9 @@ pub enum RenderRequest {
 /// A result returned from the render worker.
 #[allow(dead_code)]
 pub enum RenderResult {
-    /// Evaluation succeeded.
-    Success { id: RenderRequestId, geometry: Vec<GeoPath> },
-    /// Evaluation failed.
+    /// Evaluation completed (may include errors).
+    Success { id: RenderRequestId, geometry: Vec<GeoPath>, errors: Vec<NodeError> },
+    /// Evaluation failed completely (e.g., panic in worker).
     Error { id: RenderRequestId, message: String },
 }
 
@@ -137,10 +138,11 @@ fn render_worker_loop(
                 let (final_id, final_library) = drain_to_latest(id, library, &request_rx);
 
                 // Evaluate the network
-                let geometry = crate::eval::evaluate_network(&final_library);
+                let (geometry, errors) = crate::eval::evaluate_network(&final_library);
                 let _ = result_tx.send(RenderResult::Success {
                     id: final_id,
                     geometry,
+                    errors,
                 });
             }
             Ok(RenderRequest::Shutdown) | Err(_) => break,

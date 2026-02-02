@@ -38,6 +38,9 @@ pub enum EvalError {
     /// An error occurred in a Python function.
     PythonError(String),
 
+    /// An error occurred during node processing.
+    ProcessingError(String),
+
     /// A general evaluation error.
     Other(String),
 }
@@ -57,6 +60,7 @@ impl std::fmt::Display for EvalError {
                 write!(f, "Cycle detected: {}", nodes.join(" -> "))
             }
             EvalError::PythonError(msg) => write!(f, "Python error: {}", msg),
+            EvalError::ProcessingError(msg) => write!(f, "{}", msg),
             EvalError::Other(msg) => write!(f, "{}", msg),
         }
     }

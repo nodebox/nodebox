@@ -2,9 +2,31 @@
 
 use std::collections::HashMap;
 use nodebox_core::geometry::{Path, Point, Color, Contour, PathPoint, PointType};
-use nodebox_core::node::{Node, NodeLibrary};
+use nodebox_core::node::{Node, NodeLibrary, EvalError};
 use nodebox_core::node::PortRange;
 use nodebox_core::Value;
+
+/// Error information for a specific node.
+#[derive(Debug, Clone)]
+pub struct NodeError {
+    /// Name of the node that had an error.
+    pub node_name: String,
+    /// Error message.
+    pub message: String,
+}
+
+impl NodeError {
+    /// Create a new NodeError.
+    pub fn new(node_name: impl Into<String>, message: impl Into<String>) -> Self {
+        Self {
+            node_name: node_name.into(),
+            message: message.into(),
+        }
+    }
+}
+
+/// Result type for evaluation operations.
+pub type EvalResult = Result<NodeOutput, EvalError>;
 
 /// The result of evaluating a node.
 #[derive(Clone, Debug)]
@@ -108,8 +130,10 @@ impl NodeOutput {
     }
 }
 
-/// Evaluate a node network and return the output of the rendered node.
-pub fn evaluate_network(library: &NodeLibrary) -> Vec<Path> {
+/// Evaluate a node network and return the output of the rendered node along with any errors.
+///
+/// Returns a tuple of (paths, errors). If there are errors, paths will be empty.
+pub fn evaluate_network(library: &NodeLibrary) -> (Vec<Path>, Vec<NodeError>) {
     let network = &library.root;
 
     // Find the rendered child
@@ -117,17 +141,42 @@ pub fn evaluate_network(library: &NodeLibrary) -> Vec<Path> {
         Some(name) => name.clone(),
         None => {
             // No rendered child, return empty
-            return Vec::new();
+            return (Vec::new(), Vec::new());
         }
     };
 
     // Create a cache for node outputs
-    let mut cache: HashMap<String, NodeOutput> = HashMap::new();
+    let mut cache: HashMap<String, EvalResult> = HashMap::new();
 
     // Evaluate the rendered node (this will recursively evaluate dependencies)
-    let output = evaluate_node(network, &rendered_name, &mut cache);
+    let result = evaluate_node(network, &rendered_name, &mut cache);
 
-    output.to_paths()
+    match result {
+        Ok(output) => (output.to_paths(), Vec::new()),
+        Err(e) => {
+            // Extract node name based on error type
+            let (node_name, message) = match &e {
+                EvalError::PortNotFound { node, port } => {
+                    (node.clone(), format!("Missing required input '{}'", port))
+                }
+                EvalError::NodeNotFound(name) => {
+                    (name.clone(), "Node not found".to_string())
+                }
+                EvalError::ProcessingError(msg) => {
+                    // ProcessingError format: "nodename: message"
+                    if let Some(pos) = msg.find(':') {
+                        let name = msg[..pos].trim().to_string();
+                        let err_msg = msg[pos + 1..].trim().to_string();
+                        (name, err_msg)
+                    } else {
+                        (rendered_name.clone(), msg.clone())
+                    }
+                }
+                _ => (rendered_name.clone(), e.to_string()),
+            };
+            (Vec::new(), vec![NodeError::new(node_name, message)])
+        }
+    }
 }
 
 /// Determine how many times to execute the node for list matching.
@@ -222,17 +271,17 @@ fn collect_results(results: Vec<NodeOutput>) -> NodeOutput {
 fn evaluate_node(
     network: &Node,
     node_name: &str,
-    cache: &mut HashMap<String, NodeOutput>,
-) -> NodeOutput {
+    cache: &mut HashMap<String, EvalResult>,
+) -> EvalResult {
     // Check cache first
-    if let Some(output) = cache.get(node_name) {
-        return output.clone();
+    if let Some(result) = cache.get(node_name) {
+        return result.clone();
     }
 
     // Find the node
     let node = match network.child(node_name) {
         Some(n) => n,
-        None => return NodeOutput::None,
+        None => return Err(EvalError::NodeNotFound(node_name.to_string())),
     };
 
     // Collect input values for this node
@@ -251,13 +300,13 @@ fn evaluate_node(
             inputs.insert(port.name.clone(), value_to_output(&port.value));
         } else if connections.len() == 1 {
             // Single connection - evaluate and use directly
-            let upstream_output = evaluate_node(network, &connections[0].output_node, cache);
+            let upstream_output = evaluate_node(network, &connections[0].output_node, cache)?;
             inputs.insert(port.name.clone(), upstream_output);
         } else {
             // Multiple connections - collect all outputs as paths
             let mut all_paths: Vec<Path> = Vec::new();
             for conn in connections {
-                let upstream_output = evaluate_node(network, &conn.output_node, cache);
+                let upstream_output = evaluate_node(network, &conn.output_node, cache)?;
                 all_paths.extend(upstream_output.to_paths());
             }
             inputs.insert(port.name.clone(), NodeOutput::Paths(all_paths));
@@ -275,13 +324,13 @@ fn evaluate_node(
                 .collect();
 
             if all_conns.len() == 1 {
-                let upstream_output = evaluate_node(network, &conn.output_node, cache);
+                let upstream_output = evaluate_node(network, &conn.output_node, cache)?;
                 inputs.insert(conn.input_port.clone(), upstream_output);
             } else {
                 // Multiple connections - collect all outputs as paths
                 let mut all_paths: Vec<Path> = Vec::new();
                 for c in all_conns {
-                    let upstream_output = evaluate_node(network, &c.output_node, cache);
+                    let upstream_output = evaluate_node(network, &c.output_node, cache)?;
                     all_paths.extend(upstream_output.to_paths());
                 }
                 inputs.insert(conn.input_port.clone(), NodeOutput::Paths(all_paths));
@@ -292,24 +341,28 @@ fn evaluate_node(
     // Determine iteration count for list matching
     let iteration_count = compute_iteration_count(&inputs, node);
 
-    let output = match iteration_count {
-        None => NodeOutput::None, // Empty list input
+    let result = match iteration_count {
+        None => {
+            // Empty list input: still call execute_node to detect missing required inputs
+            // This ensures nodes that require inputs produce proper errors
+            execute_node(node, &inputs)
+        }
         Some(1) => execute_node(node, &inputs), // Single iteration (optimization)
         Some(count) => {
             // Multiple iterations: list matching
             let mut results = Vec::with_capacity(count);
             for i in 0..count {
                 let iter_inputs = build_iteration_inputs(&inputs, node, i);
-                let result = execute_node(node, &iter_inputs);
+                let result = execute_node(node, &iter_inputs)?;
                 results.push(result);
             }
-            collect_results(results)
+            Ok(collect_results(results))
         }
     };
 
     // Cache and return
-    cache.insert(node_name.to_string(), output.clone());
-    output
+    cache.insert(node_name.to_string(), result.clone());
+    result
 }
 
 /// Convert a Value to a NodeOutput.
@@ -398,13 +451,39 @@ fn get_string(inputs: &HashMap<String, NodeOutput>, name: &str, default: &str) -
     }
 }
 
+/// Require a path input value, returning an error if not present.
+fn require_path(inputs: &HashMap<String, NodeOutput>, node_name: &str, port_name: &str) -> Result<Path, EvalError> {
+    match inputs.get(port_name) {
+        Some(NodeOutput::Path(p)) => Ok(p.clone()),
+        Some(NodeOutput::Paths(ps)) if !ps.is_empty() => Ok(ps[0].clone()),
+        _ => Err(EvalError::PortNotFound {
+            node: node_name.to_string(),
+            port: port_name.to_string(),
+        }),
+    }
+}
+
+/// Require paths input value (for merge/combine operations), returning an error if not present.
+fn require_paths(inputs: &HashMap<String, NodeOutput>, node_name: &str, port_name: &str) -> Result<Vec<Path>, EvalError> {
+    match inputs.get(port_name) {
+        Some(NodeOutput::Path(p)) => Ok(vec![p.clone()]),
+        Some(NodeOutput::Paths(ps)) if !ps.is_empty() => Ok(ps.clone()),
+        _ => Err(EvalError::PortNotFound {
+            node: node_name.to_string(),
+            port: port_name.to_string(),
+        }),
+    }
+}
+
 /// Execute a node and return its output.
-fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput {
+fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> EvalResult {
     // Get the function name (prototype determines what the node does)
     let proto = match &node.prototype {
         Some(p) => p.as_str(),
-        None => return NodeOutput::None,
+        None => return Ok(NodeOutput::None),
     };
+
+    let node_name = &node.name;
 
     match proto {
         // Geometry generators
@@ -414,7 +493,7 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             let width = get_float(inputs, "width", 100.0);
             let height = get_float(inputs, "height", 100.0);
             let path = nodebox_ops::ellipse(position, width, height);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
         "corevector.rect" => {
             let position = get_point(inputs, "position", Point::ZERO);
@@ -423,14 +502,14 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             // Note: corevector.ndbx uses "roundness" (Point), not rx/ry
             let roundness = get_point(inputs, "roundness", Point::ZERO);
             let path = nodebox_ops::rect(position, width, height, roundness);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
         "corevector.line" => {
             let p1 = get_point(inputs, "point1", Point::ZERO);
             let p2 = get_point(inputs, "point2", Point::new(100.0, 100.0));
             let points = get_int(inputs, "points", 2) as u32;
             let path = nodebox_ops::line(p1, p2, points);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
         "corevector.polygon" => {
             let position = get_point(inputs, "position", Point::ZERO);
@@ -438,7 +517,7 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             let sides = get_int(inputs, "sides", 6) as u32;
             let align = get_bool(inputs, "align", true);
             let path = nodebox_ops::polygon(position, radius, sides, align);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
         "corevector.star" => {
             let position = get_point(inputs, "position", Point::ZERO);
@@ -446,7 +525,7 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             let outer = get_float(inputs, "outer", 50.0);
             let inner = get_float(inputs, "inner", 25.0);
             let path = nodebox_ops::star(position, points, outer, inner);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
         "corevector.arc" => {
             let position = get_point(inputs, "position", Point::ZERO);
@@ -457,79 +536,58 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             let degrees = get_float(inputs, "degrees", 90.0);
             let arc_type = get_string(inputs, "type", "pie");
             let path = nodebox_ops::arc(position, width, height, start_angle, degrees, &arc_type);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
 
         // Filters/transforms
         "corevector.colorize" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let fill = get_color(inputs, "fill", Color::WHITE);
             let stroke = get_color(inputs, "stroke", Color::BLACK);
             let stroke_width = get_float(inputs, "strokeWidth", 1.0);
             let path = nodebox_ops::colorize(&shape, fill, stroke, stroke_width);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
         "corevector.translate" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let offset = get_point(inputs, "translate", Point::ZERO);
             let path = nodebox_ops::translate(&shape, offset);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
         "corevector.rotate" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let angle = get_float(inputs, "angle", 0.0);
             let origin = get_point(inputs, "origin", Point::ZERO);
             let path = nodebox_ops::rotate(&shape, angle, origin);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
         "corevector.scale" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let scale = get_point(inputs, "scale", Point::new(100.0, 100.0));
             let origin = get_point(inputs, "origin", Point::ZERO);
             let path = nodebox_ops::scale(&shape, scale, origin);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
         "corevector.align" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let position = get_point(inputs, "position", Point::ZERO);
             let halign = get_string(inputs, "halign", "center");
             let valign = get_string(inputs, "valign", "middle");
             let path = nodebox_ops::align_str(&shape, position, &halign, &valign);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
         "corevector.fit" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             // Note: corevector.ndbx uses "position" (Point) and "keep_proportions" (underscore)
             let position = get_point(inputs, "position", Point::ZERO);
             let width = get_float(inputs, "width", 100.0);
             let height = get_float(inputs, "height", 100.0);
             let keep_proportions = get_bool(inputs, "keep_proportions", true);
             let path = nodebox_ops::fit(&shape, position, width, height, keep_proportions);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
         "corevector.copy" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let copies = get_int(inputs, "copies", 1) as u32;
             let order = nodebox_ops::CopyOrder::from_str(&get_string(inputs, "order", "tsr"));
             // Note: corevector.ndbx uses "translate" (Point) and "scale" (Point)
@@ -537,7 +595,7 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             let rotate = get_float(inputs, "rotate", 0.0);
             let scale = get_point(inputs, "scale", Point::new(100.0, 100.0));
             let paths = nodebox_ops::copy(&shape, copies, order, translate, rotate, scale);
-            NodeOutput::Paths(paths)
+            Ok(NodeOutput::Paths(paths))
         }
 
         // Combine operations
@@ -548,11 +606,11 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
                 // Try "shape" port as fallback
                 let shape = get_paths(inputs, "shape");
                 if shape.is_empty() {
-                    return NodeOutput::None;
+                    return Ok(NodeOutput::None);
                 }
-                return NodeOutput::Paths(shape);
+                return Ok(NodeOutput::Paths(shape));
             }
-            NodeOutput::Paths(shapes)
+            Ok(NodeOutput::Paths(shapes))
         }
 
         // List combine - combines multiple lists into one
@@ -564,35 +622,29 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
                 all_paths.extend(paths);
             }
             if all_paths.is_empty() {
-                NodeOutput::None
+                Ok(NodeOutput::None)
             } else {
-                NodeOutput::Paths(all_paths)
+                Ok(NodeOutput::Paths(all_paths))
             }
         }
 
         // Resample
         "corevector.resample" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let points = get_int(inputs, "points", 20) as usize;
             let path = nodebox_ops::resample(&shape, points);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
 
         // Wiggle
         "corevector.wiggle" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let scope = nodebox_ops::WiggleScope::from_str(&get_string(inputs, "scope", "points"));
             // Note: corevector.ndbx uses "offset" (Point), not offsetX/offsetY
             let offset = get_point(inputs, "offset", Point::new(10.0, 10.0));
             let seed = get_int(inputs, "seed", 0) as u64;
             let path = nodebox_ops::wiggle(&shape, scope, offset, seed);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
 
         // Connect points
@@ -602,9 +654,9 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             match inputs.get("points") {
                 Some(NodeOutput::Points(pts)) => {
                     let path = nodebox_ops::connect(pts, closed);
-                    NodeOutput::Path(path)
+                    Ok(NodeOutput::Path(path))
                 }
-                _ => NodeOutput::None,
+                _ => Ok(NodeOutput::None),
             }
         }
 
@@ -617,78 +669,63 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             // Note: corevector.ndbx uses "position" (Point), not x/y
             let position = get_point(inputs, "position", Point::ZERO);
             let points = nodebox_ops::grid(columns, rows, width, height, position);
-            NodeOutput::Points(points)
+            Ok(NodeOutput::Points(points))
         }
 
         // Make point
         "corevector.point" | "corevector.makePoint" | "corevector.make_point" => {
             let x = get_float(inputs, "x", 0.0);
             let y = get_float(inputs, "y", 0.0);
-            NodeOutput::Point(Point::new(x, y))
+            Ok(NodeOutput::Point(Point::new(x, y)))
         }
 
         // Reflect
         "corevector.reflect" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             // Note: corevector.ndbx uses "position" (Point), "angle", "keep_original"
             let position = get_point(inputs, "position", Point::ZERO);
             let angle = get_float(inputs, "angle", 0.0);
             let keep_original = get_bool(inputs, "keep_original", true);
             let geometry = nodebox_ops::reflect(&shape, position, angle, keep_original);
-            NodeOutput::Paths(nodebox_ops::ungroup(&geometry))
+            Ok(NodeOutput::Paths(nodebox_ops::ungroup(&geometry)))
         }
 
         // Skew
         "corevector.skew" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             // Note: corevector.ndbx uses "skew" (Point), "origin" (Point)
             let skew = get_point(inputs, "skew", Point::ZERO);
             let origin = get_point(inputs, "origin", Point::ZERO);
             let path = nodebox_ops::skew(&shape, skew, origin);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
 
         // Snap to grid
         "corevector.snap" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             // Note: corevector.ndbx uses "distance" (float), "strength" (float), "position" (Point)
             let distance = get_float(inputs, "distance", 10.0);
             let strength = get_float(inputs, "strength", 1.0);
             let position = get_point(inputs, "position", Point::ZERO);
             let path = nodebox_ops::snap(&shape, distance, strength, position);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
 
         // Point on path
         "corevector.point_on_path" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let t = get_float(inputs, "t", 0.0);
             // Range varies; convert from 0-100 percentage to 0-1 if needed
             let t_normalized = if t > 1.0 { t / 100.0 } else { t };
             let point = nodebox_ops::point_on_path(&shape, t_normalized);
-            NodeOutput::Point(point)
+            Ok(NodeOutput::Point(point))
         }
 
         // Centroid
         "corevector.centroid" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let point = nodebox_ops::centroid(&shape);
-            NodeOutput::Point(point)
+            Ok(NodeOutput::Point(point))
         }
 
         // Line from angle
@@ -698,7 +735,7 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             let distance = get_float(inputs, "distance", 100.0);
             let points = get_int(inputs, "points", 2) as u32;
             let path = nodebox_ops::line_angle(position, angle, distance, points);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
 
         // Quad curve
@@ -708,27 +745,21 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             let t = get_float(inputs, "t", 0.5);
             let distance = get_float(inputs, "distance", 50.0);
             let path = nodebox_ops::quad_curve(point1, point2, t, distance);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
 
         // Scatter points
         "corevector.scatter" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let amount = get_int(inputs, "amount", 10) as usize;
             let seed = get_int(inputs, "seed", 0) as u64;
             let points = nodebox_ops::scatter(&shape, amount, seed);
-            NodeOutput::Points(points)
+            Ok(NodeOutput::Points(points))
         }
 
         // Stack
         "corevector.stack" => {
-            let shapes = get_paths(inputs, "shapes");
-            if shapes.is_empty() {
-                return NodeOutput::None;
-            }
+            let shapes = require_paths(inputs, node_name, "shapes")?;
             let direction = get_string(inputs, "direction", "east");
             let margin = get_float(inputs, "margin", 0.0);
             let dir = match direction.as_str() {
@@ -738,37 +769,31 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
                 _ => nodebox_ops::StackDirection::East,
             };
             let paths = nodebox_ops::stack(&shapes, dir, margin);
-            NodeOutput::Paths(paths)
+            Ok(NodeOutput::Paths(paths))
         }
 
         // Freehand path
         "corevector.freehand" => {
             let path_string = get_string(inputs, "path", "");
             let path = nodebox_ops::freehand(&path_string);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
 
         // Link shapes
         "corevector.link" => {
-            let shape1 = match get_path(inputs, "shape1") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
-            let shape2 = match get_path(inputs, "shape2") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape1 = require_path(inputs, node_name, "shape1")?;
+            let shape2 = require_path(inputs, node_name, "shape2")?;
             let orientation = get_string(inputs, "orientation", "horizontal");
             let horizontal = orientation == "horizontal";
             let path = nodebox_ops::link(&shape1, &shape2, horizontal);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
 
         // Group
         "corevector.group" => {
             let shapes = get_paths(inputs, "shapes");
             let geometry = nodebox_ops::group(&shapes);
-            NodeOutput::Paths(nodebox_ops::ungroup(&geometry))
+            Ok(NodeOutput::Paths(nodebox_ops::ungroup(&geometry)))
         }
 
         // Ungroup
@@ -777,35 +802,26 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             let shapes = get_paths(inputs, "geometry");
             if shapes.is_empty() {
                 let shape = get_paths(inputs, "shape");
-                return NodeOutput::Paths(shape);
+                return Ok(NodeOutput::Paths(shape));
             }
-            NodeOutput::Paths(shapes)
+            Ok(NodeOutput::Paths(shapes))
         }
 
         // Fit to another shape
         "corevector.fit_to" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
-            let bounding = match get_path(inputs, "bounding") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
+            let bounding = require_path(inputs, node_name, "bounding")?;
             let keep_proportions = get_bool(inputs, "keep_proportions", true);
             let path = nodebox_ops::fit_to(&shape, &bounding, keep_proportions);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
 
         // Delete
         "corevector.delete" => {
-            let shape = match get_path(inputs, "shape") {
-                Some(p) => p,
-                None => return NodeOutput::None,
-            };
+            let shape = require_path(inputs, node_name, "shape")?;
             let bounding = match get_path(inputs, "bounding") {
                 Some(p) => p,
-                None => return NodeOutput::Path(shape),
+                None => return Ok(NodeOutput::Path(shape)),
             };
             let scope = get_string(inputs, "scope", "points");
             let delete_scope = match scope.as_str() {
@@ -815,15 +831,12 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             let operation = get_string(inputs, "operation", "selected");
             let delete_inside = operation == "selected";
             let path = nodebox_ops::delete(&shape, &bounding, delete_scope, delete_inside);
-            NodeOutput::Path(path)
+            Ok(NodeOutput::Path(path))
         }
 
         // Sort
         "corevector.sort" => {
-            let shapes = get_paths(inputs, "shapes");
-            if shapes.is_empty() {
-                return NodeOutput::None;
-            }
+            let shapes = require_paths(inputs, node_name, "shapes")?;
             let order_by = get_string(inputs, "order_by", "x");
             let sort_by = match order_by.as_str() {
                 "y" => nodebox_ops::SortBy::Y,
@@ -833,19 +846,19 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             };
             let position = get_point(inputs, "position", Point::ZERO);
             let paths = nodebox_ops::sort_paths(&shapes, sort_by, position);
-            NodeOutput::Paths(paths)
+            Ok(NodeOutput::Paths(paths))
         }
 
         // Default: pass-through or unknown node
         _ => {
             // For unknown nodes, try to pass through a shape input
             if let Some(path) = get_path(inputs, "shape") {
-                NodeOutput::Path(path)
+                Ok(NodeOutput::Path(path))
             } else if let Some(path) = get_path(inputs, "shapes") {
-                NodeOutput::Path(path)
+                Ok(NodeOutput::Path(path))
             } else {
                 log::warn!("Unknown node prototype: {}", proto);
-                NodeOutput::None
+                Ok(NodeOutput::None)
             }
         }
     }
@@ -869,7 +882,7 @@ mod tests {
             )
             .with_rendered_child("ellipse1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -899,7 +912,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "colorize1", "shape"))
             .with_rendered_child("colorize1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         // Check that the colorize was applied
@@ -937,7 +950,7 @@ mod tests {
             .with_connection(Connection::new("rect1", "merge1", "shapes"))
             .with_rendered_child("merge1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         // Merge collects all connected shapes
         assert_eq!(paths.len(), 2);
     }
@@ -955,7 +968,7 @@ mod tests {
             )
             .with_rendered_child("rect1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -976,7 +989,7 @@ mod tests {
             )
             .with_rendered_child("line1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -998,7 +1011,7 @@ mod tests {
             )
             .with_rendered_child("polygon1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         // Hexagon with radius 50 should have bounds approximately 100x86 (2*r x sqrt(3)*r)
@@ -1021,7 +1034,7 @@ mod tests {
             )
             .with_rendered_child("star1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         // Star with outer radius 50 should have bounds approximately 100x100
@@ -1045,7 +1058,7 @@ mod tests {
             )
             .with_rendered_child("arc1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
     }
 
@@ -1069,7 +1082,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "translate1", "shape"))
             .with_rendered_child("translate1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1102,7 +1115,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "scale1", "shape"))
             .with_rendered_child("scale1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1135,7 +1148,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "copy1", "shape"))
             .with_rendered_child("copy1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         // Should have 3 copies
         assert_eq!(paths.len(), 3);
     }
@@ -1143,7 +1156,7 @@ mod tests {
     #[test]
     fn test_evaluate_empty_network() {
         let library = NodeLibrary::new("test");
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert!(paths.is_empty());
     }
 
@@ -1160,7 +1173,7 @@ mod tests {
             );
         // No rendered_child set
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert!(paths.is_empty());
     }
 
@@ -1179,7 +1192,7 @@ mod tests {
             .with_rendered_child("colorize1");
 
         // Should handle missing input gracefully
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert!(paths.is_empty());
     }
 
@@ -1194,7 +1207,7 @@ mod tests {
             .with_rendered_child("unknown1");
 
         // Should handle unknown node type gracefully
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert!(paths.is_empty());
     }
 
@@ -1218,7 +1231,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "resample1", "shape"))
             .with_rendered_child("resample1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
         // Resampled path should have the specified number of points
         // Note: exact point count depends on implementation
@@ -1247,7 +1260,7 @@ mod tests {
             .with_connection(Connection::new("grid1", "connect1", "points"))
             .with_rendered_child("connect1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
     }
 
@@ -1270,7 +1283,7 @@ mod tests {
             )
             .with_rendered_child("ellipse1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1296,7 +1309,7 @@ mod tests {
             )
             .with_rendered_child("rect1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1321,7 +1334,7 @@ mod tests {
             )
             .with_rendered_child("rect1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
         // If roundness is applied, the path should have more points than a simple rect
     }
@@ -1341,7 +1354,7 @@ mod tests {
             )
             .with_rendered_child("polygon1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1366,7 +1379,7 @@ mod tests {
             )
             .with_rendered_child("star1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1394,7 +1407,7 @@ mod tests {
             )
             .with_rendered_child("arc1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1429,7 +1442,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "copy1", "shape"))
             .with_rendered_child("copy1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 3, "Should have 3 copies");
 
         // First copy at x=0, second at x=60, third at x=120
@@ -1466,7 +1479,7 @@ mod tests {
             .with_connection(Connection::new("grid1", "connect1", "points"))
             .with_rendered_child("connect1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1499,7 +1512,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "wiggle1", "shape"))
             .with_rendered_child("wiggle1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert!(!paths.is_empty(), "Wiggle should produce output");
     }
 
@@ -1528,7 +1541,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "fit1", "shape"))
             .with_rendered_child("fit1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
 
         // Verify fit produced output - the shape should be constrained to max 50x50
@@ -1611,7 +1624,7 @@ mod tests {
             .with_connection(Connection::new("polygon1", "combine1", "list3"))
             .with_rendered_child("combine1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
 
         assert_eq!(
             paths.len(),
@@ -1681,7 +1694,7 @@ mod tests {
             .with_connection(Connection::new("colorize3", "combine1", "list3"))
             .with_rendered_child("combine1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
 
         assert_eq!(
             paths.len(),
@@ -1718,7 +1731,7 @@ mod tests {
             .with_connection(Connection::new("rect1", "colorize1", "shape"))
             .with_rendered_child("colorize1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
 
         assert_eq!(
             paths.len(),
@@ -1758,7 +1771,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "combine1", "list2"))
             .with_rendered_child("combine1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
 
         // With no port definitions, list matching treats inputs as VALUE range
         // Each input is a single path, so iteration count = 1
@@ -1796,7 +1809,7 @@ mod tests {
             .with_connection(Connection::new("grid1", "rect1", "position"))
             .with_rendered_child("rect1");
 
-        let paths = evaluate_network(&library);
+        let (paths, _errors) = evaluate_network(&library);
 
         // THE KEY ASSERTION: Must produce 100 rectangles, not 1!
         assert_eq!(
@@ -1805,5 +1818,127 @@ mod tests {
             "Grid (10x10=100 points) -> rect should produce 100 rectangles, got {}",
             paths.len()
         );
+    }
+
+    // =========================================================================
+    // Tests for error handling
+    // =========================================================================
+
+    #[test]
+    fn test_missing_input_produces_error() {
+        // A colorize node without a connected shape input should produce an error
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("colorize1")
+                    .with_prototype("corevector.colorize")
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0)))
+            )
+            .with_rendered_child("colorize1");
+
+        let (paths, errors) = evaluate_network(&library);
+
+        // Should have no paths output
+        assert!(paths.is_empty(), "Should have no output on missing input, got {} paths", paths.len());
+
+        // Should have an error about the missing shape input
+        assert!(!errors.is_empty(), "Should have an error for missing input");
+        assert_eq!(errors[0].node_name, "colorize1", "Error should be on colorize1 node");
+        assert!(
+            errors[0].message.contains("shape") || errors[0].message.contains("Port"),
+            "Error message should mention missing port: {}",
+            errors[0].message
+        );
+    }
+
+    #[test]
+    fn test_error_propagates_through_connected_nodes() {
+        // If colorize1 has no input, translate1 connected to it should also fail
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("colorize1")
+                    .with_prototype("corevector.colorize")
+                    .with_input(Port::geometry("shape"))
+            )
+            .with_child(
+                Node::new("translate1")
+                    .with_prototype("corevector.translate")
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::point("translate", Point::new(10.0, 10.0)))
+            )
+            .with_connection(Connection::new("colorize1", "translate1", "shape"))
+            .with_rendered_child("translate1");
+
+        let (paths, errors) = evaluate_network(&library);
+
+        // Should have no output
+        assert!(paths.is_empty(), "Should have no output when upstream has error");
+
+        // Should have an error (from colorize1, propagated)
+        assert!(!errors.is_empty(), "Should have an error propagated from upstream");
+    }
+
+    #[test]
+    fn test_successful_evaluation_returns_no_errors() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("ellipse1")
+                    .with_prototype("corevector.ellipse")
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+            )
+            .with_rendered_child("ellipse1");
+
+        let (paths, errors) = evaluate_network(&library);
+
+        // Should have output
+        assert!(!paths.is_empty(), "Should have output for valid network");
+
+        // Should have no errors
+        assert!(errors.is_empty(), "Should have no errors for valid network");
+    }
+
+    #[test]
+    fn test_error_message_includes_node_name() {
+        // Error messages should include the node name for easy identification
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("my_colorize_node")
+                    .with_prototype("corevector.colorize")
+                    .with_input(Port::geometry("shape"))
+            )
+            .with_rendered_child("my_colorize_node");
+
+        let (_paths, errors) = evaluate_network(&library);
+
+        assert!(!errors.is_empty(), "Should have an error");
+        assert_eq!(
+            errors[0].node_name, "my_colorize_node",
+            "Error should identify the failing node"
+        );
+    }
+
+    #[test]
+    fn test_generator_nodes_never_error() {
+        // Generator nodes (ellipse, rect, etc.) should never produce errors
+        // as they have defaults for all inputs
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("ellipse1")
+                    .with_prototype("corevector.ellipse")
+                    // No inputs specified - should use defaults
+            )
+            .with_rendered_child("ellipse1");
+
+        let (paths, errors) = evaluate_network(&library);
+
+        assert!(!paths.is_empty(), "Generator should produce output with defaults");
+        assert!(errors.is_empty(), "Generator should not produce errors");
     }
 }

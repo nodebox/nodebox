@@ -89,7 +89,7 @@ pub const BLUE_500: Color32 = VIOLET_400;
 
 pub const SUCCESS_GREEN: Color32 = Color32::from_rgb(34, 197, 94);
 pub const WARNING_YELLOW: Color32 = Color32::from_rgb(234, 179, 8);
-pub const ERROR_RED: Color32 = Color32::from_rgb(239, 68, 68);
+pub const ERROR_RED: Color32 = Color32::from_rgb(255, 100, 103);  // #ff6467
 
 // Legacy alias
 pub const WARNING_ORANGE: Color32 = WARNING_YELLOW;
