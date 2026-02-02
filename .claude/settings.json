@@ -2,6 +2,7 @@
     "permissions": {
       "allow": [
         "Bash(git *)",
+        "Bash(gh pr *)",
         "Bash(cargo *)",
         "Bash(gh *)",
         "Bash(ls *)",
