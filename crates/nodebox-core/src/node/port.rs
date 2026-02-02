@@ -338,6 +338,22 @@ impl Port {
         self.description = Some(description.into());
         self
     }
+
+    /// Sets the menu items and widget type to Menu.
+    pub fn with_menu_items(mut self, items: Vec<MenuItem>) -> Self {
+        self.widget = Widget::Menu;
+        self.menu_items = items;
+        self
+    }
+
+    /// Creates a menu port with options.
+    pub fn menu(name: impl Into<String>, default_key: impl Into<String>, items: Vec<MenuItem>) -> Self {
+        let mut port = Port::new(name, PortType::String);
+        port.value = Value::String(default_key.into());
+        port.widget = Widget::Menu;
+        port.menu_items = items;
+        port
+    }
 }
 
 #[cfg(test)]

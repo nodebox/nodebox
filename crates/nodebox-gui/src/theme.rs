@@ -71,6 +71,8 @@ pub const GRAY_775: Color32 = SLATE_100;
 
 /// Selection background (subtle violet tint)
 pub const VIOLET_900: Color32 = Color32::from_rgb(45, 38, 64);
+/// Lighter selection background (for better text contrast)
+pub const VIOLET_800: Color32 = Color32::from_rgb(76, 58, 118);
 /// Darker pressed state
 pub const VIOLET_600: Color32 = Color32::from_rgb(124, 58, 237);
 /// Primary accent color
@@ -112,8 +114,8 @@ pub const SURFACE_ELEVATED: Color32 = SLATE_700;
 pub const TEXT_EDIT_BG: Color32 = SLATE_700;
 /// Hover state background
 pub const HOVER_BG: Color32 = SLATE_600;
-/// Selection background (subtle violet)
-pub const SELECTION_BG: Color32 = VIOLET_900;
+/// Selection background (visible violet with good text contrast)
+pub const SELECTION_BG: Color32 = VIOLET_800;
 
 // =============================================================================
 // SEMANTIC COLORS - Text
@@ -133,9 +135,9 @@ pub const TEXT_DISABLED: Color32 = SLATE_500;
 // =============================================================================
 
 /// Widget inactive background
-pub const WIDGET_INACTIVE_BG: Color32 = SLATE_600;
+pub const WIDGET_INACTIVE_BG: Color32 = SLATE_700;
 /// Widget hovered background
-pub const WIDGET_HOVERED_BG: Color32 = SLATE_500;
+pub const WIDGET_HOVERED_BG: Color32 = SLATE_600;
 /// Widget active/pressed background
 pub const WIDGET_ACTIVE_BG: Color32 = SLATE_400;
 /// Non-interactive widget background
@@ -373,10 +375,10 @@ pub fn configure_style(ctx: &egui::Context) {
         FontId::monospace(FONT_SIZE_BASE),
     );
 
-    // Spacing - generous for a modern, breathable feel
+    // Spacing - compact for a minimal feel
     style.spacing.item_spacing = egui::vec2(ITEM_SPACING, ITEM_SPACING);
-    style.spacing.button_padding = egui::vec2(PADDING_LARGE, PADDING);
-    style.spacing.menu_margin = egui::Margin::same(MENU_SPACING as i8);
+    style.spacing.button_padding = egui::vec2(8.0, 4.0); // Compact button padding
+    style.spacing.menu_margin = egui::Margin::same(2); // Tight menu margins
     style.spacing.indent = INDENT;
     style.spacing.scroll = egui::style::ScrollStyle {
         bar_width: SCROLL_BAR_WIDTH,
@@ -391,41 +393,50 @@ pub fn configure_style(ctx: &egui::Context) {
     visuals.window_corner_radius = CornerRadius::ZERO; // Sharp 90° corners
     visuals.window_shadow = egui::Shadow::NONE;
 
+    // Visuals - Menu/popup (sharp corners, no shadow)
+    visuals.menu_corner_radius = CornerRadius::ZERO;
+    visuals.popup_shadow = egui::Shadow::NONE;
+
     // Visuals - Panel (no borders, use background differentiation)
     visuals.panel_fill = PANEL_BG;
     visuals.faint_bg_color = SLATE_800;
     visuals.extreme_bg_color = SLATE_950;
 
     // Visuals - Widgets (sharp corners, minimal borders)
-    visuals.widgets.noninteractive.bg_fill = WIDGET_NONINTERACTIVE_BG;
+    visuals.widgets.noninteractive.bg_fill = SLATE_800;
+    visuals.widgets.noninteractive.weak_bg_fill = SLATE_800;
     visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0, TEXT_SUBDUED);
     visuals.widgets.noninteractive.corner_radius = CornerRadius::ZERO;
     visuals.widgets.noninteractive.bg_stroke = Stroke::NONE;
 
-    visuals.widgets.inactive.bg_fill = WIDGET_INACTIVE_BG;
-    visuals.widgets.inactive.fg_stroke = Stroke::new(1.0, TEXT_DEFAULT);
+    visuals.widgets.inactive.bg_fill = SLATE_700;
+    visuals.widgets.inactive.weak_bg_fill = SLATE_700;
+    visuals.widgets.inactive.fg_stroke = Stroke::new(1.0, SLATE_200);
     visuals.widgets.inactive.corner_radius = CornerRadius::ZERO;
     visuals.widgets.inactive.bg_stroke = Stroke::NONE;
 
-    visuals.widgets.hovered.bg_fill = WIDGET_HOVERED_BG;
-    visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, TEXT_STRONG);
+    visuals.widgets.hovered.bg_fill = SLATE_600;
+    visuals.widgets.hovered.weak_bg_fill = SLATE_600;
+    visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, SLATE_100);
     visuals.widgets.hovered.corner_radius = CornerRadius::ZERO;
     visuals.widgets.hovered.expansion = 0.0; // No expansion, just color change
     visuals.widgets.hovered.bg_stroke = Stroke::NONE;
 
-    visuals.widgets.active.bg_fill = WIDGET_ACTIVE_BG;
-    visuals.widgets.active.fg_stroke = Stroke::new(1.0, TEXT_STRONG);
+    visuals.widgets.active.bg_fill = SLATE_600;
+    visuals.widgets.active.weak_bg_fill = SLATE_600;
+    visuals.widgets.active.fg_stroke = Stroke::new(1.0, SLATE_100);
     visuals.widgets.active.corner_radius = CornerRadius::ZERO;
     visuals.widgets.active.expansion = 0.0;
     visuals.widgets.active.bg_stroke = Stroke::NONE;
 
-    visuals.widgets.open.bg_fill = WIDGET_ACTIVE_BG;
-    visuals.widgets.open.fg_stroke = Stroke::new(1.0, TEXT_STRONG);
+    visuals.widgets.open.bg_fill = SLATE_600;
+    visuals.widgets.open.weak_bg_fill = SLATE_600;
+    visuals.widgets.open.fg_stroke = Stroke::new(1.0, SLATE_200);
     visuals.widgets.open.corner_radius = CornerRadius::ZERO;
 
-    // Selection (violet tint, no stroke for cleaner look)
+    // Selection (violet tint with visible text)
     visuals.selection.bg_fill = SELECTION_BG;
-    visuals.selection.stroke = Stroke::NONE;
+    visuals.selection.stroke = Stroke::new(1.0, TEXT_STRONG);
 
     // Separators - almost invisible
     visuals.widgets.noninteractive.bg_stroke = Stroke::NONE;
