@@ -67,6 +67,7 @@ pub use vello_renderer::{VelloConfig, VelloError, VelloRenderer, ViewTransform};
 pub use vello_viewer::VelloViewer;
 
 mod native_menu;
+mod recent_files;
 
 use native_menu::NativeMenuHandle;
 use std::path::PathBuf;

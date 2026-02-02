@@ -5,15 +5,18 @@
 #![allow(dead_code)]
 
 #[cfg(target_os = "macos")]
-use muda::{Menu, MenuItem, PredefinedMenuItem, Submenu, accelerator::Accelerator, MenuEvent};
+use muda::{Menu, MenuId, MenuItem, PredefinedMenuItem, Submenu, accelerator::Accelerator, MenuEvent};
 #[cfg(target_os = "macos")]
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
+use std::path::PathBuf;
 
 /// Menu item identifiers for handling menu events.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MenuAction {
     New,
     Open,
+    OpenRecent(PathBuf),
+    ClearRecent,
     Save,
     SaveAs,
     ExportPng,
@@ -36,18 +39,22 @@ pub enum MenuAction {
 pub struct NativeMenuHandle {
     menu: Menu,
     initialized: Cell<bool>,
-    new_id: muda::MenuId,
-    open_id: muda::MenuId,
-    save_id: muda::MenuId,
-    save_as_id: muda::MenuId,
-    export_png_id: muda::MenuId,
-    export_svg_id: muda::MenuId,
-    undo_id: muda::MenuId,
-    redo_id: muda::MenuId,
-    zoom_in_id: muda::MenuId,
-    zoom_out_id: muda::MenuId,
-    zoom_reset_id: muda::MenuId,
-    about_id: muda::MenuId,
+    new_id: MenuId,
+    open_id: MenuId,
+    recent_submenu: Submenu,
+    clear_recent_id: MenuId,
+    /// Map from menu IDs to file paths for recent files
+    recent_file_ids: RefCell<Vec<(MenuId, PathBuf)>>,
+    save_id: MenuId,
+    save_as_id: MenuId,
+    export_png_id: MenuId,
+    export_svg_id: MenuId,
+    undo_id: MenuId,
+    redo_id: MenuId,
+    zoom_in_id: MenuId,
+    zoom_out_id: MenuId,
+    zoom_reset_id: MenuId,
+    about_id: MenuId,
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -79,6 +86,14 @@ impl NativeMenuHandle {
         let new_id = new_item.id().clone();
         let open_item = MenuItem::new("Open...", true, Some(Accelerator::new(Some(muda::accelerator::Modifiers::META), muda::accelerator::Code::KeyO)));
         let open_id = open_item.id().clone();
+
+        // Open Recent submenu
+        let recent_submenu = Submenu::new("Open Recent", true);
+        let clear_recent = MenuItem::new("Clear Recent", true, None);
+        let clear_recent_id = clear_recent.id().clone();
+        // Start with just "Clear Recent" (will be rebuilt with files later)
+        recent_submenu.append(&clear_recent).unwrap();
+
         let save_item = MenuItem::new("Save", true, Some(Accelerator::new(Some(muda::accelerator::Modifiers::META), muda::accelerator::Code::KeyS)));
         let save_id = save_item.id().clone();
         let save_as_item = MenuItem::new("Save As...", true, Some(Accelerator::new(Some(muda::accelerator::Modifiers::META | muda::accelerator::Modifiers::SHIFT), muda::accelerator::Code::KeyS)));
@@ -94,6 +109,7 @@ impl NativeMenuHandle {
 
         file_menu.append(&new_item).unwrap();
         file_menu.append(&open_item).unwrap();
+        file_menu.append(&recent_submenu).unwrap();
         file_menu.append(&PredefinedMenuItem::separator()).unwrap();
         file_menu.append(&save_item).unwrap();
         file_menu.append(&save_as_item).unwrap();
@@ -156,6 +172,9 @@ impl NativeMenuHandle {
             initialized: Cell::new(false),
             new_id,
             open_id,
+            recent_submenu,
+            clear_recent_id,
+            recent_file_ids: RefCell::new(Vec::new()),
             save_id,
             save_as_id,
             export_png_id,
@@ -167,6 +186,46 @@ impl NativeMenuHandle {
             zoom_reset_id,
             about_id,
         }
+    }
+
+    /// Rebuild the "Open Recent" submenu with the given list of files.
+    pub fn rebuild_recent_menu(&self, files: &[PathBuf]) {
+        // Clear all items from the submenu by removing each one based on its kind
+        let items = self.recent_submenu.items();
+        for item in items {
+            match item {
+                muda::MenuItemKind::MenuItem(m) => { let _ = self.recent_submenu.remove(&m); }
+                muda::MenuItemKind::Submenu(s) => { let _ = self.recent_submenu.remove(&s); }
+                muda::MenuItemKind::Predefined(p) => { let _ = self.recent_submenu.remove(&p); }
+                muda::MenuItemKind::Check(c) => { let _ = self.recent_submenu.remove(&c); }
+                muda::MenuItemKind::Icon(i) => { let _ = self.recent_submenu.remove(&i); }
+            }
+        }
+
+        // Clear the recent file IDs mapping
+        self.recent_file_ids.borrow_mut().clear();
+
+        // Add file items
+        for path in files {
+            // Use filename for display, full path for tooltip would be nice but muda doesn't support it
+            let display_name = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("Unknown");
+            let item = MenuItem::new(display_name, true, None);
+            let id = item.id().clone();
+            self.recent_submenu.append(&item).unwrap();
+            self.recent_file_ids.borrow_mut().push((id, path.clone()));
+        }
+
+        // Add separator and Clear Recent if there are files
+        if !files.is_empty() {
+            self.recent_submenu.append(&PredefinedMenuItem::separator()).unwrap();
+        }
+
+        // Add Clear Recent item
+        let clear_item = MenuItem::new("Clear Recent", !files.is_empty(), None);
+        self.recent_submenu.append(&clear_item).unwrap();
     }
 
     /// Ensure the menu is initialized for NSApp.
@@ -209,6 +268,24 @@ impl NativeMenuHandle {
             } else if event.id == self.about_id {
                 return Some(MenuAction::About);
             }
+
+            // Check recent file IDs
+            let recent_ids = self.recent_file_ids.borrow();
+            for (id, path) in recent_ids.iter() {
+                if event.id == *id {
+                    return Some(MenuAction::OpenRecent(path.clone()));
+                }
+            }
+            drop(recent_ids);
+
+            // Check for Clear Recent - look through submenu items
+            for item in self.recent_submenu.items() {
+                if let muda::MenuItemKind::MenuItem(menu_item) = item {
+                    if menu_item.id() == &event.id && menu_item.text() == "Clear Recent" {
+                        return Some(MenuAction::ClearRecent);
+                    }
+                }
+            }
         }
         None
     }
@@ -222,6 +299,10 @@ impl NativeMenuHandle {
 
     pub fn poll_event(&self) -> Option<MenuAction> {
         None
+    }
+
+    pub fn rebuild_recent_menu(&self, _files: &[PathBuf]) {
+        // No-op on non-macOS platforms
     }
 }
 

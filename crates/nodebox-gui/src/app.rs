@@ -8,6 +8,7 @@ use crate::components;
 use crate::history::History;
 use crate::icon_cache::IconCache;
 use crate::native_menu::{MenuAction, NativeMenuHandle};
+use crate::recent_files::RecentFiles;
 use crate::network_view::{NetworkAction, NetworkView};
 use crate::node_selection_dialog::NodeSelectionDialog;
 use crate::panels::ParameterPanel;
@@ -38,6 +39,8 @@ pub struct NodeBoxApp {
     render_pending: bool,
     /// Native menu handle for macOS system menu bar.
     native_menu: Option<NativeMenuHandle>,
+    /// Recent files list for "Open Recent" menu.
+    recent_files: RecentFiles,
 }
 
 impl NodeBoxApp {
@@ -58,11 +61,23 @@ impl NodeBoxApp {
 
         let mut state = AppState::new();
 
+        // Load recent files from disk
+        let mut recent_files = RecentFiles::load();
+
         // Load the initial file if provided
         if let Some(ref path) = initial_file {
             if let Err(e) = state.load_file(path) {
                 log::error!("Failed to load initial file {:?}: {}", path, e);
+            } else {
+                // Add to recent files on successful load
+                recent_files.add_file(path.clone());
+                recent_files.save();
             }
+        }
+
+        // Rebuild native menu with recent files
+        if let Some(ref menu) = native_menu {
+            menu.rebuild_recent_menu(&recent_files.files());
         }
 
         let hash = Self::hash_library(&state.library);
@@ -81,6 +96,7 @@ impl NodeBoxApp {
             render_state: RenderState::new(),
             render_pending: false, // Initial geometry is already evaluated in AppState::new()
             native_menu,
+            recent_files,
         }
     }
 
@@ -108,6 +124,7 @@ impl NodeBoxApp {
             render_state: RenderState::new(),
             render_pending: false,
             native_menu: None,
+            recent_files: RecentFiles::new(),
         }
     }
 
@@ -136,6 +153,7 @@ impl NodeBoxApp {
             render_state: RenderState::new(),
             render_pending: false,
             native_menu: None,
+            recent_files: RecentFiles::new(),
         }
     }
 
@@ -262,6 +280,8 @@ impl NodeBoxApp {
         match action {
             MenuAction::New => self.state.new_document(),
             MenuAction::Open => self.open_file(),
+            MenuAction::OpenRecent(path) => self.open_recent_file(&path),
+            MenuAction::ClearRecent => self.clear_recent_files(),
             MenuAction::Save => self.save_file(),
             MenuAction::SaveAs => self.save_file_as(),
             MenuAction::ExportPng => self.export_png(),
@@ -294,6 +314,9 @@ impl NodeBoxApp {
     /// Show the menu bar.
     #[cfg(not(target_os = "macos"))]
     fn show_menu_bar(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+        // Collect recent files to avoid borrow issues
+        let recent_files_list = self.recent_files.files();
+
         egui::menu::bar(ui, |ui| {
             ui.menu_button("File", |ui| {
                 if ui.button("New").clicked() {
@@ -304,6 +327,32 @@ impl NodeBoxApp {
                     self.open_file();
                     ui.close_menu();
                 }
+                ui.menu_button("Open Recent", |ui| {
+                    if recent_files_list.is_empty() {
+                        ui.label("No recent files");
+                    } else {
+                        // Store the path to open (if any) to avoid borrow issues
+                        let mut path_to_open = None;
+                        for path in &recent_files_list {
+                            let display_name = path
+                                .file_name()
+                                .and_then(|n| n.to_str())
+                                .unwrap_or("Unknown");
+                            if ui.button(display_name).clicked() {
+                                path_to_open = Some(path.clone());
+                                ui.close_menu();
+                            }
+                        }
+                        if let Some(path) = path_to_open {
+                            self.open_recent_file(&path);
+                        }
+                        ui.separator();
+                    }
+                    if ui.add_enabled(!recent_files_list.is_empty(), egui::Button::new("Clear Recent")).clicked() {
+                        self.clear_recent_files();
+                        ui.close_menu();
+                    }
+                });
                 if ui.button("Save").clicked() {
                     self.save_file();
                     ui.close_menu();
@@ -687,7 +736,36 @@ impl NodeBoxApp {
         {
             if let Err(e) = self.state.load_file(&path) {
                 log::error!("Failed to load file: {}", e);
+            } else {
+                self.add_to_recent_files(path);
             }
+        }
+    }
+
+    /// Open a file from the recent files list.
+    fn open_recent_file(&mut self, path: &std::path::Path) {
+        if let Err(e) = self.state.load_file(path) {
+            log::error!("Failed to load recent file: {}", e);
+        } else {
+            self.add_to_recent_files(path.to_path_buf());
+        }
+    }
+
+    /// Add a file to the recent files list and update the menu.
+    fn add_to_recent_files(&mut self, path: std::path::PathBuf) {
+        self.recent_files.add_file(path);
+        self.recent_files.save();
+        if let Some(ref menu) = self.native_menu {
+            menu.rebuild_recent_menu(&self.recent_files.files());
+        }
+    }
+
+    /// Clear all recent files.
+    fn clear_recent_files(&mut self) {
+        self.recent_files.clear();
+        self.recent_files.save();
+        if let Some(ref menu) = self.native_menu {
+            menu.rebuild_recent_menu(&self.recent_files.files());
         }
     }
 
@@ -708,6 +786,8 @@ impl NodeBoxApp {
         {
             if let Err(e) = self.state.save_file(&path) {
                 log::error!("Failed to save file: {}", e);
+            } else {
+                self.add_to_recent_files(path);
             }
         }
     }
