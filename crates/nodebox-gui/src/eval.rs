@@ -5,6 +5,7 @@ use nodebox_core::geometry::{Path, Point, Color, Contour, PathPoint, PointType};
 use nodebox_core::node::{Node, NodeLibrary, EvalError};
 use nodebox_core::node::PortRange;
 use nodebox_core::Value;
+use crate::render_worker::CancellationToken;
 
 /// Error information for a specific node.
 #[derive(Debug, Clone)]
@@ -27,6 +28,17 @@ impl NodeError {
 
 /// Result type for evaluation operations.
 pub type EvalResult = Result<NodeOutput, EvalError>;
+
+/// Outcome of a cancellable evaluation.
+pub enum EvalOutcome {
+    /// Evaluation completed successfully (may include errors).
+    Completed {
+        geometry: Vec<Path>,
+        errors: Vec<NodeError>,
+    },
+    /// Evaluation was cancelled before completion.
+    Cancelled,
+}
 
 /// The result of evaluating a node.
 #[derive(Clone, Debug)]
@@ -179,6 +191,100 @@ pub fn evaluate_network(library: &NodeLibrary) -> (Vec<Path>, Vec<NodeError>) {
     }
 }
 
+/// Evaluate a node network with cancellation support.
+///
+/// This function supports cooperative cancellation via the provided token.
+/// Cancellation is checked at two boundaries:
+/// 1. Before evaluating each node
+/// 2. During list-matching iterations
+///
+/// The cache parameter is both input (for reusing previous results) and output
+/// (for preserving partial results on cancellation).
+pub fn evaluate_network_cancellable(
+    library: &NodeLibrary,
+    cancel_token: &CancellationToken,
+    cache: &mut HashMap<String, NodeOutput>,
+) -> EvalOutcome {
+    let network = &library.root;
+
+    // Find the rendered child
+    let rendered_name = match &network.rendered_child {
+        Some(name) => name.clone(),
+        None => {
+            // No rendered child, return empty
+            return EvalOutcome::Completed {
+                geometry: Vec::new(),
+                errors: Vec::new(),
+            };
+        }
+    };
+
+    // Check cancellation before starting
+    if cancel_token.is_cancelled() {
+        return EvalOutcome::Cancelled;
+    }
+
+    // Convert cache to EvalResult format for internal use
+    let mut eval_cache: HashMap<String, EvalResult> = cache
+        .drain()
+        .map(|(k, v)| (k, Ok(v)))
+        .collect();
+
+    // Evaluate the rendered node (this will recursively evaluate dependencies)
+    let result = evaluate_node_cancellable(
+        network,
+        &rendered_name,
+        &mut eval_cache,
+        cancel_token,
+    );
+
+    // Convert cache back to NodeOutput format (preserve successful results)
+    for (k, v) in eval_cache {
+        if let Ok(output) = v {
+            cache.insert(k, output);
+        }
+    }
+
+    // Check if cancelled
+    if cancel_token.is_cancelled() {
+        return EvalOutcome::Cancelled;
+    }
+
+    match result {
+        Ok(output) => EvalOutcome::Completed {
+            geometry: output.to_paths(),
+            errors: Vec::new(),
+        },
+        Err(EvalError::Cancelled) => EvalOutcome::Cancelled,
+        Err(e) => {
+            // Extract node name based on error type
+            let (node_name, message) = match &e {
+                EvalError::PortNotFound { node, port } => {
+                    (node.clone(), format!("Missing required input '{}'", port))
+                }
+                EvalError::NodeNotFound(name) => {
+                    (name.clone(), "Node not found".to_string())
+                }
+                EvalError::ProcessingError(msg) => {
+                    // ProcessingError format: "nodename: message"
+                    if let Some(pos) = msg.find(':') {
+                        let name = msg[..pos].trim().to_string();
+                        let err_msg = msg[pos + 1..].trim().to_string();
+                        (name, err_msg)
+                    } else {
+                        (rendered_name.clone(), msg.clone())
+                    }
+                }
+                _ => (rendered_name.clone(), e.to_string()),
+            };
+            EvalOutcome::Completed {
+                geometry: Vec::new(),
+                errors: vec![NodeError::new(node_name, message)],
+            }
+        }
+    }
+}
+
 /// Determine how many times to execute the node for list matching.
 /// Returns None if any VALUE-range input is empty.
 fn compute_iteration_count(
@@ -265,6 +371,143 @@ fn collect_results(results: Vec<NodeOutput>) -> NodeOutput {
     } else {
         NodeOutput::Paths(paths)
     }
+}
+
+/// Evaluate a single node with cancellation support.
+fn evaluate_node_cancellable(
+    network: &Node,
+    node_name: &str,
+    cache: &mut HashMap<String, EvalResult>,
+    cancel_token: &CancellationToken,
+) -> EvalResult {
+    // Check cancellation before starting this node
+    if cancel_token.is_cancelled() {
+        return Err(EvalError::Cancelled);
+    }
+
+    // Check cache first
+    if let Some(result) = cache.get(node_name) {
+        return result.clone();
+    }
+
+    // Find the node
+    let node = match network.child(node_name) {
+        Some(n) => n,
+        None => return Err(EvalError::NodeNotFound(node_name.to_string())),
+    };
+
+    // Collect input values for this node
+    let mut inputs: HashMap<String, NodeOutput> = HashMap::new();
+
+    // For each input port, check if there are connections
+    for port in &node.inputs {
+        // Check cancellation during input collection
+        if cancel_token.is_cancelled() {
+            return Err(EvalError::Cancelled);
+        }
+
+        // Get ALL connections to this port (for merge/combine operations)
+        let connections: Vec<_> = network.connections
+            .iter()
+            .filter(|c| c.input_node == node_name && c.input_port == port.name)
+            .collect();
+
+        if connections.is_empty() {
+            // No connections - use the port's default value
+            inputs.insert(port.name.clone(), value_to_output(&port.value));
+        } else if connections.len() == 1 {
+            // Single connection - evaluate and use directly
+            let upstream_output = evaluate_node_cancellable(
+                network,
+                &connections[0].output_node,
+                cache,
+                cancel_token,
+            )?;
+            inputs.insert(port.name.clone(), upstream_output);
+        } else {
+            // Multiple connections - collect all outputs as paths
+            let mut all_paths: Vec<Path> = Vec::new();
+            for conn in connections {
+                let upstream_output = evaluate_node_cancellable(
+                    network,
+                    &conn.output_node,
+                    cache,
+                    cancel_token,
+                )?;
+                all_paths.extend(upstream_output.to_paths());
+            }
+            inputs.insert(port.name.clone(), NodeOutput::Paths(all_paths));
+        }
+    }
+
+    // Also collect inputs from connections that don't have corresponding port definitions
+    for conn in &network.connections {
+        if conn.input_node == node_name && !inputs.contains_key(&conn.input_port) {
+            // Check cancellation
+            if cancel_token.is_cancelled() {
+                return Err(EvalError::Cancelled);
+            }
+
+            // Check if there are multiple connections to this port
+            let all_conns: Vec<_> = network.connections
+                .iter()
+                .filter(|c| c.input_node == node_name && c.input_port == conn.input_port)
+                .collect();
+
+            if all_conns.len() == 1 {
+                let upstream_output = evaluate_node_cancellable(
+                    network,
+                    &conn.output_node,
+                    cache,
+                    cancel_token,
+                )?;
+                inputs.insert(conn.input_port.clone(), upstream_output);
+            } else {
+                // Multiple connections - collect all outputs as paths
+                let mut all_paths: Vec<Path> = Vec::new();
+                for c in all_conns {
+                    let upstream_output = evaluate_node_cancellable(
+                        network,
+                        &c.output_node,
+                        cache,
+                        cancel_token,
+                    )?;
+                    all_paths.extend(upstream_output.to_paths());
+                }
+                inputs.insert(conn.input_port.clone(), NodeOutput::Paths(all_paths));
+            }
+        }
+    }
+
+    // Determine iteration count for list matching
+    let iteration_count = compute_iteration_count(&inputs, node);
+
+    let result = match iteration_count {
+        None => {
+            // Empty list input: still call execute_node to detect missing required inputs
+            execute_node(node, &inputs)
+        }
+        Some(1) => execute_node(node, &inputs), // Single iteration (optimization)
+        Some(count) => {
+            // Multiple iterations: list matching with cancellation checks
+            let mut results = Vec::with_capacity(count);
+            for i in 0..count {
+                // Check cancellation at each iteration boundary
+                if cancel_token.is_cancelled() {
+                    return Err(EvalError::Cancelled);
+                }
+
+                let iter_inputs = build_iteration_inputs(&inputs, node, i);
+                let result = execute_node(node, &iter_inputs)?;
+                results.push(result);
+            }
+            Ok(collect_results(results))
+        }
+    };
+
+    // Cache and return
+    cache.insert(node_name.to_string(), result.clone());
+    result
 }
 
 /// Evaluate a single node, recursively evaluating its dependencies.

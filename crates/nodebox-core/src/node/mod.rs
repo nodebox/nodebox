@@ -41,6 +41,9 @@ pub enum EvalError {
     /// An error occurred during node processing.
     ProcessingError(String),
 
+    /// Evaluation was cancelled by the user.
+    Cancelled,
+
     /// A general evaluation error.
     Other(String),
 }
@@ -61,6 +64,7 @@ impl std::fmt::Display for EvalError {
             }
             EvalError::PythonError(msg) => write!(f, "Python error: {}", msg),
             EvalError::ProcessingError(msg) => write!(f, "{}", msg),
+            EvalError::Cancelled => write!(f, "Evaluation cancelled"),
             EvalError::Other(msg) => write!(f, "{}", msg),
         }
     }
