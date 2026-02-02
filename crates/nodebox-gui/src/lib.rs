@@ -34,7 +34,7 @@ mod node_library;
 mod node_selection_dialog;
 mod pan_zoom;
 mod panels;
-mod render_worker;
+pub mod render_worker;
 pub mod state;
 mod theme;
 mod timeline;

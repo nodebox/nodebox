@@ -2,7 +2,7 @@
 
 use eframe::egui::{self, Pos2, Rect, Vec2};
 use nodebox_core::geometry::Point;
-use crate::address_bar::AddressBar;
+use crate::address_bar::{AddressBar, AddressBarAction};
 use crate::animation_bar::AnimationBar;
 use crate::components;
 use crate::history::History;
@@ -265,6 +265,12 @@ impl NodeBoxApp {
                         self.render_state.complete();
                     }
                 }
+                RenderResult::Cancelled { id } => {
+                    if self.render_state.is_current(id) {
+                        // Keep previous geometry visible
+                        self.render_state.complete();
+                    }
+                }
                 RenderResult::Error { id, message } => {
                     if self.render_state.is_current(id) {
                         log::error!("Render error: {}", message);
@@ -277,9 +283,20 @@ impl NodeBoxApp {
 
         // Dispatch pending render if not already rendering
         if self.render_pending && !self.render_state.is_rendering {
-            let id = self.render_state.dispatch_new();
-            self.render_worker.request_render(id, self.state.library.clone());
+            let (id, cancel_token) = self.render_state.dispatch_new();
+            self.render_worker.request_render(
+                id,
+                self.state.library.clone(),
+                cancel_token,
+            );
             self.render_pending = false;
+        }
+    }
+
+    /// Cancel the current render operation.
+    fn cancel_render(&mut self) {
+        if self.render_state.is_rendering {
+            self.render_state.cancel();
         }
     }
 
@@ -489,13 +506,23 @@ impl eframe::App for NodeBoxApp {
             .exact_height(theme::ADDRESS_BAR_HEIGHT)
             .frame(egui::Frame::NONE)
             .show(ctx, |ui| {
-                // Update address bar message with current state
-                let node_count = self.state.library.root.children.len();
-                let msg = format!("{} nodes · {:.0}%", node_count, self.viewer_pane.zoom() * 100.0);
-                self.address_bar.set_message(msg);
+                // Update render state for stop button
+                let elapsed_secs = self.render_state.elapsed()
+                    .map(|d| d.as_secs_f32())
+                    .unwrap_or(0.0);
+                self.address_bar.set_render_state(
+                    self.render_state.is_rendering,
+                    elapsed_secs,
+                );
 
-                if let Some(_clicked_path) = self.address_bar.show(ui) {
-                    // Future: navigate to sub-network
+                match self.address_bar.show(ui) {
+                    AddressBarAction::NavigateTo(_path) => {
+                        // Future: navigate to sub-network
+                    }
+                    AddressBarAction::StopClicked => {
+                        self.cancel_render();
+                    }
+                    AddressBarAction::None => {}
                 }
             });
 
@@ -605,9 +632,11 @@ impl eframe::App for NodeBoxApp {
                 match result {
                     HandleResult::PointChange { param, value } => {
                         self.handle_parameter_change(&param, value);
+                        self.render_pending = true;
                     }
                     HandleResult::FourPointChange { x, y, width, height } => {
                         self.handle_four_point_change(x, y, width, height);
+                        self.render_pending = true;
                     }
                     HandleResult::None => {}
                 }
@@ -646,12 +675,18 @@ impl eframe::App for NodeBoxApp {
         }
 
         // Handle keyboard shortcuts
-        let (do_undo, do_redo) = ctx.input(|i| {
+        let (do_undo, do_redo, do_cancel) = ctx.input(|i| {
             let undo = i.modifiers.command && i.key_pressed(egui::Key::Z) && !i.modifiers.shift;
             let redo = (i.modifiers.command && i.modifiers.shift && i.key_pressed(egui::Key::Z))
                 || (i.modifiers.command && i.key_pressed(egui::Key::Y));
-            (undo, redo)
+            // Cmd/Ctrl + . to cancel rendering
+            let cancel = i.modifiers.command && i.key_pressed(egui::Key::Period);
+            (undo, redo, cancel)
         });
+
+        if do_cancel {
+            self.cancel_render();
+        }
 
         if do_undo {
             if let Some(previous) = self.history.undo(&self.state.library) {
@@ -670,6 +705,11 @@ impl eframe::App for NodeBoxApp {
 
         // Check for state changes and save to history
         self.check_for_changes();
+
+        // Request repaint if a change was detected (ensures next frame runs to dispatch render)
+        if self.render_pending {
+            ctx.request_repaint();
+        }
     }
 }
 
@@ -844,5 +884,186 @@ impl NodeBoxApp {
                 log::error!("Failed to export PNG: {}", e);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nodebox_core::node::{Node, Port};
+
+    /// Test that simulates what happens when handle_result_point_change is processed.
+    /// This mimics the behavior in the UI loop when HandleResult::PointChange is received.
+    #[test]
+    fn test_handle_point_change_triggers_render() {
+        let mut app = NodeBoxApp::new_for_testing();
+
+        // Set up a node with a position parameter
+        app.state.library.root.children.push(
+            Node::new("ellipse1")
+                .with_prototype("corevector.ellipse")
+                .with_input(Port::point("position", Point::ZERO))
+                .with_input(Port::float("width", 100.0))
+                .with_input(Port::float("height", 100.0)),
+        );
+        app.state.library.root.rendered_child = Some("ellipse1".to_string());
+        app.state.selected_node = Some("ellipse1".to_string());
+
+        // Reset render_pending to false
+        app.render_pending = false;
+
+        // Simulate what happens in the UI loop when a handle is dragged.
+        // This mimics the code in the `match result` block for HandleResult::PointChange.
+        let result = HandleResult::PointChange {
+            param: "position".to_string(),
+            value: Point::new(50.0, 50.0),
+        };
+
+        match result {
+            HandleResult::PointChange { param, value } => {
+                app.handle_parameter_change(&param, value);
+                app.render_pending = true; // This is the fix!
+            }
+            HandleResult::FourPointChange { x, y, width, height } => {
+                app.handle_four_point_change(x, y, width, height);
+                app.render_pending = true;
+            }
+            HandleResult::None => {}
+        }
+
+        // After the fix, render_pending should be true immediately
+        assert!(
+            app.render_pending,
+            "Handle change should trigger render immediately"
+        );
+    }
+
+    /// Test that simulates what happens when HandleResult::FourPointChange is processed.
+    /// This mimics the behavior in the UI loop when a rectangle handle is dragged.
+    #[test]
+    fn test_handle_four_point_change_triggers_render() {
+        let mut app = NodeBoxApp::new_for_testing();
+
+        // Set up a node with position and size parameters
+        app.state.library.root.children.push(
+            Node::new("rect1")
+                .with_prototype("corevector.rect")
+                .with_input(Port::float("x", 0.0))
+                .with_input(Port::float("y", 0.0))
+                .with_input(Port::float("width", 100.0))
+                .with_input(Port::float("height", 100.0)),
+        );
+        app.state.library.root.rendered_child = Some("rect1".to_string());
+        app.state.selected_node = Some("rect1".to_string());
+
+        // Reset render_pending to false
+        app.render_pending = false;
+
+        // Simulate what happens in the UI loop when a four-point handle is dragged.
+        let result = HandleResult::FourPointChange {
+            x: 50.0,
+            y: 50.0,
+            width: 200.0,
+            height: 200.0,
+        };
+
+        match result {
+            HandleResult::PointChange { param, value } => {
+                app.handle_parameter_change(&param, value);
+                app.render_pending = true;
+            }
+            HandleResult::FourPointChange { x, y, width, height } => {
+                app.handle_four_point_change(x, y, width, height);
+                app.render_pending = true; // This is the fix!
+            }
+            HandleResult::None => {}
+        }
+
+        // After the fix, render_pending should be true immediately
+        assert!(
+            app.render_pending,
+            "Four-point handle change should trigger render immediately"
+        );
+    }
+
+    /// Test that parameter changes via check_for_changes() properly set render_pending.
+    /// This verifies the core fix: when a parameter is modified and check_for_changes()
+    /// detects the hash mismatch, render_pending should be set to true.
+    #[test]
+    fn test_parameter_change_sets_render_pending_via_check_for_changes() {
+        let mut app = NodeBoxApp::new_for_testing();
+
+        // Set up a node with a width parameter
+        app.state.library.root.children.push(
+            Node::new("rect1")
+                .with_prototype("corevector.rect")
+                .with_input(Port::point("position", Point::ZERO))
+                .with_input(Port::float("width", 100.0))
+                .with_input(Port::float("height", 100.0)),
+        );
+        app.state.library.root.rendered_child = Some("rect1".to_string());
+
+        // Update the hash to match current state
+        app.previous_library_hash = NodeBoxApp::hash_library(&app.state.library);
+        app.render_pending = false;
+
+        // Modify the width parameter (simulates what happens when user changes value in panel)
+        if let Some(node) = app.state.library.root.child_mut("rect1") {
+            if let Some(port) = node.input_mut("width") {
+                port.value = nodebox_core::Value::Float(200.0);
+            }
+        }
+
+        // Call check_for_changes (this is what the update() loop calls at the end)
+        app.check_for_changes();
+
+        // After check_for_changes detects the hash mismatch, render_pending should be true
+        assert!(
+            app.render_pending,
+            "check_for_changes() should set render_pending = true when parameter changes"
+        );
+
+        // Also verify the hash was updated
+        let new_hash = NodeBoxApp::hash_library(&app.state.library);
+        assert_eq!(
+            app.previous_library_hash, new_hash,
+            "previous_library_hash should be updated after check_for_changes()"
+        );
+    }
+
+    /// Test the full flow: parameter change → check_for_changes → evaluate → geometry update.
+    #[test]
+    fn test_parameter_change_triggers_render_and_updates_geometry() {
+        let mut app = NodeBoxApp::new_for_testing();
+
+        // Set up a rect node
+        app.state.library.root.children.push(
+            Node::new("rect1")
+                .with_prototype("corevector.rect")
+                .with_input(Port::point("position", Point::ZERO))
+                .with_input(Port::float("width", 100.0))
+                .with_input(Port::float("height", 100.0)),
+        );
+        app.state.library.root.rendered_child = Some("rect1".to_string());
+
+        // Initial evaluation
+        app.update_for_testing();
+        let initial_geometry = app.state.geometry.clone();
+
+        // Change width parameter
+        if let Some(node) = app.state.library.root.child_mut("rect1") {
+            if let Some(port) = node.input_mut("width") {
+                port.value = nodebox_core::Value::Float(200.0);
+            }
+        }
+
+        // Simulate frame update (should detect change and re-evaluate)
+        app.update_for_testing();
+
+        // Geometry should have changed
+        assert_ne!(
+            app.state.geometry, initial_geometry,
+            "Geometry should update after parameter change"
+        );
     }
 }

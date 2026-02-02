@@ -43,6 +43,14 @@ Prereqs: Java JDK and Apache Ant are required; Maven is used for dependency reso
 - Versioning lives in `src/main/resources/version.properties`; update it when preparing a release build.
 - **NEVER modify the Java code** (`src/main/java`). The Java codebase is legacy and read-only; use it only as a reference. All new development happens in the Rust crates under `crates/`.
 
+## Async Node Implementation
+
+For nodes that perform I/O operations or expensive computations, see **[docs/async_nodes.md](docs/async_nodes.md)** for:
+- Cancellation token usage
+- Async I/O patterns with smol
+- Best practices for responsive cancellation
+- Testing async-aware nodes
+
 ## Node Definitions and Implementations
 
 Node definitions and their implementations are split across multiple locations:
