@@ -206,6 +206,8 @@ fn convert_path_like(py: Python<'_>, obj: &Bound<'_, PyAny>) -> PyResult<CorePat
             let point_type = match point_type_str.to_lowercase().as_str() {
                 "curveto" | "curve_to" => CorePointType::CurveTo,
                 "curvedata" | "curve_data" => CorePointType::CurveData,
+                "quadto" | "quad_to" => CorePointType::QuadTo,
+                "quaddata" | "quad_data" => CorePointType::QuadData,
                 _ => CorePointType::LineTo,
             };
 

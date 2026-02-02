@@ -99,6 +99,11 @@ impl Path {
         self.current_contour().curve_to(x1, y1, x2, y2, x3, y3);
     }
 
+    /// Adds a quadratic Bezier curve to the current contour.
+    pub fn quad_to(&mut self, cx: f64, cy: f64, x: f64, y: f64) {
+        self.current_contour().quad_to(cx, cy, x, y);
+    }
+
     /// Closes the current contour.
     pub fn close(&mut self) {
         if let Some(contour) = self.contours.last_mut() {

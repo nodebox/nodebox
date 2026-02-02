@@ -89,6 +89,33 @@ pub fn contour_to_bezpath(contour: &Contour) -> BezPath {
                 path.line_to(point_to_kurbo(&pp.point));
                 i += 1;
             }
+            PointType::QuadData => {
+                // Quadratic bezier: QuadData (ctrl), QuadTo (end)
+                if i + 1 < points.len() {
+                    let ctrl = &points[i];
+                    let end = &points[i + 1];
+
+                    // Verify the structure is correct
+                    if ctrl.point_type == PointType::QuadData
+                        && end.point_type == PointType::QuadTo
+                    {
+                        path.quad_to(
+                            point_to_kurbo(&ctrl.point),
+                            point_to_kurbo(&end.point),
+                        );
+                        i += 2;
+                        continue;
+                    }
+                }
+                // Fallback: treat as line if structure is invalid
+                path.line_to(point_to_kurbo(&pp.point));
+                i += 1;
+            }
+            PointType::QuadTo => {
+                // Standalone QuadTo without preceding QuadData - treat as line
+                path.line_to(point_to_kurbo(&pp.point));
+                i += 1;
+            }
         }
     }
 

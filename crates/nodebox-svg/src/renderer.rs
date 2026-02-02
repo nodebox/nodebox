@@ -322,6 +322,31 @@ fn contour_to_svg_data(data: &mut String, contour: &Contour, precision: usize) {
                 write!(data, " L{:.prec$},{:.prec$}", pt.point.x, pt.point.y, prec = precision).unwrap();
                 i += 1;
             }
+            PointType::QuadData => {
+                // Quadratic bezier: ctrl, end
+                if i + 1 < points.len() {
+                    let ctrl = &points[i];
+                    let end = &points[i + 1];
+
+                    write!(
+                        data,
+                        " Q{:.prec$},{:.prec$} {:.prec$},{:.prec$}",
+                        ctrl.point.x, ctrl.point.y,
+                        end.point.x, end.point.y,
+                        prec = precision
+                    ).unwrap();
+
+                    i += 2;
+                } else {
+                    // Malformed curve data, skip
+                    i += 1;
+                }
+            }
+            PointType::QuadTo => {
+                // This shouldn't happen without preceding QuadData
+                write!(data, " L{:.prec$},{:.prec$}", pt.point.x, pt.point.y, prec = precision).unwrap();
+                i += 1;
+            }
         }
     }
 

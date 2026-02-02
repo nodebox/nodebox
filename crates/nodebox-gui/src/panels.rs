@@ -306,6 +306,67 @@ impl ParameterPanel {
                     self.show_drag_value_float(ui, &mut point.y, None, None, 1.0, &key_y, is_editing_y);
                 }
             }
+            Widget::File => {
+                if let Value::String(ref mut path) = port.value {
+                    // Show filename or placeholder
+                    let display_text = if path.is_empty() {
+                        "(none)".to_string()
+                    } else {
+                        // Extract just the filename from the path
+                        std::path::Path::new(path)
+                            .file_name()
+                            .map(|s| s.to_string_lossy().to_string())
+                            .unwrap_or_else(|| path.clone())
+                    };
+
+                    let galley = ui.painter().layout_no_wrap(
+                        display_text,
+                        egui::FontId::proportional(11.0),
+                        if path.is_empty() { theme::TEXT_DISABLED } else { theme::VALUE_TEXT },
+                    );
+                    let rect = ui.available_rect_before_wrap();
+                    let text_pos = egui::pos2(rect.left(), rect.center().y - galley.size().y / 2.0);
+                    ui.painter().galley(text_pos, galley.clone(), theme::VALUE_TEXT);
+
+                    // Add browse button after the text
+                    let button_x = rect.left() + galley.size().x + 8.0;
+                    let button_rect = egui::Rect::from_min_size(
+                        egui::pos2(button_x, rect.center().y - 8.0),
+                        egui::vec2(16.0, 16.0),
+                    );
+
+                    let button_response = ui.allocate_rect(button_rect, Sense::click());
+
+                    // Draw folder icon or "..." button
+                    let button_color = if button_response.hovered() {
+                        theme::TEXT_BRIGHT
+                    } else {
+                        theme::TEXT_NORMAL
+                    };
+                    ui.painter().text(
+                        button_rect.center(),
+                        egui::Align2::CENTER_CENTER,
+                        "…",
+                        egui::FontId::proportional(14.0),
+                        button_color,
+                    );
+
+                    if button_response.hovered() {
+                        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                    }
+
+                    if button_response.clicked() {
+                        // Open file dialog
+                        if let Some(picked_path) = rfd::FileDialog::new()
+                            .add_filter("SVG files", &["svg"])
+                            .add_filter("All files", &["*"])
+                            .pick_file()
+                        {
+                            *path = picked_path.to_string_lossy().to_string();
+                        }
+                    }
+                }
+            }
             _ => {
                 // For geometry and other non-editable types, show type info (non-selectable)
                 let type_str = match port.port_type {

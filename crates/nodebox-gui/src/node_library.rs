@@ -6,7 +6,7 @@
 
 use eframe::egui;
 use nodebox_core::geometry::{Color, Point};
-use nodebox_core::node::{Node, NodeLibrary, Port, PortRange, PortType};
+use nodebox_core::node::{Node, NodeLibrary, Port, PortRange, PortType, Widget};
 
 /// Available node types that can be created.
 pub struct NodeTemplate {
@@ -118,6 +118,13 @@ pub const NODE_TEMPLATES: &[NodeTemplate] = &[
         prototype: "corevector.wiggle",
         category: "geometry",
         description: "Add random displacement to points",
+    },
+    // Import nodes
+    NodeTemplate {
+        name: "import_svg",
+        prototype: "corevector.import_svg",
+        category: "geometry",
+        description: "Import an SVG file as geometry",
     },
 ];
 
@@ -334,6 +341,12 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                 .with_input(Port::string("scope", "points"))
                 .with_input(Port::point("offset", Point::new(10.0, 10.0)))
                 .with_input(Port::int("seed", 0));
+        }
+        "import_svg" => {
+            node = node
+                .with_input(Port::string("file", "").with_widget(Widget::File))
+                .with_input(Port::boolean("centered", true))
+                .with_input(Port::point("position", Point::ZERO));
         }
         _ => {}
     }
