@@ -69,23 +69,25 @@ pub use vello_viewer::VelloViewer;
 mod native_menu;
 mod recent_files;
 
-use native_menu::NativeMenuHandle;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 /// Run the NodeBox GUI application.
+///
+/// This is a convenience function that creates a DesktopPort and runs the app.
+/// For more control, use `NodeBoxApp::new_with_port` directly.
 pub fn run() -> eframe::Result<()> {
     // Initialize logging
     env_logger::init();
 
-    // Initialize native menu bar (macOS)
-    // Must be done before eframe starts, and menu handle is passed to the app
-    let native_menu = NativeMenuHandle::new();
+    // Create the desktop port for file operations
+    let port: Arc<dyn nodebox_port::Port> = Arc::new(nodebox_port::DesktopPort::new());
 
     // Get initial file from command line arguments
     let initial_file: Option<PathBuf> = std::env::args()
         .nth(1)
         .map(PathBuf::from)
-        .filter(|p| p.extension().map_or(false, |ext| ext == "ndbx"));
+        .filter(|p| p.extension().is_some_and(|ext| ext == "ndbx"));
 
     // Native options
     let options = eframe::NativeOptions {
@@ -100,6 +102,6 @@ pub fn run() -> eframe::Result<()> {
     eframe::run_native(
         "NodeBox",
         options,
-        Box::new(move |cc| Ok(Box::new(NodeBoxApp::new_with_file(cc, initial_file, Some(native_menu))))),
+        Box::new(move |cc| Ok(Box::new(NodeBoxApp::new_with_port(cc, port.clone(), initial_file)))),
     )
 }

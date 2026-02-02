@@ -1,12 +1,19 @@
 //! Integration tests for render cancellation.
 
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
 use nodebox_core::geometry::Point;
 use nodebox_core::node::{Node, NodeLibrary, Port};
 use nodebox_gui::eval::{EvalOutcome, NodeOutput, evaluate_network_cancellable};
 use nodebox_gui::render_worker::CancellationToken;
+use nodebox_port::{Port as PortTrait, ProjectContext, TestPort};
+
+/// Create a test port and project context for evaluation tests.
+fn test_port_and_context() -> (Arc<dyn PortTrait>, ProjectContext) {
+    (Arc::new(TestPort::new()), ProjectContext::new_unsaved())
+}
 
 /// Helper to create a library with a large grid that generates many iterations.
 fn create_large_grid_library(grid_size: i64) -> NodeLibrary {
@@ -64,7 +71,8 @@ fn test_evaluation_completes_without_cancellation() {
     let token = CancellationToken::new();
     let mut cache: HashMap<String, NodeOutput> = HashMap::new();
 
-    let outcome = evaluate_network_cancellable(&library, &token, &mut cache);
+    let (port, ctx) = test_port_and_context();
+    let outcome = evaluate_network_cancellable(&library, &token, &mut cache, &port, &ctx);
 
     match outcome {
         EvalOutcome::Completed { geometry, errors } => {
@@ -86,7 +94,8 @@ fn test_evaluation_cancelled_immediately() {
     // Cancel immediately
     token.cancel();
 
-    let outcome = evaluate_network_cancellable(&library, &token, &mut cache);
+    let (port, ctx) = test_port_and_context();
+    let outcome = evaluate_network_cancellable(&library, &token, &mut cache, &port, &ctx);
 
     match outcome {
         EvalOutcome::Completed { .. } => {
@@ -111,7 +120,8 @@ fn test_cache_preserved_after_cancellation() {
         token_clone.cancel();
     });
 
-    let outcome = evaluate_network_cancellable(&library, &token, &mut cache);
+    let (port, ctx) = test_port_and_context();
+    let outcome = evaluate_network_cancellable(&library, &token, &mut cache, &port, &ctx);
 
     // The outcome could be either cancelled or completed depending on timing
     // But the cache should have some entries
@@ -133,7 +143,8 @@ fn test_cache_reused_after_cancellation() {
 
     // First render - complete fully
     let token1 = CancellationToken::new();
-    let outcome1 = evaluate_network_cancellable(&library, &token1, &mut cache);
+    let (port, ctx) = test_port_and_context();
+    let outcome1 = evaluate_network_cancellable(&library, &token1, &mut cache, &port, &ctx);
 
     match outcome1 {
         EvalOutcome::Completed { geometry, errors } => {
@@ -149,7 +160,7 @@ fn test_cache_reused_after_cancellation() {
 
     // Second render - should reuse cache
     let token2 = CancellationToken::new();
-    let outcome2 = evaluate_network_cancellable(&library, &token2, &mut cache);
+    let outcome2 = evaluate_network_cancellable(&library, &token2, &mut cache, &port, &ctx);
 
     match outcome2 {
         EvalOutcome::Completed { geometry, errors } => {
@@ -174,7 +185,9 @@ fn test_cancellation_response_time() {
     let library_clone = library.clone();
     let handle = thread::spawn(move || {
         let mut thread_cache: HashMap<String, NodeOutput> = HashMap::new();
-        evaluate_network_cancellable(&library_clone, &token_for_thread, &mut thread_cache)
+        let port: Arc<dyn PortTrait> = Arc::new(TestPort::new());
+        let ctx = ProjectContext::new_unsaved();
+        evaluate_network_cancellable(&library_clone, &token_for_thread, &mut thread_cache, &port, &ctx)
     });
 
     // Wait a bit for evaluation to start, then cancel
@@ -207,7 +220,8 @@ fn test_multiple_rapid_cancellations() {
             token.cancel();
         }
 
-        let outcome = evaluate_network_cancellable(&library, &token, &mut cache);
+        let (port, ctx) = test_port_and_context();
+    let outcome = evaluate_network_cancellable(&library, &token, &mut cache, &port, &ctx);
 
         // Should not panic or hang regardless of timing
         match outcome {
@@ -226,7 +240,8 @@ fn test_empty_network_not_affected_by_cancellation() {
 
     token.cancel(); // Pre-cancel
 
-    let outcome = evaluate_network_cancellable(&library, &token, &mut cache);
+    let (port, ctx) = test_port_and_context();
+    let outcome = evaluate_network_cancellable(&library, &token, &mut cache, &port, &ctx);
 
     // Empty network should complete (nothing to cancel)
     match outcome {

@@ -15,6 +15,7 @@ path = "src/lib.rs"
 nodebox-core = { path = "../nodebox-core" }
 nodebox-ops = { path = "../nodebox-ops" }
 nodebox-ndbx = { path = "../nodebox-ndbx" }
+nodebox-port = { path = "../nodebox-port" }
 nodebox-svg = { path = "../nodebox-svg" }
 
 # GUI
@@ -22,9 +23,6 @@ eframe = "0.33"
 egui = "0.33"
 egui_extras = { version = "0.33", features = ["image"] }
 egui-wgpu = { version = "0.33", optional = true }
-
-# File dialogs
-rfd = "0.15"
 
 # Recent files persistence
 directories = "5"

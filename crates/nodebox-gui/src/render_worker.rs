@@ -7,6 +7,7 @@ use std::thread;
 use std::time::Instant;
 use nodebox_core::geometry::Path as GeoPath;
 use nodebox_core::node::NodeLibrary;
+use nodebox_port::{Port, ProjectContext};
 use crate::eval::{NodeError, NodeOutput};
 
 /// Token for cooperative cancellation of render operations.
@@ -56,6 +57,8 @@ pub enum RenderRequest {
         id: RenderRequestId,
         library: NodeLibrary,
         cancel_token: CancellationToken,
+        port: Arc<dyn Port>,
+        project_context: ProjectContext,
     },
     /// Shut down the worker thread.
     Shutdown,
@@ -177,12 +180,16 @@ impl RenderWorkerHandle {
         id: RenderRequestId,
         library: NodeLibrary,
         cancel_token: CancellationToken,
+        port: Arc<dyn Port>,
+        project_context: ProjectContext,
     ) {
         if let Some(ref tx) = self.request_tx {
             let _ = tx.send(RenderRequest::Evaluate {
                 id,
                 library,
                 cancel_token,
+                port,
+                project_context,
             });
         }
     }
@@ -222,10 +229,10 @@ fn render_worker_loop(
 
     loop {
         match request_rx.recv() {
-            Ok(RenderRequest::Evaluate { id, library, cancel_token }) => {
+            Ok(RenderRequest::Evaluate { id, library, cancel_token, port, project_context }) => {
                 // Drain to the latest request (skip stale ones)
-                let (final_id, final_library, final_token) =
-                    drain_to_latest(id, library, cancel_token, &request_rx);
+                let (final_id, final_library, final_token, final_port, final_project_context) =
+                    drain_to_latest(id, library, cancel_token, port, project_context, &request_rx);
 
                 // Clear cache when library changes to ensure fresh evaluation.
                 // Future optimization: use hash-based cache keys so unchanged nodes stay cached.
@@ -236,6 +243,8 @@ fn render_worker_loop(
                     &final_library,
                     &final_token,
                     &mut node_cache,
+                    &final_port,
+                    &final_project_context,
                 );
 
                 match result {
@@ -263,21 +272,27 @@ fn drain_to_latest(
     mut id: RenderRequestId,
     mut library: NodeLibrary,
     mut cancel_token: CancellationToken,
+    mut port: Arc<dyn Port>,
+    mut project_context: ProjectContext,
     rx: &mpsc::Receiver<RenderRequest>,
-) -> (RenderRequestId, NodeLibrary, CancellationToken) {
+) -> (RenderRequestId, NodeLibrary, CancellationToken, Arc<dyn Port>, ProjectContext) {
     while let Ok(req) = rx.try_recv() {
         match req {
             RenderRequest::Evaluate {
                 id: new_id,
                 library: new_lib,
                 cancel_token: new_token,
+                port: new_port,
+                project_context: new_ctx,
             } => {
                 id = new_id;
                 library = new_lib;
                 cancel_token = new_token;
+                port = new_port;
+                project_context = new_ctx;
             }
             RenderRequest::Shutdown => break,
         }
     }
-    (id, library, cancel_token)
+    (id, library, cancel_token, port, project_context)
 }

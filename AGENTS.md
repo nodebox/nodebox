@@ -262,9 +262,9 @@ cargo build --workspace --exclude nodebox-python
 cargo test --workspace --exclude nodebox-python
 ```
 
-### Running specific crates
+### Running the application
 ```bash
-cargo run -p nodebox-gui          # Run the GUI
+cargo run                         # Run the desktop GUI application
 cargo run -p nodebox-cli          # Run the CLI
 cargo test -p nodebox-core        # Test specific crate
 ```

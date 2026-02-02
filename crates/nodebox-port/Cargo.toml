@@ -1,0 +1,38 @@
+[package]
+name = "nodebox-port"
+description = "Platform abstraction layer for NodeBox"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lib]
+name = "nodebox_port"
+path = "src/lib.rs"
+
+[dependencies]
+# Error handling
+thiserror.workspace = true
+
+# Logging
+log = "0.4"
+
+# File dialogs (desktop only)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rfd = "0.15"
+
+# Clipboard (desktop only)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.arboard]
+version = "3"
+
+# HTTP client (desktop only, blocking)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.ureq]
+version = "2"
+
+# Platform directories (desktop only)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.directories]
+version = "5"
+
+[dev-dependencies]
+tempfile = "3"

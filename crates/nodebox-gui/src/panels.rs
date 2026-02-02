@@ -3,6 +3,7 @@
 use eframe::egui::{self, Sense, TextStyle};
 use nodebox_core::node::{PortType, Widget};
 use nodebox_core::Value;
+use nodebox_port::{FileFilter, Port, PortError, ProjectContext};
 use crate::components;
 use crate::state::AppState;
 use crate::theme;
@@ -32,7 +33,13 @@ impl ParameterPanel {
     }
 
     /// Show the parameter panel.
-    pub fn show(&mut self, ui: &mut egui::Ui, state: &mut AppState) {
+    pub fn show(
+        &mut self,
+        ui: &mut egui::Ui,
+        state: &mut AppState,
+        port: &dyn Port,
+        project_context: &ProjectContext,
+    ) {
         // Apply minimal styling for the panel
         ui.style_mut().spacing.item_spacing = egui::vec2(8.0, 2.0);
 
@@ -93,9 +100,16 @@ impl ParameterPanel {
                             theme::PORT_VALUE_BACKGROUND,
                         );
 
-                        for port in &mut node.inputs {
-                            let is_connected = connected_ports.contains(&port.name);
-                            self.show_port_row(ui, port, is_connected, &node_name_clone);
+                        for node_port in &mut node.inputs {
+                            let is_connected = connected_ports.contains(&node_port.name);
+                            self.show_port_row(
+                                ui,
+                                node_port,
+                                is_connected,
+                                &node_name_clone,
+                                port,
+                                project_context,
+                            );
                         }
                     });
             } else {
@@ -114,6 +128,8 @@ impl ParameterPanel {
         port: &mut nodebox_core::node::Port,
         is_connected: bool,
         node_name: &str,
+        io_port: &dyn Port,
+        project_context: &ProjectContext,
     ) {
         ui.horizontal(|ui| {
             ui.set_height(theme::PARAMETER_ROW_HEIGHT);
@@ -151,13 +167,20 @@ impl ParameterPanel {
                 let pos = egui::pos2(rect.left(), rect.center().y - galley.size().y / 2.0);
                 ui.painter().galley(pos, galley, theme::TEXT_DISABLED);
             } else {
-                self.show_port_editor(ui, port, node_name);
+                self.show_port_editor(ui, port, node_name, io_port, project_context);
             }
         });
     }
 
     /// Show the editor widget for a port value - minimal style with no borders.
-    fn show_port_editor(&mut self, ui: &mut egui::Ui, port: &mut nodebox_core::node::Port, node_name: &str) {
+    fn show_port_editor(
+        &mut self,
+        ui: &mut egui::Ui,
+        port: &mut nodebox_core::node::Port,
+        node_name: &str,
+        io_port: &dyn Port,
+        project_context: &ProjectContext,
+    ) {
         let port_key = (node_name.to_string(), port.name.clone());
 
         // Check if we're editing this port
@@ -382,13 +405,37 @@ impl ParameterPanel {
                     }
 
                     if button_response.clicked() {
-                        // Open file dialog
-                        if let Some(picked_path) = rfd::FileDialog::new()
-                            .add_filter("SVG files", &["svg"])
-                            .add_filter("All files", &["*"])
-                            .pick_file()
-                        {
-                            *path = picked_path.to_string_lossy().to_string();
+                        // Check if project is saved first
+                        if !project_context.is_saved() {
+                            // Show message to save project first
+                            let _ = io_port.show_message_dialog(
+                                "Save Project First",
+                                "Please save your project before importing files.",
+                                &["OK"],
+                            );
+                        } else {
+                            // Use sandboxed file dialog through Port
+                            match io_port.show_open_file_dialog(
+                                project_context,
+                                &[FileFilter::svg()],
+                            ) {
+                                Ok(Some(relative_path)) => {
+                                    // Store the relative path
+                                    *path = relative_path.to_string();
+                                }
+                                Ok(None) => {} // User cancelled
+                                Err(PortError::SandboxViolation) => {
+                                    // File is outside project directory
+                                    let _ = io_port.show_message_dialog(
+                                        "File Outside Project",
+                                        "Please copy the file to your project folder first.",
+                                        &["OK"],
+                                    );
+                                }
+                                Err(e) => {
+                                    log::error!("File dialog error: {}", e);
+                                }
+                            }
                         }
                     }
                 }

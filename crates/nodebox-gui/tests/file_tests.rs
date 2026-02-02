@@ -6,12 +6,19 @@
 //! created libraries.
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use nodebox_core::geometry::{Color, Point};
 use nodebox_core::node::{Connection, Node, NodeLibrary, Port};
 use nodebox_gui::eval::evaluate_network;
 use nodebox_gui::{populate_default_ports, AppState};
 use nodebox_ndbx::NdbxError;
+use nodebox_port::{Port as PortTrait, ProjectContext, TestPort};
+
+/// Create a test port and project context for evaluation tests.
+fn test_port_and_context() -> (Arc<dyn PortTrait>, ProjectContext) {
+    (Arc::new(TestPort::new()), ProjectContext::new_unsaved())
+}
 
 /// Get the path to the examples directory.
 fn examples_dir() -> PathBuf {
@@ -163,17 +170,20 @@ fn test_evaluate_primitives() {
     let mut test_library = library.clone();
     test_library.root.rendered_child = Some("rect1".to_string());
 
-    let (paths, _errors) = evaluate_network(&test_library);
+    let (port, ctx) = test_port_and_context();
+    let (paths, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(paths.len(), 1, "rect1 should produce one path");
 
     // Test ellipse
     test_library.root.rendered_child = Some("ellipse1".to_string());
-    let (paths, _errors) = evaluate_network(&test_library);
+    let (port, ctx) = test_port_and_context();
+    let (paths, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(paths.len(), 1, "ellipse1 should produce one path");
 
     // Test polygon
     test_library.root.rendered_child = Some("polygon1".to_string());
-    let (paths, _errors) = evaluate_network(&test_library);
+    let (port, ctx) = test_port_and_context();
+    let (paths, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(paths.len(), 1, "polygon1 should produce one path");
 }
 
@@ -182,7 +192,8 @@ fn test_evaluate_primitives_full() {
     let library = create_primitives_library();
 
     // The rendered child is "combine1" which uses list.combine
-    let (paths, _errors) = evaluate_network(&library);
+    let (port, ctx) = test_port_and_context();
+    let (paths, _errors) = evaluate_network(&library, &port, &ctx);
 
     // Should have 3 shapes: rect, ellipse, polygon (each colorized)
     assert_eq!(paths.len(), 3, "combine1 should produce 3 colorized paths");
@@ -201,7 +212,8 @@ fn test_evaluate_colorized_primitives() {
 
     // Test colorized rect (colorize1 <- rect1)
     test_library.root.rendered_child = Some("colorize1".to_string());
-    let (paths, _errors) = evaluate_network(&test_library);
+    let (port, ctx) = test_port_and_context();
+    let (paths, _errors) = evaluate_network(&test_library, &port, &ctx);
 
     assert_eq!(paths.len(), 1, "colorize1 should produce one path");
     assert!(paths[0].fill.is_some(), "colorized path should have fill");
@@ -219,21 +231,22 @@ fn test_primitives_shapes_at_different_positions() {
     // Evaluate rect1 alone
     let mut test_library = library.clone();
     test_library.root.rendered_child = Some("rect1".to_string());
-    let (rect_paths, _errors) = evaluate_network(&test_library);
+    let (port, ctx) = test_port_and_context();
+    let (rect_paths, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(rect_paths.len(), 1, "rect1 should produce one path");
     let rect_bounds = rect_paths[0].bounds().unwrap();
     let rect_center_x = rect_bounds.x + rect_bounds.width / 2.0;
 
     // Evaluate ellipse1 alone
     test_library.root.rendered_child = Some("ellipse1".to_string());
-    let (ellipse_paths, _errors) = evaluate_network(&test_library);
+    let (ellipse_paths, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(ellipse_paths.len(), 1, "ellipse1 should produce one path");
     let ellipse_bounds = ellipse_paths[0].bounds().unwrap();
     let ellipse_center_x = ellipse_bounds.x + ellipse_bounds.width / 2.0;
 
     // Evaluate polygon1 alone
     test_library.root.rendered_child = Some("polygon1".to_string());
-    let (polygon_paths, _errors) = evaluate_network(&test_library);
+    let (polygon_paths, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(polygon_paths.len(), 1, "polygon1 should produce one path");
     let polygon_bounds = polygon_paths[0].bounds().unwrap();
     let polygon_center_x = polygon_bounds.x + polygon_bounds.width / 2.0;

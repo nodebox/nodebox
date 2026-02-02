@@ -1,10 +1,12 @@
 //! Network evaluation - executes node graphs to produce geometry.
 
 use std::collections::HashMap;
+use std::sync::Arc;
 use nodebox_core::geometry::{Path, Point, Color, Contour, PathPoint, PointType};
 use nodebox_core::node::{Node, NodeLibrary, EvalError};
 use nodebox_core::node::PortRange;
 use nodebox_core::Value;
+use nodebox_port::{Port, ProjectContext};
 use crate::render_worker::CancellationToken;
 
 /// Error information for a specific node.
@@ -145,7 +147,13 @@ impl NodeOutput {
 /// Evaluate a node network and return the output of the rendered node along with any errors.
 ///
 /// Returns a tuple of (paths, errors). If there are errors, paths will be empty.
-pub fn evaluate_network(library: &NodeLibrary) -> (Vec<Path>, Vec<NodeError>) {
+///
+/// The `port` and `project_context` are used for sandboxed file access (e.g., import_svg).
+pub fn evaluate_network(
+    library: &NodeLibrary,
+    port: &Arc<dyn Port>,
+    project_context: &ProjectContext,
+) -> (Vec<Path>, Vec<NodeError>) {
     let network = &library.root;
 
     // Find the rendered child
@@ -161,7 +169,7 @@ pub fn evaluate_network(library: &NodeLibrary) -> (Vec<Path>, Vec<NodeError>) {
     let mut cache: HashMap<String, EvalResult> = HashMap::new();
 
     // Evaluate the rendered node (this will recursively evaluate dependencies)
-    let result = evaluate_node(network, &rendered_name, &mut cache);
+    let result = evaluate_node(network, &rendered_name, &mut cache, port, project_context);
 
     match result {
         Ok(output) => (output.to_paths(), Vec::new()),
@@ -200,10 +208,14 @@ pub fn evaluate_network(library: &NodeLibrary) -> (Vec<Path>, Vec<NodeError>) {
 ///
 /// The cache parameter is both input (for reusing previous results) and output
 /// (for preserving partial results on cancellation).
+///
+/// The `port` and `project_context` are used for sandboxed file access (e.g., import_svg).
 pub fn evaluate_network_cancellable(
     library: &NodeLibrary,
     cancel_token: &CancellationToken,
     cache: &mut HashMap<String, NodeOutput>,
+    port: &Arc<dyn Port>,
+    project_context: &ProjectContext,
 ) -> EvalOutcome {
     let network = &library.root;
 
@@ -236,6 +248,8 @@ pub fn evaluate_network_cancellable(
         &rendered_name,
         &mut eval_cache,
         cancel_token,
+        port,
+        project_context,
     );
 
     // Convert cache back to NodeOutput format (preserve successful results)
@@ -379,6 +393,8 @@ fn evaluate_node_cancellable(
     node_name: &str,
     cache: &mut HashMap<String, EvalResult>,
     cancel_token: &CancellationToken,
+    port: &Arc<dyn Port>,
+    project_context: &ProjectContext,
 ) -> EvalResult {
     // Check cancellation before starting this node
     if cancel_token.is_cancelled() {
@@ -400,7 +416,7 @@ fn evaluate_node_cancellable(
     let mut inputs: HashMap<String, NodeOutput> = HashMap::new();
 
     // For each input port, check if there are connections
-    for port in &node.inputs {
+    for node_port in &node.inputs {
         // Check cancellation during input collection
         if cancel_token.is_cancelled() {
             return Err(EvalError::Cancelled);
@@ -409,12 +425,12 @@ fn evaluate_node_cancellable(
         // Get ALL connections to this port (for merge/combine operations)
         let connections: Vec<_> = network.connections
             .iter()
-            .filter(|c| c.input_node == node_name && c.input_port == port.name)
+            .filter(|c| c.input_node == node_name && c.input_port == node_port.name)
             .collect();
 
         if connections.is_empty() {
             // No connections - use the port's default value
-            inputs.insert(port.name.clone(), value_to_output(&port.value));
+            inputs.insert(node_port.name.clone(), value_to_output(&node_port.value));
         } else if connections.len() == 1 {
             // Single connection - evaluate and use directly
             let upstream_output = evaluate_node_cancellable(
@@ -422,8 +438,10 @@ fn evaluate_node_cancellable(
                 &connections[0].output_node,
                 cache,
                 cancel_token,
+                port,
+                project_context,
             )?;
-            inputs.insert(port.name.clone(), upstream_output);
+            inputs.insert(node_port.name.clone(), upstream_output);
         } else {
             // Multiple connections - collect all outputs as paths
             let mut all_paths: Vec<Path> = Vec::new();
@@ -433,10 +451,12 @@ fn evaluate_node_cancellable(
                     &conn.output_node,
                     cache,
                     cancel_token,
+                    port,
+                    project_context,
                 )?;
                 all_paths.extend(upstream_output.to_paths());
             }
-            inputs.insert(port.name.clone(), NodeOutput::Paths(all_paths));
+            inputs.insert(node_port.name.clone(), NodeOutput::Paths(all_paths));
         }
     }
 
@@ -460,6 +480,8 @@ fn evaluate_node_cancellable(
                     &conn.output_node,
                     cache,
                     cancel_token,
+                    port,
+                    project_context,
                 )?;
                 inputs.insert(conn.input_port.clone(), upstream_output);
             } else {
@@ -471,6 +493,8 @@ fn evaluate_node_cancellable(
                         &c.output_node,
                         cache,
                         cancel_token,
+                        port,
+                        project_context,
                     )?;
                     all_paths.extend(upstream_output.to_paths());
                 }
@@ -485,9 +509,9 @@ fn evaluate_node_cancellable(
     let result = match iteration_count {
         None => {
             // Empty list input: still call execute_node to detect missing required inputs
-            execute_node(node, &inputs)
+            execute_node(node, &inputs, port, project_context)
         }
-        Some(1) => execute_node(node, &inputs), // Single iteration (optimization)
+        Some(1) => execute_node(node, &inputs, port, project_context), // Single iteration (optimization)
         Some(count) => {
             // Multiple iterations: list matching with cancellation checks
             let mut results = Vec::with_capacity(count);
@@ -498,7 +522,7 @@ fn evaluate_node_cancellable(
                 }
 
                 let iter_inputs = build_iteration_inputs(&inputs, node, i);
-                let result = execute_node(node, &iter_inputs)?;
+                let result = execute_node(node, &iter_inputs, port, project_context)?;
                 results.push(result);
             }
             Ok(collect_results(results))
@@ -515,6 +539,8 @@ fn evaluate_node(
     network: &Node,
     node_name: &str,
     cache: &mut HashMap<String, EvalResult>,
+    port: &Arc<dyn Port>,
+    project_context: &ProjectContext,
 ) -> EvalResult {
     // Check cache first
     if let Some(result) = cache.get(node_name) {
@@ -531,28 +557,28 @@ fn evaluate_node(
     let mut inputs: HashMap<String, NodeOutput> = HashMap::new();
 
     // For each input port, check if there are connections
-    for port in &node.inputs {
+    for node_port in &node.inputs {
         // Get ALL connections to this port (for merge/combine operations)
         let connections: Vec<_> = network.connections
             .iter()
-            .filter(|c| c.input_node == node_name && c.input_port == port.name)
+            .filter(|c| c.input_node == node_name && c.input_port == node_port.name)
             .collect();
 
         if connections.is_empty() {
             // No connections - use the port's default value
-            inputs.insert(port.name.clone(), value_to_output(&port.value));
+            inputs.insert(node_port.name.clone(), value_to_output(&node_port.value));
         } else if connections.len() == 1 {
             // Single connection - evaluate and use directly
-            let upstream_output = evaluate_node(network, &connections[0].output_node, cache)?;
-            inputs.insert(port.name.clone(), upstream_output);
+            let upstream_output = evaluate_node(network, &connections[0].output_node, cache, port, project_context)?;
+            inputs.insert(node_port.name.clone(), upstream_output);
         } else {
             // Multiple connections - collect all outputs as paths
             let mut all_paths: Vec<Path> = Vec::new();
             for conn in connections {
-                let upstream_output = evaluate_node(network, &conn.output_node, cache)?;
+                let upstream_output = evaluate_node(network, &conn.output_node, cache, port, project_context)?;
                 all_paths.extend(upstream_output.to_paths());
             }
-            inputs.insert(port.name.clone(), NodeOutput::Paths(all_paths));
+            inputs.insert(node_port.name.clone(), NodeOutput::Paths(all_paths));
         }
     }
 
@@ -567,13 +593,13 @@ fn evaluate_node(
                 .collect();
 
             if all_conns.len() == 1 {
-                let upstream_output = evaluate_node(network, &conn.output_node, cache)?;
+                let upstream_output = evaluate_node(network, &conn.output_node, cache, port, project_context)?;
                 inputs.insert(conn.input_port.clone(), upstream_output);
             } else {
                 // Multiple connections - collect all outputs as paths
                 let mut all_paths: Vec<Path> = Vec::new();
                 for c in all_conns {
-                    let upstream_output = evaluate_node(network, &c.output_node, cache)?;
+                    let upstream_output = evaluate_node(network, &c.output_node, cache, port, project_context)?;
                     all_paths.extend(upstream_output.to_paths());
                 }
                 inputs.insert(conn.input_port.clone(), NodeOutput::Paths(all_paths));
@@ -588,15 +614,15 @@ fn evaluate_node(
         None => {
             // Empty list input: still call execute_node to detect missing required inputs
             // This ensures nodes that require inputs produce proper errors
-            execute_node(node, &inputs)
+            execute_node(node, &inputs, port, project_context)
         }
-        Some(1) => execute_node(node, &inputs), // Single iteration (optimization)
+        Some(1) => execute_node(node, &inputs, port, project_context), // Single iteration (optimization)
         Some(count) => {
             // Multiple iterations: list matching
             let mut results = Vec::with_capacity(count);
             for i in 0..count {
                 let iter_inputs = build_iteration_inputs(&inputs, node, i);
-                let result = execute_node(node, &iter_inputs)?;
+                let result = execute_node(node, &iter_inputs, port, project_context)?;
                 results.push(result);
             }
             Ok(collect_results(results))
@@ -719,7 +745,12 @@ fn require_paths(inputs: &HashMap<String, NodeOutput>, node_name: &str, port_nam
 }
 
 /// Execute a node and return its output.
-fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> EvalResult {
+fn execute_node(
+    node: &Node,
+    inputs: &HashMap<String, NodeOutput>,
+    port: &Arc<dyn Port>,
+    project_context: &ProjectContext,
+) -> EvalResult {
     // Get the function name (prototype determines what the node does)
     let proto = match &node.prototype {
         Some(p) => p.as_str(),
@@ -1098,7 +1129,22 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> EvalResult
             let centered = get_bool(inputs, "centered", true);
             let position = get_point(inputs, "position", Point::ZERO);
 
-            match nodebox_ops::import_svg(&file_path, centered, position) {
+            // Empty path returns empty geometry
+            if file_path.is_empty() {
+                return Ok(NodeOutput::None);
+            }
+
+            // Read the SVG file through the Port system (sandboxed)
+            let svg_content = match port.read_text_file(project_context, &file_path) {
+                Ok(content) => content,
+                Err(e) => {
+                    log::warn!("SVG import: {}", e);
+                    return Ok(NodeOutput::None);
+                }
+            };
+
+            // Parse the SVG content
+            match nodebox_ops::import_svg(&svg_content, centered, position) {
                 Ok(geometry) => {
                     if geometry.is_empty() {
                         Ok(NodeOutput::None)
@@ -1107,7 +1153,7 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> EvalResult
                     }
                 }
                 Err(e) => {
-                    log::warn!("SVG import error: {}", e);
+                    log::warn!("SVG parse error: {}", e);
                     Ok(NodeOutput::None)
                 }
             }
@@ -1131,7 +1177,13 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> EvalResult
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nodebox_core::node::{Port, Connection, PortRange};
+    use nodebox_core::node::{Port as NodePort, Connection, PortRange};
+    use nodebox_port::{TestPort, ProjectContext};
+
+    /// Create a test port and project context for evaluation tests.
+    fn test_port_and_context() -> (Arc<dyn nodebox_port::Port>, ProjectContext) {
+        (Arc::new(TestPort::new()), ProjectContext::new_unsaved())
+    }
 
     #[test]
     fn test_evaluate_simple_ellipse() {
@@ -1140,13 +1192,14 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::new(100.0, 100.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0))
+                    .with_input(NodePort::point("position", Point::new(100.0, 100.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0))
             )
             .with_rendered_child("ellipse1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1161,22 +1214,23 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::new(100.0, 100.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0))
+                    .with_input(NodePort::point("position", Point::new(100.0, 100.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0))
             )
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0)))
-                    .with_input(Port::color("stroke", Color::BLACK))
-                    .with_input(Port::float("strokeWidth", 2.0))
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::color("fill", Color::rgb(1.0, 0.0, 0.0)))
+                    .with_input(NodePort::color("stroke", Color::BLACK))
+                    .with_input(NodePort::float("strokeWidth", 2.0))
             )
             .with_connection(Connection::new("ellipse1", "colorize1", "shape"))
             .with_rendered_child("colorize1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         // Check that the colorize was applied
@@ -1194,27 +1248,28 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0))
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0))
             )
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(Port::point("position", Point::new(100.0, 0.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0))
+                    .with_input(NodePort::point("position", Point::new(100.0, 0.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0))
             )
             .with_child(
                 Node::new("merge1")
                     .with_prototype("corevector.merge")
-                    .with_input(Port::geometry("shapes"))
+                    .with_input(NodePort::geometry("shapes"))
             )
             .with_connection(Connection::new("ellipse1", "merge1", "shapes"))
             .with_connection(Connection::new("rect1", "merge1", "shapes"))
             .with_rendered_child("merge1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         // Merge collects all connected shapes
         assert_eq!(paths.len(), 2);
     }
@@ -1226,13 +1281,14 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("width", 80.0))
-                    .with_input(Port::float("height", 40.0))
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("width", 80.0))
+                    .with_input(NodePort::float("height", 40.0))
             )
             .with_rendered_child("rect1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1247,13 +1303,14 @@ mod tests {
             .with_child(
                 Node::new("line1")
                     .with_prototype("corevector.line")
-                    .with_input(Port::point("point1", Point::new(0.0, 0.0)))
-                    .with_input(Port::point("point2", Point::new(100.0, 50.0)))
-                    .with_input(Port::int("points", 2))
+                    .with_input(NodePort::point("point1", Point::new(0.0, 0.0)))
+                    .with_input(NodePort::point("point2", Point::new(100.0, 50.0)))
+                    .with_input(NodePort::int("points", 2))
             )
             .with_rendered_child("line1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1268,14 +1325,15 @@ mod tests {
             .with_child(
                 Node::new("polygon1")
                     .with_prototype("corevector.polygon")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("radius", 50.0))
-                    .with_input(Port::int("sides", 6))
-                    .with_input(Port::boolean("align", true))
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("radius", 50.0))
+                    .with_input(NodePort::int("sides", 6))
+                    .with_input(NodePort::boolean("align", true))
             )
             .with_rendered_child("polygon1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         // Hexagon with radius 50 should have bounds approximately 100x86 (2*r x sqrt(3)*r)
@@ -1291,14 +1349,15 @@ mod tests {
             .with_child(
                 Node::new("star1")
                     .with_prototype("corevector.star")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::int("points", 5))
-                    .with_input(Port::float("outer", 50.0))
-                    .with_input(Port::float("inner", 25.0))
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::int("points", 5))
+                    .with_input(NodePort::float("outer", 50.0))
+                    .with_input(NodePort::float("inner", 25.0))
             )
             .with_rendered_child("star1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         // Star with outer radius 50 should have bounds approximately 100x100
@@ -1313,16 +1372,17 @@ mod tests {
             .with_child(
                 Node::new("arc1")
                     .with_prototype("corevector.arc")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("width", 100.0))
-                    .with_input(Port::float("height", 100.0))
-                    .with_input(Port::float("start_angle", 0.0))
-                    .with_input(Port::float("degrees", 180.0))
-                    .with_input(Port::string("type", "pie"))
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("width", 100.0))
+                    .with_input(NodePort::float("height", 100.0))
+                    .with_input(NodePort::float("start_angle", 0.0))
+                    .with_input(NodePort::float("degrees", 180.0))
+                    .with_input(NodePort::string("type", "pie"))
             )
             .with_rendered_child("arc1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
     }
 
@@ -1333,20 +1393,21 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0))
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0))
             )
             .with_child(
                 Node::new("translate1")
                     .with_prototype("corevector.translate")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::point("translate", Point::new(100.0, 50.0)))
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::point("translate", Point::new(100.0, 50.0)))
             )
             .with_connection(Connection::new("ellipse1", "translate1", "shape"))
             .with_rendered_child("translate1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1365,21 +1426,22 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("width", 100.0))
-                    .with_input(Port::float("height", 100.0))
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("width", 100.0))
+                    .with_input(NodePort::float("height", 100.0))
             )
             .with_child(
                 Node::new("scale1")
                     .with_prototype("corevector.scale")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::point("scale", Point::new(50.0, 200.0))) // 50% x, 200% y
-                    .with_input(Port::point("origin", Point::ZERO))
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::point("scale", Point::new(50.0, 200.0))) // 50% x, 200% y
+                    .with_input(NodePort::point("origin", Point::ZERO))
             )
             .with_connection(Connection::new("ellipse1", "scale1", "shape"))
             .with_rendered_child("scale1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1395,24 +1457,25 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0))
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0))
             )
             .with_child(
                 Node::new("copy1")
                     .with_prototype("corevector.copy")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::int("copies", 3))
-                    .with_input(Port::string("order", "tsr"))
-                    .with_input(Port::point("translate", Point::new(60.0, 0.0)))
-                    .with_input(Port::float("rotate", 0.0))
-                    .with_input(Port::point("scale", Point::new(100.0, 100.0)))
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::int("copies", 3))
+                    .with_input(NodePort::string("order", "tsr"))
+                    .with_input(NodePort::point("translate", Point::new(60.0, 0.0)))
+                    .with_input(NodePort::float("rotate", 0.0))
+                    .with_input(NodePort::point("scale", Point::new(100.0, 100.0)))
             )
             .with_connection(Connection::new("ellipse1", "copy1", "shape"))
             .with_rendered_child("copy1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         // Should have 3 copies
         assert_eq!(paths.len(), 3);
     }
@@ -1420,7 +1483,8 @@ mod tests {
     #[test]
     fn test_evaluate_empty_network() {
         let library = NodeLibrary::new("test");
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
 
@@ -1431,13 +1495,14 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0))
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0))
             );
         // No rendered_child set
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
 
@@ -1448,15 +1513,16 @@ mod tests {
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0)))
-                    .with_input(Port::color("stroke", Color::BLACK))
-                    .with_input(Port::float("strokeWidth", 2.0))
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::color("fill", Color::rgb(1.0, 0.0, 0.0)))
+                    .with_input(NodePort::color("stroke", Color::BLACK))
+                    .with_input(NodePort::float("strokeWidth", 2.0))
             )
             .with_rendered_child("colorize1");
 
         // Should handle missing input gracefully
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
 
@@ -1471,7 +1537,8 @@ mod tests {
             .with_rendered_child("unknown1");
 
         // Should handle unknown node type gracefully
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
 
@@ -1482,20 +1549,21 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("width", 100.0))
-                    .with_input(Port::float("height", 100.0))
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("width", 100.0))
+                    .with_input(NodePort::float("height", 100.0))
             )
             .with_child(
                 Node::new("resample1")
                     .with_prototype("corevector.resample")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::int("points", 20))
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::int("points", 20))
             )
             .with_connection(Connection::new("ellipse1", "resample1", "shape"))
             .with_rendered_child("resample1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
         // Resampled path should have the specified number of points
         // Note: exact point count depends on implementation
@@ -1508,23 +1576,24 @@ mod tests {
             .with_child(
                 Node::new("grid1")
                     .with_prototype("corevector.grid")
-                    .with_input(Port::int("columns", 3))
-                    .with_input(Port::int("rows", 3))
-                    .with_input(Port::float("width", 100.0))
-                    .with_input(Port::float("height", 100.0))
-                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(NodePort::int("columns", 3))
+                    .with_input(NodePort::int("rows", 3))
+                    .with_input(NodePort::float("width", 100.0))
+                    .with_input(NodePort::float("height", 100.0))
+                    .with_input(NodePort::point("position", Point::ZERO))
             )
             .with_child(
                 Node::new("connect1")
                     .with_prototype("corevector.connect")
                     // points port expects entire list, not individual values
-                    .with_input(Port::geometry("points").with_port_range(PortRange::List))
-                    .with_input(Port::boolean("closed", false))
+                    .with_input(NodePort::geometry("points").with_port_range(PortRange::List))
+                    .with_input(NodePort::boolean("closed", false))
             )
             .with_connection(Connection::new("grid1", "connect1", "points"))
             .with_rendered_child("connect1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
     }
 
@@ -1541,13 +1610,14 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::new(100.0, 50.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0))
+                    .with_input(NodePort::point("position", Point::new(100.0, 50.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0))
             )
             .with_rendered_child("ellipse1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1567,13 +1637,14 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(Port::point("position", Point::new(-50.0, 25.0)))
-                    .with_input(Port::float("width", 80.0))
-                    .with_input(Port::float("height", 40.0))
+                    .with_input(NodePort::point("position", Point::new(-50.0, 25.0)))
+                    .with_input(NodePort::float("width", 80.0))
+                    .with_input(NodePort::float("height", 40.0))
             )
             .with_rendered_child("rect1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1591,14 +1662,15 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
-                    .with_input(Port::float("width", 100.0))
-                    .with_input(Port::float("height", 100.0))
-                    .with_input(Port::point("roundness", Point::new(10.0, 10.0)))
+                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
+                    .with_input(NodePort::float("width", 100.0))
+                    .with_input(NodePort::float("height", 100.0))
+                    .with_input(NodePort::point("roundness", Point::new(10.0, 10.0)))
             )
             .with_rendered_child("rect1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
         // If roundness is applied, the path should have more points than a simple rect
     }
@@ -1611,14 +1683,15 @@ mod tests {
             .with_child(
                 Node::new("polygon1")
                     .with_prototype("corevector.polygon")
-                    .with_input(Port::point("position", Point::new(200.0, -100.0)))
-                    .with_input(Port::float("radius", 50.0))
-                    .with_input(Port::int("sides", 6))
-                    .with_input(Port::boolean("align", true))
+                    .with_input(NodePort::point("position", Point::new(200.0, -100.0)))
+                    .with_input(NodePort::float("radius", 50.0))
+                    .with_input(NodePort::int("sides", 6))
+                    .with_input(NodePort::boolean("align", true))
             )
             .with_rendered_child("polygon1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1636,14 +1709,15 @@ mod tests {
             .with_child(
                 Node::new("star1")
                     .with_prototype("corevector.star")
-                    .with_input(Port::point("position", Point::new(75.0, 75.0)))
-                    .with_input(Port::int("points", 5))
-                    .with_input(Port::float("outer", 50.0))
-                    .with_input(Port::float("inner", 25.0))
+                    .with_input(NodePort::point("position", Point::new(75.0, 75.0)))
+                    .with_input(NodePort::int("points", 5))
+                    .with_input(NodePort::float("outer", 50.0))
+                    .with_input(NodePort::float("inner", 25.0))
             )
             .with_rendered_child("star1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1662,16 +1736,17 @@ mod tests {
             .with_child(
                 Node::new("arc1")
                     .with_prototype("corevector.arc")
-                    .with_input(Port::point("position", Point::new(50.0, -50.0)))
-                    .with_input(Port::float("width", 100.0))
-                    .with_input(Port::float("height", 100.0))
-                    .with_input(Port::float("start_angle", 0.0))
-                    .with_input(Port::float("degrees", 180.0))
-                    .with_input(Port::string("type", "pie"))
+                    .with_input(NodePort::point("position", Point::new(50.0, -50.0)))
+                    .with_input(NodePort::float("width", 100.0))
+                    .with_input(NodePort::float("height", 100.0))
+                    .with_input(NodePort::float("start_angle", 0.0))
+                    .with_input(NodePort::float("degrees", 180.0))
+                    .with_input(NodePort::string("type", "pie"))
             )
             .with_rendered_child("arc1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1689,24 +1764,25 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0))
+                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0))
             )
             .with_child(
                 Node::new("copy1")
                     .with_prototype("corevector.copy")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::int("copies", 3))
-                    .with_input(Port::string("order", "tsr"))
-                    .with_input(Port::point("translate", Point::new(60.0, 0.0)))
-                    .with_input(Port::float("rotate", 0.0))
-                    .with_input(Port::point("scale", Point::new(100.0, 100.0)))
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::int("copies", 3))
+                    .with_input(NodePort::string("order", "tsr"))
+                    .with_input(NodePort::point("translate", Point::new(60.0, 0.0)))
+                    .with_input(NodePort::float("rotate", 0.0))
+                    .with_input(NodePort::point("scale", Point::new(100.0, 100.0)))
             )
             .with_connection(Connection::new("ellipse1", "copy1", "shape"))
             .with_rendered_child("copy1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 3, "Should have 3 copies");
 
         // First copy at x=0, second at x=60, third at x=120
@@ -1727,23 +1803,24 @@ mod tests {
             .with_child(
                 Node::new("grid1")
                     .with_prototype("corevector.grid")
-                    .with_input(Port::int("columns", 3))
-                    .with_input(Port::int("rows", 3))
-                    .with_input(Port::float("width", 100.0))
-                    .with_input(Port::float("height", 100.0))
-                    .with_input(Port::point("position", Point::new(50.0, 50.0)))
+                    .with_input(NodePort::int("columns", 3))
+                    .with_input(NodePort::int("rows", 3))
+                    .with_input(NodePort::float("width", 100.0))
+                    .with_input(NodePort::float("height", 100.0))
+                    .with_input(NodePort::point("position", Point::new(50.0, 50.0)))
             )
             .with_child(
                 Node::new("connect1")
                     .with_prototype("corevector.connect")
                     // points port expects entire list, not individual values
-                    .with_input(Port::geometry("points").with_port_range(PortRange::List))
-                    .with_input(Port::boolean("closed", false))
+                    .with_input(NodePort::geometry("points").with_port_range(PortRange::List))
+                    .with_input(NodePort::boolean("closed", false))
             )
             .with_connection(Connection::new("grid1", "connect1", "points"))
             .with_rendered_child("connect1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -1761,22 +1838,23 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
-                    .with_input(Port::float("width", 100.0))
-                    .with_input(Port::float("height", 100.0))
+                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
+                    .with_input(NodePort::float("width", 100.0))
+                    .with_input(NodePort::float("height", 100.0))
             )
             .with_child(
                 Node::new("wiggle1")
                     .with_prototype("corevector.wiggle")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::string("scope", "points"))
-                    .with_input(Port::point("offset", Point::new(10.0, 10.0)))
-                    .with_input(Port::int("seed", 42))
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::string("scope", "points"))
+                    .with_input(NodePort::point("offset", Point::new(10.0, 10.0)))
+                    .with_input(NodePort::int("seed", 42))
             )
             .with_connection(Connection::new("ellipse1", "wiggle1", "shape"))
             .with_rendered_child("wiggle1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(!paths.is_empty(), "Wiggle should produce output");
     }
 
@@ -1789,23 +1867,24 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
-                    .with_input(Port::float("width", 200.0))
-                    .with_input(Port::float("height", 100.0))
+                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
+                    .with_input(NodePort::float("width", 200.0))
+                    .with_input(NodePort::float("height", 100.0))
             )
             .with_child(
                 Node::new("fit1")
                     .with_prototype("corevector.fit")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::point("position", Point::new(100.0, 100.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0))
-                    .with_input(Port::boolean("keep_proportions", true))
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::point("position", Point::new(100.0, 100.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0))
+                    .with_input(NodePort::boolean("keep_proportions", true))
             )
             .with_connection(Connection::new("ellipse1", "fit1", "shape"))
             .with_rendered_child("fit1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         // Verify fit produced output - the shape should be constrained to max 50x50
@@ -1857,38 +1936,39 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(Port::point("position", Point::new(-100.0, 0.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0)),
+                    .with_input(NodePort::point("position", Point::new(-100.0, 0.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0)),
             )
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0)),
+                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0)),
             )
             .with_child(
                 Node::new("polygon1")
                     .with_prototype("corevector.polygon")
-                    .with_input(Port::point("position", Point::new(100.0, 0.0)))
-                    .with_input(Port::float("radius", 25.0))
-                    .with_input(Port::int("sides", 6)),
+                    .with_input(NodePort::point("position", Point::new(100.0, 0.0)))
+                    .with_input(NodePort::float("radius", 25.0))
+                    .with_input(NodePort::int("sides", 6)),
             )
             .with_child(
                 Node::new("combine1")
                     .with_prototype("list.combine")
                     // Note: list.combine ports should accept lists, not iterate over them
-                    .with_input(Port::geometry("list1").with_port_range(PortRange::List))
-                    .with_input(Port::geometry("list2").with_port_range(PortRange::List))
-                    .with_input(Port::geometry("list3").with_port_range(PortRange::List)),
+                    .with_input(NodePort::geometry("list1").with_port_range(PortRange::List))
+                    .with_input(NodePort::geometry("list2").with_port_range(PortRange::List))
+                    .with_input(NodePort::geometry("list3").with_port_range(PortRange::List)),
             )
             .with_connection(Connection::new("rect1", "combine1", "list1"))
             .with_connection(Connection::new("ellipse1", "combine1", "list2"))
             .with_connection(Connection::new("polygon1", "combine1", "list3"))
             .with_rendered_child("combine1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
 
         assert_eq!(
             paths.len(),
@@ -1909,41 +1989,41 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(Port::point("position", Point::new(-100.0, 0.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0)),
+                    .with_input(NodePort::point("position", Point::new(-100.0, 0.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0)),
             )
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0)),
+                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0)),
             )
             .with_child(
                 Node::new("polygon1")
                     .with_prototype("corevector.polygon")
-                    .with_input(Port::point("position", Point::new(100.0, 0.0)))
-                    .with_input(Port::float("radius", 25.0))
-                    .with_input(Port::int("sides", 6)),
+                    .with_input(NodePort::point("position", Point::new(100.0, 0.0)))
+                    .with_input(NodePort::float("radius", 25.0))
+                    .with_input(NodePort::int("sides", 6)),
             )
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0))),
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::color("fill", Color::rgb(1.0, 0.0, 0.0))),
             )
             .with_child(
                 Node::new("colorize2")
                     .with_prototype("corevector.colorize")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::color("fill", Color::rgb(0.0, 1.0, 0.0))),
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::color("fill", Color::rgb(0.0, 1.0, 0.0))),
             )
             .with_child(
                 Node::new("colorize3")
                     .with_prototype("corevector.colorize")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::color("fill", Color::rgb(0.0, 0.0, 1.0))),
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::color("fill", Color::rgb(0.0, 0.0, 1.0))),
             )
             .with_child(
                 Node::new("combine1")
@@ -1958,7 +2038,8 @@ mod tests {
             .with_connection(Connection::new("colorize3", "combine1", "list3"))
             .with_rendered_child("combine1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
 
         assert_eq!(
             paths.len(),
@@ -1982,20 +2063,21 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0)),
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0)),
             )
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
                     // Only fill is defined, NOT shape - mimics ndbx file
-                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0))),
+                    .with_input(NodePort::color("fill", Color::rgb(1.0, 0.0, 0.0))),
             )
             .with_connection(Connection::new("rect1", "colorize1", "shape"))
             .with_rendered_child("colorize1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
 
         assert_eq!(
             paths.len(),
@@ -2015,16 +2097,16 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(Port::point("position", Point::new(-100.0, 0.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0)),
+                    .with_input(NodePort::point("position", Point::new(-100.0, 0.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0)),
             )
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
-                    .with_input(Port::float("width", 50.0))
-                    .with_input(Port::float("height", 50.0)),
+                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
+                    .with_input(NodePort::float("width", 50.0))
+                    .with_input(NodePort::float("height", 50.0)),
             )
             .with_child(
                 Node::new("combine1")
@@ -2035,7 +2117,8 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "combine1", "list2"))
             .with_rendered_child("combine1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
 
         // With no port definitions, list matching treats inputs as VALUE range
         // Each input is a single path, so iteration count = 1
@@ -2056,24 +2139,25 @@ mod tests {
             .with_child(
                 Node::new("grid1")
                     .with_prototype("corevector.grid")
-                    .with_input(Port::int("columns", 10))
-                    .with_input(Port::int("rows", 10))
-                    .with_input(Port::float("width", 300.0))
-                    .with_input(Port::float("height", 300.0))
-                    .with_input(Port::point("position", Point::ZERO)),
+                    .with_input(NodePort::int("columns", 10))
+                    .with_input(NodePort::int("rows", 10))
+                    .with_input(NodePort::float("width", 300.0))
+                    .with_input(NodePort::float("height", 300.0))
+                    .with_input(NodePort::point("position", Point::ZERO)),
             )
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("width", 20.0))
-                    .with_input(Port::float("height", 20.0))
-                    .with_input(Port::point("roundness", Point::ZERO)),
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("width", 20.0))
+                    .with_input(NodePort::float("height", 20.0))
+                    .with_input(NodePort::point("roundness", Point::ZERO)),
             )
             .with_connection(Connection::new("grid1", "rect1", "position"))
             .with_rendered_child("rect1");
 
-        let (paths, _errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
 
         // THE KEY ASSERTION: Must produce 100 rectangles, not 1!
         assert_eq!(
@@ -2096,12 +2180,13 @@ mod tests {
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0)))
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::color("fill", Color::rgb(1.0, 0.0, 0.0)))
             )
             .with_rendered_child("colorize1");
 
-        let (paths, errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, errors) = evaluate_network(&library, &port, &ctx);
 
         // Should have no paths output
         assert!(paths.is_empty(), "Should have no output on missing input, got {} paths", paths.len());
@@ -2124,18 +2209,19 @@ mod tests {
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
-                    .with_input(Port::geometry("shape"))
+                    .with_input(NodePort::geometry("shape"))
             )
             .with_child(
                 Node::new("translate1")
                     .with_prototype("corevector.translate")
-                    .with_input(Port::geometry("shape"))
-                    .with_input(Port::point("translate", Point::new(10.0, 10.0)))
+                    .with_input(NodePort::geometry("shape"))
+                    .with_input(NodePort::point("translate", Point::new(10.0, 10.0)))
             )
             .with_connection(Connection::new("colorize1", "translate1", "shape"))
             .with_rendered_child("translate1");
 
-        let (paths, errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, errors) = evaluate_network(&library, &port, &ctx);
 
         // Should have no output
         assert!(paths.is_empty(), "Should have no output when upstream has error");
@@ -2151,13 +2237,14 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::point("position", Point::ZERO))
-                    .with_input(Port::float("width", 100.0))
-                    .with_input(Port::float("height", 100.0))
+                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(NodePort::float("width", 100.0))
+                    .with_input(NodePort::float("height", 100.0))
             )
             .with_rendered_child("ellipse1");
 
-        let (paths, errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, errors) = evaluate_network(&library, &port, &ctx);
 
         // Should have output
         assert!(!paths.is_empty(), "Should have output for valid network");
@@ -2174,11 +2261,12 @@ mod tests {
             .with_child(
                 Node::new("my_colorize_node")
                     .with_prototype("corevector.colorize")
-                    .with_input(Port::geometry("shape"))
+                    .with_input(NodePort::geometry("shape"))
             )
             .with_rendered_child("my_colorize_node");
 
-        let (_paths, errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (_paths, errors) = evaluate_network(&library, &port, &ctx);
 
         assert!(!errors.is_empty(), "Should have an error");
         assert_eq!(
@@ -2200,7 +2288,8 @@ mod tests {
             )
             .with_rendered_child("ellipse1");
 
-        let (paths, errors) = evaluate_network(&library);
+        let (port, ctx) = test_port_and_context();
+        let (paths, errors) = evaluate_network(&library, &port, &ctx);
 
         assert!(!paths.is_empty(), "Generator should produce output with defaults");
         assert!(errors.is_empty(), "Generator should not produce errors");

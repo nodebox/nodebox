@@ -21,7 +21,7 @@ echo "Building NodeBox $VERSION ($BUILD_TYPE)..."
 
 # Build the binary
 cd "$PROJECT_ROOT"
-cargo build $CARGO_FLAGS
+cargo build $CARGO_FLAGS -p nodebox
 
 # Set up paths
 BINARY_PATH="$PROJECT_ROOT/target/$BUILD_TYPE/NodeBox"

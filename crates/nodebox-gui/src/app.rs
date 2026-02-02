@@ -2,6 +2,9 @@
 
 use eframe::egui::{self, Pos2, Rect, Vec2};
 use nodebox_core::geometry::Point;
+use nodebox_port::{Port, ProjectContext};
+use std::sync::Arc;
+
 use crate::address_bar::{AddressBar, AddressBarAction};
 use crate::animation_bar::AnimationBar;
 use crate::components;
@@ -19,6 +22,10 @@ use crate::viewer_pane::{HandleResult, ViewerPane};
 
 /// The main NodeBox application.
 pub struct NodeBoxApp {
+    /// Port for platform-abstracted file operations.
+    port: Arc<dyn Port>,
+    /// Project context for the current project (tracks save location).
+    project_context: ProjectContext,
     state: AppState,
     address_bar: AddressBar,
     viewer_pane: ViewerPane,
@@ -44,36 +51,46 @@ pub struct NodeBoxApp {
 }
 
 impl NodeBoxApp {
-    /// Create a new NodeBox application instance.
-    #[allow(dead_code)]
-    pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
-        Self::new_with_file(_cc, None, None)
-    }
-
-    /// Create a new NodeBox application instance, optionally loading an initial file.
-    pub fn new_with_file(
+    /// Create a new NodeBox application instance with a Port for file operations.
+    ///
+    /// This is the primary constructor that accepts an `Arc<dyn Port>` for
+    /// platform-abstracted file operations.
+    pub fn new_with_port(
         cc: &eframe::CreationContext<'_>,
+        port: Arc<dyn Port>,
         initial_file: Option<std::path::PathBuf>,
-        native_menu: Option<NativeMenuHandle>,
     ) -> Self {
         // Configure the global theme/style
         theme::configure_style(&cc.egui_ctx);
+
+        // Initialize native menu bar (macOS)
+        let native_menu = Some(NativeMenuHandle::new());
 
         let mut state = AppState::new();
 
         // Load recent files from disk
         let mut recent_files = RecentFiles::load();
 
-        // Load the initial file if provided
-        if let Some(ref path) = initial_file {
+        // Determine project context from initial file
+        let project_context = if let Some(ref path) = initial_file {
             if let Err(e) = state.load_file(path) {
                 log::error!("Failed to load initial file {:?}: {}", path, e);
+                ProjectContext::new_unsaved()
             } else {
                 // Add to recent files on successful load
                 recent_files.add_file(path.clone());
                 recent_files.save();
+
+                // Create project context from file path
+                if let (Some(parent), Some(file_name)) = (path.parent(), path.file_name()) {
+                    ProjectContext::new(parent, file_name.to_string_lossy().to_string())
+                } else {
+                    ProjectContext::new_unsaved()
+                }
             }
-        }
+        } else {
+            ProjectContext::new_unsaved()
+        };
 
         // Rebuild native menu with recent files
         if let Some(ref menu) = native_menu {
@@ -82,6 +99,88 @@ impl NodeBoxApp {
 
         let hash = Self::hash_library(&state.library);
         Self {
+            port,
+            project_context,
+            state,
+            address_bar: AddressBar::new(),
+            viewer_pane: ViewerPane::new(),
+            network_view: NetworkView::new(),
+            parameters: ParameterPanel::new(),
+            animation_bar: AnimationBar::new(),
+            node_dialog: NodeSelectionDialog::new(),
+            icon_cache: IconCache::new(),
+            history: History::new(),
+            previous_library_hash: hash,
+            render_worker: RenderWorkerHandle::spawn(),
+            render_state: RenderState::new(),
+            render_pending: false, // Initial geometry is already evaluated in AppState::new()
+            native_menu,
+            recent_files,
+        }
+    }
+
+    /// Create a new NodeBox application instance (legacy constructor).
+    ///
+    /// This constructor creates a DesktopPort internally for backwards compatibility.
+    /// Prefer using `new_with_port` for new code.
+    #[allow(dead_code)]
+    pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
+        Self::new_with_file(_cc, None, None)
+    }
+
+    /// Create a new NodeBox application instance, optionally loading an initial file.
+    ///
+    /// This constructor creates a DesktopPort internally for backwards compatibility.
+    /// Prefer using `new_with_port` for new code.
+    pub fn new_with_file(
+        cc: &eframe::CreationContext<'_>,
+        initial_file: Option<std::path::PathBuf>,
+        native_menu: Option<NativeMenuHandle>,
+    ) -> Self {
+        // Configure the global theme/style
+        theme::configure_style(&cc.egui_ctx);
+
+        // Create a default DesktopPort for backwards compatibility
+        #[cfg(not(target_arch = "wasm32"))]
+        let port: Arc<dyn Port> = Arc::new(nodebox_port::DesktopPort::new());
+        #[cfg(target_arch = "wasm32")]
+        compile_error!("WASM builds must use new_with_port with a custom Port implementation");
+
+        let mut state = AppState::new();
+
+        // Load recent files from disk
+        let mut recent_files = RecentFiles::load();
+
+        // Determine project context from initial file
+        let project_context = if let Some(ref path) = initial_file {
+            if let Err(e) = state.load_file(path) {
+                log::error!("Failed to load initial file {:?}: {}", path, e);
+                ProjectContext::new_unsaved()
+            } else {
+                // Add to recent files on successful load
+                recent_files.add_file(path.clone());
+                recent_files.save();
+
+                // Create project context from file path
+                if let (Some(parent), Some(file_name)) = (path.parent(), path.file_name()) {
+                    ProjectContext::new(parent, file_name.to_string_lossy().to_string())
+                } else {
+                    ProjectContext::new_unsaved()
+                }
+            }
+        } else {
+            ProjectContext::new_unsaved()
+        };
+
+        // Rebuild native menu with recent files
+        if let Some(ref menu) = native_menu {
+            menu.rebuild_recent_menu(&recent_files.files());
+        }
+
+        let hash = Self::hash_library(&state.library);
+        Self {
+            port,
+            project_context,
             state,
             address_bar: AddressBar::new(),
             viewer_pane: ViewerPane::new(),
@@ -110,6 +209,8 @@ impl NodeBoxApp {
         let state = AppState::new();
         let hash = Self::hash_library(&state.library);
         Self {
+            port: Arc::new(nodebox_port::DesktopPort::new()),
+            project_context: ProjectContext::new_unsaved(),
             state,
             address_bar: AddressBar::new(),
             viewer_pane: ViewerPane::new(),
@@ -139,6 +240,8 @@ impl NodeBoxApp {
         state.geometry.clear();
         let hash = Self::hash_library(&state.library);
         Self {
+            port: Arc::new(nodebox_port::DesktopPort::new()),
+            project_context: ProjectContext::new_unsaved(),
             state,
             address_bar: AddressBar::new(),
             viewer_pane: ViewerPane::new(),
@@ -181,13 +284,38 @@ impl NodeBoxApp {
         &mut self.history
     }
 
+    /// Get a reference to the Port for file operations.
+    #[allow(dead_code)]
+    pub fn port(&self) -> &Arc<dyn Port> {
+        &self.port
+    }
+
+    /// Get a reference to the project context.
+    #[allow(dead_code)]
+    pub fn project_context(&self) -> &ProjectContext {
+        &self.project_context
+    }
+
     /// Synchronously evaluate the network for testing.
     ///
     /// Unlike the normal async flow, this directly evaluates and updates geometry.
     #[cfg(test)]
     #[allow(dead_code)]
     pub fn evaluate_for_testing(&mut self) {
-        self.state.evaluate();
+        let (geometry, errors) = crate::eval::evaluate_network(
+            &self.state.library,
+            &self.port,
+            &self.project_context,
+        );
+        if errors.is_empty() {
+            self.state.geometry = geometry;
+            self.state.node_errors.clear();
+        } else {
+            self.state.node_errors = errors
+                .into_iter()
+                .map(|e| (e.node_name, e.message))
+                .collect();
+        }
     }
 
     /// Simulate a frame update for testing purposes.
@@ -204,8 +332,8 @@ impl NodeBoxApp {
             self.previous_library_hash = current_hash;
             self.state.dirty = true;
         }
-        // Synchronously evaluate
-        self.state.evaluate();
+        // Synchronously evaluate using the app's port
+        self.evaluate_for_testing();
     }
 
     /// Compute a simple hash of the library for change detection.
@@ -288,6 +416,8 @@ impl NodeBoxApp {
                 id,
                 self.state.library.clone(),
                 cancel_token,
+                self.port.clone(),
+                self.project_context.clone(),
             );
             self.render_pending = false;
         }
@@ -562,7 +692,8 @@ impl eframe::App for NodeBoxApp {
 
                 ui.scope_builder(egui::UiBuilder::new().max_rect(params_rect), |ui| {
                     ui.set_clip_rect(params_rect);
-                    self.parameters.show(ui, &mut self.state);
+                    self.parameters
+                        .show(ui, &mut self.state, self.port.as_ref(), &self.project_context);
                 });
 
                 // Bottom: Network pane (headers have their own borders)
@@ -789,15 +920,23 @@ impl NodeBoxApp {
     }
 
     fn open_file(&mut self) {
-        if let Some(path) = rfd::FileDialog::new()
-            .add_filter("NodeBox Files", &["ndbx"])
-            .pick_file()
-        {
-            if let Err(e) = self.state.load_file(&path) {
-                log::error!("Failed to load file: {}", e);
-            } else {
-                self.add_to_recent_files(path);
+        use nodebox_port::FileFilter;
+
+        match self.port.show_open_project_dialog(&[FileFilter::nodebox()]) {
+            Ok(Some(path)) => {
+                if let Err(e) = self.state.load_file(&path) {
+                    log::error!("Failed to load file: {}", e);
+                } else {
+                    // Update project context with new file location
+                    if let (Some(parent), Some(file_name)) = (path.parent(), path.file_name()) {
+                        self.project_context =
+                            ProjectContext::new(parent, file_name.to_string_lossy().to_string());
+                    }
+                    self.add_to_recent_files(path);
+                }
             }
+            Ok(None) => {} // User cancelled
+            Err(e) => log::error!("Failed to open file dialog: {}", e),
         }
     }
 
@@ -806,6 +945,11 @@ impl NodeBoxApp {
         if let Err(e) = self.state.load_file(path) {
             log::error!("Failed to load recent file: {}", e);
         } else {
+            // Update project context with new file location
+            if let (Some(parent), Some(file_name)) = (path.parent(), path.file_name()) {
+                self.project_context =
+                    ProjectContext::new(parent, file_name.to_string_lossy().to_string());
+            }
             self.add_to_recent_files(path.to_path_buf());
         }
     }
@@ -839,50 +983,66 @@ impl NodeBoxApp {
     }
 
     fn save_file_as(&mut self) {
-        if let Some(path) = rfd::FileDialog::new()
-            .add_filter("NodeBox Files", &["ndbx"])
-            .save_file()
-        {
-            if let Err(e) = self.state.save_file(&path) {
-                log::error!("Failed to save file: {}", e);
-            } else {
-                self.add_to_recent_files(path);
+        use nodebox_port::FileFilter;
+
+        match self.port.show_save_project_dialog(&[FileFilter::nodebox()], Some("untitled.ndbx")) {
+            Ok(Some(path)) => {
+                if let Err(e) = self.state.save_file(&path) {
+                    log::error!("Failed to save file: {}", e);
+                } else {
+                    // Update project context with new file location
+                    if let (Some(parent), Some(file_name)) = (path.parent(), path.file_name()) {
+                        self.project_context =
+                            ProjectContext::new(parent, file_name.to_string_lossy().to_string());
+                    }
+                    self.add_to_recent_files(path);
+                }
             }
+            Ok(None) => {} // User cancelled
+            Err(e) => log::error!("Failed to open save dialog: {}", e),
         }
     }
 
     fn export_svg(&mut self) {
-        if let Some(path) = rfd::FileDialog::new()
-            .add_filter("SVG Files", &["svg"])
-            .save_file()
-        {
-            // Use document dimensions for export
-            let width = self.state.library.width();
-            let height = self.state.library.height();
-            if let Err(e) = self.state.export_svg(&path, width, height) {
-                log::error!("Failed to export SVG: {}", e);
+        use nodebox_port::FileFilter;
+
+        // Export dialogs use save_project_dialog since exports are not sandboxed
+        match self.port.show_save_project_dialog(&[FileFilter::svg()], Some("export.svg")) {
+            Ok(Some(path)) => {
+                // Use document dimensions for export
+                let width = self.state.library.width();
+                let height = self.state.library.height();
+                if let Err(e) = self.state.export_svg(&path, width, height) {
+                    log::error!("Failed to export SVG: {}", e);
+                }
             }
+            Ok(None) => {} // User cancelled
+            Err(e) => log::error!("Failed to open export dialog: {}", e),
         }
     }
 
     fn export_png(&mut self) {
-        if let Some(path) = rfd::FileDialog::new()
-            .add_filter("PNG Files", &["png"])
-            .save_file()
-        {
-            // Use document dimensions for export
-            let width = self.state.library.width() as u32;
-            let height = self.state.library.height() as u32;
+        use nodebox_port::FileFilter;
 
-            if let Err(e) = crate::export::export_png(
-                &self.state.geometry,
-                &path,
-                width,
-                height,
-                self.state.background_color,
-            ) {
-                log::error!("Failed to export PNG: {}", e);
+        // Export dialogs use save_project_dialog since exports are not sandboxed
+        match self.port.show_save_project_dialog(&[FileFilter::png()], Some("export.png")) {
+            Ok(Some(path)) => {
+                // Use document dimensions for export
+                let width = self.state.library.width() as u32;
+                let height = self.state.library.height() as u32;
+
+                if let Err(e) = crate::export::export_png(
+                    &self.state.geometry,
+                    &path,
+                    width,
+                    height,
+                    self.state.background_color,
+                ) {
+                    log::error!("Failed to export PNG: {}", e);
+                }
             }
+            Ok(None) => {} // User cancelled
+            Err(e) => log::error!("Failed to open export dialog: {}", e),
         }
     }
 }
