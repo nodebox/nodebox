@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use super::Node;
+use super::PortType;
 
 /// A library of nodes, typically loaded from an .ndbx file.
 ///
@@ -123,6 +124,14 @@ impl NodeLibrary {
 
         Some(current)
     }
+
+    /// Returns true if the currently rendered node outputs Point type.
+    pub fn is_rendered_output_point(&self) -> bool {
+        self.root.rendered_child.as_ref()
+            .and_then(|name| self.root.child(name))
+            .map(|node| node.output_type == PortType::Point)
+            .unwrap_or(false)
+    }
 }
 
 #[cfg(test)]
@@ -171,5 +180,25 @@ mod tests {
         let lib = NodeLibrary::new("test");
         assert_eq!(lib.width(), 1000.0);
         assert_eq!(lib.height(), 1000.0);
+    }
+
+    #[test]
+    fn test_is_rendered_output_point() {
+        let mut lib = NodeLibrary::new("test");
+
+        // No rendered child - should return false
+        assert!(!lib.is_rendered_output_point());
+
+        // Add a node with default Geometry output type
+        lib.root = Node::network("root")
+            .with_child(Node::new("rect1"))
+            .with_rendered_child("rect1");
+        assert!(!lib.is_rendered_output_point());
+
+        // Add a node with Point output type
+        lib.root = Node::network("root")
+            .with_child(Node::new("grid1").with_output_type(PortType::Point))
+            .with_rendered_child("grid1");
+        assert!(lib.is_rendered_output_point());
     }
 }

@@ -142,6 +142,11 @@ impl NodeOutput {
             _ => 1,
         }
     }
+
+    /// Returns true if this output is a Point or Points type.
+    pub fn is_point_output(&self) -> bool {
+        matches!(self, NodeOutput::Point(_) | NodeOutput::Points(_))
+    }
 }
 
 /// Evaluate a node network and return the output of the rendered node along with any errors.
@@ -265,10 +270,12 @@ pub fn evaluate_network_cancellable(
     }
 
     match result {
-        Ok(output) => EvalOutcome::Completed {
-            geometry: output.to_paths(),
-            errors: Vec::new(),
-        },
+        Ok(output) => {
+            EvalOutcome::Completed {
+                geometry: output.to_paths(),
+                errors: Vec::new(),
+            }
+        }
         Err(EvalError::Cancelled) => EvalOutcome::Cancelled,
         Err(e) => {
             // Extract node name based on error type
@@ -1925,6 +1932,25 @@ mod tests {
 
         let output = NodeOutput::Float(1.0);
         assert!(output.as_paths().is_none());
+
+        // Test is_point_output()
+        let output = NodeOutput::Point(Point::ZERO);
+        assert!(output.is_point_output());
+
+        let output = NodeOutput::Points(vec![Point::ZERO, Point::new(1.0, 1.0)]);
+        assert!(output.is_point_output());
+
+        let output = NodeOutput::Path(path.clone());
+        assert!(!output.is_point_output());
+
+        let output = NodeOutput::Paths(vec![path.clone()]);
+        assert!(!output.is_point_output());
+
+        let output = NodeOutput::Float(1.0);
+        assert!(!output.is_point_output());
+
+        let output = NodeOutput::None;
+        assert!(!output.is_point_output());
     }
 
     #[test]
