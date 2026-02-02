@@ -56,6 +56,12 @@ pub const NODE_TEMPLATES: &[NodeTemplate] = &[
         description: "Create an arc or pie slice",
     },
     NodeTemplate {
+        name: "quad_curve",
+        prototype: "corevector.quad_curve",
+        category: "geometry",
+        description: "Create a quadratic curve between two points",
+    },
+    NodeTemplate {
         name: "grid",
         prototype: "corevector.grid",
         category: "geometry",
@@ -273,6 +279,13 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                 .with_input(Port::float("start_angle", 0.0))
                 .with_input(Port::float("degrees", 45.0))
                 .with_input(Port::string("type", "pie"));
+        }
+        "quad_curve" => {
+            node = node
+                .with_input(Port::point("point1", Point::ZERO))
+                .with_input(Port::point("point2", Point::new(100.0, 0.0)))
+                .with_input(Port::float("t", 50.0))
+                .with_input(Port::float("distance", 50.0));
         }
         "grid" => {
             node = node

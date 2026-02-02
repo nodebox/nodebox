@@ -277,6 +277,12 @@ pub fn populate_default_ports(node: &mut Node) {
                 ensure_port(node, "x", || Port::float("x", 0.0));
                 ensure_port(node, "y", || Port::float("y", 0.0));
             }
+            "corevector.quad_curve" => {
+                ensure_port(node, "point1", || Port::point("point1", nodebox_core::geometry::Point::ZERO));
+                ensure_port(node, "point2", || Port::point("point2", nodebox_core::geometry::Point::new(100.0, 0.0)));
+                ensure_port(node, "t", || Port::float("t", 50.0));
+                ensure_port(node, "distance", || Port::float("distance", 50.0));
+            }
             _ => {}
         }
     }
