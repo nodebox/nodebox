@@ -434,6 +434,146 @@ use crate::theme::{
 
 ---
 
+## egui Styling System
+
+NodeBox uses egui for its GUI. Understanding how to properly configure egui's styling is essential for maintaining visual consistency.
+
+### Global Style Configuration
+
+All global styles are configured in `theme.rs` in the `configure_style()` function. This function is called once at startup.
+
+```rust
+pub fn configure_style(ctx: &egui::Context) {
+    let mut style = Style::default();
+    let mut visuals = Visuals::dark();
+
+    // ... configure style and visuals ...
+
+    style.visuals = visuals;
+    ctx.set_style(style);
+}
+```
+
+### Widget Visuals: Set ALL Properties
+
+**Critical:** egui widgets have multiple background properties. If you only set `bg_fill`, egui will use its default brownish-gray for other properties. Always set ALL of these:
+
+```rust
+// For each widget state (noninteractive, inactive, hovered, active, open):
+visuals.widgets.inactive.bg_fill = SLATE_700;       // Primary background
+visuals.widgets.inactive.weak_bg_fill = SLATE_700;  // IMPORTANT: Button frames use this!
+visuals.widgets.inactive.fg_stroke = Stroke::new(1.0, SLATE_200);  // Text/icon color
+visuals.widgets.inactive.bg_stroke = Stroke::NONE;  // Border (usually none)
+visuals.widgets.inactive.corner_radius = CornerRadius::ZERO;
+```
+
+The `weak_bg_fill` property is particularly important - it's used for:
+- Button backgrounds
+- ComboBox button backgrounds
+- Frame backgrounds for "weak" (unfocused) widgets
+
+If you see brownish-gray colors appearing, you likely forgot to set `weak_bg_fill`.
+
+### Widget States
+
+egui has five widget states, each needs full configuration:
+
+| State | When Used |
+|-------|-----------|
+| `noninteractive` | Labels, static text, disabled widgets |
+| `inactive` | Buttons/widgets not being interacted with |
+| `hovered` | Mouse hovering over widget |
+| `active` | Widget being clicked/pressed |
+| `open` | ComboBox/menu when popup is open |
+
+### Menu and Popup Styling
+
+For menus and popups (like ComboBox dropdowns):
+
+```rust
+// Sharp corners on menu popups
+visuals.menu_corner_radius = CornerRadius::ZERO;
+
+// No shadow on popups
+visuals.popup_shadow = egui::Shadow::NONE;
+
+// Tight menu margins
+style.spacing.menu_margin = egui::Margin::same(2);
+```
+
+### Selection Styling
+
+For selected items in lists and menus:
+
+```rust
+visuals.selection.bg_fill = SELECTION_BG;  // Background color (violet)
+visuals.selection.stroke = Stroke::new(1.0, TEXT_STRONG);  // Text visibility
+```
+
+**Note:** `selection.stroke` helps ensure text remains visible on the selection background.
+
+### Local Style Overrides
+
+For widget-specific styling, modify `ui.style_mut()` before rendering:
+
+```rust
+// Example: Smaller font for a specific widget
+let style = ui.style_mut();
+style.override_font_id = Some(egui::FontId::proportional(FONT_SIZE_SMALL));
+
+// Then render your widget
+egui::ComboBox::from_id_salt(id)
+    .selected_text(label)
+    .show_ui(ui, |ui| { ... });
+```
+
+### Common Styling Properties
+
+| Property | Location | Purpose |
+|----------|----------|---------|
+| `style.spacing.button_padding` | Spacing | Internal button padding |
+| `style.spacing.menu_margin` | Spacing | Menu interior margin |
+| `style.spacing.item_spacing` | Spacing | Gap between items |
+| `visuals.window_corner_radius` | Visuals | Window/dialog corners |
+| `visuals.menu_corner_radius` | Visuals | Menu popup corners |
+| `visuals.popup_shadow` | Visuals | Shadow on popups |
+| `visuals.window_shadow` | Visuals | Shadow on windows |
+| `visuals.selection.bg_fill` | Visuals | Selection highlight color |
+| `visuals.widgets.*.bg_fill` | Visuals | Widget background |
+| `visuals.widgets.*.weak_bg_fill` | Visuals | Widget frame/button background |
+| `visuals.widgets.*.fg_stroke` | Visuals | Widget text/icon color |
+
+### Debugging Style Issues
+
+If a widget has wrong colors:
+
+1. **Brownish-gray background?** → Set `weak_bg_fill` for all widget states
+2. **Wrong text color?** → Check `fg_stroke` for the relevant state
+3. **Rounded corners appearing?** → Set `corner_radius = CornerRadius::ZERO`
+4. **Selection not visible?** → Check `selection.bg_fill` and `selection.stroke`
+5. **Menu has shadows?** → Set `popup_shadow = Shadow::NONE`
+
+### Example: Full Widget State Configuration
+
+```rust
+// Inactive state (not hovered, not clicked)
+visuals.widgets.inactive.bg_fill = SLATE_700;
+visuals.widgets.inactive.weak_bg_fill = SLATE_700;
+visuals.widgets.inactive.fg_stroke = Stroke::new(1.0, SLATE_200);
+visuals.widgets.inactive.corner_radius = CornerRadius::ZERO;
+visuals.widgets.inactive.bg_stroke = Stroke::NONE;
+
+// Hovered state
+visuals.widgets.hovered.bg_fill = SLATE_600;
+visuals.widgets.hovered.weak_bg_fill = SLATE_600;
+visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, SLATE_100);
+visuals.widgets.hovered.corner_radius = CornerRadius::ZERO;
+visuals.widgets.hovered.expansion = 0.0;  // No size change on hover
+visuals.widgets.hovered.bg_stroke = Stroke::NONE;
+```
+
+---
+
 ## Evolution
 
 This design system is living documentation. When adding new patterns:

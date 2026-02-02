@@ -6,7 +6,7 @@
 
 use eframe::egui;
 use nodebox_core::geometry::{Color, Point};
-use nodebox_core::node::{Node, NodeLibrary, Port, PortRange, PortType, Widget};
+use nodebox_core::node::{MenuItem, Node, NodeLibrary, Port, PortRange, PortType, Widget};
 
 /// Available node types that can be created.
 pub struct NodeTemplate {
@@ -285,7 +285,11 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                 .with_input(Port::float("height", 100.0))
                 .with_input(Port::float("start_angle", 0.0))
                 .with_input(Port::float("degrees", 45.0))
-                .with_input(Port::string("type", "pie"));
+                .with_input(Port::menu("type", "pie", vec![
+                    MenuItem::new("pie", "Pie"),
+                    MenuItem::new("chord", "Chord"),
+                    MenuItem::new("open", "Open"),
+                ]));
         }
         "quad_curve" => {
             node = node
@@ -325,7 +329,14 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
             node = node
                 .with_input(Port::geometry("shape"))
                 .with_input(Port::int("copies", 1))
-                .with_input(Port::string("order", "tsr"))
+                .with_input(Port::menu("order", "tsr", vec![
+                    MenuItem::new("srt", "Scale Rot Trans"),
+                    MenuItem::new("str", "Scale Trans Rot"),
+                    MenuItem::new("rst", "Rot Scale Trans"),
+                    MenuItem::new("rtr", "Rot Trans Scale"),
+                    MenuItem::new("tsr", "Trans Scale Rot"),
+                    MenuItem::new("trs", "Trans Rot Scale"),
+                ]))
                 .with_input(Port::point("translate", Point::ZERO))
                 .with_input(Port::float("rotate", 0.0))
                 .with_input(Port::point("scale", Point::new(100.0, 100.0)));
@@ -343,7 +354,10 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
         "resample" => {
             node = node
                 .with_input(Port::geometry("shape"))
-                .with_input(Port::string("method", "length"))
+                .with_input(Port::menu("method", "length", vec![
+                    MenuItem::new("length", "By length"),
+                    MenuItem::new("amount", "By amount"),
+                ]))
                 .with_input(Port::float("length", 10.0))
                 .with_input(Port::int("points", 10))
                 .with_input(Port::boolean("per_contour", false));
@@ -351,7 +365,11 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
         "wiggle" => {
             node = node
                 .with_input(Port::geometry("shape"))
-                .with_input(Port::string("scope", "points"))
+                .with_input(Port::menu("scope", "points", vec![
+                    MenuItem::new("points", "Points"),
+                    MenuItem::new("contours", "Contours"),
+                    MenuItem::new("paths", "Paths"),
+                ]))
                 .with_input(Port::point("offset", Point::new(10.0, 10.0)))
                 .with_input(Port::int("seed", 0));
         }

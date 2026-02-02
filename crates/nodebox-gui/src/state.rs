@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use nodebox_core::geometry::{Path as GeoPath, Color};
-use nodebox_core::node::{Node, NodeLibrary, Port, PortRange};
+use nodebox_core::node::{Node, NodeLibrary, MenuItem, Port, PortRange, Widget};
 
 /// The main application state.
 pub struct AppState {
@@ -112,7 +112,8 @@ impl AppState {
 
     /// Save the current document.
     pub fn save_file(&mut self, path: &Path) -> Result<(), String> {
-        // TODO: Implement proper .ndbx saving
+        nodebox_ndbx::serialize_to_file(&self.library, path)
+            .map_err(|e| e.to_string())?;
         self.current_file = Some(path.to_path_buf());
         self.dirty = false;
         Ok(())
@@ -178,7 +179,11 @@ pub fn populate_default_ports(node: &mut Node) {
                 ensure_port(node, "height", || Port::float("height", 100.0));
                 ensure_port(node, "start_angle", || Port::float("start_angle", 0.0));
                 ensure_port(node, "degrees", || Port::float("degrees", 45.0));
-                ensure_port(node, "type", || Port::string("type", "pie"));
+                ensure_port(node, "type", || Port::menu("type", "pie", vec![
+                    MenuItem::new("pie", "Pie"),
+                    MenuItem::new("chord", "Chord"),
+                    MenuItem::new("open", "Open"),
+                ]));
             }
             // Filters
             "corevector.colorize" => {
@@ -204,7 +209,14 @@ pub fn populate_default_ports(node: &mut Node) {
             "corevector.copy" => {
                 ensure_port(node, "shape", || Port::geometry("shape"));
                 ensure_port(node, "copies", || Port::int("copies", 1));
-                ensure_port(node, "order", || Port::string("order", "tsr"));
+                ensure_port(node, "order", || Port::menu("order", "tsr", vec![
+                    MenuItem::new("srt", "Scale Rot Trans"),
+                    MenuItem::new("str", "Scale Trans Rot"),
+                    MenuItem::new("rst", "Rot Scale Trans"),
+                    MenuItem::new("rtr", "Rot Trans Scale"),
+                    MenuItem::new("tsr", "Trans Scale Rot"),
+                    MenuItem::new("trs", "Trans Rot Scale"),
+                ]));
                 ensure_port(node, "translate", || Port::point("translate", nodebox_core::geometry::Point::ZERO));
                 ensure_port(node, "rotate", || Port::float("rotate", 0.0));
                 ensure_port(node, "scale", || Port::point("scale", nodebox_core::geometry::Point::new(100.0, 100.0)));
@@ -212,8 +224,18 @@ pub fn populate_default_ports(node: &mut Node) {
             "corevector.align" => {
                 ensure_port(node, "shape", || Port::geometry("shape"));
                 ensure_port(node, "position", || Port::point("position", nodebox_core::geometry::Point::ZERO));
-                ensure_port(node, "halign", || Port::string("halign", "center"));
-                ensure_port(node, "valign", || Port::string("valign", "middle"));
+                ensure_port(node, "halign", || Port::menu("halign", "center", vec![
+                    MenuItem::new("none", "No Change"),
+                    MenuItem::new("left", "Left"),
+                    MenuItem::new("center", "Center"),
+                    MenuItem::new("right", "Right"),
+                ]));
+                ensure_port(node, "valign", || Port::menu("valign", "middle", vec![
+                    MenuItem::new("none", "No Change"),
+                    MenuItem::new("top", "Top"),
+                    MenuItem::new("middle", "Middle"),
+                    MenuItem::new("bottom", "Bottom"),
+                ]));
             }
             "corevector.fit" => {
                 ensure_port(node, "shape", || Port::geometry("shape"));
@@ -224,11 +246,21 @@ pub fn populate_default_ports(node: &mut Node) {
             }
             "corevector.resample" => {
                 ensure_port(node, "shape", || Port::geometry("shape"));
+                ensure_port(node, "method", || Port::menu("method", "length", vec![
+                    MenuItem::new("length", "By length"),
+                    MenuItem::new("amount", "By amount"),
+                ]));
+                ensure_port(node, "length", || Port::float("length", 10.0));
                 ensure_port(node, "points", || Port::int("points", 10));
+                ensure_port(node, "per_contour", || Port::boolean("per_contour", false));
             }
             "corevector.wiggle" => {
                 ensure_port(node, "shape", || Port::geometry("shape"));
-                ensure_port(node, "scope", || Port::string("scope", "points"));
+                ensure_port(node, "scope", || Port::menu("scope", "points", vec![
+                    MenuItem::new("points", "Points"),
+                    MenuItem::new("contours", "Contours"),
+                    MenuItem::new("paths", "Paths"),
+                ]));
                 ensure_port(node, "offset", || Port::point("offset", nodebox_core::geometry::Point::new(10.0, 10.0)));
                 ensure_port(node, "seed", || Port::int("seed", 0));
             }
@@ -242,12 +274,23 @@ pub fn populate_default_ports(node: &mut Node) {
             }
             "corevector.stack" => {
                 ensure_port(node, "shapes", || Port::geometry("shapes").with_port_range(PortRange::List));
-                ensure_port(node, "direction", || Port::string("direction", "east"));
-                ensure_port(node, "margin", || Port::float("margin", 0.0));
+                ensure_port(node, "direction", || Port::menu("direction", "e", vec![
+                    MenuItem::new("n", "North"),
+                    MenuItem::new("e", "East"),
+                    MenuItem::new("s", "South"),
+                    MenuItem::new("w", "West"),
+                ]));
+                ensure_port(node, "margin", || Port::float("margin", 5.0));
             }
             "corevector.sort" => {
                 ensure_port(node, "shapes", || Port::geometry("shapes").with_port_range(PortRange::List));
-                ensure_port(node, "order_by", || Port::string("order_by", "x"));
+                ensure_port(node, "order_by", || Port::menu("order_by", "none", vec![
+                    MenuItem::new("none", "No Change"),
+                    MenuItem::new("x", "X"),
+                    MenuItem::new("y", "Y"),
+                    MenuItem::new("angle", "Angle to Point"),
+                    MenuItem::new("distance", "Distance to Point"),
+                ]));
                 ensure_port(node, "position", || Port::point("position", nodebox_core::geometry::Point::ZERO));
             }
             "list.combine" => {
@@ -283,17 +326,113 @@ pub fn populate_default_ports(node: &mut Node) {
                 ensure_port(node, "t", || Port::float("t", 50.0));
                 ensure_port(node, "distance", || Port::float("distance", 50.0));
             }
+            "corevector.compound" => {
+                ensure_port(node, "shape1", || Port::geometry("shape1"));
+                ensure_port(node, "shape2", || Port::geometry("shape2"));
+                ensure_port(node, "function", || Port::menu("function", "united", vec![
+                    MenuItem::new("united", "Union"),
+                    MenuItem::new("subtracted", "Difference"),
+                    MenuItem::new("intersected", "Intersection"),
+                ]));
+                ensure_port(node, "invert_difference", || Port::boolean("invert_difference", false));
+            }
+            "corevector.link" => {
+                ensure_port(node, "shape1", || Port::geometry("shape1"));
+                ensure_port(node, "shape2", || Port::geometry("shape2"));
+                ensure_port(node, "orientation", || Port::menu("orientation", "horizontal", vec![
+                    MenuItem::new("horizontal", "Horizontal"),
+                    MenuItem::new("vertical", "Vertical"),
+                ]));
+            }
+            "corevector.textpath" => {
+                ensure_port(node, "text", || Port::string("text", "hello"));
+                ensure_port(node, "font_name", || Port::string("font_name", "Verdana").with_widget(Widget::Font));
+                ensure_port(node, "font_size", || Port::float("font_size", 24.0));
+                ensure_port(node, "align", || Port::menu("align", "CENTER", vec![
+                    MenuItem::new("LEFT", "Left"),
+                    MenuItem::new("CENTER", "Center"),
+                    MenuItem::new("RIGHT", "Right"),
+                    MenuItem::new("JUSTIFY", "Justify"),
+                ]));
+                ensure_port(node, "position", || Port::point("position", nodebox_core::geometry::Point::ZERO));
+                ensure_port(node, "width", || Port::float("width", 0.0));
+            }
+            "corevector.delete" => {
+                ensure_port(node, "shape", || Port::geometry("shape"));
+                ensure_port(node, "bounding", || Port::geometry("bounding"));
+                ensure_port(node, "scope", || Port::menu("scope", "points", vec![
+                    MenuItem::new("points", "Points"),
+                    MenuItem::new("paths", "Paths"),
+                ]));
+                ensure_port(node, "operation", || Port::menu("operation", "selected", vec![
+                    MenuItem::new("selected", "Delete Selected"),
+                    MenuItem::new("non-selected", "Delete Non-selected"),
+                ]));
+            }
+            "corevector.distribute" => {
+                ensure_port(node, "shapes", || Port::geometry("shapes").with_port_range(PortRange::List));
+                ensure_port(node, "horizontal", || Port::menu("horizontal", "none", vec![
+                    MenuItem::new("none", "No Change"),
+                    MenuItem::new("left", "Left"),
+                    MenuItem::new("center", "Center"),
+                    MenuItem::new("right", "Right"),
+                ]));
+                ensure_port(node, "vertical", || Port::menu("vertical", "none", vec![
+                    MenuItem::new("none", "No Change"),
+                    MenuItem::new("top", "Top"),
+                    MenuItem::new("middle", "Middle"),
+                    MenuItem::new("bottom", "Bottom"),
+                ]));
+            }
+            "corevector.shape_on_path" => {
+                ensure_port(node, "shape", || Port::geometry("shape").with_port_range(PortRange::List));
+                ensure_port(node, "path", || Port::geometry("path"));
+                ensure_port(node, "amount", || Port::int("amount", 1));
+                ensure_port(node, "alignment", || Port::menu("alignment", "leading", vec![
+                    MenuItem::new("leading", "Leading"),
+                    MenuItem::new("trailing", "Trailing"),
+                    MenuItem::new("distributed", "Distributed"),
+                ]));
+                ensure_port(node, "spacing", || Port::float("spacing", 20.0));
+                ensure_port(node, "margin", || Port::float("margin", 0.0));
+                ensure_port(node, "baseline_offset", || Port::float("baseline_offset", 0.0));
+            }
+            "corevector.text_on_path" => {
+                ensure_port(node, "text", || Port::string("text", "text following a path"));
+                ensure_port(node, "path", || Port::geometry("path"));
+                ensure_port(node, "font_name", || Port::string("font_name", "Verdana").with_widget(Widget::Font));
+                ensure_port(node, "font_size", || Port::float("font_size", 24.0));
+                ensure_port(node, "alignment", || Port::menu("alignment", "leading", vec![
+                    MenuItem::new("leading", "Leading"),
+                    MenuItem::new("trailing", "Trailing"),
+                ]));
+                ensure_port(node, "margin", || Port::float("margin", 0.0));
+                ensure_port(node, "baseline_offset", || Port::float("baseline_offset", 0.0));
+            }
             _ => {}
         }
     }
 }
 
-/// Ensure a port exists on a node, adding it with the default if missing.
+/// Ensure a port exists on a node with the correct widget and menu items.
+///
+/// If the port doesn't exist, it's created with the default.
+/// If the port exists but has Widget::String and the default has Widget::Menu,
+/// update the widget type and menu items (preserving the existing value).
 fn ensure_port<F>(node: &mut Node, name: &str, default: F)
 where
     F: FnOnce() -> Port,
 {
-    if node.input(name).is_none() {
+    if let Some(existing) = node.inputs.iter_mut().find(|p| p.name == name) {
+        // Port exists - check if we need to update widget/menu items
+        let default_port = default();
+        if existing.widget == Widget::String && default_port.widget == Widget::Menu {
+            // Update to menu widget and add menu items
+            existing.widget = Widget::Menu;
+            existing.menu_items = default_port.menu_items;
+        }
+    } else {
+        // Port doesn't exist - add it
         node.inputs.push(default());
     }
 }
