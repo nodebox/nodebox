@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use nodebox_core::geometry::{Path as GeoPath, Color};
 use nodebox_core::node::{Node, NodeLibrary, Port, PortRange};
-use crate::eval;
 
 /// The main application state.
 pub struct AppState {
@@ -41,43 +40,21 @@ impl Default for AppState {
 
 impl AppState {
     /// Create a new application state with demo content.
+    ///
+    /// Note: Geometry starts empty - the render worker will evaluate with
+    /// the proper Port and populate it.
     pub fn new() -> Self {
-        // Create a demo node library
         let library = Self::create_demo_library();
-
-        // Evaluate the network to get the initial geometry
-        let (geometry, errors) = eval::evaluate_network(&library);
-        let node_errors: HashMap<String, String> = errors
-            .into_iter()
-            .map(|e| (e.node_name, e.message))
-            .collect();
 
         Self {
             current_file: None,
             dirty: false,
             show_about: false,
-            geometry,
+            geometry: Vec::new(), // Render worker will populate
             selected_node: None,
             background_color: Color::WHITE,
             library,
-            node_errors,
-        }
-    }
-
-    /// Re-evaluate the network and update the geometry.
-    #[allow(dead_code)]
-    pub fn evaluate(&mut self) {
-        let (geometry, errors) = eval::evaluate_network(&self.library);
-        if errors.is_empty() {
-            // Success: update geometry and clear errors
-            self.geometry = geometry;
-            self.node_errors.clear();
-        } else {
-            // Errors: keep last geometry, populate errors
-            self.node_errors = errors
-                .into_iter()
-                .map(|e| (e.node_name, e.message))
-                .collect();
+            node_errors: HashMap::new(),
         }
     }
 
@@ -112,6 +89,9 @@ impl AppState {
     }
 
     /// Load a file.
+    ///
+    /// Note: Geometry is cleared - the render worker will evaluate with
+    /// the proper Port and populate it.
     pub fn load_file(&mut self, path: &Path) -> Result<(), String> {
         // Parse the .ndbx file
         let mut library = nodebox_ndbx::parse_file(path).map_err(|e| e.to_string())?;
@@ -124,19 +104,8 @@ impl AppState {
         self.current_file = Some(path.to_path_buf());
         self.dirty = false;
         self.selected_node = None;
-
-        // Evaluate the network
-        let (geometry, errors) = eval::evaluate_network(&self.library);
-        if errors.is_empty() {
-            self.geometry = geometry;
-            self.node_errors.clear();
-        } else {
-            // Keep previous geometry on error, update error state
-            self.node_errors = errors
-                .into_iter()
-                .map(|e| (e.node_name, e.message))
-                .collect();
-        }
+        self.geometry.clear(); // Render worker will populate
+        self.node_errors.clear();
 
         Ok(())
     }

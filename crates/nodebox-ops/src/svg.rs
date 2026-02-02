@@ -1,15 +1,21 @@
 //! SVG import functionality.
 //!
-//! This module provides functions to import SVG files and convert them to NodeBox geometry.
+//! This module provides functions to import SVG content and convert it to NodeBox geometry.
+//!
+//! File reading is NOT done by this module. Callers are responsible for reading
+//! SVG files through the Port system (for sandboxed file access) and passing
+//! the string content here.
 
 use nodebox_core::geometry::{Color, Contour, Geometry, Path, Point, Transform};
-use std::path::Path as StdPath;
 use usvg::{tiny_skia_path::PathSegment, Tree};
 
-/// Import an SVG file and convert it to NodeBox Geometry.
+/// Import SVG from string content and convert it to NodeBox Geometry.
+///
+/// This is the ONLY version - no file path version exists.
+/// Callers are responsible for reading the file through the Port system.
 ///
 /// # Arguments
-/// * `file_path` - Path to the SVG file
+/// * `svg_content` - SVG content as a string
 /// * `centered` - If true, center the geometry at the origin before applying position
 /// * `position` - Position offset to apply after optional centering
 ///
@@ -23,28 +29,19 @@ use usvg::{tiny_skia_path::PathSegment, Tree};
 /// use nodebox_core::geometry::Point;
 /// use nodebox_ops::import_svg;
 ///
-/// let geometry = import_svg("shape.svg", true, Point::ZERO)?;
+/// let svg_content = r#"<svg><rect width="100" height="100"/></svg>"#;
+/// let geometry = import_svg(svg_content, true, Point::ZERO)?;
 /// ```
-pub fn import_svg(file_path: &str, centered: bool, position: Point) -> Result<Geometry, String> {
-    // Empty path returns empty geometry
-    if file_path.is_empty() {
+pub fn import_svg(svg_content: &str, centered: bool, position: Point) -> Result<Geometry, String> {
+    // Empty content returns empty geometry
+    if svg_content.is_empty() {
         return Ok(Geometry::new());
     }
 
-    // Check if file exists
-    let path = StdPath::new(file_path);
-    if !path.exists() {
-        return Err(format!("SVG file not found: {}", file_path));
-    }
-
-    // Read and parse the SVG file
-    let svg_data =
-        std::fs::read(file_path).map_err(|e| format!("Failed to read SVG file: {}", e))?;
-
     // Parse SVG using usvg with default options
     let options = usvg::Options::default();
-    let tree =
-        Tree::from_data(&svg_data, &options).map_err(|e| format!("Failed to parse SVG: {}", e))?;
+    let tree = Tree::from_data(svg_content.as_bytes(), &options)
+        .map_err(|e| format!("Failed to parse SVG: {}", e))?;
 
     // Convert the usvg tree to NodeBox geometry
     let mut geometry = convert_tree_to_geometry(&tree);
@@ -238,17 +235,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_import_empty_path() {
+    fn test_import_empty_content() {
         let result = import_svg("", false, Point::ZERO);
         assert!(result.is_ok());
         assert!(result.unwrap().is_empty());
     }
 
     #[test]
-    fn test_import_missing_file() {
-        let result = import_svg("/nonexistent/path/to/file.svg", false, Point::ZERO);
+    fn test_import_invalid_svg() {
+        let result = import_svg("not valid svg content", false, Point::ZERO);
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("not found"));
+        assert!(result.unwrap_err().contains("Failed to parse SVG"));
     }
 
     #[test]
@@ -289,22 +286,14 @@ mod tests {
     }
 
     #[test]
-    fn test_import_svg_from_data() {
-        // Test importing from an in-memory SVG
-        use std::io::Write;
-        use tempfile::NamedTempFile;
-
+    fn test_import_svg_from_content() {
         let svg_content = r##"<?xml version="1.0" encoding="UTF-8"?>
             <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
                 <rect x="10" y="10" width="80" height="80" fill="#ff0000"/>
                 <circle cx="50" cy="50" r="25" fill="#00ff00"/>
             </svg>"##;
 
-        // Write to a temp file
-        let mut temp_file = NamedTempFile::new().unwrap();
-        temp_file.write_all(svg_content.as_bytes()).unwrap();
-
-        let result = import_svg(temp_file.path().to_str().unwrap(), false, Point::ZERO);
+        let result = import_svg(svg_content, false, Point::ZERO);
         assert!(result.is_ok(), "Failed to import SVG: {:?}", result);
 
         let geometry = result.unwrap();
@@ -320,24 +309,17 @@ mod tests {
 
     #[test]
     fn test_import_svg_centered() {
-        use std::io::Write;
-        use tempfile::NamedTempFile;
-
         let svg_content = r##"<?xml version="1.0" encoding="UTF-8"?>
             <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
                 <rect x="0" y="0" width="100" height="100" fill="#000000"/>
             </svg>"##;
 
-        let mut temp_file = NamedTempFile::new().unwrap();
-        temp_file.write_all(svg_content.as_bytes()).unwrap();
-        let path = temp_file.path().to_str().unwrap();
-
         // Import without centering
-        let not_centered = import_svg(path, false, Point::ZERO).unwrap();
+        let not_centered = import_svg(svg_content, false, Point::ZERO).unwrap();
         let bounds_not_centered = not_centered.bounds().unwrap();
 
         // Import with centering
-        let centered = import_svg(path, true, Point::ZERO).unwrap();
+        let centered = import_svg(svg_content, true, Point::ZERO).unwrap();
         let bounds_centered = centered.bounds().unwrap();
 
         // Centered version should have center at (0, 0)
@@ -364,19 +346,13 @@ mod tests {
 
     #[test]
     fn test_import_svg_with_position() {
-        use std::io::Write;
-        use tempfile::NamedTempFile;
-
         let svg_content = r##"<?xml version="1.0" encoding="UTF-8"?>
             <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
                 <rect x="0" y="0" width="100" height="100" fill="#000000"/>
             </svg>"##;
 
-        let mut temp_file = NamedTempFile::new().unwrap();
-        temp_file.write_all(svg_content.as_bytes()).unwrap();
-
         let offset = Point::new(200.0, 300.0);
-        let result = import_svg(temp_file.path().to_str().unwrap(), true, offset).unwrap();
+        let result = import_svg(svg_content, true, offset).unwrap();
         let bounds = result.bounds().unwrap();
 
         // Center should be at the offset position
@@ -395,18 +371,12 @@ mod tests {
 
     #[test]
     fn test_import_svg_colors() {
-        use std::io::Write;
-        use tempfile::NamedTempFile;
-
         let svg_content = r##"<?xml version="1.0" encoding="UTF-8"?>
             <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
                 <rect x="0" y="0" width="100" height="100" fill="#ff0000" stroke="#0000ff" stroke-width="2"/>
             </svg>"##;
 
-        let mut temp_file = NamedTempFile::new().unwrap();
-        temp_file.write_all(svg_content.as_bytes()).unwrap();
-
-        let result = import_svg(temp_file.path().to_str().unwrap(), false, Point::ZERO).unwrap();
+        let result = import_svg(svg_content, false, Point::ZERO).unwrap();
         assert!(!result.is_empty());
 
         let path = &result.paths[0];

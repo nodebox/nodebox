@@ -30,9 +30,9 @@ $CargoFlags = if ($Debug) { @() } else { @("--release") }
 
 # Build the binary
 Set-Location $ProjectRoot
-cargo build @CargoFlags -p nodebox-gui
+cargo build @CargoFlags -p nodebox
 
-$BinaryPath = "$ProjectRoot\target\$BuildType\nodebox-gui.exe"
+$BinaryPath = "$ProjectRoot\target\$BuildType\NodeBox.exe"
 $OutputDir = "$ProjectRoot\target\$BuildType\installer"
 
 # Create output directory
@@ -58,6 +58,6 @@ Write-Host ""
 Write-Host "To create an MSI installer:"
 Write-Host "  1. Install WiX Toolset: https://wixtoolset.org/"
 Write-Host "  2. Install cargo-wix: cargo install cargo-wix"
-Write-Host "  3. Run: cargo wix -p nodebox-gui"
+Write-Host "  3. Run: cargo wix -p nodebox"
 Write-Host ""
 Write-Host "Or use the portable executable directly: $OutputDir\NodeBox.exe"

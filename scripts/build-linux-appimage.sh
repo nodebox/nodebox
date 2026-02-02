@@ -37,10 +37,10 @@ fi
 
 # Build the binary
 cd "$PROJECT_ROOT"
-cargo build $CARGO_FLAGS -p nodebox-gui
+cargo build $CARGO_FLAGS -p nodebox
 
 # Set up paths
-BINARY_PATH="$PROJECT_ROOT/target/$BUILD_TYPE/nodebox-gui"
+BINARY_PATH="$PROJECT_ROOT/target/$BUILD_TYPE/NodeBox"
 APPDIR="$PROJECT_ROOT/target/$BUILD_TYPE/NodeBox.AppDir"
 APPIMAGE_PATH="$PROJECT_ROOT/target/$BUILD_TYPE/NodeBox-$VERSION-$ARCH.AppImage"
 

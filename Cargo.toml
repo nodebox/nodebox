@@ -2,7 +2,6 @@
 name = "nodebox"
 version.workspace = true
 edition.workspace = true
-
 default-run = "NodeBox"
 
 [[bin]]
@@ -16,18 +15,19 @@ eframe = "0.33"
 [workspace]
 resolver = "2"
 members = [
+    ".",
     "crates/nodebox-core",
     "crates/nodebox-ndbx",
     "crates/nodebox-ops",
     "crates/nodebox-svg",
     "crates/nodebox-cli",
     "crates/nodebox-gui",
+    "crates/nodebox-port",
     "crates/nodebox-python",
 ]
 
-# Default members exclude nodebox-python since it requires Python development libraries.
-# To build nodebox-python, install Python dev headers and run:
-#   cargo build -p nodebox-python
+# Default members exclude nodebox-python (requires Python development libraries).
+# To build it: cargo build -p nodebox-python
 default-members = [
     ".",
     "crates/nodebox-core",
@@ -36,6 +36,7 @@ default-members = [
     "crates/nodebox-svg",
     "crates/nodebox-cli",
     "crates/nodebox-gui",
+    "crates/nodebox-port",
 ]
 
 [workspace.package]
