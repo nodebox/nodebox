@@ -306,6 +306,32 @@ impl ParameterPanel {
                     self.show_drag_value_float(ui, &mut point.y, None, None, 1.0, &key_y, is_editing_y);
                 }
             }
+            Widget::Menu => {
+                if let Value::String(ref mut value) = port.value {
+                    // Find current label from menu_items
+                    let current_label = port.menu_items.iter()
+                        .find(|item| item.key == *value)
+                        .map(|item| item.label.as_str())
+                        .unwrap_or(value.as_str());
+
+                    // Use smaller font to match other controls
+                    let style = ui.style_mut();
+                    style.override_font_id = Some(egui::FontId::proportional(theme::FONT_SIZE_SMALL));
+
+                    // Use egui ComboBox
+                    let combo_id = ui.make_persistent_id((&port_key.0, &port_key.1));
+                    egui::ComboBox::from_id_salt(combo_id)
+                        .selected_text(current_label)
+                        .width(120.0)
+                        .show_ui(ui, |ui| {
+                            for item in &port.menu_items {
+                                if ui.selectable_label(*value == item.key, &item.label).clicked() {
+                                    *value = item.key.clone();
+                                }
+                            }
+                        });
+                }
+            }
             Widget::File => {
                 if let Value::String(ref mut path) = port.value {
                     // Show filename or placeholder
