@@ -337,3 +337,134 @@ pub fn header_segmented_control(
 
     (clicked, x + total_width)
 }
+
+/// Draw a zoom percentage control in a header (styled like animation_bar.rs DragValue).
+///
+/// Returns (new_zoom, new_x) where new_zoom is the updated zoom value (0.1 to 10.0),
+/// or None if not changed.
+pub fn header_zoom_control(
+    ui: &mut egui::Ui,
+    header_rect: Rect,
+    x: f32,
+    zoom: f32,
+) -> (Option<f32>, f32) {
+    let width = 48.0;
+
+    // Convert zoom to percentage for display (e.g., 1.0 -> 100)
+    let mut zoom_percent = (zoom * 100.0).round() as i32;
+
+    // Override visuals for styled DragValue (matching animation_bar.rs)
+    let old_visuals = ui.visuals().clone();
+    let old_spacing = ui.spacing().clone();
+
+    // All states: no borders, sharp corners, appropriate fill
+    ui.visuals_mut().widgets.inactive.bg_fill = theme::SLATE_800;
+    ui.visuals_mut().widgets.inactive.weak_bg_fill = theme::SLATE_800;
+    ui.visuals_mut().widgets.inactive.bg_stroke = egui::Stroke::NONE;
+    ui.visuals_mut().widgets.inactive.fg_stroke = egui::Stroke::new(1.0, theme::TEXT_DEFAULT);
+    ui.visuals_mut().widgets.inactive.corner_radius = egui::CornerRadius::ZERO;
+    ui.visuals_mut().widgets.inactive.expansion = 0.0;
+
+    ui.visuals_mut().widgets.hovered.bg_fill = theme::SLATE_700;
+    ui.visuals_mut().widgets.hovered.weak_bg_fill = theme::SLATE_700;
+    ui.visuals_mut().widgets.hovered.bg_stroke = egui::Stroke::NONE;
+    ui.visuals_mut().widgets.hovered.fg_stroke = egui::Stroke::new(1.0, theme::TEXT_STRONG);
+    ui.visuals_mut().widgets.hovered.corner_radius = egui::CornerRadius::ZERO;
+    ui.visuals_mut().widgets.hovered.expansion = 0.0;
+
+    ui.visuals_mut().widgets.active.bg_fill = theme::SLATE_700;
+    ui.visuals_mut().widgets.active.weak_bg_fill = theme::SLATE_700;
+    ui.visuals_mut().widgets.active.bg_stroke = egui::Stroke::NONE;
+    ui.visuals_mut().widgets.active.fg_stroke = egui::Stroke::new(1.0, theme::TEXT_STRONG);
+    ui.visuals_mut().widgets.active.corner_radius = egui::CornerRadius::ZERO;
+    ui.visuals_mut().widgets.active.expansion = 0.0;
+
+    ui.visuals_mut().widgets.noninteractive.bg_fill = theme::SLATE_800;
+    ui.visuals_mut().widgets.noninteractive.weak_bg_fill = theme::SLATE_800;
+    ui.visuals_mut().widgets.noninteractive.bg_stroke = egui::Stroke::NONE;
+    ui.visuals_mut().widgets.noninteractive.corner_radius = egui::CornerRadius::ZERO;
+    ui.visuals_mut().widgets.noninteractive.expansion = 0.0;
+
+    // Use consistent padding
+    ui.spacing_mut().button_padding = egui::vec2(4.0, 2.0);
+
+    // Allocate exact size rect within header, respecting 1px top/bottom borders
+    let content_top = header_rect.top() + 1.0;
+    let content_bottom = header_rect.bottom() - 1.0;
+    let content_height = content_bottom - content_top;
+    let rect = Rect::from_min_size(
+        egui::pos2(x, content_top),
+        egui::vec2(width, content_height),
+    );
+
+    let old_zoom_percent = zoom_percent;
+    let response = ui.put(
+        rect,
+        egui::DragValue::new(&mut zoom_percent)
+            .range(10..=1000)
+            .speed(1.0)
+            .suffix("%"),
+    );
+
+    // Restore visuals and spacing
+    *ui.visuals_mut() = old_visuals;
+    *ui.spacing_mut() = old_spacing;
+
+    // Check if value changed
+    let new_zoom = if zoom_percent != old_zoom_percent || response.lost_focus() {
+        Some(zoom_percent as f32 / 100.0)
+    } else {
+        None
+    };
+
+    (new_zoom, x + width)
+}
+
+/// Draw a small icon button in a header (for zoom +/- buttons).
+///
+/// Returns true if clicked.
+pub fn header_icon_button(
+    ui: &mut egui::Ui,
+    header_rect: Rect,
+    x: f32,
+    icon: &str,
+) -> (bool, f32) {
+    let width = 24.0;
+    let button_rect = Rect::from_min_size(
+        egui::pos2(x, header_rect.top()),
+        egui::vec2(width, header_rect.height()),
+    );
+
+    let response = ui.interact(
+        button_rect,
+        ui.id().with(format!("icon_{}", icon)),
+        egui::Sense::click(),
+    );
+
+    // Draw hover highlight
+    if response.hovered() {
+        ui.painter().rect_filled(
+            button_rect,
+            0.0,
+            theme::SLATE_700,
+        );
+    }
+
+    // Draw icon text centered
+    let font = egui::FontId::proportional(14.0);
+    let color = if response.hovered() {
+        theme::TEXT_STRONG
+    } else {
+        theme::TEXT_DEFAULT
+    };
+
+    ui.painter().text(
+        button_rect.center(),
+        egui::Align2::CENTER_CENTER,
+        icon,
+        font,
+        color,
+    );
+
+    (response.clicked(), x + width)
+}

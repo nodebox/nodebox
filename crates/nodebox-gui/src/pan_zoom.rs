@@ -2,6 +2,12 @@
 
 use eframe::egui::{self, Pos2, Rect, Vec2};
 
+/// Predefined zoom levels as factors (1.0 = 100%).
+const ZOOM_LEVELS: &[f32] = &[
+    0.01, 0.02, 0.05, 0.08, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50, 0.75, 1.0, 1.5, 2.0, 3.0,
+    4.0, 6.0, 8.0, 10.0,
+];
+
 /// Pan and zoom state for a canvas view.
 #[derive(Clone, Debug)]
 pub struct PanZoom {
@@ -27,7 +33,7 @@ impl PanZoom {
         Self {
             zoom: 1.0,
             pan: Vec2::ZERO,
-            min_zoom: 0.1,
+            min_zoom: 0.01,
             max_zoom: 10.0,
         }
     }
@@ -97,14 +103,20 @@ impl PanZoom {
         ((screen.to_vec2() - self.pan - origin) / self.zoom).to_pos2()
     }
 
-    /// Zoom in by a fixed step.
+    /// Zoom in to the next predefined zoom level.
     pub fn zoom_in(&mut self) {
-        self.zoom = (self.zoom * 1.25).min(self.max_zoom);
+        // Find the first zoom level greater than current zoom
+        if let Some(&level) = ZOOM_LEVELS.iter().find(|&&level| level > self.zoom) {
+            self.zoom = level;
+        }
     }
 
-    /// Zoom out by a fixed step.
+    /// Zoom out to the previous predefined zoom level.
     pub fn zoom_out(&mut self) {
-        self.zoom = (self.zoom / 1.25).max(self.min_zoom);
+        // Find the last zoom level less than current zoom
+        if let Some(&level) = ZOOM_LEVELS.iter().rev().find(|&&level| level < self.zoom) {
+            self.zoom = level;
+        }
     }
 
     /// Reset to default zoom and pan.

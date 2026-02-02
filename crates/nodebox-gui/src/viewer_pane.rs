@@ -256,11 +256,6 @@ impl ViewerPane {
         }
     }
 
-    /// Get the current zoom level.
-    pub fn zoom(&self) -> f32 {
-        self.pan_zoom.zoom
-    }
-
     /// Get the current pan offset.
     #[allow(dead_code)]
     pub fn pan(&self) -> Vec2 {
@@ -423,7 +418,7 @@ impl ViewerPane {
         }
         x = new_x;
 
-        let (clicked, _) = components::header_tab_button(
+        let (clicked, new_x) = components::header_tab_button(
             ui,
             header_rect,
             x,
@@ -434,6 +429,32 @@ impl ViewerPane {
             self.show_canvas_border = !self.show_canvas_border;
         } else if clicked {
             self.current_tab = ViewerTab::Viewer;
+        }
+        x = new_x;
+
+        // Zoom controls on the right side: [-] [100%] [+]
+        let zoom_controls_width = 24.0 + 48.0 + 24.0 + theme::PADDING; // minus + percent + plus + right padding
+        let spacer_width = header_rect.right() - x - zoom_controls_width;
+        x += spacer_width.max(0.0);
+
+        // Zoom out button (-)
+        let (clicked, new_x) = components::header_icon_button(ui, header_rect, x, "−");
+        if clicked {
+            self.pan_zoom.zoom_out();
+        }
+        x = new_x;
+
+        // Zoom percentage DragValue
+        let (new_zoom, new_x) = components::header_zoom_control(ui, header_rect, x, self.pan_zoom.zoom);
+        if let Some(zoom) = new_zoom {
+            self.pan_zoom.zoom = zoom.clamp(0.1, 10.0);
+        }
+        x = new_x;
+
+        // Zoom in button (+)
+        let (clicked, _) = components::header_icon_button(ui, header_rect, x, "+");
+        if clicked {
+            self.pan_zoom.zoom_in();
         }
 
         // Content area (directly after header, no extra spacing)
