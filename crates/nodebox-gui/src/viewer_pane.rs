@@ -695,8 +695,8 @@ impl ViewerPane {
                 geometry_hash,
             );
 
-            // Draw points overlay if enabled (still use egui for this)
-            if self.show_points {
+            // Draw points overlay if enabled or if output is from a Point-type node
+            if self.show_points || state.library.is_rendered_output_point() {
                 for path in &state.geometry {
                     self.draw_points(painter, path, center);
                 }
@@ -725,7 +725,7 @@ impl ViewerPane {
         for path in &state.geometry {
             self.draw_path(painter, path, center);
 
-            if self.show_points {
+            if self.show_points || state.library.is_rendered_output_point() {
                 self.draw_points(painter, path, center);
             }
         }
