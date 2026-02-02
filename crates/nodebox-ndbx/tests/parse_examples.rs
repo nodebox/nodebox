@@ -1,11 +1,11 @@
 //! Integration tests for parsing actual NDBX files.
 
-use nodebox_ndbx::parse_file;
+use nodebox_ndbx::{parse_file, NdbxError, MIN_SUPPORTED_VERSION};
 use std::path::Path;
 
-/// Test parsing the Primitives example.
+/// Test that parsing old format versions (< 21) returns an error.
 #[test]
-fn test_parse_primitives_example() {
+fn test_parse_old_version_returns_error() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../examples/01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
 
@@ -14,36 +14,21 @@ fn test_parse_primitives_example() {
         return;
     }
 
-    let library = parse_file(&path).expect("Failed to parse Primitives.ndbx");
+    // This file has formatVersion="17" which is below our minimum supported version
+    let result = parse_file(&path);
+    assert!(result.is_err(), "Expected error for old format version");
 
-    assert_eq!(library.format_version, 17);
-    assert!(library.uuid.is_some());
-    assert_eq!(library.width(), 1000.0);
-    assert_eq!(library.height(), 1000.0);
-
-    // Root should be a network with "combine1" as rendered child
-    assert_eq!(library.root.name, "root");
-    assert_eq!(library.root.rendered_child, Some("combine1".to_string()));
-
-    // Should have several child nodes
-    assert!(!library.root.children.is_empty());
-
-    // Check some specific nodes exist
-    let has_rect = library.root.children.iter().any(|n| n.name == "rect1");
-    let has_ellipse = library.root.children.iter().any(|n| n.name == "ellipse1");
-    let has_polygon = library.root.children.iter().any(|n| n.name == "polygon1");
-    let has_combine = library.root.children.iter().any(|n| n.name == "combine1");
-
-    assert!(has_rect, "Missing rect1 node");
-    assert!(has_ellipse, "Missing ellipse1 node");
-    assert!(has_polygon, "Missing polygon1 node");
-    assert!(has_combine, "Missing combine1 node");
-
-    // Check connections exist
-    assert!(!library.root.connections.is_empty());
+    match result.unwrap_err() {
+        NdbxError::UnsupportedVersion(v) => {
+            assert!(v < MIN_SUPPORTED_VERSION, "Expected version < 21, got {}", v);
+        }
+        other => panic!("Expected UnsupportedVersion error, got: {:?}", other),
+    }
 }
 
 /// Test parsing the corevector library.
+/// Library files have no formatVersion attribute, which defaults to 21.
+/// After loading, the library is upgraded to version 22.
 #[test]
 fn test_parse_corevector_library() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -55,6 +40,9 @@ fn test_parse_corevector_library() {
     }
 
     let library = parse_file(&path).expect("Failed to parse corevector.ndbx");
+
+    // After parsing and upgrading, format version should be 22
+    assert_eq!(library.format_version, 22, "Expected upgraded format version");
 
     // Check that key nodes exist
     let child_names: Vec<&str> = library.root.children.iter().map(|n| n.name.as_str()).collect();
@@ -73,9 +61,9 @@ fn test_parse_corevector_library() {
     assert!(rect_port_names.contains(&"height"), "rect missing height port");
 }
 
-/// Test parsing a simple demo file.
+/// Test that parsing a very old demo file (version 0) returns an error.
 #[test]
-fn test_parse_demo_file() {
+fn test_parse_old_demo_file_returns_error() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../src/test/files/demo.ndbx");
 
@@ -84,8 +72,7 @@ fn test_parse_demo_file() {
         return;
     }
 
-    let library = parse_file(&path).expect("Failed to parse demo.ndbx");
-
-    // Should parse without error and have a root node with a name
-    assert!(!library.root.name.is_empty());
+    // This file has an old/missing format version
+    let result = parse_file(&path);
+    assert!(result.is_err(), "Expected error for old format version");
 }

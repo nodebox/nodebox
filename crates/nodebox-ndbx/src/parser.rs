@@ -11,11 +11,16 @@ use nodebox_core::geometry::Point;
 use nodebox_core::Value;
 
 use crate::error::{NdbxError, Result};
+use crate::upgrades::upgrade;
 
 /// Parses an NDBX file from the given path.
+///
+/// After parsing, the library is automatically upgraded to the current format version.
 pub fn parse_file(path: impl AsRef<Path>) -> Result<NodeLibrary> {
     let content = fs::read_to_string(path)?;
-    parse(&content)
+    let mut library = parse(&content)?;
+    upgrade(&mut library)?;
+    Ok(library)
 }
 
 /// Parses NDBX content from a string.

@@ -248,16 +248,35 @@ fn test_star_handle_reads_position_port() {
 // ============================================================================
 
 #[test]
-fn test_loaded_primitives_handles_read_correct_positions() {
-    use std::path::PathBuf;
+fn test_primitives_handles_read_correct_positions() {
+    use nodebox_core::node::{Connection, NodeLibrary};
 
-    // Get examples directory
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let examples_dir = manifest_dir.parent().unwrap().parent().unwrap().join("examples");
-    let path = examples_dir.join("01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
+    // Create a library similar to the Primitives example
+    let mut library = NodeLibrary::new("test");
 
-    // Load the file
-    let mut library = nodebox_ndbx::parse_file(&path).expect("Failed to load primitives example");
+    let rect1 = Node::new("rect1")
+        .with_prototype("corevector.rect")
+        .with_input(Port::point("position", Point::new(-100.0, 0.0)))
+        .with_input(Port::float("width", 100.0))
+        .with_input(Port::float("height", 100.0));
+
+    let ellipse1 = Node::new("ellipse1")
+        .with_prototype("corevector.ellipse")
+        .with_input(Port::point("position", Point::new(10.0, 0.0)))
+        .with_input(Port::float("width", 100.0))
+        .with_input(Port::float("height", 100.0));
+
+    let polygon1 = Node::new("polygon1")
+        .with_prototype("corevector.polygon")
+        .with_input(Port::point("position", Point::new(100.0, 0.0)))
+        .with_input(Port::float("radius", 60.0))
+        .with_input(Port::int("sides", 6));
+
+    library.root = Node::network("root")
+        .with_child(rect1)
+        .with_child(ellipse1)
+        .with_child(polygon1);
+
     nodebox_gui::populate_default_ports(&mut library.root);
 
     // Get nodes
@@ -270,10 +289,10 @@ fn test_loaded_primitives_handles_read_correct_positions() {
     let ellipse_pos = get_position_from_node(ellipse);
     let polygon_pos = get_position_from_node(polygon);
 
-    // These are the values from the file:
-    // rect1: position="-100.00,0.00"
-    // ellipse1: position="10.00,0.00"
-    // polygon1: position="100.00,0.00"
+    // These are the values we set:
+    // rect1: position="-100.0,0.0"
+    // ellipse1: position="10.0,0.0"
+    // polygon1: position="100.0,0.0"
 
     assert!(
         (rect_pos.x - (-100.0)).abs() < 0.1,

@@ -143,7 +143,8 @@ impl AppState {
 
     /// Save the current document.
     pub fn save_file(&mut self, path: &Path) -> Result<(), String> {
-        // TODO: Implement proper .ndbx saving
+        nodebox_ndbx::serialize_to_file(&self.library, path)
+            .map_err(|e| e.to_string())?;
         self.current_file = Some(path.to_path_buf());
         self.dirty = false;
         Ok(())
