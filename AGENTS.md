@@ -32,7 +32,12 @@ Prereqs: Java JDK and Apache Ant are required; Maven is used for dependency reso
 ## Branching Strategy
 - **Use `rewrite-in-rust` as the main branch.** All new development and PRs should target this branch.
 - **NEVER commit or merge directly into `master`.** The `master` branch exists for legacy reasons only and should not be modified.
+- **PRs should ALWAYS use `rewrite-in-rust` as the base branch**, not `master`, unless explicitly specified otherwise.
 - Create feature branches from `rewrite-in-rust` and merge back into it.
+
+## Active Development
+- **All active development happens in Rust** under the `crates/` directory.
+- **The Java codebase is legacy and read-only** — it exists only as a reference for porting functionality to Rust. Never modify Java code.
 
 ## Commit & Pull Request Guidelines
 - Recent history favors short, sentence-style commit messages (e.g., "Use Ctrl key on Windows."). Keep messages concise and specific.
