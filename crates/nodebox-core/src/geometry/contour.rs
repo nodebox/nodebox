@@ -75,6 +75,12 @@ impl Contour {
         self.points.push(PathPoint::curve_to(x3, y3));
     }
 
+    /// Adds a quadratic Bezier curve to (x2, y2) with control point (x1, y1).
+    pub fn quad_to(&mut self, cx: f64, cy: f64, x: f64, y: f64) {
+        self.points.push(PathPoint::quad_data(cx, cy));
+        self.points.push(PathPoint::quad_to(x, y));
+    }
+
     /// Closes this contour.
     pub fn close(&mut self) {
         self.closed = true;
@@ -131,7 +137,8 @@ impl Contour {
 
     /// Returns the segments of this contour.
     ///
-    /// A segment is either a line or a cubic bezier curve between two on-curve points.
+    /// A segment is either a line, a cubic bezier curve, or a quadratic bezier curve
+    /// between two on-curve points.
     pub fn segments(&self) -> Vec<Segment> {
         if self.points.is_empty() {
             return Vec::new();
@@ -155,6 +162,17 @@ impl Contour {
                         let end = self.points[i + 3].point;
                         segments.push(Segment::Cubic { start, ctrl1, ctrl2, end });
                         i += 3;
+                    } else {
+                        // Malformed curve, skip to end
+                        break;
+                    }
+                } else if next.point_type == PointType::QuadData {
+                    // This is a quadratic bezier: start, ctrl, end
+                    if i + 2 < self.points.len() {
+                        let ctrl = self.points[i + 1].point;
+                        let end = self.points[i + 2].point;
+                        segments.push(Segment::Quadratic { start, ctrl, end });
+                        i += 2;
                     } else {
                         // Malformed curve, skip to end
                         break;
@@ -328,7 +346,7 @@ impl Contour {
     }
 }
 
-/// A segment of a contour - either a line or a cubic bezier curve.
+/// A segment of a contour - either a line, a cubic bezier curve, or a quadratic bezier curve.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Segment {
     /// A straight line segment.
@@ -338,6 +356,12 @@ pub enum Segment {
         start: Point,
         ctrl1: Point,
         ctrl2: Point,
+        end: Point,
+    },
+    /// A quadratic bezier curve segment.
+    Quadratic {
+        start: Point,
+        ctrl: Point,
         end: Point,
     },
 }
@@ -353,6 +377,9 @@ impl Segment {
             Segment::Cubic { start, ctrl1, ctrl2, end } => {
                 Self::cubic_bezier_point(*start, *ctrl1, *ctrl2, *end, t)
             }
+            Segment::Quadratic { start, ctrl, end } => {
+                Self::quadratic_bezier_point(*start, *ctrl, *end, t)
+            }
         }
     }
 
@@ -362,6 +389,9 @@ impl Segment {
             Segment::Line { start, end } => start.distance_to(*end),
             Segment::Cubic { start, ctrl1, ctrl2, end } => {
                 Self::cubic_bezier_length(*start, *ctrl1, *ctrl2, *end)
+            }
+            Segment::Quadratic { start, ctrl, end } => {
+                Self::quadratic_bezier_length(*start, *ctrl, *end)
             }
         }
     }
@@ -392,6 +422,34 @@ impl Segment {
         for i in 1..=Self::BEZIER_SUBDIVISIONS {
             let t = i as f64 / Self::BEZIER_SUBDIVISIONS as f64;
             let current = Self::cubic_bezier_point(p0, p1, p2, p3, t);
+            length += prev.distance_to(current);
+            prev = current;
+        }
+
+        length
+    }
+
+    /// Evaluates a quadratic bezier curve using De Casteljau's algorithm.
+    ///
+    /// This is numerically stable and works for any t in [0, 1].
+    fn quadratic_bezier_point(p0: Point, p1: Point, p2: Point, t: f64) -> Point {
+        // De Casteljau's algorithm for quadratic bezier
+        // Level 1
+        let q0 = p0.lerp(p1, t);
+        let q1 = p1.lerp(p2, t);
+
+        // Level 2 (final point)
+        q0.lerp(q1, t)
+    }
+
+    /// Approximates the arc length of a quadratic bezier using subdivision.
+    fn quadratic_bezier_length(p0: Point, p1: Point, p2: Point) -> f64 {
+        let mut length = 0.0;
+        let mut prev = p0;
+
+        for i in 1..=Self::BEZIER_SUBDIVISIONS {
+            let t = i as f64 / Self::BEZIER_SUBDIVISIONS as f64;
+            let current = Self::quadratic_bezier_point(p0, p1, p2, t);
             length += prev.distance_to(current);
             prev = current;
         }
@@ -971,5 +1029,160 @@ mod tests {
         let p = seg.point_at(0.5);
         assert!((p.x - 0.5).abs() < 0.01);
         assert!((p.y - 0.5).abs() < 0.01);
+    }
+
+    // ========================================================================
+    // Quadratic Bezier Tests
+    // ========================================================================
+
+    #[test]
+    fn test_contour_quad_to() {
+        let mut c = Contour::new();
+        c.move_to(0.0, 0.0);
+        c.quad_to(50.0, 100.0, 100.0, 0.0);
+
+        assert_eq!(c.len(), 3); // 1 move + 1 control + 1 quad-to
+        assert_eq!(c.point_count(), 2); // Only on-curve points
+    }
+
+    #[test]
+    fn test_quad_to_segment_detection() {
+        let mut c = Contour::new();
+        c.move_to(0.0, 0.0);
+        c.quad_to(50.0, 100.0, 100.0, 0.0);
+
+        let segments = c.segments();
+        assert_eq!(segments.len(), 1);
+        match &segments[0] {
+            Segment::Quadratic { start, ctrl, end } => {
+                assert_eq!(*start, Point::new(0.0, 0.0));
+                assert_eq!(*ctrl, Point::new(50.0, 100.0));
+                assert_eq!(*end, Point::new(100.0, 0.0));
+            }
+            _ => panic!("Expected Quadratic segment"),
+        }
+    }
+
+    #[test]
+    fn test_segment_quadratic_endpoints() {
+        let seg = Segment::Quadratic {
+            start: Point::new(0.0, 0.0),
+            ctrl: Point::new(50.0, 100.0),
+            end: Point::new(100.0, 0.0),
+        };
+
+        let p0 = seg.point_at(0.0);
+        let p1 = seg.point_at(1.0);
+
+        assert_eq!(p0, Point::new(0.0, 0.0));
+        assert_eq!(p1, Point::new(100.0, 0.0));
+    }
+
+    #[test]
+    fn test_segment_quadratic_midpoint() {
+        // Symmetric quadratic curve - midpoint should be at x=50
+        let seg = Segment::Quadratic {
+            start: Point::new(0.0, 0.0),
+            ctrl: Point::new(50.0, 100.0),
+            end: Point::new(100.0, 0.0),
+        };
+
+        let p_half = seg.point_at(0.5);
+        assert!((p_half.x - 50.0).abs() < 0.001);
+        // For quadratic: B(t) = (1-t)^2*P0 + 2*(1-t)*t*P1 + t^2*P2
+        // At t=0.5: 0.25*0 + 0.5*100 + 0.25*0 = 50 for Y
+        assert!((p_half.y - 50.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_segment_straight_quadratic_length() {
+        // A "straight" quadratic bezier
+        let seg = Segment::Quadratic {
+            start: Point::new(0.0, 0.0),
+            ctrl: Point::new(50.0, 0.0),
+            end: Point::new(100.0, 0.0),
+        };
+
+        // Length should be approximately 100
+        assert!((seg.length() - 100.0).abs() < 1.0);
+    }
+
+    #[test]
+    fn test_quadratic_point_at() {
+        let mut c = Contour::new();
+        c.move_to(0.0, 0.0);
+        c.quad_to(50.0, 100.0, 100.0, 0.0);
+
+        // At t=0, should be at start
+        let p0 = c.point_at(0.0);
+        assert!((p0.x - 0.0).abs() < 0.001);
+        assert!((p0.y - 0.0).abs() < 0.001);
+
+        // At t=1, should be at end
+        let p1 = c.point_at(1.0);
+        assert!((p1.x - 100.0).abs() < 0.001);
+        assert!((p1.y - 0.0).abs() < 0.001);
+
+        // At t=0.5, should be at peak of the curve
+        let p_half = c.point_at(0.5);
+        assert!((p_half.x - 50.0).abs() < 1.0);
+        assert!(p_half.y > 0.0); // Should be above the baseline
+    }
+
+    #[test]
+    fn test_quadratic_length() {
+        let mut c = Contour::new();
+        c.move_to(0.0, 0.0);
+        c.quad_to(50.0, 0.0, 100.0, 0.0);
+
+        // A straight quadratic should have length approximately 100
+        assert!((c.length() - 100.0).abs() < 1.0);
+    }
+
+    #[test]
+    fn test_quadratic_make_points() {
+        let mut c = Contour::new();
+        c.move_to(0.0, 0.0);
+        c.quad_to(50.0, 100.0, 100.0, 0.0);
+
+        let points = c.make_points(5);
+        assert_eq!(points.len(), 5);
+
+        // First and last points should be at endpoints
+        assert!((points[0].x - 0.0).abs() < 0.001);
+        assert!((points[4].x - 100.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_quadratic_resample() {
+        let mut c = Contour::new();
+        c.move_to(0.0, 0.0);
+        c.quad_to(50.0, 100.0, 100.0, 0.0);
+
+        let resampled = c.resample_by_amount(10);
+        assert_eq!(resampled.points.len(), 10);
+
+        // First and last points should match original endpoints
+        assert!((resampled.points[0].x() - 0.0).abs() < 0.001);
+        assert!((resampled.points[0].y() - 0.0).abs() < 0.001);
+        assert!((resampled.points[9].x() - 100.0).abs() < 0.001);
+        assert!((resampled.points[9].y() - 0.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_mixed_segments() {
+        // Test a contour with line, cubic, and quadratic segments
+        let mut c = Contour::new();
+        c.move_to(0.0, 0.0);
+        c.line_to(50.0, 0.0);                           // Line
+        c.quad_to(75.0, 50.0, 100.0, 0.0);              // Quadratic
+        c.curve_to(125.0, -50.0, 175.0, -50.0, 200.0, 0.0); // Cubic
+
+        let segments = c.segments();
+        assert_eq!(segments.len(), 3);
+
+        assert!(matches!(segments[0], Segment::Line { .. }));
+        assert!(matches!(segments[1], Segment::Quadratic { .. }));
+        assert!(matches!(segments[2], Segment::Cubic { .. }));
     }
 }

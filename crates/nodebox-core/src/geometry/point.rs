@@ -166,19 +166,23 @@ pub enum PointType {
     CurveTo,
     /// This is a control point for a cubic Bezier curve (not on the curve itself).
     CurveData,
+    /// This is the endpoint of a quadratic Bezier curve.
+    QuadTo,
+    /// This is a control point for a quadratic Bezier curve (not on the curve itself).
+    QuadData,
 }
 
 impl PointType {
-    /// Returns true if this point is on the curve (LineTo or CurveTo).
+    /// Returns true if this point is on the curve (LineTo, CurveTo, or QuadTo).
     #[inline]
     pub fn is_on_curve(self) -> bool {
-        !matches!(self, PointType::CurveData)
+        matches!(self, PointType::LineTo | PointType::CurveTo | PointType::QuadTo)
     }
 
     /// Returns true if this point is off the curve (a control point).
     #[inline]
     pub fn is_off_curve(self) -> bool {
-        matches!(self, PointType::CurveData)
+        matches!(self, PointType::CurveData | PointType::QuadData)
     }
 }
 
@@ -218,6 +222,18 @@ impl PathPoint {
     #[inline]
     pub const fn curve_data(x: f64, y: f64) -> Self {
         PathPoint::new(x, y, PointType::CurveData)
+    }
+
+    /// Creates a QuadTo path point (endpoint of a quadratic Bezier curve).
+    #[inline]
+    pub const fn quad_to(x: f64, y: f64) -> Self {
+        PathPoint::new(x, y, PointType::QuadTo)
+    }
+
+    /// Creates a QuadData path point (control point for quadratic Bezier).
+    #[inline]
+    pub const fn quad_data(x: f64, y: f64) -> Self {
+        PathPoint::new(x, y, PointType::QuadData)
     }
 
     /// Returns the x coordinate.
@@ -354,8 +370,11 @@ mod tests {
     fn test_point_type() {
         assert!(PointType::LineTo.is_on_curve());
         assert!(PointType::CurveTo.is_on_curve());
+        assert!(PointType::QuadTo.is_on_curve());
         assert!(!PointType::CurveData.is_on_curve());
+        assert!(!PointType::QuadData.is_on_curve());
         assert!(PointType::CurveData.is_off_curve());
+        assert!(PointType::QuadData.is_off_curve());
     }
 
     #[test]
@@ -370,6 +389,14 @@ mod tests {
 
         let pp3 = PathPoint::curve_data(50.0, 60.0);
         assert_eq!(pp3.point_type, PointType::CurveData);
+
+        let pp4 = PathPoint::quad_to(70.0, 80.0);
+        assert_eq!(pp4.point_type, PointType::QuadTo);
+        assert_eq!(pp4.x(), 70.0);
+        assert_eq!(pp4.y(), 80.0);
+
+        let pp5 = PathPoint::quad_data(90.0, 100.0);
+        assert_eq!(pp5.point_type, PointType::QuadData);
     }
 
     #[test]

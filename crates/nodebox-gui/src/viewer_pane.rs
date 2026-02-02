@@ -811,8 +811,8 @@ impl ViewerPane {
                 // Draw point marker
                 let color = match pp.point_type {
                     PointType::LineTo => theme::POINT_LINE_TO,
-                    PointType::CurveTo => theme::POINT_CURVE_TO,
-                    PointType::CurveData => theme::POINT_CURVE_DATA,
+                    PointType::CurveTo | PointType::QuadTo => theme::POINT_CURVE_TO,
+                    PointType::CurveData | PointType::QuadData => theme::POINT_CURVE_DATA,
                 };
                 painter.circle_filled(screen_pt, 3.0, color);
             }
@@ -906,6 +906,36 @@ impl ViewerPane {
                     }
                     PointType::CurveTo => {
                         // Standalone CurveTo without preceding CurveData - treat as line
+                        egui_points.push(screen_pt);
+                        i += 1;
+                    }
+                    PointType::QuadData => {
+                        // QuadData is a control point - look ahead for the full quadratic bezier
+                        // Structure: QuadData (ctrl), QuadTo (end)
+                        if i + 1 < contour.points.len() {
+                            let ctrl = &contour.points[i];
+                            let end = &contour.points[i + 1];
+
+                            // Get start point (last point in egui_points, or first point of contour)
+                            let start = egui_points.last().copied().unwrap_or(screen_pt);
+
+                            let c = self.world_to_screen(ctrl.point, center);
+                            let e = self.world_to_screen(end.point, center);
+
+                            // Sample the quadratic bezier
+                            for t in 1..=10 {
+                                let t = t as f32 / 10.0;
+                                let pt = quadratic_bezier(start, c, e, t);
+                                egui_points.push(pt);
+                            }
+
+                            i += 2; // Skip ctrl, end
+                        } else {
+                            i += 1;
+                        }
+                    }
+                    PointType::QuadTo => {
+                        // Standalone QuadTo without preceding QuadData - treat as line
                         egui_points.push(screen_pt);
                         i += 1;
                     }
@@ -1083,5 +1113,17 @@ fn cubic_bezier(p0: Pos2, p1: Pos2, p2: Pos2, p3: Pos2, t: f32) -> Pos2 {
     Pos2::new(
         mt3 * p0.x + 3.0 * mt2 * t * p1.x + 3.0 * mt * t2 * p2.x + t3 * p3.x,
         mt3 * p0.y + 3.0 * mt2 * t * p1.y + 3.0 * mt * t2 * p2.y + t3 * p3.y,
+    )
+}
+
+/// Evaluate a quadratic bezier curve at parameter t.
+fn quadratic_bezier(p0: Pos2, p1: Pos2, p2: Pos2, t: f32) -> Pos2 {
+    let t2 = t * t;
+    let mt = 1.0 - t;
+    let mt2 = mt * mt;
+
+    Pos2::new(
+        mt2 * p0.x + 2.0 * mt * t * p1.x + t2 * p2.x,
+        mt2 * p0.y + 2.0 * mt * t * p1.y + t2 * p2.y,
     )
 }

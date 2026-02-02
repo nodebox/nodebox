@@ -92,6 +92,30 @@ fn draw_path_with_transform(pixmap: &mut Pixmap, geo_path: &GeoPath, transform: 
                     // Skip curve data points, they're handled with CurveTo
                     i += 1;
                 }
+                PointType::QuadTo => {
+                    // Quadratic bezier: current point is control point
+                    if i + 1 < contour.points.len() {
+                        let ctrl = &contour.points[i];
+                        let end = &contour.points[i + 1];
+
+                        if first {
+                            builder.move_to(ctrl.point.x as f32, ctrl.point.y as f32);
+                            first = false;
+                        }
+
+                        builder.quad_to(
+                            ctrl.point.x as f32, ctrl.point.y as f32,
+                            end.point.x as f32, end.point.y as f32,
+                        );
+                        i += 2;
+                    } else {
+                        i += 1;
+                    }
+                }
+                PointType::QuadData => {
+                    // Skip quad data points, they're handled with QuadTo
+                    i += 1;
+                }
             }
         }
 

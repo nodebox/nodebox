@@ -849,6 +849,27 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> EvalResult
             Ok(NodeOutput::Paths(paths))
         }
 
+        // Import SVG
+        "corevector.import_svg" => {
+            let file_path = get_string(inputs, "file", "");
+            let centered = get_bool(inputs, "centered", true);
+            let position = get_point(inputs, "position", Point::ZERO);
+
+            match nodebox_ops::import_svg(&file_path, centered, position) {
+                Ok(geometry) => {
+                    if geometry.is_empty() {
+                        NodeOutput::None
+                    } else {
+                        NodeOutput::Paths(geometry.paths)
+                    }
+                }
+                Err(e) => {
+                    log::warn!("SVG import error: {}", e);
+                    NodeOutput::None
+                }
+            }
+        }
+
         // Default: pass-through or unknown node
         _ => {
             // For unknown nodes, try to pass through a shape input

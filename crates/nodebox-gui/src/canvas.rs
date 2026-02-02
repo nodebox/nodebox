@@ -361,6 +361,48 @@ impl CanvasViewer {
                         // Skip curve data points, they're handled with CurveTo
                         i += 1;
                     }
+                    PointType::QuadTo => {
+                        // For quadratic curves, we need to sample points
+                        // Get the control point and end point
+                        if i + 1 < contour.points.len() {
+                            let ctrl = &contour.points[i];
+                            let end = &contour.points[i + 1];
+
+                            // Get last point as start
+                            let start = if let Some(&last) = egui_points.last() {
+                                last
+                            } else {
+                                screen_pt
+                            };
+
+                            let c = (Pos2::new(ctrl.point.x as f32, ctrl.point.y as f32).to_vec2()
+                                * self.zoom
+                                + self.pan
+                                + center)
+                                .to_pos2();
+                            let e = (Pos2::new(end.point.x as f32, end.point.y as f32).to_vec2()
+                                * self.zoom
+                                + self.pan
+                                + center)
+                                .to_pos2();
+
+                            // Sample the quadratic bezier
+                            for t in 1..=10 {
+                                let t = t as f32 / 10.0;
+                                let pt = quadratic_bezier(start, c, e, t);
+                                egui_points.push(pt);
+                            }
+
+                            i += 2;
+                        } else {
+                            egui_points.push(screen_pt);
+                            i += 1;
+                        }
+                    }
+                    PointType::QuadData => {
+                        // Skip quad data points, they're handled with QuadTo
+                        i += 1;
+                    }
                 }
             }
 
@@ -425,5 +467,17 @@ fn cubic_bezier(p0: Pos2, p1: Pos2, p2: Pos2, p3: Pos2, t: f32) -> Pos2 {
     Pos2::new(
         mt3 * p0.x + 3.0 * mt2 * t * p1.x + 3.0 * mt * t2 * p2.x + t3 * p3.x,
         mt3 * p0.y + 3.0 * mt2 * t * p1.y + 3.0 * mt * t2 * p2.y + t3 * p3.y,
+    )
+}
+
+/// Evaluate a quadratic bezier curve at parameter t.
+fn quadratic_bezier(p0: Pos2, p1: Pos2, p2: Pos2, t: f32) -> Pos2 {
+    let t2 = t * t;
+    let mt = 1.0 - t;
+    let mt2 = mt * mt;
+
+    Pos2::new(
+        mt2 * p0.x + 2.0 * mt * t * p1.x + t2 * p2.x,
+        mt2 * p0.y + 2.0 * mt * t * p1.y + t2 * p2.y,
     )
 }

@@ -10,6 +10,7 @@ authors.workspace = true
 [dependencies]
 nodebox-core = { path = "../nodebox-core" }
 rayon = "1.10"
+usvg = "0.42"
 
 [features]
 default = []
@@ -18,3 +19,4 @@ parallel = []
 [dev-dependencies]
 proptest = { workspace = true }
 approx = { workspace = true }
+tempfile = "3"
