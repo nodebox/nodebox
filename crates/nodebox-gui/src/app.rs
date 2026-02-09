@@ -113,7 +113,7 @@ impl NodeBoxApp {
             previous_library_hash: hash,
             render_worker: RenderWorkerHandle::spawn(),
             render_state: RenderState::new(),
-            render_pending: false, // Initial geometry is already evaluated in AppState::new()
+            render_pending: true,
             native_menu,
             recent_files,
         }
@@ -193,7 +193,7 @@ impl NodeBoxApp {
             previous_library_hash: hash,
             render_worker: RenderWorkerHandle::spawn(),
             render_state: RenderState::new(),
-            render_pending: false, // Initial geometry is already evaluated in AppState::new()
+            render_pending: true,
             native_menu,
             recent_files,
         }
