@@ -210,8 +210,8 @@ pub fn arc(position: Point, width: f64, height: f64, start_angle: f64, degrees: 
     let rx = width / 2.0;
     let ry = height / 2.0;
 
-    // Convert angles to radians (negated for compatibility with Java's Arc2D)
-    let start_rad = -start_angle * PI / 180.0;
+    // Convert angles to radians
+    let start_rad = start_angle * PI / 180.0;
     let _end_rad = start_rad + degrees * PI / 180.0;
 
     let mut contour = Contour::new();
