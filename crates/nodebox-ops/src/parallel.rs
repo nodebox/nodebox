@@ -27,9 +27,9 @@ pub fn translate_all(paths: &[Path], offset: Point) -> Vec<Path> {
 
 /// Rotate multiple paths in parallel.
 pub fn rotate_all(paths: &[Path], angle: f64, origin: Point) -> Vec<Path> {
-    let transform = Transform::translate(origin.x, origin.y)
+    let transform = Transform::translate(-origin.x, -origin.y)
         .then(&Transform::rotate(angle))
-        .then(&Transform::translate(-origin.x, -origin.y));
+        .then(&Transform::translate(origin.x, origin.y));
     paths.par_iter().map(|p| p.transform(&transform)).collect()
 }
 
@@ -37,9 +37,9 @@ pub fn rotate_all(paths: &[Path], angle: f64, origin: Point) -> Vec<Path> {
 pub fn scale_all(paths: &[Path], scale_pct: Point, origin: Point) -> Vec<Path> {
     let sx = scale_pct.x / 100.0;
     let sy = scale_pct.y / 100.0;
-    let transform = Transform::translate(origin.x, origin.y)
+    let transform = Transform::translate(-origin.x, -origin.y)
         .then(&Transform::scale_xy(sx, sy))
-        .then(&Transform::translate(-origin.x, -origin.y));
+        .then(&Transform::translate(origin.x, origin.y));
     paths.par_iter().map(|p| p.transform(&transform)).collect()
 }
 

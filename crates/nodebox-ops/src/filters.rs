@@ -417,9 +417,9 @@ pub fn to_points(path: &Path) -> Vec<Point> {
 /// let rotated = rotate(&path, 45.0, Point::ZERO);
 /// ```
 pub fn rotate(geometry: &Path, angle: f64, origin: Point) -> Path {
-    let t = Transform::translate(origin.x, origin.y)
+    let t = Transform::translate(-origin.x, -origin.y)
         .then(&Transform::rotate(angle))
-        .then(&Transform::translate(-origin.x, -origin.y));
+        .then(&Transform::translate(origin.x, origin.y));
     geometry.transform(&t)
 }
 
@@ -441,9 +441,9 @@ pub fn rotate(geometry: &Path, angle: f64, origin: Point) -> Path {
 pub fn scale(geometry: &Path, scale_pct: Point, origin: Point) -> Path {
     let sx = scale_pct.x / 100.0;
     let sy = scale_pct.y / 100.0;
-    let t = Transform::translate(origin.x, origin.y)
+    let t = Transform::translate(-origin.x, -origin.y)
         .then(&Transform::scale_xy(sx, sy))
-        .then(&Transform::translate(-origin.x, -origin.y));
+        .then(&Transform::translate(origin.x, origin.y));
     geometry.transform(&t)
 }
 
@@ -482,9 +482,9 @@ pub fn translate(geometry: &Path, offset: Point) -> Path {
 /// let skewed = skew(&path, Point::new(10.0, 0.0), Point::ZERO);
 /// ```
 pub fn skew(geometry: &Path, skew_angle: Point, origin: Point) -> Path {
-    let t = Transform::translate(origin.x, origin.y)
+    let t = Transform::translate(-origin.x, -origin.y)
         .then(&Transform::skew(skew_angle.x, skew_angle.y))
-        .then(&Transform::translate(-origin.x, -origin.y));
+        .then(&Transform::translate(origin.x, origin.y));
     geometry.transform(&t)
 }
 

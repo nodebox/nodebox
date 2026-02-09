@@ -210,9 +210,9 @@ pub fn arc(position: Point, width: f64, height: f64, start_angle: f64, degrees: 
     let rx = width / 2.0;
     let ry = height / 2.0;
 
-    // Convert angles to radians (negated for compatibility with Java's Arc2D)
-    let start_rad = -start_angle * PI / 180.0;
-    let _end_rad = start_rad - degrees * PI / 180.0;
+    // Convert angles to radians
+    let start_rad = start_angle * PI / 180.0;
+    let _end_rad = start_rad + degrees * PI / 180.0;
 
     let mut contour = Contour::new();
 
@@ -234,8 +234,8 @@ pub fn arc(position: Point, width: f64, height: f64, start_angle: f64, degrees: 
     let segment_angle = degrees / segments as f64;
 
     for i in 0..segments {
-        let a1 = start_rad - (i as f64 * segment_angle) * PI / 180.0;
-        let a2 = start_rad - ((i + 1) as f64 * segment_angle) * PI / 180.0;
+        let a1 = start_rad + (i as f64 * segment_angle) * PI / 180.0;
+        let a2 = start_rad + ((i + 1) as f64 * segment_angle) * PI / 180.0;
         arc_bezier_segment(&mut contour, position, rx, ry, a1, a2);
     }
 
