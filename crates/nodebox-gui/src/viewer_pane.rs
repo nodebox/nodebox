@@ -565,8 +565,9 @@ impl ViewerPane {
 
         // Draw point numbers on top of everything (including handles)
         if self.show_point_numbers {
+            let mut point_index = 0usize;
             for path in &state.geometry {
-                self.draw_point_numbers(&painter, path, center);
+                point_index = self.draw_point_numbers(&painter, path, center, point_index);
             }
         }
 
@@ -841,12 +842,14 @@ impl ViewerPane {
     }
 
     /// Draw point numbers using cached outlined digit textures (Houdini-style: bottom-right of point).
-    fn draw_point_numbers(&self, painter: &egui::Painter, path: &Path, center: Vec2) {
+    /// Returns the next point index to use (for tracking across multiple paths).
+    fn draw_point_numbers(&self, painter: &egui::Painter, path: &Path, center: Vec2, start_index: usize) -> usize {
         // Tight spacing between digits (characters are ~7px wide in the texture)
         let digit_spacing = 7.0;
+        let mut point_index = start_index;
 
         for contour in &path.contours {
-            for (i, pp) in contour.points.iter().enumerate() {
+            for pp in contour.points.iter() {
                 let world_pt = Pos2::new(pp.point.x as f32, pp.point.y as f32);
                 let screen_pt = self.pan_zoom.world_to_screen(world_pt, center);
 
@@ -855,7 +858,7 @@ impl ViewerPane {
                 let y = screen_pt.y + 2.0;
 
                 // Draw each digit of the number
-                let num_str = i.to_string();
+                let num_str = point_index.to_string();
                 for ch in num_str.chars() {
                     if let Some(digit) = ch.to_digit(10) {
                         if let Some(texture) = self.digit_cache.get(digit as usize) {
@@ -873,8 +876,10 @@ impl ViewerPane {
                         }
                     }
                 }
+                point_index += 1;
             }
         }
+        point_index
     }
 
     /// Draw a path on the canvas.
