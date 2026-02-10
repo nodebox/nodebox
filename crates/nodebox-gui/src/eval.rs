@@ -912,8 +912,14 @@ fn execute_node(
         // Resample
         "corevector.resample" => {
             let shape = require_path(inputs, node_name, "shape")?;
-            let points = get_int(inputs, "points", 20) as usize;
-            let path = nodebox_ops::resample(&shape, points);
+            let method = get_string(inputs, "method", "length");
+            let path = if method == "length" {
+                let length = get_float(inputs, "length", 10.0);
+                nodebox_ops::resample_by_length(&shape, length)
+            } else {
+                let points = get_int(inputs, "points", 20) as usize;
+                nodebox_ops::resample(&shape, points)
+            };
             Ok(NodeOutput::Path(path))
         }
 
