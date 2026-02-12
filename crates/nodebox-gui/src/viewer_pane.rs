@@ -359,11 +359,19 @@ impl ViewerPane {
     /// Pass `render_state` for GPU-accelerated rendering when available.
     /// When `gpu-rendering` feature is disabled, pass `None`.
     pub fn show(&mut self, ui: &mut egui::Ui, state: &AppState, render_state: Option<&RenderState>) -> HandleResult {
-        // Auto-switch tab based on whether the rendered node outputs geometry
+        // Auto-switch tab based on whether the rendered node outputs geometry.
+        // When there's no rendered node at all, keep the current tab as-is
+        // so the user stays in Viewer mode (showing an empty canvas) if that
+        // was their preferred mode.
+        let has_rendered = state.library.root.rendered_child.is_some();
         let is_geometry = state.library.is_rendered_output_geometry();
         let was_available = self.visual_tab_available;
 
-        if is_geometry && !was_available {
+        if !has_rendered {
+            // No rendered node: keep current tab, but mark visual as available
+            // so the Viewer tab remains selectable (shows empty canvas).
+            self.visual_tab_available = true;
+        } else if is_geometry && !was_available {
             // Switching back to geometry: restore preferred tab
             self.visual_tab_available = true;
             self.current_tab = self.preferred_geometry_tab;
