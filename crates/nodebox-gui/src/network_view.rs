@@ -436,9 +436,9 @@ impl NetworkView {
             library.root.rendered_child = Some(name);
         }
 
-        // Create connection if needed
+        // Create connection if needed (replaces any existing connection to the same input port)
         if let Some((from, to, port)) = connection_to_create {
-            library.root.connections.push(Connection::new(from, to, port));
+            library.root.connect(Connection::new(from, to, port));
         }
 
         // Handle delete key for selected nodes (but not when editing text)
