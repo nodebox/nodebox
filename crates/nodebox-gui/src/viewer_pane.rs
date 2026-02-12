@@ -1,7 +1,8 @@
 //! Tabbed viewer pane with canvas and data views.
 
 use eframe::egui::{self, Color32, ColorImage, Pos2, Rect, Stroke, TextureHandle, TextureOptions, Vec2};
-use nodebox_core::geometry::{Color, Path, Point, PointType};
+use egui_extras::{Column, TableBuilder};
+use nodebox_core::geometry::{Color, Path, PathPoint, Point, PointType};
 use crate::components;
 use crate::handles::{FourPointHandle, HandleSet, HANDLE_COLOR};
 use crate::pan_zoom::PanZoom;
@@ -38,6 +39,13 @@ pub enum HandleResult {
 pub enum ViewerTab {
     Viewer,
     Data,
+}
+
+/// Which sub-view is selected in the Data tab.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DataViewMode {
+    Paths,
+    Points,
 }
 
 /// Cached textures for outlined digit rendering (Houdini-style).
@@ -224,6 +232,8 @@ pub struct ViewerPane {
     /// Whether to use GPU rendering (can be toggled at runtime).
     #[cfg(feature = "gpu-rendering")]
     pub use_gpu_rendering: bool,
+    /// Current data view mode (paths or points).
+    data_view_mode: DataViewMode,
 }
 
 impl Default for ViewerPane {
@@ -253,6 +263,7 @@ impl ViewerPane {
             vello_viewer: VelloViewer::new(),
             #[cfg(feature = "gpu-rendering")]
             use_gpu_rendering: true, // Default to GPU rendering when available
+            data_view_mode: DataViewMode::Points,
         }
     }
 
@@ -732,42 +743,397 @@ impl ViewerPane {
         }
     }
 
-    /// Show the data view (placeholder for now).
+    /// Show the data view with spreadsheet table.
     fn show_data_view(&mut self, ui: &mut egui::Ui, state: &AppState) {
+        // Sub-header bar with view mode toggle and stats
+        self.show_data_view_header(ui, state);
+
+        // Table body
+        if state.geometry.is_empty() {
+            Self::show_data_empty(ui);
+            return;
+        }
+
+        match self.data_view_mode {
+            DataViewMode::Paths => Self::show_paths_table(ui, state),
+            DataViewMode::Points => Self::show_points_table(ui, state),
+        }
+    }
+
+    /// Show the data view sub-header with mode toggle and stats.
+    fn show_data_view_header(&mut self, ui: &mut egui::Ui, state: &AppState) {
+        let header_height = 28.0;
+        let (rect, _) = ui.allocate_exact_size(
+            egui::vec2(ui.available_width(), header_height),
+            egui::Sense::hover(),
+        );
+
+        // Background
+        ui.painter().rect_filled(rect, 0.0, theme::SLATE_800);
+
+        // Bottom border
+        ui.painter().line_segment(
+            [
+                egui::pos2(rect.left(), rect.bottom() - 0.5),
+                egui::pos2(rect.right(), rect.bottom() - 0.5),
+            ],
+            egui::Stroke::new(1.0, theme::SLATE_950),
+        );
+
+        // Segmented control for Paths/Points
+        let selected_index = if self.data_view_mode == DataViewMode::Paths { 0 } else { 1 };
+        let (clicked_index, _x) = components::header_segmented_control(
+            ui,
+            rect,
+            rect.left() + theme::PADDING,
+            ["Paths", "Points"],
+            selected_index,
+        );
+        if let Some(index) = clicked_index {
+            self.data_view_mode = if index == 0 { DataViewMode::Paths } else { DataViewMode::Points };
+        }
+
+        // Stats on the right side
+        let total_paths = state.geometry.len();
+        let total_points: usize = state.geometry.iter()
+            .flat_map(|p| &p.contours)
+            .map(|c| c.points.len())
+            .sum();
+        let stats_text = format!("{} paths, {} points", total_paths, total_points);
+        ui.painter().text(
+            egui::pos2(rect.right() - theme::PADDING, rect.center().y),
+            egui::Align2::RIGHT_CENTER,
+            &stats_text,
+            egui::FontId::proportional(10.0),
+            theme::TEXT_DISABLED,
+        );
+    }
+
+    /// Show empty state when no geometry data is available.
+    fn show_data_empty(ui: &mut egui::Ui) {
         ui.vertical_centered(|ui| {
             ui.add_space(50.0);
             ui.label(
-                egui::RichText::new("Data View")
+                egui::RichText::new("No data to display")
                     .color(theme::TEXT_DISABLED)
-                    .size(16.0),
+                    .size(14.0),
             );
-            ui.add_space(10.0);
+            ui.add_space(8.0);
             ui.label(
-                egui::RichText::new("Tabular view of geometry data coming soon.")
+                egui::RichText::new("Render a node to see its geometry data here.")
                     .color(theme::TEXT_DISABLED)
-                    .size(12.0),
-            );
-            ui.add_space(20.0);
-
-            // Show some basic stats
-            ui.label(
-                egui::RichText::new(format!("Paths: {}", state.geometry.len()))
-                    .color(theme::TEXT_NORMAL)
-                    .size(12.0),
-            );
-
-            let total_points: usize = state
-                .geometry
-                .iter()
-                .flat_map(|p| &p.contours)
-                .map(|c| c.points.len())
-                .sum();
-            ui.label(
-                egui::RichText::new(format!("Total points: {}", total_points))
-                    .color(theme::TEXT_NORMAL)
-                    .size(12.0),
+                    .size(11.0),
             );
         });
+    }
+
+    /// Show the path-level data table.
+    fn show_paths_table(ui: &mut egui::Ui, state: &AppState) {
+        let text_height = theme::ROW_HEIGHT;
+
+        let table = TableBuilder::new(ui)
+            .striped(false) // Custom zebra striping
+            .resizable(true)
+            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+            .min_scrolled_height(0.0)
+            .max_scroll_height(f32::INFINITY)
+            .column(Column::exact(60.0))                            // Index
+            .column(Column::initial(120.0).at_least(80.0))          // Fill
+            .column(Column::initial(120.0).at_least(80.0))          // Stroke
+            .column(Column::initial(90.0).at_least(60.0))           // Stroke Width
+            .column(Column::initial(70.0).at_least(50.0))           // Contours
+            .column(Column::initial(70.0).at_least(50.0).clip(true)); // Points
+
+        table
+            .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                let headers = ["Index", "Fill", "Stroke", "Stroke Width", "Contours", "Points"];
+                for h in headers {
+                    header.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, theme::TABLE_HEADER_BG);
+                        ui.label(
+                            egui::RichText::new(h)
+                                .color(theme::TABLE_HEADER_TEXT)
+                                .size(11.0),
+                        );
+                    });
+                }
+            })
+            .body(|body| {
+                body.rows(text_height, state.geometry.len(), |mut row| {
+                    let row_index = row.index();
+                    let path = &state.geometry[row_index];
+                    let row_bg = if row_index % 2 == 0 {
+                        theme::TABLE_ROW_EVEN
+                    } else {
+                        theme::TABLE_ROW_ODD
+                    };
+
+                    // Index
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new(format!("{}", row_index))
+                                    .color(theme::TABLE_INDEX_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    });
+
+                    // Fill
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        Self::draw_color_cell(ui, path.fill);
+                    });
+
+                    // Stroke
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        Self::draw_color_cell(ui, path.stroke);
+                    });
+
+                    // Stroke Width
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new(format!("{:.2}", path.stroke_width))
+                                    .color(theme::TABLE_CELL_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    });
+
+                    // Contours
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new(format!("{}", path.contours.len()))
+                                    .color(theme::TABLE_CELL_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    });
+
+                    // Points
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new(format!("{}", path.point_count()))
+                                    .color(theme::TABLE_CELL_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    });
+                });
+            });
+    }
+
+    /// Show the point-level data table.
+    fn show_points_table(ui: &mut egui::Ui, state: &AppState) {
+        let text_height = theme::ROW_HEIGHT;
+
+        // Build flat list of (path_idx, contour_idx, point)
+        let flat_points: Vec<(usize, usize, &PathPoint)> = state.geometry.iter()
+            .enumerate()
+            .flat_map(|(pi, path)| {
+                path.contours.iter().enumerate().flat_map(move |(ci, contour)| {
+                    contour.points.iter().map(move |pp| (pi, ci, pp))
+                })
+            })
+            .collect();
+
+        let total_rows = flat_points.len();
+
+        let table = TableBuilder::new(ui)
+            .striped(false)
+            .resizable(true)
+            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+            .min_scrolled_height(0.0)
+            .max_scroll_height(f32::INFINITY)
+            .column(Column::exact(60.0))                             // Index
+            .column(Column::initial(100.0).at_least(70.0))           // X
+            .column(Column::initial(100.0).at_least(70.0))           // Y
+            .column(Column::initial(80.0).at_least(60.0))            // Type
+            .column(Column::initial(50.0).at_least(40.0))            // Path
+            .column(Column::initial(60.0).at_least(40.0).clip(true)); // Contour
+
+        table
+            .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                let headers = ["Index", "X", "Y", "Type", "Path", "Contour"];
+                for h in headers {
+                    header.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, theme::TABLE_HEADER_BG);
+                        ui.label(
+                            egui::RichText::new(h)
+                                .color(theme::TABLE_HEADER_TEXT)
+                                .size(11.0),
+                        );
+                    });
+                }
+            })
+            .body(|body| {
+                body.rows(text_height, total_rows, |mut row| {
+                    let row_index = row.index();
+                    let (path_idx, contour_idx, pp) = flat_points[row_index];
+                    let row_bg = if row_index % 2 == 0 {
+                        theme::TABLE_ROW_EVEN
+                    } else {
+                        theme::TABLE_ROW_ODD
+                    };
+
+                    // Index
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new(format!("{}", row_index))
+                                    .color(theme::TABLE_INDEX_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    });
+
+                    // X
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new(format!("{:.2}", pp.point.x))
+                                    .color(theme::TABLE_CELL_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    });
+
+                    // Y
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new(format!("{:.2}", pp.point.y))
+                                    .color(theme::TABLE_CELL_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    });
+
+                    // Type
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.label(
+                            egui::RichText::new(Self::point_type_label(pp.point_type))
+                                .color(theme::TABLE_CELL_TEXT)
+                                .size(11.0),
+                        );
+                    });
+
+                    // Path
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new(format!("{}", path_idx))
+                                    .color(theme::TABLE_INDEX_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    });
+
+                    // Contour
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new(format!("{}", contour_idx))
+                                    .color(theme::TABLE_INDEX_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    });
+                });
+            });
+    }
+
+    /// Display label for a PointType.
+    fn point_type_label(pt: PointType) -> &'static str {
+        match pt {
+            PointType::LineTo => "Line",
+            PointType::CurveTo => "Curve",
+            PointType::CurveData => "CurveCtl",
+            PointType::QuadTo => "Quad",
+            PointType::QuadData => "QuadCtl",
+        }
+    }
+
+    /// Draw a color cell with swatch + hex text, or "--" for None.
+    fn draw_color_cell(ui: &mut egui::Ui, color: Option<Color>) {
+        match color {
+            Some(c) => {
+                let swatch_size = 12.0;
+                let rect = ui.available_rect_before_wrap();
+
+                // Draw color swatch
+                let swatch_rect = egui::Rect::from_min_size(
+                    egui::pos2(
+                        rect.left() + 4.0,
+                        rect.center().y - swatch_size / 2.0,
+                    ),
+                    egui::vec2(swatch_size, swatch_size),
+                );
+                let egui_color = Color32::from_rgba_unmultiplied(
+                    (c.r * 255.0) as u8,
+                    (c.g * 255.0) as u8,
+                    (c.b * 255.0) as u8,
+                    (c.a * 255.0) as u8,
+                );
+
+                // Checkerboard background for transparency
+                if c.a < 1.0 {
+                    ui.painter().rect_filled(swatch_rect, 0.0, Color32::WHITE);
+                }
+                ui.painter().rect_filled(swatch_rect, 0.0, egui_color);
+                ui.painter().rect_stroke(
+                    swatch_rect,
+                    0.0,
+                    Stroke::new(1.0, theme::SLATE_600),
+                    egui::StrokeKind::Inside,
+                );
+
+                // Hex text after swatch
+                let hex = c.to_hex();
+                ui.painter().text(
+                    egui::pos2(swatch_rect.right() + 6.0, rect.center().y),
+                    egui::Align2::LEFT_CENTER,
+                    &hex,
+                    egui::FontId::proportional(11.0),
+                    theme::TABLE_CELL_TEXT,
+                );
+                // Allocate space for layout
+                ui.allocate_exact_size(
+                    egui::vec2(swatch_size + 6.0 + 80.0, swatch_size),
+                    egui::Sense::hover(),
+                );
+            }
+            None => {
+                ui.label(
+                    egui::RichText::new("--")
+                        .color(theme::TEXT_DISABLED)
+                        .size(11.0),
+                );
+            }
+        }
     }
 
     /// Draw the canvas border (document bounds).
