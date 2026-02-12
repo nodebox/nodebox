@@ -36,6 +36,7 @@ pub enum EvalOutcome {
     /// Evaluation completed successfully (may include errors).
     Completed {
         geometry: Vec<Path>,
+        output: NodeOutput,
         errors: Vec<NodeError>,
     },
     /// Evaluation was cancelled before completion.
@@ -129,6 +130,72 @@ impl NodeOutput {
         }
     }
 
+    /// Returns true if this output contains geometry or point data (visual types).
+    pub fn is_geometry(&self) -> bool {
+        matches!(self, NodeOutput::Path(_) | NodeOutput::Paths(_) | NodeOutput::Point(_) | NodeOutput::Points(_))
+    }
+
+    /// Convert to a flat list of display strings for the data viewer.
+    pub fn to_display_strings(&self) -> Vec<String> {
+        match self {
+            NodeOutput::None => vec![],
+            NodeOutput::Float(f) => vec![format!("{}", f)],
+            NodeOutput::Floats(fs) => fs.iter().map(|f| format!("{}", f)).collect(),
+            NodeOutput::Int(i) => vec![format!("{}", i)],
+            NodeOutput::Ints(is) => is.iter().map(|i| format!("{}", i)).collect(),
+            NodeOutput::String(s) => vec![s.clone()],
+            NodeOutput::Strings(ss) => ss.clone(),
+            NodeOutput::Boolean(b) => vec![format!("{}", b)],
+            NodeOutput::Booleans(bs) => bs.iter().map(|b| format!("{}", b)).collect(),
+            NodeOutput::Color(c) => vec![c.to_hex()],
+            NodeOutput::Point(p) => vec![format!("{:.2}, {:.2}", p.x, p.y)],
+            NodeOutput::Points(pts) => pts.iter().map(|p| format!("{:.2}, {:.2}", p.x, p.y)).collect(),
+            NodeOutput::Path(_) => vec!["[Path]".to_string()],
+            NodeOutput::Paths(ps) => (0..ps.len()).map(|i| format!("[Path {}]", i)).collect(),
+        }
+    }
+
+    /// Returns a human-readable type label for the data viewer.
+    pub fn type_label(&self) -> &'static str {
+        match self {
+            NodeOutput::None => "none",
+            NodeOutput::Float(_) | NodeOutput::Floats(_) => "float",
+            NodeOutput::Int(_) | NodeOutput::Ints(_) => "int",
+            NodeOutput::String(_) | NodeOutput::Strings(_) => "string",
+            NodeOutput::Boolean(_) | NodeOutput::Booleans(_) => "boolean",
+            NodeOutput::Color(_) => "color",
+            NodeOutput::Point(_) | NodeOutput::Points(_) => "point",
+            NodeOutput::Path(_) | NodeOutput::Paths(_) => "path",
+        }
+    }
+
+    /// Returns the count of items in this output.
+    pub fn item_count(&self) -> usize {
+        match self {
+            NodeOutput::None => 0,
+            NodeOutput::Paths(ps) => ps.len(),
+            NodeOutput::Points(pts) => pts.len(),
+            NodeOutput::Floats(fs) => fs.len(),
+            NodeOutput::Ints(is) => is.len(),
+            NodeOutput::Strings(ss) => ss.len(),
+            NodeOutput::Booleans(bs) => bs.len(),
+            _ => 1,
+        }
+    }
+
+    /// Returns true if this output is a color type.
+    pub fn is_color(&self) -> bool {
+        matches!(self, NodeOutput::Color(_))
+    }
+
+    /// Returns the color at the given index, if this is a color output.
+    pub fn color_at(&self, _index: usize) -> Option<Color> {
+        match self {
+            NodeOutput::Color(c) => Some(*c),
+            _ => None,
+        }
+    }
+
     /// Convert any output to a list of individual values for list matching.
     fn to_value_list(&self) -> Vec<NodeOutput> {
         match self {
@@ -174,7 +241,7 @@ pub fn evaluate_network(
     library: &NodeLibrary,
     port: &Arc<dyn Port>,
     project_context: &ProjectContext,
-) -> (Vec<Path>, Vec<NodeError>) {
+) -> (Vec<Path>, NodeOutput, Vec<NodeError>) {
     let network = &library.root;
 
     // Find the rendered child
@@ -182,7 +249,7 @@ pub fn evaluate_network(
         Some(name) => name.clone(),
         None => {
             // No rendered child, return empty
-            return (Vec::new(), Vec::new());
+            return (Vec::new(), NodeOutput::None, Vec::new());
         }
     };
 
@@ -193,7 +260,10 @@ pub fn evaluate_network(
     let result = evaluate_node(network, &rendered_name, &mut cache, port, project_context);
 
     match result {
-        Ok(output) => (output.to_paths(), Vec::new()),
+        Ok(output) => {
+            let geometry = output.to_paths();
+            (geometry, output, Vec::new())
+        }
         Err(e) => {
             // Extract node name based on error type
             let (node_name, message) = match &e {
@@ -215,7 +285,7 @@ pub fn evaluate_network(
                 }
                 _ => (rendered_name.clone(), e.to_string()),
             };
-            (Vec::new(), vec![NodeError::new(node_name, message)])
+            (Vec::new(), NodeOutput::None, vec![NodeError::new(node_name, message)])
         }
     }
 }
@@ -247,6 +317,7 @@ pub fn evaluate_network_cancellable(
             // No rendered child, return empty
             return EvalOutcome::Completed {
                 geometry: Vec::new(),
+                output: NodeOutput::None,
                 errors: Vec::new(),
             };
         }
@@ -289,6 +360,7 @@ pub fn evaluate_network_cancellable(
         Ok(output) => {
             EvalOutcome::Completed {
                 geometry: output.to_paths(),
+                output,
                 errors: Vec::new(),
             }
         }
@@ -316,6 +388,7 @@ pub fn evaluate_network_cancellable(
             };
             EvalOutcome::Completed {
                 geometry: Vec::new(),
+                output: NodeOutput::None,
                 errors: vec![NodeError::new(node_name, message)],
             }
         }
@@ -2033,7 +2106,7 @@ mod tests {
             .with_rendered_child("ellipse1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -2064,7 +2137,7 @@ mod tests {
             .with_rendered_child("colorize1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         // Check that the colorize was applied
@@ -2103,7 +2176,7 @@ mod tests {
             .with_rendered_child("merge1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         // Merge collects all connected shapes
         assert_eq!(paths.len(), 2);
     }
@@ -2122,7 +2195,7 @@ mod tests {
             .with_rendered_child("rect1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -2144,7 +2217,7 @@ mod tests {
             .with_rendered_child("line1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -2167,7 +2240,7 @@ mod tests {
             .with_rendered_child("polygon1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         // Hexagon with radius 50 should have bounds approximately 100x86 (2*r x sqrt(3)*r)
@@ -2191,7 +2264,7 @@ mod tests {
             .with_rendered_child("star1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         // Star with outer radius 50 should have bounds approximately 100x100
@@ -2216,7 +2289,7 @@ mod tests {
             .with_rendered_child("arc1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
     }
 
@@ -2241,7 +2314,7 @@ mod tests {
             .with_rendered_child("translate1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -2275,7 +2348,7 @@ mod tests {
             .with_rendered_child("scale1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -2309,7 +2382,7 @@ mod tests {
             .with_rendered_child("copy1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         // Should have 3 copies
         assert_eq!(paths.len(), 3);
     }
@@ -2318,7 +2391,7 @@ mod tests {
     fn test_evaluate_empty_network() {
         let library = NodeLibrary::new("test");
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
 
@@ -2336,7 +2409,7 @@ mod tests {
         // No rendered_child set
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
 
@@ -2356,7 +2429,7 @@ mod tests {
 
         // Should handle missing input gracefully
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
 
@@ -2372,7 +2445,7 @@ mod tests {
 
         // Should handle unknown node type gracefully
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
 
@@ -2397,7 +2470,7 @@ mod tests {
             .with_rendered_child("resample1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
         // Resampled path should have the specified number of points
         // Note: exact point count depends on implementation
@@ -2427,7 +2500,7 @@ mod tests {
             .with_rendered_child("connect1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
     }
 
@@ -2451,7 +2524,7 @@ mod tests {
             .with_rendered_child("ellipse1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -2478,7 +2551,7 @@ mod tests {
             .with_rendered_child("rect1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -2504,7 +2577,7 @@ mod tests {
             .with_rendered_child("rect1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
         // If roundness is applied, the path should have more points than a simple rect
     }
@@ -2525,7 +2598,7 @@ mod tests {
             .with_rendered_child("polygon1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -2551,7 +2624,7 @@ mod tests {
             .with_rendered_child("star1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -2580,7 +2653,7 @@ mod tests {
             .with_rendered_child("arc1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -2616,7 +2689,7 @@ mod tests {
             .with_rendered_child("copy1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 3, "Should have 3 copies");
 
         // First copy at x=0, second at x=60, third at x=120
@@ -2654,7 +2727,7 @@ mod tests {
             .with_rendered_child("connect1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         let bounds = paths[0].bounds().unwrap();
@@ -2688,7 +2761,7 @@ mod tests {
             .with_rendered_child("wiggle1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(!paths.is_empty(), "Wiggle should produce output");
     }
 
@@ -2718,7 +2791,7 @@ mod tests {
             .with_rendered_child("fit1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
         // Verify fit produced output - the shape should be constrained to max 50x50
@@ -2821,7 +2894,7 @@ mod tests {
             .with_rendered_child("combine1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
         assert_eq!(
             paths.len(),
@@ -2892,7 +2965,7 @@ mod tests {
             .with_rendered_child("combine1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
         assert_eq!(
             paths.len(),
@@ -2930,7 +3003,7 @@ mod tests {
             .with_rendered_child("colorize1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
         assert_eq!(
             paths.len(),
@@ -2971,7 +3044,7 @@ mod tests {
             .with_rendered_child("combine1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
         // With no port definitions, list matching treats inputs as VALUE range
         // Each input is a single path, so iteration count = 1
@@ -3010,7 +3083,7 @@ mod tests {
             .with_rendered_child("rect1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
         // THE KEY ASSERTION: Must produce 100 rectangles, not 1!
         assert_eq!(
@@ -3039,7 +3112,7 @@ mod tests {
             .with_rendered_child("colorize1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, errors) = evaluate_network(&library, &port, &ctx);
 
         // Should have no paths output
         assert!(paths.is_empty(), "Should have no output on missing input, got {} paths", paths.len());
@@ -3074,7 +3147,7 @@ mod tests {
             .with_rendered_child("translate1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, errors) = evaluate_network(&library, &port, &ctx);
 
         // Should have no output
         assert!(paths.is_empty(), "Should have no output when upstream has error");
@@ -3097,7 +3170,7 @@ mod tests {
             .with_rendered_child("ellipse1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, errors) = evaluate_network(&library, &port, &ctx);
 
         // Should have output
         assert!(!paths.is_empty(), "Should have output for valid network");
@@ -3119,7 +3192,7 @@ mod tests {
             .with_rendered_child("my_colorize_node");
 
         let (port, ctx) = test_port_and_context();
-        let (_paths, errors) = evaluate_network(&library, &port, &ctx);
+        let (_paths, _output, errors) = evaluate_network(&library, &port, &ctx);
 
         assert!(!errors.is_empty(), "Should have an error");
         assert_eq!(
@@ -3142,7 +3215,7 @@ mod tests {
             .with_rendered_child("ellipse1");
 
         let (port, ctx) = test_port_and_context();
-        let (paths, errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, errors) = evaluate_network(&library, &port, &ctx);
 
         assert!(!paths.is_empty(), "Generator should produce output with defaults");
         assert!(errors.is_empty(), "Generator should not produce errors");

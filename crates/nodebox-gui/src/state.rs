@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use nodebox_core::geometry::{Path as GeoPath, Color, Point};
 use nodebox_core::node::{Node, NodeLibrary, MenuItem, Port, PortRange, Widget};
+use crate::eval::NodeOutput;
 
 /// The main application state.
 pub struct AppState {
@@ -30,6 +31,9 @@ pub struct AppState {
 
     /// Per-node error messages (node_name -> error message).
     pub node_errors: HashMap<String, String>,
+
+    /// The raw output of the rendered node (for non-geometry data display).
+    pub node_output: NodeOutput,
 }
 
 impl Default for AppState {
@@ -55,6 +59,7 @@ impl AppState {
             background_color: Color::WHITE,
             library,
             node_errors: HashMap::new(),
+            node_output: NodeOutput::None,
         }
     }
 
@@ -84,6 +89,7 @@ impl AppState {
         self.current_file = None;
         self.dirty = false;
         self.geometry.clear();
+        self.node_output = NodeOutput::None;
         self.selected_node = None;
         self.node_errors.clear();
     }
@@ -105,6 +111,7 @@ impl AppState {
         self.dirty = false;
         self.selected_node = None;
         self.geometry.clear(); // Render worker will populate
+        self.node_output = NodeOutput::None;
         self.node_errors.clear();
 
         Ok(())
