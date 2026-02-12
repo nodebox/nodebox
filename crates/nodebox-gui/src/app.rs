@@ -203,7 +203,6 @@ impl NodeBoxApp {
     ///
     /// This constructor creates an app without spawning a render worker thread,
     /// making it suitable for unit tests and integration tests.
-    #[cfg(test)]
     #[allow(dead_code)]
     pub fn new_for_testing() -> Self {
         let state = AppState::new();
@@ -232,7 +231,6 @@ impl NodeBoxApp {
     /// Create a new NodeBox application instance for testing with an empty library.
     ///
     /// This is useful for tests that need to set up their own node configuration.
-    #[cfg(test)]
     #[allow(dead_code)]
     pub fn new_for_testing_empty() -> Self {
         let mut state = AppState::new();
@@ -299,7 +297,6 @@ impl NodeBoxApp {
     /// Synchronously evaluate the network for testing.
     ///
     /// Unlike the normal async flow, this directly evaluates and updates geometry.
-    #[cfg(test)]
     #[allow(dead_code)]
     pub fn evaluate_for_testing(&mut self) {
         let (geometry, output, errors) = crate::eval::evaluate_network(
@@ -323,7 +320,6 @@ impl NodeBoxApp {
     ///
     /// This checks for changes and updates history, similar to what happens
     /// during a normal frame update, but without the async render worker.
-    #[cfg(test)]
     #[allow(dead_code)]
     pub fn update_for_testing(&mut self) {
         // Check for changes and save to history
