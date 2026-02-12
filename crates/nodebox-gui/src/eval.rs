@@ -70,6 +70,8 @@ pub enum NodeOutput {
     Strings(Vec<String>),
     /// A color value.
     Color(Color),
+    /// A list of color values.
+    Colors(Vec<Color>),
     /// A boolean value.
     Boolean(bool),
     /// A list of boolean values.
@@ -148,6 +150,7 @@ impl NodeOutput {
             NodeOutput::Boolean(b) => vec![format!("{}", b)],
             NodeOutput::Booleans(bs) => bs.iter().map(|b| format!("{}", b)).collect(),
             NodeOutput::Color(c) => vec![c.to_hex()],
+            NodeOutput::Colors(cs) => cs.iter().map(|c| c.to_hex()).collect(),
             NodeOutput::Point(p) => vec![format!("{:.2}, {:.2}", p.x, p.y)],
             NodeOutput::Points(pts) => pts.iter().map(|p| format!("{:.2}, {:.2}", p.x, p.y)).collect(),
             NodeOutput::Path(_) => vec!["[Path]".to_string()],
@@ -163,7 +166,7 @@ impl NodeOutput {
             NodeOutput::Int(_) | NodeOutput::Ints(_) => "int",
             NodeOutput::String(_) | NodeOutput::Strings(_) => "string",
             NodeOutput::Boolean(_) | NodeOutput::Booleans(_) => "boolean",
-            NodeOutput::Color(_) => "color",
+            NodeOutput::Color(_) | NodeOutput::Colors(_) => "color",
             NodeOutput::Point(_) | NodeOutput::Points(_) => "point",
             NodeOutput::Path(_) | NodeOutput::Paths(_) => "path",
         }
@@ -179,19 +182,21 @@ impl NodeOutput {
             NodeOutput::Ints(is) => is.len(),
             NodeOutput::Strings(ss) => ss.len(),
             NodeOutput::Booleans(bs) => bs.len(),
+            NodeOutput::Colors(cs) => cs.len(),
             _ => 1,
         }
     }
 
     /// Returns true if this output is a color type.
     pub fn is_color(&self) -> bool {
-        matches!(self, NodeOutput::Color(_))
+        matches!(self, NodeOutput::Color(_) | NodeOutput::Colors(_))
     }
 
     /// Returns the color at the given index, if this is a color output.
-    pub fn color_at(&self, _index: usize) -> Option<Color> {
+    pub fn color_at(&self, index: usize) -> Option<Color> {
         match self {
             NodeOutput::Color(c) => Some(*c),
+            NodeOutput::Colors(cs) => cs.get(index).copied(),
             _ => None,
         }
     }
@@ -208,6 +213,7 @@ impl NodeOutput {
             NodeOutput::Ints(is) => is.iter().map(|i| NodeOutput::Int(*i)).collect(),
             NodeOutput::Strings(ss) => ss.iter().map(|s| NodeOutput::String(s.clone())).collect(),
             NodeOutput::Booleans(bs) => bs.iter().map(|b| NodeOutput::Boolean(*b)).collect(),
+            NodeOutput::Colors(cs) => cs.iter().map(|c| NodeOutput::Color(*c)).collect(),
             v => vec![v.clone()], // Single values remain single
         }
     }
@@ -221,6 +227,7 @@ impl NodeOutput {
             NodeOutput::Ints(is) => is.len(),
             NodeOutput::Strings(ss) => ss.len(),
             NodeOutput::Booleans(bs) => bs.len(),
+            NodeOutput::Colors(cs) => cs.len(),
             NodeOutput::None => 0,
             _ => 1,
         }
@@ -510,6 +517,13 @@ fn collect_results(results: Vec<NodeOutput>) -> NodeOutput {
                 _ => None,
             }).collect();
             NodeOutput::Points(points)
+        }
+        Some(NodeOutput::Color(_)) => {
+            let colors: Vec<Color> = results.into_iter().filter_map(|r| match r {
+                NodeOutput::Color(c) => Some(c),
+                _ => None,
+            }).collect();
+            NodeOutput::Colors(colors)
         }
         _ => {
             // Default: collect as Paths (geometry operations)
@@ -3199,6 +3213,48 @@ mod tests {
             errors[0].node_name, "my_colorize_node",
             "Error should identify the failing node"
         );
+    }
+
+    #[test]
+    fn test_sample_to_rgb_color_list_matching() {
+        // When a sample node (outputting a list of floats) is connected to the "red" port
+        // of an rgb_color node, we expect a list of Colors to be returned, not None.
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("sample1")
+                    .with_prototype("math.sample")
+                    .with_input(NodePort::int("amount", 5))
+                    .with_input(NodePort::float("start", 0.0))
+                    .with_input(NodePort::float("end", 255.0)),
+            )
+            .with_child(
+                Node::new("rgb1")
+                    .with_prototype("color.rgb_color")
+                    .with_input(NodePort::float("red", 0.0))
+                    .with_input(NodePort::float("green", 0.0))
+                    .with_input(NodePort::float("blue", 0.0))
+                    .with_input(NodePort::float("alpha", 255.0))
+                    .with_input(NodePort::float("range", 255.0)),
+            )
+            .with_connection(Connection::new("sample1", "rgb1", "red"))
+            .with_rendered_child("rgb1");
+
+        let (port, ctx) = test_port_and_context();
+        let (_paths, output, errors) = evaluate_network(&library, &port, &ctx);
+
+        assert!(errors.is_empty(), "Should not produce errors: {:?}", errors);
+        // sample produces 5 floats -> rgb_color should produce 5 colors
+        match &output {
+            NodeOutput::Colors(colors) => {
+                assert_eq!(colors.len(), 5, "Expected 5 colors, got {}", colors.len());
+                // First color: red=0/255=0.0
+                assert!(colors[0].r.abs() < 0.01, "First color red should be ~0.0");
+                // Last color: red=255/255=1.0
+                assert!((colors[4].r - 1.0).abs() < 0.01, "Last color red should be ~1.0");
+            }
+            other => panic!("Expected Colors output, got {:?}", other),
+        }
     }
 
     #[test]
