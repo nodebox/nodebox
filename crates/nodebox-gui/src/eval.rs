@@ -3277,4 +3277,90 @@ mod tests {
         assert!(!paths.is_empty(), "Generator should produce output with defaults");
         assert!(errors.is_empty(), "Generator should not produce errors");
     }
+
+    #[test]
+    fn test_collect_results_colors() {
+        let results = vec![
+            NodeOutput::Color(Color::rgb(1.0, 0.0, 0.0)),
+            NodeOutput::Color(Color::rgb(0.0, 1.0, 0.0)),
+            NodeOutput::Color(Color::rgb(0.0, 0.0, 1.0)),
+        ];
+        let collected = collect_results(results);
+        match &collected {
+            NodeOutput::Colors(cs) => {
+                assert_eq!(cs.len(), 3);
+                assert!((cs[0].r - 1.0).abs() < 0.01);
+                assert!((cs[1].g - 1.0).abs() < 0.01);
+                assert!((cs[2].b - 1.0).abs() < 0.01);
+            }
+            other => panic!("Expected Colors, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_sample_to_rgb_color_produces_colors() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("sample1")
+                    .with_prototype("math.sample")
+                    .with_input(NodePort::int("amount", 3))
+                    .with_input(NodePort::float("start", 0.0))
+                    .with_input(NodePort::float("end", 255.0))
+                    .with_output_range(PortRange::List)
+            )
+            .with_child(
+                Node::new("rgb_color1")
+                    .with_prototype("color.rgb_color")
+                    .with_input(NodePort::float("red", 0.0))
+                    .with_input(NodePort::float("green", 0.0))
+                    .with_input(NodePort::float("blue", 0.0))
+                    .with_input(NodePort::float("alpha", 255.0))
+                    .with_input(NodePort::float("range", 255.0))
+                    .with_output_type(nodebox_core::node::PortType::Color)
+            )
+            .with_connection(Connection::new("sample1", "rgb_color1", "red"))
+            .with_rendered_child("rgb_color1");
+
+        let (port, ctx) = test_port_and_context();
+        let (_paths, output, errors) = evaluate_network(&library, &port, &ctx);
+        assert!(errors.is_empty(), "Should not produce errors: {:?}", errors);
+        match &output {
+            NodeOutput::Colors(cs) => {
+                assert_eq!(cs.len(), 3, "Should produce 3 colors");
+            }
+            other => panic!("Expected Colors, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_colors_item_count() {
+        let output = NodeOutput::Colors(vec![
+            Color::rgb(1.0, 0.0, 0.0),
+            Color::rgb(0.0, 1.0, 0.0),
+        ]);
+        assert_eq!(output.item_count(), 2);
+    }
+
+    #[test]
+    fn test_colors_is_color() {
+        let output = NodeOutput::Colors(vec![Color::rgb(1.0, 0.0, 0.0)]);
+        assert!(output.is_color());
+    }
+
+    #[test]
+    fn test_colors_color_at() {
+        let output = NodeOutput::Colors(vec![
+            Color::rgb(1.0, 0.0, 0.0),
+            Color::rgb(0.0, 1.0, 0.0),
+            Color::rgb(0.0, 0.0, 1.0),
+        ]);
+        let c0 = output.color_at(0).unwrap();
+        assert!((c0.r - 1.0).abs() < 0.01);
+        let c1 = output.color_at(1).unwrap();
+        assert!((c1.g - 1.0).abs() < 0.01);
+        let c2 = output.color_at(2).unwrap();
+        assert!((c2.b - 1.0).abs() < 0.01);
+        assert!(output.color_at(3).is_none());
+    }
 }

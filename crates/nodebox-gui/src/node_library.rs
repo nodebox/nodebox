@@ -657,7 +657,8 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                 .with_input(Port::float("green", 0.0))
                 .with_input(Port::float("blue", 0.0))
                 .with_input(Port::float("alpha", 255.0))
-                .with_input(Port::float("range", 255.0));
+                .with_input(Port::float("range", 255.0))
+                .with_output_type(PortType::Color);
         }
         "hsb_color" => {
             node = node
@@ -665,13 +666,15 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                 .with_input(Port::float("saturation", 0.0))
                 .with_input(Port::float("brightness", 0.0))
                 .with_input(Port::float("alpha", 255.0))
-                .with_input(Port::float("range", 255.0));
+                .with_input(Port::float("range", 255.0))
+                .with_output_type(PortType::Color);
         }
         "gray_color" => {
             node = node
                 .with_input(Port::float("gray", 0.0))
                 .with_input(Port::float("alpha", 255.0))
-                .with_input(Port::float("range", 255.0));
+                .with_input(Port::float("range", 255.0))
+                .with_output_type(PortType::Color);
         }
         // Core nodes
         "frame" => {
