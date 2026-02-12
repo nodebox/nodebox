@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use nodebox_core::geometry::{Path, Point, Color, Contour, PathPoint, PointType};
+use nodebox_core::geometry::font;
 use nodebox_core::node::{Node, NodeLibrary, EvalError};
 use nodebox_core::node::PortRange;
 use nodebox_core::Value;
@@ -70,6 +71,8 @@ pub enum NodeOutput {
     Strings(Vec<String>),
     /// A color value.
     Color(Color),
+    /// A list of color values.
+    Colors(Vec<Color>),
     /// A boolean value.
     Boolean(bool),
     /// A list of boolean values.
@@ -148,6 +151,7 @@ impl NodeOutput {
             NodeOutput::Boolean(b) => vec![format!("{}", b)],
             NodeOutput::Booleans(bs) => bs.iter().map(|b| format!("{}", b)).collect(),
             NodeOutput::Color(c) => vec![c.to_hex()],
+            NodeOutput::Colors(cs) => cs.iter().map(|c| c.to_hex()).collect(),
             NodeOutput::Point(p) => vec![format!("{:.2}, {:.2}", p.x, p.y)],
             NodeOutput::Points(pts) => pts.iter().map(|p| format!("{:.2}, {:.2}", p.x, p.y)).collect(),
             NodeOutput::Path(_) => vec!["[Path]".to_string()],
@@ -163,7 +167,7 @@ impl NodeOutput {
             NodeOutput::Int(_) | NodeOutput::Ints(_) => "int",
             NodeOutput::String(_) | NodeOutput::Strings(_) => "string",
             NodeOutput::Boolean(_) | NodeOutput::Booleans(_) => "boolean",
-            NodeOutput::Color(_) => "color",
+            NodeOutput::Color(_) | NodeOutput::Colors(_) => "color",
             NodeOutput::Point(_) | NodeOutput::Points(_) => "point",
             NodeOutput::Path(_) | NodeOutput::Paths(_) => "path",
         }
@@ -179,19 +183,21 @@ impl NodeOutput {
             NodeOutput::Ints(is) => is.len(),
             NodeOutput::Strings(ss) => ss.len(),
             NodeOutput::Booleans(bs) => bs.len(),
+            NodeOutput::Colors(cs) => cs.len(),
             _ => 1,
         }
     }
 
     /// Returns true if this output is a color type.
     pub fn is_color(&self) -> bool {
-        matches!(self, NodeOutput::Color(_))
+        matches!(self, NodeOutput::Color(_) | NodeOutput::Colors(_))
     }
 
     /// Returns the color at the given index, if this is a color output.
-    pub fn color_at(&self, _index: usize) -> Option<Color> {
+    pub fn color_at(&self, index: usize) -> Option<Color> {
         match self {
             NodeOutput::Color(c) => Some(*c),
+            NodeOutput::Colors(cs) => cs.get(index).copied(),
             _ => None,
         }
     }
@@ -208,6 +214,7 @@ impl NodeOutput {
             NodeOutput::Ints(is) => is.iter().map(|i| NodeOutput::Int(*i)).collect(),
             NodeOutput::Strings(ss) => ss.iter().map(|s| NodeOutput::String(s.clone())).collect(),
             NodeOutput::Booleans(bs) => bs.iter().map(|b| NodeOutput::Boolean(*b)).collect(),
+            NodeOutput::Colors(cs) => cs.iter().map(|c| NodeOutput::Color(*c)).collect(),
             v => vec![v.clone()], // Single values remain single
         }
     }
@@ -221,6 +228,7 @@ impl NodeOutput {
             NodeOutput::Ints(is) => is.len(),
             NodeOutput::Strings(ss) => ss.len(),
             NodeOutput::Booleans(bs) => bs.len(),
+            NodeOutput::Colors(cs) => cs.len(),
             NodeOutput::None => 0,
             _ => 1,
         }
@@ -510,6 +518,13 @@ fn collect_results(results: Vec<NodeOutput>) -> NodeOutput {
                 _ => None,
             }).collect();
             NodeOutput::Points(points)
+        }
+        Some(NodeOutput::Color(_)) => {
+            let colors: Vec<Color> = results.into_iter().filter_map(|r| match r {
+                NodeOutput::Color(c) => Some(c),
+                _ => None,
+            }).collect();
+            NodeOutput::Colors(colors)
         }
         _ => {
             // Default: collect as Paths (geometry operations)
@@ -871,15 +886,6 @@ fn get_floats(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<f64> {
     }
 }
 
-/// Get a list of string values from input.
-fn get_strings(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<String> {
-    match inputs.get(name) {
-        Some(NodeOutput::Strings(ss)) => ss.clone(),
-        Some(NodeOutput::String(s)) => vec![s.clone()],
-        _ => Vec::new(),
-    }
-}
-
 /// Get a list of boolean values from input.
 fn get_booleans(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<bool> {
     match inputs.get(name) {
@@ -979,6 +985,15 @@ fn execute_node(
             let degrees = get_float(inputs, "degrees", 90.0);
             let arc_type = get_string(inputs, "type", "pie");
             let path = nodebox_ops::arc(position, width, height, start_angle, degrees, &arc_type);
+            Ok(NodeOutput::Path(path))
+        }
+        "corevector.textpath" => {
+            let text = get_string(inputs, "text", "hello");
+            let font_name = get_string(inputs, "font_name", "Verdana");
+            let font_size = get_float(inputs, "font_size", 24.0);
+            let position = get_point(inputs, "position", Point::ZERO);
+            let path = font::text_to_path(&text, &font_name, font_size, position)
+                .map_err(|e| EvalError::ProcessingError(e.to_string()))?;
             Ok(NodeOutput::Path(path))
         }
 
@@ -3202,6 +3217,48 @@ mod tests {
     }
 
     #[test]
+    fn test_sample_to_rgb_color_list_matching() {
+        // When a sample node (outputting a list of floats) is connected to the "red" port
+        // of an rgb_color node, we expect a list of Colors to be returned, not None.
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("sample1")
+                    .with_prototype("math.sample")
+                    .with_input(NodePort::int("amount", 5))
+                    .with_input(NodePort::float("start", 0.0))
+                    .with_input(NodePort::float("end", 255.0)),
+            )
+            .with_child(
+                Node::new("rgb1")
+                    .with_prototype("color.rgb_color")
+                    .with_input(NodePort::float("red", 0.0))
+                    .with_input(NodePort::float("green", 0.0))
+                    .with_input(NodePort::float("blue", 0.0))
+                    .with_input(NodePort::float("alpha", 255.0))
+                    .with_input(NodePort::float("range", 255.0)),
+            )
+            .with_connection(Connection::new("sample1", "rgb1", "red"))
+            .with_rendered_child("rgb1");
+
+        let (port, ctx) = test_port_and_context();
+        let (_paths, output, errors) = evaluate_network(&library, &port, &ctx);
+
+        assert!(errors.is_empty(), "Should not produce errors: {:?}", errors);
+        // sample produces 5 floats -> rgb_color should produce 5 colors
+        match &output {
+            NodeOutput::Colors(colors) => {
+                assert_eq!(colors.len(), 5, "Expected 5 colors, got {}", colors.len());
+                // First color: red=0/255=0.0
+                assert!(colors[0].r.abs() < 0.01, "First color red should be ~0.0");
+                // Last color: red=255/255=1.0
+                assert!((colors[4].r - 1.0).abs() < 0.01, "Last color red should be ~1.0");
+            }
+            other => panic!("Expected Colors output, got {:?}", other),
+        }
+    }
+
+    #[test]
     fn test_generator_nodes_never_error() {
         // Generator nodes (ellipse, rect, etc.) should never produce errors
         // as they have defaults for all inputs
@@ -3219,5 +3276,91 @@ mod tests {
 
         assert!(!paths.is_empty(), "Generator should produce output with defaults");
         assert!(errors.is_empty(), "Generator should not produce errors");
+    }
+
+    #[test]
+    fn test_collect_results_colors() {
+        let results = vec![
+            NodeOutput::Color(Color::rgb(1.0, 0.0, 0.0)),
+            NodeOutput::Color(Color::rgb(0.0, 1.0, 0.0)),
+            NodeOutput::Color(Color::rgb(0.0, 0.0, 1.0)),
+        ];
+        let collected = collect_results(results);
+        match &collected {
+            NodeOutput::Colors(cs) => {
+                assert_eq!(cs.len(), 3);
+                assert!((cs[0].r - 1.0).abs() < 0.01);
+                assert!((cs[1].g - 1.0).abs() < 0.01);
+                assert!((cs[2].b - 1.0).abs() < 0.01);
+            }
+            other => panic!("Expected Colors, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_sample_to_rgb_color_produces_colors() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("sample1")
+                    .with_prototype("math.sample")
+                    .with_input(NodePort::int("amount", 3))
+                    .with_input(NodePort::float("start", 0.0))
+                    .with_input(NodePort::float("end", 255.0))
+                    .with_output_range(PortRange::List)
+            )
+            .with_child(
+                Node::new("rgb_color1")
+                    .with_prototype("color.rgb_color")
+                    .with_input(NodePort::float("red", 0.0))
+                    .with_input(NodePort::float("green", 0.0))
+                    .with_input(NodePort::float("blue", 0.0))
+                    .with_input(NodePort::float("alpha", 255.0))
+                    .with_input(NodePort::float("range", 255.0))
+                    .with_output_type(nodebox_core::node::PortType::Color)
+            )
+            .with_connection(Connection::new("sample1", "rgb_color1", "red"))
+            .with_rendered_child("rgb_color1");
+
+        let (port, ctx) = test_port_and_context();
+        let (_paths, output, errors) = evaluate_network(&library, &port, &ctx);
+        assert!(errors.is_empty(), "Should not produce errors: {:?}", errors);
+        match &output {
+            NodeOutput::Colors(cs) => {
+                assert_eq!(cs.len(), 3, "Should produce 3 colors");
+            }
+            other => panic!("Expected Colors, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_colors_item_count() {
+        let output = NodeOutput::Colors(vec![
+            Color::rgb(1.0, 0.0, 0.0),
+            Color::rgb(0.0, 1.0, 0.0),
+        ]);
+        assert_eq!(output.item_count(), 2);
+    }
+
+    #[test]
+    fn test_colors_is_color() {
+        let output = NodeOutput::Colors(vec![Color::rgb(1.0, 0.0, 0.0)]);
+        assert!(output.is_color());
+    }
+
+    #[test]
+    fn test_colors_color_at() {
+        let output = NodeOutput::Colors(vec![
+            Color::rgb(1.0, 0.0, 0.0),
+            Color::rgb(0.0, 1.0, 0.0),
+            Color::rgb(0.0, 0.0, 1.0),
+        ]);
+        let c0 = output.color_at(0).unwrap();
+        assert!((c0.r - 1.0).abs() < 0.01);
+        let c1 = output.color_at(1).unwrap();
+        assert!((c1.g - 1.0).abs() < 0.01);
+        let c2 = output.color_at(2).unwrap();
+        assert!((c2.b - 1.0).abs() < 0.01);
+        assert!(output.color_at(3).is_none());
     }
 }

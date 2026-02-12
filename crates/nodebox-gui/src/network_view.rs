@@ -439,9 +439,9 @@ impl NetworkView {
             Arc::make_mut(library).root.rendered_child = Some(name);
         }
 
-        // Create connection if needed
+        // Create connection if needed (replaces any existing connection to the same input port)
         if let Some((from, to, port)) = connection_to_create {
-            Arc::make_mut(library).root.connections.push(Connection::new(from, to, port));
+            Arc::make_mut(library).root.connect(Connection::new(from, to, port));
         }
 
         // Handle delete key for selected nodes (but not when editing text)
@@ -454,6 +454,10 @@ impl NetworkView {
                 lib.root.children.retain(|n| &n.name != name);
                 // Remove connections involving this node
                 lib.root.connections.retain(|c| &c.output_node != name && &c.input_node != name);
+                // If the deleted node was the rendered node, clear the rendered child
+                if lib.root.rendered_child.as_deref() == Some(name.as_str()) {
+                    lib.root.rendered_child = None;
+                }
             }
             self.selected.clear();
         }

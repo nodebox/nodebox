@@ -441,6 +441,24 @@ impl ParameterPanel {
                     }
                 }
             }
+            Widget::Font => {
+                if let Value::String(ref mut value) = port.value {
+                    let style = ui.style_mut();
+                    style.override_font_id = Some(egui::FontId::proportional(theme::FONT_SIZE_SMALL));
+
+                    let combo_id = ui.make_persistent_id((&port_key.0, &port_key.1));
+                    egui::ComboBox::from_id_salt(combo_id)
+                        .selected_text(value.as_str())
+                        .width(120.0)
+                        .show_ui(ui, |ui| {
+                            for family in io_port.list_fonts() {
+                                if ui.selectable_label(*value == family, &family).clicked() {
+                                    *value = family;
+                                }
+                            }
+                        });
+                }
+            }
             _ => {
                 // For geometry and other non-editable types, show type info (non-selectable)
                 let type_str = match port.port_type {
