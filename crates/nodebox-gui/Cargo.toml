@@ -57,5 +57,5 @@ workspace = true
 optional = true
 
 [dev-dependencies]
-egui_kittest = "0.33"
+egui_kittest = { version = "0.33", features = ["snapshot", "wgpu"] }
 tempfile = "3"
