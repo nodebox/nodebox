@@ -293,36 +293,36 @@ impl AnimationBar {
     }
 
     /// Styled DragValue that follows the style guide.
-    /// Uses SLATE_800 for subtle elevation against SLATE_900 bar background.
+    /// Uses ZINC_800 for subtle elevation against ZINC_900 bar background.
     fn styled_drag_value(ui: &mut egui::Ui, value: &mut i32, range: std::ops::RangeInclusive<i32>, width: f32) -> egui::Response {
         // Override visuals and spacing for this widget
         let old_visuals = ui.visuals().clone();
         let old_spacing = ui.spacing().clone();
 
         // All states: no borders, sharp corners, appropriate fill
-        ui.visuals_mut().widgets.inactive.bg_fill = theme::SLATE_800;
-        ui.visuals_mut().widgets.inactive.weak_bg_fill = theme::SLATE_800;
+        ui.visuals_mut().widgets.inactive.bg_fill = theme::ZINC_800;
+        ui.visuals_mut().widgets.inactive.weak_bg_fill = theme::ZINC_800;
         ui.visuals_mut().widgets.inactive.bg_stroke = egui::Stroke::NONE;
         ui.visuals_mut().widgets.inactive.fg_stroke = egui::Stroke::new(1.0, theme::TEXT_DEFAULT);
         ui.visuals_mut().widgets.inactive.corner_radius = egui::CornerRadius::ZERO;
         ui.visuals_mut().widgets.inactive.expansion = 0.0;
 
-        ui.visuals_mut().widgets.hovered.bg_fill = theme::SLATE_700;
-        ui.visuals_mut().widgets.hovered.weak_bg_fill = theme::SLATE_700;
+        ui.visuals_mut().widgets.hovered.bg_fill = theme::ZINC_700;
+        ui.visuals_mut().widgets.hovered.weak_bg_fill = theme::ZINC_700;
         ui.visuals_mut().widgets.hovered.bg_stroke = egui::Stroke::NONE;
         ui.visuals_mut().widgets.hovered.fg_stroke = egui::Stroke::new(1.0, theme::TEXT_STRONG);
         ui.visuals_mut().widgets.hovered.corner_radius = egui::CornerRadius::ZERO;
         ui.visuals_mut().widgets.hovered.expansion = 0.0;
 
-        ui.visuals_mut().widgets.active.bg_fill = theme::SLATE_700;
-        ui.visuals_mut().widgets.active.weak_bg_fill = theme::SLATE_700;
+        ui.visuals_mut().widgets.active.bg_fill = theme::ZINC_700;
+        ui.visuals_mut().widgets.active.weak_bg_fill = theme::ZINC_700;
         ui.visuals_mut().widgets.active.bg_stroke = egui::Stroke::NONE;
         ui.visuals_mut().widgets.active.fg_stroke = egui::Stroke::new(1.0, theme::TEXT_STRONG);
         ui.visuals_mut().widgets.active.corner_radius = egui::CornerRadius::ZERO;
         ui.visuals_mut().widgets.active.expansion = 0.0;
 
-        ui.visuals_mut().widgets.noninteractive.bg_fill = theme::SLATE_800;
-        ui.visuals_mut().widgets.noninteractive.weak_bg_fill = theme::SLATE_800;
+        ui.visuals_mut().widgets.noninteractive.bg_fill = theme::ZINC_800;
+        ui.visuals_mut().widgets.noninteractive.weak_bg_fill = theme::ZINC_800;
         ui.visuals_mut().widgets.noninteractive.bg_stroke = egui::Stroke::NONE;
         ui.visuals_mut().widgets.noninteractive.corner_radius = egui::CornerRadius::ZERO;
         ui.visuals_mut().widgets.noninteractive.expansion = 0.0;
@@ -354,23 +354,23 @@ impl AnimationBar {
         // Override visuals for this widget
         let old_visuals = ui.visuals().clone();
 
-        ui.visuals_mut().widgets.inactive.bg_fill = theme::SLATE_800;
-        ui.visuals_mut().widgets.inactive.weak_bg_fill = theme::SLATE_800;
+        ui.visuals_mut().widgets.inactive.bg_fill = theme::ZINC_800;
+        ui.visuals_mut().widgets.inactive.weak_bg_fill = theme::ZINC_800;
         ui.visuals_mut().widgets.inactive.bg_stroke = egui::Stroke::NONE;
         ui.visuals_mut().widgets.inactive.corner_radius = egui::CornerRadius::ZERO;
 
-        ui.visuals_mut().widgets.hovered.bg_fill = theme::SLATE_700;
-        ui.visuals_mut().widgets.hovered.weak_bg_fill = theme::SLATE_700;
+        ui.visuals_mut().widgets.hovered.bg_fill = theme::ZINC_700;
+        ui.visuals_mut().widgets.hovered.weak_bg_fill = theme::ZINC_700;
         ui.visuals_mut().widgets.hovered.bg_stroke = egui::Stroke::NONE;
         ui.visuals_mut().widgets.hovered.corner_radius = egui::CornerRadius::ZERO;
 
-        ui.visuals_mut().widgets.active.bg_fill = theme::SLATE_700;
-        ui.visuals_mut().widgets.active.weak_bg_fill = theme::SLATE_700;
+        ui.visuals_mut().widgets.active.bg_fill = theme::ZINC_700;
+        ui.visuals_mut().widgets.active.weak_bg_fill = theme::ZINC_700;
         ui.visuals_mut().widgets.active.bg_stroke = egui::Stroke::NONE;
         ui.visuals_mut().widgets.active.corner_radius = egui::CornerRadius::ZERO;
 
-        ui.visuals_mut().widgets.noninteractive.bg_fill = theme::SLATE_800;
-        ui.visuals_mut().widgets.noninteractive.weak_bg_fill = theme::SLATE_800;
+        ui.visuals_mut().widgets.noninteractive.bg_fill = theme::ZINC_800;
+        ui.visuals_mut().widgets.noninteractive.weak_bg_fill = theme::ZINC_800;
         ui.visuals_mut().widgets.noninteractive.bg_stroke = egui::Stroke::NONE;
         ui.visuals_mut().widgets.noninteractive.corner_radius = egui::CornerRadius::ZERO;
 
@@ -391,7 +391,7 @@ impl AnimationBar {
         if ui.is_rect_visible(rect) {
             // Transparent background, lighter on hover
             let bg_color = if response.hovered() {
-                theme::SLATE_800
+                theme::ZINC_800
             } else {
                 egui::Color32::TRANSPARENT
             };
