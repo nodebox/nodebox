@@ -67,6 +67,12 @@ pub const NODE_TEMPLATES: &[NodeTemplate] = &[
         category: "geometry",
         description: "Create a grid of points",
     },
+    NodeTemplate {
+        name: "textpath",
+        prototype: "corevector.textpath",
+        category: "geometry",
+        description: "Convert text to a vector path",
+    },
     // Transform nodes
     NodeTemplate {
         name: "translate",
@@ -517,6 +523,20 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                 ]))
                 .with_input(Port::point("offset", Point::new(10.0, 10.0)))
                 .with_input(Port::int("seed", 0));
+        }
+        "textpath" => {
+            node = node
+                .with_input(Port::string("text", "hello"))
+                .with_input(Port::string("font_name", "Verdana").with_widget(Widget::Font))
+                .with_input(Port::float("font_size", 24.0))
+                .with_input(Port::menu("align", "CENTER", vec![
+                    MenuItem::new("LEFT", "Left"),
+                    MenuItem::new("CENTER", "Center"),
+                    MenuItem::new("RIGHT", "Right"),
+                    MenuItem::new("JUSTIFY", "Justify"),
+                ]))
+                .with_input(Port::point("position", Point::ZERO))
+                .with_input(Port::float("width", 0.0));
         }
         "import_svg" => {
             node = node

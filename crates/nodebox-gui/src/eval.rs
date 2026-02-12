@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use nodebox_core::geometry::{Path, Point, Color, Contour, PathPoint, PointType};
+use nodebox_core::geometry::font;
 use nodebox_core::node::{Node, NodeLibrary, EvalError};
 use nodebox_core::node::PortRange;
 use nodebox_core::Value;
@@ -979,6 +980,15 @@ fn execute_node(
             let degrees = get_float(inputs, "degrees", 90.0);
             let arc_type = get_string(inputs, "type", "pie");
             let path = nodebox_ops::arc(position, width, height, start_angle, degrees, &arc_type);
+            Ok(NodeOutput::Path(path))
+        }
+        "corevector.textpath" => {
+            let text = get_string(inputs, "text", "hello");
+            let font_name = get_string(inputs, "font_name", "Verdana");
+            let font_size = get_float(inputs, "font_size", 24.0);
+            let position = get_point(inputs, "position", Point::ZERO);
+            let path = font::text_to_path(&text, &font_name, font_size, position)
+                .map_err(|e| EvalError::ProcessingError(e.to_string()))?;
             Ok(NodeOutput::Path(path))
         }
 

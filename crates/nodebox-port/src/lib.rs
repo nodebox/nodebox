@@ -771,6 +771,9 @@ pub trait Port: Send + Sync {
     ///
     /// * `Err(PortError::Unsupported)` - No config directory on this platform
     fn get_config_dir(&self) -> Result<PathBuf, PortError>;
+
+    /// List available font families on the system.
+    fn list_fonts(&self) -> Vec<String>;
 }
 
 /// A minimal Port implementation for testing.
@@ -920,6 +923,10 @@ impl Port for TestPort {
 
     fn get_config_dir(&self) -> Result<PathBuf, PortError> {
         Err(PortError::Unsupported)
+    }
+
+    fn list_fonts(&self) -> Vec<String> {
+        Vec::new()
     }
 }
 
