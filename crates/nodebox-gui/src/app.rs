@@ -302,13 +302,14 @@ impl NodeBoxApp {
     #[cfg(test)]
     #[allow(dead_code)]
     pub fn evaluate_for_testing(&mut self) {
-        let (geometry, errors) = crate::eval::evaluate_network(
+        let (geometry, output, errors) = crate::eval::evaluate_network(
             &self.state.library,
             &self.port,
             &self.project_context,
         );
         if errors.is_empty() {
             self.state.geometry = geometry;
+            self.state.node_output = output;
             self.state.node_errors.clear();
         } else {
             self.state.node_errors = errors
@@ -377,11 +378,12 @@ impl NodeBoxApp {
         // Check for completed renders
         while let Some(result) = self.render_worker.try_recv_result() {
             match result {
-                RenderResult::Success { id, geometry, errors } => {
+                RenderResult::Success { id, geometry, output, errors } => {
                     if self.render_state.is_current(id) {
                         if errors.is_empty() {
                             // Success with no errors: update geometry and clear errors
                             self.state.geometry = geometry;
+                            self.state.node_output = output;
                             self.state.node_errors.clear();
                         } else {
                             // Success with errors: keep last geometry, populate errors
@@ -412,6 +414,8 @@ impl NodeBoxApp {
         // Dispatch pending render if not already rendering
         if self.render_pending && !self.render_state.is_rendering {
             let (id, cancel_token) = self.render_state.dispatch_new();
+            // Update the frame number from the animation bar before rendering
+            self.project_context.frame = self.animation_bar.frame();
             self.render_worker.request_render(
                 id,
                 self.state.library.clone(),

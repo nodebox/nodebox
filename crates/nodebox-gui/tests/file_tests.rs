@@ -171,19 +171,19 @@ fn test_evaluate_primitives() {
     test_library.root.rendered_child = Some("rect1".to_string());
 
     let (port, ctx) = test_port_and_context();
-    let (paths, _errors) = evaluate_network(&test_library, &port, &ctx);
+    let (paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(paths.len(), 1, "rect1 should produce one path");
 
     // Test ellipse
     test_library.root.rendered_child = Some("ellipse1".to_string());
     let (port, ctx) = test_port_and_context();
-    let (paths, _errors) = evaluate_network(&test_library, &port, &ctx);
+    let (paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(paths.len(), 1, "ellipse1 should produce one path");
 
     // Test polygon
     test_library.root.rendered_child = Some("polygon1".to_string());
     let (port, ctx) = test_port_and_context();
-    let (paths, _errors) = evaluate_network(&test_library, &port, &ctx);
+    let (paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(paths.len(), 1, "polygon1 should produce one path");
 }
 
@@ -193,7 +193,7 @@ fn test_evaluate_primitives_full() {
 
     // The rendered child is "combine1" which uses list.combine
     let (port, ctx) = test_port_and_context();
-    let (paths, _errors) = evaluate_network(&library, &port, &ctx);
+    let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
     // Should have 3 shapes: rect, ellipse, polygon (each colorized)
     assert_eq!(paths.len(), 3, "combine1 should produce 3 colorized paths");
@@ -213,7 +213,7 @@ fn test_evaluate_colorized_primitives() {
     // Test colorized rect (colorize1 <- rect1)
     test_library.root.rendered_child = Some("colorize1".to_string());
     let (port, ctx) = test_port_and_context();
-    let (paths, _errors) = evaluate_network(&test_library, &port, &ctx);
+    let (paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
 
     assert_eq!(paths.len(), 1, "colorize1 should produce one path");
     assert!(paths[0].fill.is_some(), "colorized path should have fill");
@@ -232,21 +232,21 @@ fn test_primitives_shapes_at_different_positions() {
     let mut test_library = library.clone();
     test_library.root.rendered_child = Some("rect1".to_string());
     let (port, ctx) = test_port_and_context();
-    let (rect_paths, _errors) = evaluate_network(&test_library, &port, &ctx);
+    let (rect_paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(rect_paths.len(), 1, "rect1 should produce one path");
     let rect_bounds = rect_paths[0].bounds().unwrap();
     let rect_center_x = rect_bounds.x + rect_bounds.width / 2.0;
 
     // Evaluate ellipse1 alone
     test_library.root.rendered_child = Some("ellipse1".to_string());
-    let (ellipse_paths, _errors) = evaluate_network(&test_library, &port, &ctx);
+    let (ellipse_paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(ellipse_paths.len(), 1, "ellipse1 should produce one path");
     let ellipse_bounds = ellipse_paths[0].bounds().unwrap();
     let ellipse_center_x = ellipse_bounds.x + ellipse_bounds.width / 2.0;
 
     // Evaluate polygon1 alone
     test_library.root.rendered_child = Some("polygon1".to_string());
-    let (polygon_paths, _errors) = evaluate_network(&test_library, &port, &ctx);
+    let (polygon_paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(polygon_paths.len(), 1, "polygon1 should produce one path");
     let polygon_bounds = polygon_paths[0].bounds().unwrap();
     let polygon_center_x = polygon_bounds.x + polygon_bounds.width / 2.0;

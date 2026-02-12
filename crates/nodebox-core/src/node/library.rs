@@ -132,6 +132,14 @@ impl NodeLibrary {
             .map(|node| node.output_type == PortType::Point)
             .unwrap_or(false)
     }
+
+    /// Returns true if the rendered node outputs Geometry or Point (visual types).
+    pub fn is_rendered_output_geometry(&self) -> bool {
+        self.root.rendered_child.as_ref()
+            .and_then(|name| self.root.child(name))
+            .map(|node| node.output_type == PortType::Geometry || node.output_type == PortType::Point)
+            .unwrap_or(false)
+    }
 }
 
 #[cfg(test)]
@@ -200,5 +208,31 @@ mod tests {
             .with_child(Node::new("grid1").with_output_type(PortType::Point))
             .with_rendered_child("grid1");
         assert!(lib.is_rendered_output_point());
+    }
+
+    #[test]
+    fn test_is_rendered_output_geometry() {
+        let mut lib = NodeLibrary::new("test");
+
+        // No rendered child - should return false
+        assert!(!lib.is_rendered_output_geometry());
+
+        // Add a node with default Geometry output type - should return true
+        lib.root = Node::network("root")
+            .with_child(Node::new("rect1"))
+            .with_rendered_child("rect1");
+        assert!(lib.is_rendered_output_geometry());
+
+        // Add a node with Point output type - should return true
+        lib.root = Node::network("root")
+            .with_child(Node::new("grid1").with_output_type(PortType::Point))
+            .with_rendered_child("grid1");
+        assert!(lib.is_rendered_output_geometry());
+
+        // Add a node with non-visual output type - should return false
+        lib.root = Node::network("root")
+            .with_child(Node::new("add1").with_output_type(PortType::Float))
+            .with_rendered_child("add1");
+        assert!(!lib.is_rendered_output_geometry());
     }
 }

@@ -234,6 +234,10 @@ pub struct ViewerPane {
     pub use_gpu_rendering: bool,
     /// Current data view mode (paths or points).
     data_view_mode: DataViewMode,
+    /// The user's preferred tab when a Geometry node is rendered.
+    preferred_geometry_tab: ViewerTab,
+    /// Whether the Visual tab is available (rendered node outputs Geometry/Point).
+    visual_tab_available: bool,
 }
 
 impl Default for ViewerPane {
@@ -264,6 +268,8 @@ impl ViewerPane {
             #[cfg(feature = "gpu-rendering")]
             use_gpu_rendering: true, // Default to GPU rendering when available
             data_view_mode: DataViewMode::Points,
+            preferred_geometry_tab: ViewerTab::Viewer,
+            visual_tab_available: true,
         }
     }
 
@@ -353,6 +359,24 @@ impl ViewerPane {
     /// Pass `render_state` for GPU-accelerated rendering when available.
     /// When `gpu-rendering` feature is disabled, pass `None`.
     pub fn show(&mut self, ui: &mut egui::Ui, state: &AppState, render_state: Option<&RenderState>) -> HandleResult {
+        // Auto-switch tab based on whether the rendered node outputs geometry
+        let is_geometry = state.library.is_rendered_output_geometry();
+        let was_available = self.visual_tab_available;
+
+        if is_geometry && !was_available {
+            // Switching back to geometry: restore preferred tab
+            self.visual_tab_available = true;
+            self.current_tab = self.preferred_geometry_tab;
+        } else if !is_geometry && was_available {
+            // Switching to non-geometry: save preference, force Data
+            self.preferred_geometry_tab = self.current_tab;
+            self.visual_tab_available = false;
+            self.current_tab = ViewerTab::Data;
+        } else if !is_geometry {
+            // Staying on non-geometry: keep Data forced
+            self.current_tab = ViewerTab::Data;
+        }
+
         // Remove spacing so content is snug against header
         ui.spacing_mut().item_spacing = egui::vec2(0.0, 0.0);
 
@@ -361,87 +385,122 @@ impl ViewerPane {
 
         // Segmented control for Visual/Data toggle
         let selected_index = if self.current_tab == ViewerTab::Viewer { 0 } else { 1 };
+        let disabled = if self.visual_tab_available { None } else { Some(0) };
         let (clicked_index, new_x) = components::header_segmented_control(
             ui,
             header_rect,
             x,
             ["Visual", "Data"],
             selected_index,
+            disabled,
         );
         if let Some(index) = clicked_index {
             self.current_tab = if index == 0 { ViewerTab::Viewer } else { ViewerTab::Data };
+            if self.visual_tab_available {
+                self.preferred_geometry_tab = self.current_tab;
+            }
         }
         x = new_x + theme::PADDING_XL; // 16px spacing after segmented control
 
-        let (clicked, new_x) = components::header_tab_button(
-            ui,
-            header_rect,
-            x,
-            "Handles",
-            self.current_tab == ViewerTab::Viewer && self.show_handles,
-        );
-        if clicked && self.current_tab == ViewerTab::Viewer {
-            self.show_handles = !self.show_handles;
-        } else if clicked {
-            self.current_tab = ViewerTab::Viewer;
-        }
-        x = new_x;
+        if self.current_tab == ViewerTab::Viewer {
+            // Visual tab: show toggle buttons for visual options
+            let (clicked, new_x) = components::header_tab_button(
+                ui,
+                header_rect,
+                x,
+                "Handles",
+                self.show_handles,
+            );
+            if clicked {
+                self.show_handles = !self.show_handles;
+            }
+            x = new_x;
 
-        let (clicked, new_x) = components::header_tab_button(
-            ui,
-            header_rect,
-            x,
-            "Points",
-            self.current_tab == ViewerTab::Viewer && self.show_points,
-        );
-        if clicked && self.current_tab == ViewerTab::Viewer {
-            self.show_points = !self.show_points;
-        } else if clicked {
-            self.current_tab = ViewerTab::Viewer;
-        }
-        x = new_x;
+            let (clicked, new_x) = components::header_tab_button(
+                ui,
+                header_rect,
+                x,
+                "Points",
+                self.show_points,
+            );
+            if clicked {
+                self.show_points = !self.show_points;
+            }
+            x = new_x;
 
-        let (clicked, new_x) = components::header_tab_button(
-            ui,
-            header_rect,
-            x,
-            "Pt#",
-            self.current_tab == ViewerTab::Viewer && self.show_point_numbers,
-        );
-        if clicked && self.current_tab == ViewerTab::Viewer {
-            self.show_point_numbers = !self.show_point_numbers;
-        } else if clicked {
-            self.current_tab = ViewerTab::Viewer;
-        }
-        x = new_x;
+            let (clicked, new_x) = components::header_tab_button(
+                ui,
+                header_rect,
+                x,
+                "Pt#",
+                self.show_point_numbers,
+            );
+            if clicked {
+                self.show_point_numbers = !self.show_point_numbers;
+            }
+            x = new_x;
 
-        let (clicked, new_x) = components::header_tab_button(
-            ui,
-            header_rect,
-            x,
-            "Origin",
-            self.current_tab == ViewerTab::Viewer && self.show_origin,
-        );
-        if clicked && self.current_tab == ViewerTab::Viewer {
-            self.show_origin = !self.show_origin;
-        } else if clicked {
-            self.current_tab = ViewerTab::Viewer;
-        }
-        x = new_x;
+            let (clicked, new_x) = components::header_tab_button(
+                ui,
+                header_rect,
+                x,
+                "Origin",
+                self.show_origin,
+            );
+            if clicked {
+                self.show_origin = !self.show_origin;
+            }
+            x = new_x;
 
-        let (clicked, new_x) = components::header_tab_button(
-            ui,
-            header_rect,
-            x,
-            "Canvas",
-            self.current_tab == ViewerTab::Viewer && self.show_canvas_border,
-        );
-        if clicked && self.current_tab == ViewerTab::Viewer {
-            self.show_canvas_border = !self.show_canvas_border;
-        } else if clicked {
-            self.current_tab = ViewerTab::Viewer;
+            let (clicked, new_x) = components::header_tab_button(
+                ui,
+                header_rect,
+                x,
+                "Canvas",
+                self.show_canvas_border,
+            );
+            if clicked {
+                self.show_canvas_border = !self.show_canvas_border;
+            }
+            x = new_x;
+        } else {
+            // Data tab: show data view mode selector
+            if state.node_output.is_geometry() {
+                // Geometry output: Paths/Points segmented control
+                let selected_index = if self.data_view_mode == DataViewMode::Paths { 0 } else { 1 };
+                let (clicked_index, new_x) = components::header_segmented_control(
+                    ui,
+                    header_rect,
+                    x,
+                    ["Paths", "Points"],
+                    selected_index,
+                    None,
+                );
+                if let Some(index) = clicked_index {
+                    self.data_view_mode = if index == 0 { DataViewMode::Paths } else { DataViewMode::Points };
+                }
+                x = new_x;
+            } else {
+                // Non-geometry output: show type label
+                let type_label = {
+                    let label = state.node_output.type_label();
+                    let mut s = label.to_string();
+                    if let Some(first) = s.get_mut(0..1) {
+                        first.make_ascii_uppercase();
+                    }
+                    s
+                };
+                ui.painter().text(
+                    egui::pos2(x + 6.0, header_rect.center().y),
+                    egui::Align2::LEFT_CENTER,
+                    &type_label,
+                    egui::FontId::proportional(11.0),
+                    theme::TEXT_SUBDUED,
+                );
+                // Approximate width for spacing
+                x += 60.0;
+            }
         }
-        x = new_x;
 
         // Zoom controls on the right side: [-] [100%] [+]
         let zoom_controls_width = 24.0 + 48.0 + 24.0 + theme::PADDING; // minus + percent + plus + right padding
@@ -745,71 +804,152 @@ impl ViewerPane {
 
     /// Show the data view with spreadsheet table.
     fn show_data_view(&mut self, ui: &mut egui::Ui, state: &AppState) {
-        // Sub-header bar with view mode toggle and stats
-        self.show_data_view_header(ui, state);
+        if state.node_output.is_geometry() {
+            // Geometry output: show Paths or Points table
+            if state.geometry.is_empty() {
+                Self::show_data_empty(ui);
+                return;
+            }
 
-        // Table body
-        if state.geometry.is_empty() {
-            Self::show_data_empty(ui);
-            return;
-        }
-
-        match self.data_view_mode {
-            DataViewMode::Paths => Self::show_paths_table(ui, state),
-            DataViewMode::Points => Self::show_points_table(ui, state),
+            match self.data_view_mode {
+                DataViewMode::Paths => Self::show_paths_table(ui, state),
+                DataViewMode::Points => Self::show_points_table(ui, state),
+            }
+        } else {
+            // Non-geometry output: show values table
+            if state.node_output.item_count() == 0 {
+                Self::show_data_empty(ui);
+            } else {
+                Self::show_values_table(ui, &state.node_output);
+            }
         }
     }
 
-    /// Show the data view sub-header with mode toggle and stats.
-    fn show_data_view_header(&mut self, ui: &mut egui::Ui, state: &AppState) {
-        let header_height = 28.0;
-        let (rect, _) = ui.allocate_exact_size(
-            egui::vec2(ui.available_width(), header_height),
-            egui::Sense::hover(),
-        );
+    /// Show a table of non-geometry values.
+    fn show_values_table(ui: &mut egui::Ui, output: &crate::eval::NodeOutput) {
+        let text_height = theme::ROW_HEIGHT;
+        let values = output.to_display_strings();
+        let is_color = output.is_color();
+        let type_label = output.type_label();
 
-        // Background
-        ui.painter().rect_filled(rect, 0.0, theme::SLATE_800);
-
-        // Bottom border
-        ui.painter().line_segment(
-            [
-                egui::pos2(rect.left(), rect.bottom() - 0.5),
-                egui::pos2(rect.right(), rect.bottom() - 0.5),
-            ],
-            egui::Stroke::new(1.0, theme::SLATE_950),
-        );
-
-        // Segmented control for Paths/Points
-        let selected_index = if self.data_view_mode == DataViewMode::Paths { 0 } else { 1 };
-        let (clicked_index, _x) = components::header_segmented_control(
-            ui,
-            rect,
-            rect.left() + theme::PADDING,
-            ["Paths", "Points"],
-            selected_index,
-        );
-        if let Some(index) = clicked_index {
-            self.data_view_mode = if index == 0 { DataViewMode::Paths } else { DataViewMode::Points };
+        let mut table = TableBuilder::new(ui)
+            .striped(false)
+            .resizable(true)
+            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+            .min_scrolled_height(0.0)
+            .max_scroll_height(f32::INFINITY)
+            .column(Column::exact(60.0));                              // Index
+        if is_color {
+            table = table.column(Column::exact(24.0));                 // Swatch
         }
+        table = table.column(Column::remainder().at_least(100.0).clip(true)); // Value
 
-        // Stats on the right side
-        let total_paths = state.geometry.len();
-        let total_points: usize = state.geometry.iter()
-            .flat_map(|p| &p.contours)
-            .map(|c| c.points.len())
-            .sum();
-        let stats_text = format!("{} paths, {} points", total_paths, total_points);
-        ui.painter().text(
-            egui::pos2(rect.right() - theme::PADDING, rect.center().y),
-            egui::Align2::RIGHT_CENTER,
-            &stats_text,
-            egui::FontId::proportional(10.0),
-            theme::TEXT_DISABLED,
-        );
+        // Capitalize first letter of type label for header
+        let value_header = {
+            let mut s = type_label.to_string();
+            if let Some(first) = s.get_mut(0..1) {
+                first.make_ascii_uppercase();
+            }
+            s
+        };
+
+        table
+            .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                header.col(|ui| {
+                    ui.painter().rect_filled(ui.max_rect(), 0.0, theme::TABLE_HEADER_BG);
+                    ui.add_space(8.0);
+                    ui.label(
+                        egui::RichText::new("Index")
+                            .color(theme::TABLE_HEADER_TEXT)
+                            .size(11.0),
+                    );
+                });
+                if is_color {
+                    header.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, theme::TABLE_HEADER_BG);
+                    });
+                }
+                header.col(|ui| {
+                    ui.painter().rect_filled(ui.max_rect(), 0.0, theme::TABLE_HEADER_BG);
+                    ui.add_space(8.0);
+                    ui.label(
+                        egui::RichText::new(&value_header)
+                            .color(theme::TABLE_HEADER_TEXT)
+                            .size(11.0),
+                    );
+                });
+            })
+            .body(|body| {
+                body.rows(text_height, values.len(), |mut row| {
+                    let row_index = row.index();
+                    let row_bg = if row_index % 2 == 0 {
+                        theme::TABLE_ROW_EVEN
+                    } else {
+                        theme::TABLE_ROW_ODD
+                    };
+
+                    // Index
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new(format!("{}", row_index))
+                                    .color(theme::TABLE_INDEX_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    });
+
+                    // Swatch (color types only)
+                    if is_color {
+                        row.col(|ui| {
+                            ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                            if let Some(c) = output.color_at(row_index) {
+                                let swatch_size = 14.0;
+                                let rect = ui.max_rect();
+                                let swatch_rect = egui::Rect::from_min_size(
+                                    egui::pos2(
+                                        rect.center().x - swatch_size / 2.0,
+                                        rect.center().y - swatch_size / 2.0,
+                                    ),
+                                    egui::vec2(swatch_size, swatch_size),
+                                );
+                                let egui_color = Color32::from_rgba_unmultiplied(
+                                    (c.r * 255.0) as u8,
+                                    (c.g * 255.0) as u8,
+                                    (c.b * 255.0) as u8,
+                                    (c.a * 255.0) as u8,
+                                );
+                                if c.a < 1.0 {
+                                    ui.painter().rect_filled(swatch_rect, 0.0, Color32::WHITE);
+                                }
+                                ui.painter().rect_filled(swatch_rect, 0.0, egui_color);
+                                ui.painter().rect_stroke(
+                                    swatch_rect,
+                                    0.0,
+                                    Stroke::new(1.0, theme::SLATE_600),
+                                    egui::StrokeKind::Inside,
+                                );
+                            }
+                        });
+                    }
+
+                    // Value
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.add_space(8.0);
+                        ui.label(
+                            egui::RichText::new(&values[row_index])
+                                .color(theme::TABLE_CELL_TEXT)
+                                .size(11.0),
+                        );
+                    });
+                });
+            });
     }
 
-    /// Show empty state when no geometry data is available.
+    /// Show empty state when no data is available.
     fn show_data_empty(ui: &mut egui::Ui) {
         ui.vertical_centered(|ui| {
             ui.add_space(50.0);
@@ -820,7 +960,7 @@ impl ViewerPane {
             );
             ui.add_space(8.0);
             ui.label(
-                egui::RichText::new("Render a node to see its geometry data here.")
+                egui::RichText::new("Render a node to see its data here.")
                     .color(theme::TEXT_DISABLED)
                     .size(11.0),
             );
@@ -850,6 +990,7 @@ impl ViewerPane {
                 for h in headers {
                     header.col(|ui| {
                         ui.painter().rect_filled(ui.max_rect(), 0.0, theme::TABLE_HEADER_BG);
+                        ui.add_space(8.0);
                         ui.label(
                             egui::RichText::new(h)
                                 .color(theme::TABLE_HEADER_TEXT)
@@ -970,6 +1111,7 @@ impl ViewerPane {
                 for h in headers {
                     header.col(|ui| {
                         ui.painter().rect_filled(ui.max_rect(), 0.0, theme::TABLE_HEADER_BG);
+                        ui.add_space(8.0);
                         ui.label(
                             egui::RichText::new(h)
                                 .color(theme::TABLE_HEADER_TEXT)

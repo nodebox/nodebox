@@ -71,6 +71,7 @@ pub enum RenderResult {
     Success {
         id: RenderRequestId,
         geometry: Vec<GeoPath>,
+        output: crate::eval::NodeOutput,
         errors: Vec<NodeError>,
     },
     /// Evaluation was cancelled before completion.
@@ -248,10 +249,11 @@ fn render_worker_loop(
                 );
 
                 match result {
-                    crate::eval::EvalOutcome::Completed { geometry, errors } => {
+                    crate::eval::EvalOutcome::Completed { geometry, output, errors } => {
                         let _ = result_tx.send(RenderResult::Success {
                             id: final_id,
                             geometry,
+                            output,
                             errors,
                         });
                     }

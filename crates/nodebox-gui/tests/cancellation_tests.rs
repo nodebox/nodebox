@@ -75,7 +75,7 @@ fn test_evaluation_completes_without_cancellation() {
     let outcome = evaluate_network_cancellable(&library, &token, &mut cache, &port, &ctx);
 
     match outcome {
-        EvalOutcome::Completed { geometry, errors } => {
+        EvalOutcome::Completed { geometry, errors, .. } => {
             assert!(errors.is_empty(), "Should have no errors");
             assert_eq!(geometry.len(), 25, "Should have 25 rectangles (5x5 grid)");
         }
@@ -147,7 +147,7 @@ fn test_cache_reused_after_cancellation() {
     let outcome1 = evaluate_network_cancellable(&library, &token1, &mut cache, &port, &ctx);
 
     match outcome1 {
-        EvalOutcome::Completed { geometry, errors } => {
+        EvalOutcome::Completed { geometry, errors, .. } => {
             assert!(errors.is_empty());
             assert_eq!(geometry.len(), 100);
         }
@@ -163,7 +163,7 @@ fn test_cache_reused_after_cancellation() {
     let outcome2 = evaluate_network_cancellable(&library, &token2, &mut cache, &port, &ctx);
 
     match outcome2 {
-        EvalOutcome::Completed { geometry, errors } => {
+        EvalOutcome::Completed { geometry, errors, .. } => {
             assert!(errors.is_empty());
             assert_eq!(geometry.len(), 100);
         }
@@ -245,7 +245,7 @@ fn test_empty_network_not_affected_by_cancellation() {
 
     // Empty network should complete (nothing to cancel)
     match outcome {
-        EvalOutcome::Completed { geometry, errors } => {
+        EvalOutcome::Completed { geometry, errors, .. } => {
             assert!(geometry.is_empty());
             assert!(errors.is_empty());
         }

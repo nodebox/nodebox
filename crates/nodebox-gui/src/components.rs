@@ -248,6 +248,7 @@ pub fn header_segmented_control(
     x: f32,
     labels: [&str; 2],
     selected: usize,
+    disabled_index: Option<usize>,
 ) -> (Option<usize>, f32) {
     let font = egui::FontId::proportional(11.0);
     let padding_h = 6.0; // Horizontal padding inside each segment
@@ -275,17 +276,20 @@ pub fn header_segmented_control(
     let content_height = content_bottom - content_top;
 
     // Only draw the selected segment (unselected is transparent/header bg)
-    let selected_x = if selected == 0 { x } else { x + width0 };
-    let selected_width = if selected == 0 { width0 } else { width1 };
-    let selected_rect = Rect::from_min_size(
-        egui::pos2(selected_x, content_top),
-        egui::vec2(selected_width, content_height),
-    );
-    ui.painter().rect_filled(
-        selected_rect,
-        0.0,
-        theme::SLATE_700,
-    );
+    // Don't draw highlight if the selected segment is disabled
+    if disabled_index != Some(selected) {
+        let selected_x = if selected == 0 { x } else { x + width0 };
+        let selected_width = if selected == 0 { width0 } else { width1 };
+        let selected_rect = Rect::from_min_size(
+            egui::pos2(selected_x, content_top),
+            egui::vec2(selected_width, content_height),
+        );
+        ui.painter().rect_filled(
+            selected_rect,
+            0.0,
+            theme::SLATE_700,
+        );
+    }
 
     // Create interaction rects and draw labels
     let rect0 = Rect::from_min_size(
@@ -308,9 +312,21 @@ pub fn header_segmented_control(
         egui::Sense::click(),
     );
 
-    // Draw text labels
-    let color0 = if selected == 0 { theme::TEXT_STRONG } else { theme::TEXT_SUBDUED };
-    let color1 = if selected == 1 { theme::TEXT_STRONG } else { theme::TEXT_SUBDUED };
+    // Draw text labels (disabled segments use TEXT_DISABLED)
+    let color0 = if disabled_index == Some(0) {
+        theme::TEXT_DISABLED
+    } else if selected == 0 {
+        theme::TEXT_STRONG
+    } else {
+        theme::TEXT_SUBDUED
+    };
+    let color1 = if disabled_index == Some(1) {
+        theme::TEXT_DISABLED
+    } else if selected == 1 {
+        theme::TEXT_STRONG
+    } else {
+        theme::TEXT_SUBDUED
+    };
 
     ui.painter().text(
         egui::pos2(x + width0 / 2.0, y_center),
@@ -327,9 +343,9 @@ pub fn header_segmented_control(
         color1,
     );
 
-    let clicked = if response0.clicked() {
+    let clicked = if response0.clicked() && disabled_index != Some(0) {
         Some(0)
-    } else if response1.clicked() {
+    } else if response1.clicked() && disabled_index != Some(1) {
         Some(1)
     } else {
         None
