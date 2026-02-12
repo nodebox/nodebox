@@ -55,7 +55,7 @@ pub enum RenderRequest {
     /// Evaluate the network and return geometry.
     Evaluate {
         id: RenderRequestId,
-        library: NodeLibrary,
+        library: Arc<NodeLibrary>,
         cancel_token: CancellationToken,
         port: Arc<dyn Port>,
         project_context: ProjectContext,
@@ -179,7 +179,7 @@ impl RenderWorkerHandle {
     pub fn request_render(
         &self,
         id: RenderRequestId,
-        library: NodeLibrary,
+        library: Arc<NodeLibrary>,
         cancel_token: CancellationToken,
         port: Arc<dyn Port>,
         project_context: ProjectContext,
@@ -272,12 +272,12 @@ fn render_worker_loop(
 /// Drain any pending requests and return the most recent one.
 fn drain_to_latest(
     mut id: RenderRequestId,
-    mut library: NodeLibrary,
+    mut library: Arc<NodeLibrary>,
     mut cancel_token: CancellationToken,
     mut port: Arc<dyn Port>,
     mut project_context: ProjectContext,
     rx: &mpsc::Receiver<RenderRequest>,
-) -> (RenderRequestId, NodeLibrary, CancellationToken, Arc<dyn Port>, ProjectContext) {
+) -> (RenderRequestId, Arc<NodeLibrary>, CancellationToken, Arc<dyn Port>, ProjectContext) {
     while let Ok(req) = rx.try_recv() {
         match req {
             RenderRequest::Evaluate {

@@ -4,6 +4,7 @@ use eframe::egui::{self, Color32, Pos2, Rect, Stroke, Vec2};
 use nodebox_core::geometry::Point;
 use nodebox_core::node::{Connection, Node, NodeLibrary, PortType};
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 use crate::icon_cache::IconCache;
 use crate::pan_zoom::PanZoom;
@@ -101,7 +102,7 @@ impl NetworkView {
     /// Show the network view. Returns any action that should be handled by the app.
     ///
     /// The `node_errors` map contains per-node error messages for visual feedback.
-    pub fn show(&mut self, ui: &mut egui::Ui, library: &mut NodeLibrary, node_errors: &HashMap<String, String>) -> NetworkAction {
+    pub fn show(&mut self, ui: &mut egui::Ui, library: &mut Arc<NodeLibrary>, node_errors: &HashMap<String, String>) -> NetworkAction {
         let mut action = NetworkAction::None;
 
         let (response, painter) =
@@ -361,7 +362,7 @@ impl NetworkView {
         // Handle disconnect-and-reroute (remove old connection, start new drag from upstream)
         if let Some((conn_idx, from_node_name, output_type)) = disconnect_and_reroute {
             // Remove the old connection
-            library.root.connections.remove(conn_idx);
+            Arc::make_mut(library).root.connections.remove(conn_idx);
             // Start a new connection drag from the upstream node
             if let Some(from_node) = library.root.child(&from_node_name) {
                 let output_pos = self.node_output_pos(from_node, offset);
@@ -411,8 +412,9 @@ impl NetworkView {
             });
             let delta = pointer_delta / (self.pan_zoom.zoom * GRID_CELL_SIZE);
             if delta != Vec2::ZERO {
+                let lib = Arc::make_mut(library);
                 for name in &self.selected {
-                    if let Some(node) = library.root.child_mut(name) {
+                    if let Some(node) = lib.root.child_mut(name) {
                         node.position.x += delta.x as f64;
                         node.position.y += delta.y as f64;
                     }
@@ -422,8 +424,9 @@ impl NetworkView {
 
         // Snap all selected nodes to grid when drag ends
         if self.is_dragging_selection && ui.input(|i| i.pointer.any_released()) {
+            let lib = Arc::make_mut(library);
             for name in &self.selected {
-                if let Some(node) = library.root.child_mut(name) {
+                if let Some(node) = lib.root.child_mut(name) {
                     node.position.x = node.position.x.round();
                     node.position.y = node.position.y.round();
                 }
@@ -433,23 +436,24 @@ impl NetworkView {
 
         // Set rendered node (on double-click)
         if let Some(name) = node_to_render {
-            library.root.rendered_child = Some(name);
+            Arc::make_mut(library).root.rendered_child = Some(name);
         }
 
         // Create connection if needed
         if let Some((from, to, port)) = connection_to_create {
-            library.root.connections.push(Connection::new(from, to, port));
+            Arc::make_mut(library).root.connections.push(Connection::new(from, to, port));
         }
 
         // Handle delete key for selected nodes (but not when editing text)
         let wants_keyboard = ui.ctx().wants_keyboard_input();
         if !wants_keyboard && ui.input(|i| i.key_pressed(egui::Key::Delete) || i.key_pressed(egui::Key::Backspace)) {
             // Delete selected nodes
+            let lib = Arc::make_mut(library);
             for name in &self.selected {
                 // Remove node
-                library.root.children.retain(|n| &n.name != name);
+                lib.root.children.retain(|n| &n.name != name);
                 // Remove connections involving this node
-                library.root.connections.retain(|c| &c.output_node != name && &c.input_node != name);
+                lib.root.connections.retain(|c| &c.output_node != name && &c.input_node != name);
             }
             self.selected.clear();
         }

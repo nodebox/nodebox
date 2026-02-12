@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use nodebox_core::geometry::{Path as GeoPath, Color, Point};
 use nodebox_core::node::{Node, NodeLibrary, MenuItem, Port, PortRange, Widget};
 use crate::eval::NodeOutput;
@@ -27,7 +28,9 @@ pub struct AppState {
     pub background_color: Color,
 
     /// The node library (document).
-    pub library: NodeLibrary,
+    /// Wrapped in Arc for cheap cloning when dispatching renders.
+    /// Use `Arc::make_mut` for copy-on-write mutation.
+    pub library: Arc<NodeLibrary>,
 
     /// Per-node error messages (node_name -> error message).
     pub node_errors: HashMap<String, String>,
@@ -48,7 +51,7 @@ impl AppState {
     /// Note: Geometry starts empty - the render worker will evaluate with
     /// the proper Port and populate it.
     pub fn new() -> Self {
-        let library = Self::create_demo_library();
+        let library = Arc::new(Self::create_demo_library());
 
         Self {
             current_file: None,
@@ -106,7 +109,7 @@ impl AppState {
         populate_default_ports(&mut library.root);
 
         // Update state
-        self.library = library;
+        self.library = Arc::new(library);
         self.current_file = Some(path.to_path_buf());
         self.dirty = false;
         self.selected_node = None;

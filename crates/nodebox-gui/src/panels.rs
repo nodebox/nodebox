@@ -1,7 +1,8 @@
 //! UI panels for the NodeBox application.
 
+use std::sync::Arc;
 use eframe::egui::{self, Sense, TextStyle};
-use nodebox_core::node::{PortType, Widget};
+use nodebox_core::node::{NodeLibrary, PortType, Widget};
 use nodebox_core::Value;
 use nodebox_port::{FileFilter, Port, PortError, ProjectContext};
 use crate::components;
@@ -71,7 +72,7 @@ impl ParameterPanel {
             );
 
             // Find the node in the library for mutation
-            if let Some(node) = state.library.root.child_mut(&node_name) {
+            if let Some(node) = Arc::make_mut(&mut state.library).root.child_mut(&node_name) {
                 // Clone node_name for use in closure
                 let node_name_clone = node_name.clone();
 
@@ -776,7 +777,7 @@ impl ParameterPanel {
 
             // Update the property if changed
             if (state.library.width() - width).abs() > 0.001 {
-                state.library.set_width(width);
+                Arc::make_mut(&mut state.library).set_width(width);
             }
         });
 
@@ -814,7 +815,7 @@ impl ParameterPanel {
 
             // Update the property if changed
             if (state.library.height() - height).abs() > 0.001 {
-                state.library.set_height(height);
+                Arc::make_mut(&mut state.library).set_height(height);
             }
         });
     }
