@@ -885,15 +885,6 @@ fn get_floats(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<f64> {
     }
 }
 
-/// Get a list of string values from input.
-fn get_strings(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<String> {
-    match inputs.get(name) {
-        Some(NodeOutput::Strings(ss)) => ss.clone(),
-        Some(NodeOutput::String(s)) => vec![s.clone()],
-        _ => Vec::new(),
-    }
-}
-
 /// Get a list of boolean values from input.
 fn get_booleans(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<bool> {
     match inputs.get(name) {
