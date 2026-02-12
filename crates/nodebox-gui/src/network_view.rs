@@ -450,6 +450,10 @@ impl NetworkView {
                 library.root.children.retain(|n| &n.name != name);
                 // Remove connections involving this node
                 library.root.connections.retain(|c| &c.output_node != name && &c.input_node != name);
+                // If the deleted node was the rendered node, clear the rendered child
+                if library.root.rendered_child.as_deref() == Some(name.as_str()) {
+                    library.root.rendered_child = None;
+                }
             }
             self.selected.clear();
         }
