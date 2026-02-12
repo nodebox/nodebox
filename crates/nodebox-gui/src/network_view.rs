@@ -40,6 +40,14 @@ pub struct NetworkView {
     hovered_output: Option<String>,
     /// Cache for node icons.
     icon_cache: IconCache,
+    /// Whether we are currently rect-selecting (rubber band selection).
+    is_rect_selecting: bool,
+    /// Start point of the rect selection (screen coordinates).
+    drag_select_start: Pos2,
+    /// Current point of the rect selection (screen coordinates).
+    drag_select_current: Pos2,
+    /// Selection state before the rect selection started (for shift+drag additive selection).
+    selection_before_drag: HashSet<String>,
 }
 
 /// State for dragging a new connection.
@@ -91,6 +99,10 @@ impl NetworkView {
             hovered_port: None,
             hovered_output: None,
             icon_cache: IconCache::new(),
+            is_rect_selecting: false,
+            drag_select_start: Pos2::ZERO,
+            drag_select_current: Pos2::ZERO,
+            selection_before_drag: HashSet::new(),
         }
     }
 
@@ -372,6 +384,56 @@ impl NetworkView {
                     to_pos: output_pos,
                 });
             }
+        }
+
+        // --- Drag Selection (rubber band) ---
+        // Start drag selection when primary-dragging on empty space
+        if !self.is_rect_selecting
+            && !self.is_panning
+            && !self.is_space_pressed
+            && start_dragging_node.is_none()
+            && self.creating_connection.is_none()
+            && response.drag_started_by(egui::PointerButton::Primary)
+        {
+            if let Some(pos) = ui.input(|i| i.pointer.interact_pos()) {
+                self.is_rect_selecting = true;
+                self.drag_select_start = pos;
+                self.drag_select_current = pos;
+                if ui.input(|i| i.modifiers.shift) {
+                    self.selection_before_drag = self.selected.clone();
+                } else {
+                    self.selection_before_drag.clear();
+                    self.selected.clear();
+                }
+            }
+        }
+
+        // Update drag selection rectangle and compute selected nodes
+        if self.is_rect_selecting {
+            if let Some(pos) = ui.input(|i| i.pointer.hover_pos()) {
+                self.drag_select_current = pos;
+            }
+            let selection_rect =
+                Rect::from_two_pos(self.drag_select_start, self.drag_select_current);
+            self.selected = self.selection_before_drag.clone();
+            for child in &library.root.children {
+                let node_rect = self.node_rect(child, offset);
+                if selection_rect.intersects(node_rect) {
+                    self.selected.insert(child.name.clone());
+                }
+            }
+        }
+
+        // End drag selection
+        if self.is_rect_selecting && ui.input(|i| i.pointer.any_released()) {
+            self.is_rect_selecting = false;
+        }
+
+        // Draw drag selection rectangle
+        if self.is_rect_selecting {
+            let r = Rect::from_two_pos(self.drag_select_start, self.drag_select_current);
+            painter.rect_filled(r, 0.0, Color32::from_white_alpha(100));
+            painter.rect_stroke(r, 0.0, Stroke::new(1.0, Color32::from_white_alpha(100)), egui::StrokeKind::Inside);
         }
 
         // Handle selection
