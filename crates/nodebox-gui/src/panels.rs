@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 use eframe::egui::{self, Sense, TextStyle};
-use nodebox_core::node::{NodeLibrary, PortType, Widget};
+use nodebox_core::node::{PortType, Widget};
 use nodebox_core::Value;
 use nodebox_port::{FileFilter, Port, PortError, ProjectContext};
 use crate::components;
