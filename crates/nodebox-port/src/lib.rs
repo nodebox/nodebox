@@ -151,6 +151,8 @@ pub struct ProjectContext {
     /// Name of the project file within root.
     /// None for unsaved projects.
     pub project_file: Option<String>,
+    /// Current frame number for animation.
+    pub frame: u32,
 }
 
 impl ProjectContext {
@@ -159,6 +161,7 @@ impl ProjectContext {
         Self {
             root: None,
             project_file: None,
+            frame: 1,
         }
     }
 
@@ -167,6 +170,7 @@ impl ProjectContext {
         Self {
             root: Some(root.into()),
             project_file: Some(project_file.into()),
+            frame: 1,
         }
     }
 

@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use nodebox_core::geometry::{Path as GeoPath, Color};
+use nodebox_core::geometry::{Path as GeoPath, Color, Point};
 use nodebox_core::node::{Node, NodeLibrary, MenuItem, Port, PortRange, Widget};
 
 /// The main application state.
@@ -409,6 +409,287 @@ pub fn populate_default_ports(node: &mut Node) {
                 ensure_port(node, "margin", || Port::float("margin", 0.0));
                 ensure_port(node, "baseline_offset", || Port::float("baseline_offset", 0.0));
             }
+            // ========================
+            // Math nodes
+            // ========================
+            "math.number" => {
+                ensure_port(node, "value", || Port::float("value", 0.0));
+            }
+            "math.integer" => {
+                ensure_port(node, "value", || Port::int("value", 0));
+            }
+            "math.boolean" => {
+                ensure_port(node, "value", || Port::boolean("value", false));
+            }
+            "math.add" | "math.subtract" | "math.multiply" | "math.divide" | "math.mod" | "math.pow" => {
+                ensure_port(node, "value1", || Port::float("value1", 0.0));
+                ensure_port(node, "value2", || Port::float("value2", 0.0));
+            }
+            "math.negate" | "math.abs" | "math.sqrt" | "math.log" | "math.ceil" | "math.floor" | "math.round" | "math.sin" | "math.cos" | "math.even" | "math.odd" => {
+                ensure_port(node, "value", || Port::float("value", 0.0));
+            }
+            "math.radians" => {
+                ensure_port(node, "degrees", || Port::float("degrees", 0.0));
+            }
+            "math.degrees" => {
+                ensure_port(node, "radians", || Port::float("radians", 0.0));
+            }
+            "math.compare" => {
+                ensure_port(node, "value1", || Port::float("value1", 0.0));
+                ensure_port(node, "value2", || Port::float("value2", 0.0));
+                ensure_port(node, "comparator", || Port::menu("comparator", "<", vec![
+                    MenuItem::new("<", "Less Than"),
+                    MenuItem::new(">", "Greater Than"),
+                    MenuItem::new("<=", "Less or Equal"),
+                    MenuItem::new(">=", "Greater or Equal"),
+                    MenuItem::new("==", "Equal"),
+                    MenuItem::new("!=", "Not Equal"),
+                ]));
+            }
+            "math.logical" => {
+                ensure_port(node, "boolean1", || Port::boolean("boolean1", false));
+                ensure_port(node, "boolean2", || Port::boolean("boolean2", false));
+                ensure_port(node, "comparator", || Port::menu("comparator", "or", vec![
+                    MenuItem::new("or", "Or"),
+                    MenuItem::new("and", "And"),
+                    MenuItem::new("xor", "Xor"),
+                ]));
+            }
+            "math.angle" | "math.distance" => {
+                ensure_port(node, "point1", || Port::point("point1", Point::ZERO));
+                ensure_port(node, "point2", || Port::point("point2", Point::new(100.0, 100.0)));
+            }
+            "math.coordinates" => {
+                ensure_port(node, "position", || Port::point("position", Point::ZERO));
+                ensure_port(node, "angle", || Port::float("angle", 0.0));
+                ensure_port(node, "distance", || Port::float("distance", 100.0));
+            }
+            "math.reflect" => {
+                ensure_port(node, "point1", || Port::point("point1", Point::ZERO));
+                ensure_port(node, "point2", || Port::point("point2", Point::new(100.0, 100.0)));
+                ensure_port(node, "angle", || Port::float("angle", 0.0));
+                ensure_port(node, "distance", || Port::float("distance", 1.0));
+            }
+            "math.sum" | "math.average" | "math.max" | "math.min" | "math.running_total" => {
+                ensure_port(node, "values", || Port::float("values", 0.0).with_port_range(PortRange::List));
+            }
+            "math.convert_range" => {
+                ensure_port(node, "value", || Port::float("value", 50.0));
+                ensure_port(node, "source_start", || Port::float("source_start", 0.0));
+                ensure_port(node, "source_end", || Port::float("source_end", 100.0));
+                ensure_port(node, "target_start", || Port::float("target_start", 0.0));
+                ensure_port(node, "target_end", || Port::float("target_end", 1.0));
+                ensure_port(node, "method", || Port::menu("method", "clamp", vec![
+                    MenuItem::new("clamp", "Clamp"),
+                    MenuItem::new("wrap", "Wrap"),
+                    MenuItem::new("mirror", "Mirror"),
+                    MenuItem::new("ignore", "Ignore"),
+                ]));
+            }
+            "math.wave" => {
+                ensure_port(node, "min", || Port::float("min", 0.0));
+                ensure_port(node, "max", || Port::float("max", 100.0));
+                ensure_port(node, "period", || Port::float("period", 60.0));
+                ensure_port(node, "offset", || Port::float("offset", 0.0));
+                ensure_port(node, "type", || Port::menu("type", "sine", vec![
+                    MenuItem::new("sine", "Sine"),
+                    MenuItem::new("square", "Square"),
+                    MenuItem::new("triangle", "Triangle"),
+                    MenuItem::new("sawtooth", "Sawtooth"),
+                ]));
+            }
+            "math.make_numbers" => {
+                ensure_port(node, "string", || Port::string("string", "11;22;33"));
+                ensure_port(node, "separator", || Port::string("separator", ";"));
+            }
+            "math.random_numbers" => {
+                ensure_port(node, "amount", || Port::int("amount", 10));
+                ensure_port(node, "start", || Port::float("start", 0.0));
+                ensure_port(node, "end", || Port::float("end", 100.0));
+                ensure_port(node, "seed", || Port::int("seed", 0));
+            }
+            "math.sample" => {
+                ensure_port(node, "amount", || Port::int("amount", 10));
+                ensure_port(node, "start", || Port::float("start", 0.0));
+                ensure_port(node, "end", || Port::float("end", 100.0));
+            }
+            "math.range" => {
+                ensure_port(node, "start", || Port::float("start", 0.0));
+                ensure_port(node, "end", || Port::float("end", 10.0));
+                ensure_port(node, "step", || Port::float("step", 1.0));
+            }
+
+            // ========================
+            // String nodes
+            // ========================
+            "string.string" => {
+                ensure_port(node, "value", || Port::string("value", ""));
+            }
+            "string.length" | "string.word_count" | "string.trim" | "string.characters" => {
+                ensure_port(node, "string", || Port::string("string", ""));
+            }
+            "string.concatenate" => {
+                ensure_port(node, "string1", || Port::string("string1", ""));
+                ensure_port(node, "string2", || Port::string("string2", ""));
+                ensure_port(node, "string3", || Port::string("string3", ""));
+                ensure_port(node, "string4", || Port::string("string4", ""));
+                ensure_port(node, "string5", || Port::string("string5", ""));
+                ensure_port(node, "string6", || Port::string("string6", ""));
+                ensure_port(node, "string7", || Port::string("string7", ""));
+            }
+            "string.change_case" => {
+                ensure_port(node, "string", || Port::string("string", "default"));
+                ensure_port(node, "method", || Port::menu("method", "uppercase", vec![
+                    MenuItem::new("lowercase", "Lower Case"),
+                    MenuItem::new("uppercase", "Upper Case"),
+                    MenuItem::new("titlecase", "Title Case"),
+                ]));
+            }
+            "string.format_number" => {
+                ensure_port(node, "value", || Port::float("value", 0.0));
+                ensure_port(node, "format", || Port::string("format", "%.2f"));
+            }
+            "string.replace" => {
+                ensure_port(node, "string", || Port::string("string", ""));
+                ensure_port(node, "old", || Port::string("old", ""));
+                ensure_port(node, "new", || Port::string("new", ""));
+            }
+            "string.sub_string" => {
+                ensure_port(node, "string", || Port::string("string", ""));
+                ensure_port(node, "start", || Port::int("start", 0));
+                ensure_port(node, "end", || Port::int("end", 4));
+                ensure_port(node, "end_offset", || Port::boolean("end_offset", false));
+            }
+            "string.character_at" => {
+                ensure_port(node, "string", || Port::string("string", ""));
+                ensure_port(node, "index", || Port::int("index", 0));
+            }
+            "string.as_binary_string" => {
+                ensure_port(node, "string", || Port::string("string", ""));
+                ensure_port(node, "digit_separator", || Port::string("digit_separator", ""));
+                ensure_port(node, "byte_separator", || Port::string("byte_separator", " "));
+            }
+            "string.as_binary_list" | "string.as_number_list" => {
+                ensure_port(node, "string", || Port::string("string", ""));
+            }
+            "string.contains" => {
+                ensure_port(node, "string", || Port::string("string", ""));
+                ensure_port(node, "contains", || Port::string("contains", ""));
+            }
+            "string.ends_with" => {
+                ensure_port(node, "string", || Port::string("string", ""));
+                ensure_port(node, "ends_with", || Port::string("ends_with", ""));
+            }
+            "string.starts_with" => {
+                ensure_port(node, "string", || Port::string("string", ""));
+                ensure_port(node, "starts_with", || Port::string("starts_with", ""));
+            }
+            "string.equals" => {
+                ensure_port(node, "string", || Port::string("string", ""));
+                ensure_port(node, "equals", || Port::string("equals", ""));
+                ensure_port(node, "case_sensitive", || Port::boolean("case_sensitive", false));
+            }
+            "string.make_strings" => {
+                ensure_port(node, "string", || Port::string("string", "Alpha;Beta;Gamma"));
+                ensure_port(node, "separator", || Port::string("separator", ";"));
+            }
+            "string.random_character" => {
+                ensure_port(node, "characters", || Port::string("characters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"));
+                ensure_port(node, "amount", || Port::int("amount", 10));
+                ensure_port(node, "seed", || Port::int("seed", 0));
+            }
+
+            // ========================
+            // List nodes
+            // ========================
+            "list.count" | "list.first" | "list.second" | "list.last" | "list.rest" | "list.reverse" | "list.distinct" => {
+                ensure_port(node, "list", || Port::geometry("list").with_port_range(PortRange::List));
+            }
+            "list.slice" => {
+                ensure_port(node, "list", || Port::geometry("list").with_port_range(PortRange::List));
+                ensure_port(node, "start_index", || Port::int("start_index", 0));
+                ensure_port(node, "size", || Port::int("size", 10));
+                ensure_port(node, "invert", || Port::boolean("invert", false));
+            }
+            "list.shift" => {
+                ensure_port(node, "list", || Port::geometry("list").with_port_range(PortRange::List));
+                ensure_port(node, "amount", || Port::int("amount", 1));
+            }
+            "list.repeat" => {
+                ensure_port(node, "list", || Port::geometry("list").with_port_range(PortRange::List));
+                ensure_port(node, "amount", || Port::int("amount", 1));
+                ensure_port(node, "per_item", || Port::boolean("per_item", false));
+            }
+            "list.sort" => {
+                ensure_port(node, "list", || Port::geometry("list").with_port_range(PortRange::List));
+                ensure_port(node, "key", || Port::string("key", ""));
+            }
+            "list.shuffle" => {
+                ensure_port(node, "list", || Port::geometry("list").with_port_range(PortRange::List));
+                ensure_port(node, "seed", || Port::int("seed", 0));
+            }
+            "list.pick" => {
+                ensure_port(node, "list", || Port::geometry("list").with_port_range(PortRange::List));
+                ensure_port(node, "amount", || Port::int("amount", 5));
+                ensure_port(node, "seed", || Port::int("seed", 0));
+            }
+            "list.cull" => {
+                ensure_port(node, "list", || Port::geometry("list").with_port_range(PortRange::List));
+                ensure_port(node, "booleans", || Port::boolean("booleans", true).with_port_range(PortRange::List));
+            }
+            "list.take_every" => {
+                ensure_port(node, "list", || Port::geometry("list").with_port_range(PortRange::List));
+                ensure_port(node, "n", || Port::int("n", 1));
+            }
+            "list.switch" => {
+                ensure_port(node, "input1", || Port::geometry("input1").with_port_range(PortRange::List));
+                ensure_port(node, "input2", || Port::geometry("input2").with_port_range(PortRange::List));
+                ensure_port(node, "index", || Port::int("index", 0));
+            }
+
+            // ========================
+            // Color nodes
+            // ========================
+            "color.color" => {
+                ensure_port(node, "color", || Port::color("color", Color::BLACK));
+            }
+            "color.gray_color" => {
+                ensure_port(node, "gray", || Port::float("gray", 0.0));
+                ensure_port(node, "alpha", || Port::float("alpha", 255.0));
+                ensure_port(node, "range", || Port::float("range", 255.0));
+            }
+            "color.rgb_color" => {
+                ensure_port(node, "red", || Port::float("red", 0.0));
+                ensure_port(node, "green", || Port::float("green", 0.0));
+                ensure_port(node, "blue", || Port::float("blue", 0.0));
+                ensure_port(node, "alpha", || Port::float("alpha", 255.0));
+                ensure_port(node, "range", || Port::float("range", 255.0));
+            }
+            "color.hsb_color" => {
+                ensure_port(node, "hue", || Port::float("hue", 0.0));
+                ensure_port(node, "saturation", || Port::float("saturation", 0.0));
+                ensure_port(node, "brightness", || Port::float("brightness", 0.0));
+                ensure_port(node, "alpha", || Port::float("alpha", 255.0));
+                ensure_port(node, "range", || Port::float("range", 255.0));
+            }
+
+            // ========================
+            // Network nodes
+            // ========================
+            "network.http_get" => {
+                ensure_port(node, "url", || Port::string("url", ""));
+            }
+            "network.encode_url" => {
+                ensure_port(node, "value", || Port::string("value", ""));
+            }
+
+            // ========================
+            // Data nodes
+            // ========================
+            "data.import_text" | "data.import_csv" => {
+                ensure_port(node, "file", || Port::string("file", "").with_widget(Widget::File));
+            }
+
             _ => {}
         }
     }

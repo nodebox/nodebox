@@ -412,6 +412,8 @@ impl NodeBoxApp {
         // Dispatch pending render if not already rendering
         if self.render_pending && !self.render_state.is_rendering {
             let (id, cancel_token) = self.render_state.dispatch_new();
+            // Update the frame number from the animation bar before rendering
+            self.project_context.frame = self.animation_bar.frame();
             self.render_worker.request_render(
                 id,
                 self.state.library.clone(),

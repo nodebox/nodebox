@@ -57,14 +57,22 @@ pub enum NodeOutput {
     Points(Vec<Point>),
     /// A float value.
     Float(f64),
+    /// A list of float values.
+    Floats(Vec<f64>),
     /// An integer value.
     Int(i64),
+    /// A list of integer values.
+    Ints(Vec<i64>),
     /// A string value.
     String(String),
+    /// A list of string values.
+    Strings(Vec<String>),
     /// A color value.
     Color(Color),
     /// A boolean value.
     Boolean(bool),
+    /// A list of boolean values.
+    Booleans(Vec<bool>),
 }
 
 impl NodeOutput {
@@ -129,6 +137,10 @@ impl NodeOutput {
             NodeOutput::Paths(ps) => ps.iter().map(|p| NodeOutput::Path(p.clone())).collect(),
             NodeOutput::Point(p) => vec![NodeOutput::Point(*p)],
             NodeOutput::Points(pts) => pts.iter().map(|p| NodeOutput::Point(*p)).collect(),
+            NodeOutput::Floats(fs) => fs.iter().map(|f| NodeOutput::Float(*f)).collect(),
+            NodeOutput::Ints(is) => is.iter().map(|i| NodeOutput::Int(*i)).collect(),
+            NodeOutput::Strings(ss) => ss.iter().map(|s| NodeOutput::String(s.clone())).collect(),
+            NodeOutput::Booleans(bs) => bs.iter().map(|b| NodeOutput::Boolean(*b)).collect(),
             v => vec![v.clone()], // Single values remain single
         }
     }
@@ -138,6 +150,10 @@ impl NodeOutput {
         match self {
             NodeOutput::Paths(ps) => ps.len(),
             NodeOutput::Points(pts) => pts.len(),
+            NodeOutput::Floats(fs) => fs.len(),
+            NodeOutput::Ints(is) => is.len(),
+            NodeOutput::Strings(ss) => ss.len(),
+            NodeOutput::Booleans(bs) => bs.len(),
             NodeOutput::None => 0,
             _ => 1,
         }
@@ -382,15 +398,57 @@ fn collect_results(results: Vec<NodeOutput>) -> NodeOutput {
         return results.into_iter().next().unwrap();
     }
 
-    // Collect as Paths (most common case for geometry operations)
-    let paths: Vec<Path> = results.into_iter()
-        .flat_map(|r| r.to_paths())
-        .collect();
-
-    if paths.is_empty() {
-        NodeOutput::None
-    } else {
-        NodeOutput::Paths(paths)
+    // Detect the type of results based on the first non-None element
+    let first_type = results.iter().find(|r| !matches!(r, NodeOutput::None));
+    match first_type {
+        Some(NodeOutput::Float(_)) => {
+            let floats: Vec<f64> = results.into_iter().filter_map(|r| match r {
+                NodeOutput::Float(f) => Some(f),
+                NodeOutput::Int(i) => Some(i as f64),
+                _ => None,
+            }).collect();
+            NodeOutput::Floats(floats)
+        }
+        Some(NodeOutput::Int(_)) => {
+            let ints: Vec<i64> = results.into_iter().filter_map(|r| match r {
+                NodeOutput::Int(i) => Some(i),
+                NodeOutput::Float(f) => Some(f as i64),
+                _ => None,
+            }).collect();
+            NodeOutput::Ints(ints)
+        }
+        Some(NodeOutput::String(_)) => {
+            let strings: Vec<String> = results.into_iter().filter_map(|r| match r {
+                NodeOutput::String(s) => Some(s),
+                _ => None,
+            }).collect();
+            NodeOutput::Strings(strings)
+        }
+        Some(NodeOutput::Boolean(_)) => {
+            let bools: Vec<bool> = results.into_iter().filter_map(|r| match r {
+                NodeOutput::Boolean(b) => Some(b),
+                _ => None,
+            }).collect();
+            NodeOutput::Booleans(bools)
+        }
+        Some(NodeOutput::Point(_)) => {
+            let points: Vec<Point> = results.into_iter().filter_map(|r| match r {
+                NodeOutput::Point(p) => Some(p),
+                _ => None,
+            }).collect();
+            NodeOutput::Points(points)
+        }
+        _ => {
+            // Default: collect as Paths (geometry operations)
+            let paths: Vec<Path> = results.into_iter()
+                .flat_map(|r| r.to_paths())
+                .collect();
+            if paths.is_empty() {
+                NodeOutput::None
+            } else {
+                NodeOutput::Paths(paths)
+            }
+        }
     }
 }
 
@@ -723,7 +781,38 @@ fn get_bool(inputs: &HashMap<String, NodeOutput>, name: &str, default: bool) -> 
 fn get_string(inputs: &HashMap<String, NodeOutput>, name: &str, default: &str) -> String {
     match inputs.get(name) {
         Some(NodeOutput::String(s)) => s.clone(),
+        Some(NodeOutput::Float(f)) => format!("{}", f),
+        Some(NodeOutput::Int(i)) => format!("{}", i),
         _ => default.to_string(),
+    }
+}
+
+/// Get a list of float values from input.
+fn get_floats(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<f64> {
+    match inputs.get(name) {
+        Some(NodeOutput::Floats(fs)) => fs.clone(),
+        Some(NodeOutput::Float(f)) => vec![*f],
+        Some(NodeOutput::Ints(is)) => is.iter().map(|i| *i as f64).collect(),
+        Some(NodeOutput::Int(i)) => vec![*i as f64],
+        _ => Vec::new(),
+    }
+}
+
+/// Get a list of string values from input.
+fn get_strings(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<String> {
+    match inputs.get(name) {
+        Some(NodeOutput::Strings(ss)) => ss.clone(),
+        Some(NodeOutput::String(s)) => vec![s.clone()],
+        _ => Vec::new(),
+    }
+}
+
+/// Get a list of boolean values from input.
+fn get_booleans(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<bool> {
+    match inputs.get(name) {
+        Some(NodeOutput::Booleans(bs)) => bs.clone(),
+        Some(NodeOutput::Boolean(b)) => vec![*b],
+        _ => Vec::new(),
     }
 }
 
@@ -1170,6 +1259,738 @@ fn execute_node(
                     Ok(NodeOutput::None)
                 }
             }
+        }
+
+        // ========================
+        // Geometry: shape_on_path
+        // ========================
+        "corevector.shape_on_path" => {
+            let shapes = get_paths(inputs, "shape");
+            let path = require_path(inputs, node_name, "path")?;
+            let amount = get_int(inputs, "amount", 1) as usize;
+            let spacing = get_float(inputs, "spacing", 20.0);
+            let margin = get_float(inputs, "margin", 0.0);
+            let paths = nodebox_ops::shape_on_path(&shapes, &path, amount, spacing, margin, true);
+            Ok(NodeOutput::Paths(paths))
+        }
+
+        // Geometry: null / doNothing
+        "corevector.null" => {
+            if let Some(path) = get_path(inputs, "shape") {
+                Ok(NodeOutput::Path(path))
+            } else {
+                Ok(NodeOutput::None)
+            }
+        }
+
+        // ========================
+        // Math nodes (41)
+        // ========================
+
+        // Identity / variable nodes
+        "math.number" => {
+            Ok(NodeOutput::Float(get_float(inputs, "value", 0.0)))
+        }
+        "math.integer" => {
+            Ok(NodeOutput::Int(get_int(inputs, "value", 0)))
+        }
+        "math.boolean" => {
+            Ok(NodeOutput::Boolean(get_bool(inputs, "value", false)))
+        }
+
+        // Arithmetic
+        "math.add" => {
+            let v1 = get_float(inputs, "value1", 0.0);
+            let v2 = get_float(inputs, "value2", 0.0);
+            Ok(NodeOutput::Float(nodebox_ops::math::add(v1, v2)))
+        }
+        "math.subtract" => {
+            let v1 = get_float(inputs, "value1", 0.0);
+            let v2 = get_float(inputs, "value2", 0.0);
+            Ok(NodeOutput::Float(nodebox_ops::math::subtract(v1, v2)))
+        }
+        "math.multiply" => {
+            let v1 = get_float(inputs, "value1", 0.0);
+            let v2 = get_float(inputs, "value2", 1.0);
+            Ok(NodeOutput::Float(nodebox_ops::math::multiply(v1, v2)))
+        }
+        "math.divide" => {
+            let v1 = get_float(inputs, "value1", 0.0);
+            let v2 = get_float(inputs, "value2", 1.0);
+            if v2 == 0.0 {
+                return Err(EvalError::ProcessingError(format!("{}: Division by zero", node_name)));
+            }
+            Ok(NodeOutput::Float(nodebox_ops::math::divide(v1, v2)))
+        }
+        "math.mod" => {
+            let v1 = get_float(inputs, "value1", 0.0);
+            let v2 = get_float(inputs, "value2", 1.0);
+            if v2 == 0.0 {
+                return Err(EvalError::ProcessingError(format!("{}: Modulo by zero", node_name)));
+            }
+            Ok(NodeOutput::Float(nodebox_ops::math::modulo(v1, v2)))
+        }
+
+        // Unary math
+        "math.negate" => {
+            Ok(NodeOutput::Float(nodebox_ops::math::negate(get_float(inputs, "value", 0.0))))
+        }
+        "math.abs" => {
+            Ok(NodeOutput::Float(nodebox_ops::math::abs(get_float(inputs, "value", 0.0))))
+        }
+        "math.sqrt" => {
+            Ok(NodeOutput::Float(nodebox_ops::math::sqrt(get_float(inputs, "value", 0.0))))
+        }
+        "math.pow" => {
+            let v1 = get_float(inputs, "value1", 0.0);
+            let v2 = get_float(inputs, "value2", 0.0);
+            Ok(NodeOutput::Float(nodebox_ops::math::pow(v1, v2)))
+        }
+        "math.log" => {
+            let v = get_float(inputs, "value", 1.0);
+            if v == 0.0 {
+                return Err(EvalError::ProcessingError(format!("{}: Log of zero", node_name)));
+            }
+            Ok(NodeOutput::Float(nodebox_ops::math::log(v)))
+        }
+
+        // Rounding
+        "math.ceil" => {
+            Ok(NodeOutput::Float(nodebox_ops::math::ceil(get_float(inputs, "value", 0.0))))
+        }
+        "math.floor" => {
+            Ok(NodeOutput::Float(nodebox_ops::math::floor(get_float(inputs, "value", 0.0))))
+        }
+        "math.round" => {
+            Ok(NodeOutput::Int(nodebox_ops::math::round(get_float(inputs, "value", 0.0))))
+        }
+
+        // Trigonometry
+        "math.sin" => {
+            Ok(NodeOutput::Float(nodebox_ops::math::sin(get_float(inputs, "value", 0.0))))
+        }
+        "math.cos" => {
+            Ok(NodeOutput::Float(nodebox_ops::math::cos(get_float(inputs, "value", 0.0))))
+        }
+        "math.radians" => {
+            Ok(NodeOutput::Float(nodebox_ops::math::radians(get_float(inputs, "degrees", 0.0))))
+        }
+        "math.degrees" => {
+            Ok(NodeOutput::Float(nodebox_ops::math::degrees(get_float(inputs, "radians", 0.0))))
+        }
+
+        // Constants
+        "math.pi" => {
+            Ok(NodeOutput::Float(nodebox_ops::math::pi()))
+        }
+        "math.e" => {
+            Ok(NodeOutput::Float(nodebox_ops::math::e()))
+        }
+
+        // Predicates
+        "math.even" => {
+            Ok(NodeOutput::Boolean(nodebox_ops::math::even(get_float(inputs, "value", 0.0))))
+        }
+        "math.odd" => {
+            Ok(NodeOutput::Boolean(nodebox_ops::math::odd(get_float(inputs, "value", 0.0))))
+        }
+
+        // Comparison / logic
+        "math.compare" => {
+            let v1 = get_float(inputs, "value1", 0.0);
+            let v2 = get_float(inputs, "value2", 0.0);
+            let comparator = get_string(inputs, "comparator", "<");
+            Ok(NodeOutput::Boolean(nodebox_ops::math::compare(v1, v2, &comparator)))
+        }
+        "math.logical" => {
+            let b1 = get_bool(inputs, "boolean1", false);
+            let b2 = get_bool(inputs, "boolean2", false);
+            let comparator = get_string(inputs, "comparator", "or");
+            Ok(NodeOutput::Boolean(nodebox_ops::math::logic_operator(b1, b2, &comparator)))
+        }
+
+        // Point math
+        "math.angle" => {
+            let p1 = get_point(inputs, "point1", Point::ZERO);
+            let p2 = get_point(inputs, "point2", Point::new(100.0, 100.0));
+            Ok(NodeOutput::Float(nodebox_ops::math::angle(p1, p2)))
+        }
+        "math.distance" => {
+            let p1 = get_point(inputs, "point1", Point::ZERO);
+            let p2 = get_point(inputs, "point2", Point::new(100.0, 100.0));
+            Ok(NodeOutput::Float(nodebox_ops::math::distance(p1, p2)))
+        }
+        "math.coordinates" => {
+            let position = get_point(inputs, "position", Point::ZERO);
+            let angle = get_float(inputs, "angle", 0.0);
+            let distance = get_float(inputs, "distance", 100.0);
+            Ok(NodeOutput::Point(nodebox_ops::math::coordinates(position, angle, distance)))
+        }
+        "math.reflect" => {
+            let p1 = get_point(inputs, "point1", Point::ZERO);
+            let p2 = get_point(inputs, "point2", Point::new(100.0, 100.0));
+            let angle = get_float(inputs, "angle", 0.0);
+            let distance = get_float(inputs, "distance", 1.0);
+            Ok(NodeOutput::Point(nodebox_ops::math::reflect(p1, p2, angle, distance)))
+        }
+
+        // Aggregation
+        "math.sum" => {
+            let values = get_floats(inputs, "values");
+            Ok(NodeOutput::Float(nodebox_ops::math::sum(&values)))
+        }
+        "math.average" => {
+            let values = get_floats(inputs, "values");
+            Ok(NodeOutput::Float(nodebox_ops::math::average(&values)))
+        }
+        "math.max" => {
+            let values = get_floats(inputs, "values");
+            Ok(NodeOutput::Float(nodebox_ops::math::max(&values)))
+        }
+        "math.min" => {
+            let values = get_floats(inputs, "values");
+            Ok(NodeOutput::Float(nodebox_ops::math::min(&values)))
+        }
+
+        // Convert range
+        "math.convert_range" => {
+            let value = get_float(inputs, "value", 50.0);
+            let src_start = get_float(inputs, "source_start", 0.0);
+            let src_end = get_float(inputs, "source_end", 100.0);
+            let target_start = get_float(inputs, "target_start", 0.0);
+            let target_end = get_float(inputs, "target_end", 1.0);
+            let method = get_string(inputs, "method", "clamp");
+            let overflow = nodebox_ops::math::OverflowMethod::from_str(&method);
+            Ok(NodeOutput::Float(nodebox_ops::math::convert_range(
+                value, src_start, src_end, target_start, target_end, overflow,
+            )))
+        }
+
+        // Wave
+        "math.wave" => {
+            let min = get_float(inputs, "min", 0.0);
+            let max = get_float(inputs, "max", 100.0);
+            let period = get_float(inputs, "period", 60.0);
+            let offset = get_float(inputs, "offset", 0.0);
+            let wave_type_str = get_string(inputs, "type", "sine");
+            let wave_type = nodebox_ops::math::WaveType::from_str(&wave_type_str);
+            Ok(NodeOutput::Float(nodebox_ops::math::wave(min, max, period, offset, wave_type)))
+        }
+
+        // List-returning math nodes
+        "math.make_numbers" => {
+            let s = get_string(inputs, "string", "11;22;33");
+            let separator = get_string(inputs, "separator", ";");
+            Ok(NodeOutput::Floats(nodebox_ops::math::make_numbers(&s, &separator)))
+        }
+        "math.random_numbers" => {
+            let amount = get_int(inputs, "amount", 10) as usize;
+            let start = get_float(inputs, "start", 0.0);
+            let end = get_float(inputs, "end", 100.0);
+            let seed = get_int(inputs, "seed", 0) as u64;
+            Ok(NodeOutput::Floats(nodebox_ops::math::random_numbers(amount, start, end, seed)))
+        }
+        "math.sample" => {
+            let amount = get_int(inputs, "amount", 10) as usize;
+            let start = get_float(inputs, "start", 0.0);
+            let end = get_float(inputs, "end", 100.0);
+            Ok(NodeOutput::Floats(nodebox_ops::math::sample(amount, start, end)))
+        }
+        "math.range" => {
+            let start = get_float(inputs, "start", 0.0);
+            let end = get_float(inputs, "end", 10.0);
+            let step = get_float(inputs, "step", 1.0);
+            Ok(NodeOutput::Floats(nodebox_ops::math::range(start, end, step)))
+        }
+        "math.running_total" => {
+            let values = get_floats(inputs, "values");
+            Ok(NodeOutput::Floats(nodebox_ops::math::running_total(&values)))
+        }
+
+        // ========================
+        // String nodes (21)
+        // ========================
+
+        "string.string" => {
+            Ok(NodeOutput::String(get_string(inputs, "value", "")))
+        }
+        "string.length" => {
+            let s = get_string(inputs, "string", "");
+            Ok(NodeOutput::Int(nodebox_ops::string::length(&s) as i64))
+        }
+        "string.word_count" => {
+            let s = get_string(inputs, "string", "");
+            Ok(NodeOutput::Int(nodebox_ops::string::word_count(&s) as i64))
+        }
+        "string.concatenate" => {
+            let s1 = get_string(inputs, "string1", "");
+            let s2 = get_string(inputs, "string2", "");
+            let s3 = get_string(inputs, "string3", "");
+            let s4 = get_string(inputs, "string4", "");
+            let s5 = get_string(inputs, "string5", "");
+            let s6 = get_string(inputs, "string6", "");
+            let s7 = get_string(inputs, "string7", "");
+            let parts: Vec<&str> = [&s1, &s2, &s3, &s4, &s5, &s6, &s7]
+                .iter().map(|s| s.as_str()).collect();
+            Ok(NodeOutput::String(nodebox_ops::string::concatenate(&parts)))
+        }
+        "string.change_case" => {
+            let s = get_string(inputs, "string", "");
+            let method = get_string(inputs, "method", "uppercase");
+            let case_method = nodebox_ops::string::CaseMethod::from_str(&method);
+            Ok(NodeOutput::String(nodebox_ops::string::change_case(&s, case_method)))
+        }
+        "string.format_number" => {
+            let value = get_float(inputs, "value", 0.0);
+            let format = get_string(inputs, "format", "%.2f");
+            Ok(NodeOutput::String(nodebox_ops::string::format_number(value, &format)))
+        }
+        "string.trim" => {
+            let s = get_string(inputs, "string", "");
+            Ok(NodeOutput::String(nodebox_ops::string::trim(&s)))
+        }
+        "string.replace" => {
+            let s = get_string(inputs, "string", "");
+            let old_val = get_string(inputs, "old", "");
+            let new_val = get_string(inputs, "new", "");
+            Ok(NodeOutput::String(nodebox_ops::string::replace(&s, &old_val, &new_val)))
+        }
+        "string.sub_string" => {
+            let s = get_string(inputs, "string", "");
+            let start = get_int(inputs, "start", 0);
+            let end = get_int(inputs, "end", 4);
+            let end_offset = get_bool(inputs, "end_offset", false);
+            Ok(NodeOutput::String(nodebox_ops::string::sub_string(&s, start, end, end_offset)))
+        }
+        "string.character_at" => {
+            let s = get_string(inputs, "string", "");
+            let index = get_int(inputs, "index", 0);
+            Ok(NodeOutput::String(nodebox_ops::string::character_at(&s, index)))
+        }
+        "string.as_binary_string" => {
+            let s = get_string(inputs, "string", "");
+            let digit_sep = get_string(inputs, "digit_separator", "");
+            let byte_sep = get_string(inputs, "byte_separator", " ");
+            Ok(NodeOutput::String(nodebox_ops::string::as_binary_string(&s, &digit_sep, &byte_sep)))
+        }
+
+        // String boolean tests
+        "string.contains" => {
+            let s = get_string(inputs, "string", "");
+            let value = get_string(inputs, "contains", "");
+            Ok(NodeOutput::Boolean(nodebox_ops::string::contains(&s, &value)))
+        }
+        "string.ends_with" => {
+            let s = get_string(inputs, "string", "");
+            let value = get_string(inputs, "ends_with", "");
+            Ok(NodeOutput::Boolean(nodebox_ops::string::ends_with(&s, &value)))
+        }
+        "string.starts_with" => {
+            let s = get_string(inputs, "string", "");
+            let value = get_string(inputs, "starts_with", "");
+            Ok(NodeOutput::Boolean(nodebox_ops::string::starts_with(&s, &value)))
+        }
+        "string.equals" => {
+            let s = get_string(inputs, "string", "");
+            let value = get_string(inputs, "equals", "");
+            let case_sensitive = get_bool(inputs, "case_sensitive", false);
+            Ok(NodeOutput::Boolean(nodebox_ops::string::equal(&s, &value, case_sensitive)))
+        }
+
+        // String list-returning nodes
+        "string.make_strings" => {
+            let s = get_string(inputs, "string", "Alpha;Beta;Gamma");
+            let separator = get_string(inputs, "separator", ";");
+            Ok(NodeOutput::Strings(nodebox_ops::string::make_strings(&s, &separator)))
+        }
+        "string.characters" => {
+            let s = get_string(inputs, "string", "");
+            Ok(NodeOutput::Strings(nodebox_ops::string::characters(&s)))
+        }
+        "string.random_character" => {
+            let chars = get_string(inputs, "characters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+            let amount = get_int(inputs, "amount", 10) as usize;
+            let seed = get_int(inputs, "seed", 0) as u64;
+            Ok(NodeOutput::Strings(nodebox_ops::string::random_character(&chars, amount, seed)))
+        }
+        "string.as_binary_list" => {
+            let s = get_string(inputs, "string", "");
+            Ok(NodeOutput::Strings(nodebox_ops::string::as_binary_list(&s)))
+        }
+        "string.as_number_list" => {
+            let s = get_string(inputs, "string", "");
+            let radix = get_int(inputs, "radix", 10) as u32;
+            let padding = get_bool(inputs, "padding", true);
+            Ok(NodeOutput::Strings(nodebox_ops::string::as_number_list(&s, radix, padding)))
+        }
+
+        // ========================
+        // List nodes (18 remaining)
+        // ========================
+
+        "list.count" => {
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Int(v.len() as i64)),
+                Some(NodeOutput::Points(v)) => Ok(NodeOutput::Int(v.len() as i64)),
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Int(v.len() as i64)),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Int(v.len() as i64)),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Int(v.len() as i64)),
+                Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Int(v.len() as i64)),
+                _ => Ok(NodeOutput::Int(0)),
+            }
+        }
+
+        "list.first" => {
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(v.first().map(|p| NodeOutput::Path(p.clone())).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Points(v)) => Ok(v.first().map(|p| NodeOutput::Point(*p)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Floats(v)) => Ok(v.first().map(|f| NodeOutput::Float(*f)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Ints(v)) => Ok(v.first().map(|i| NodeOutput::Int(*i)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Strings(v)) => Ok(v.first().map(|s| NodeOutput::String(s.clone())).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Booleans(v)) => Ok(v.first().map(|b| NodeOutput::Boolean(*b)).unwrap_or(NodeOutput::None)),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.second" => {
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(v.get(1).map(|p| NodeOutput::Path(p.clone())).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Points(v)) => Ok(v.get(1).map(|p| NodeOutput::Point(*p)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Floats(v)) => Ok(v.get(1).map(|f| NodeOutput::Float(*f)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Ints(v)) => Ok(v.get(1).map(|i| NodeOutput::Int(*i)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Strings(v)) => Ok(v.get(1).map(|s| NodeOutput::String(s.clone())).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Booleans(v)) => Ok(v.get(1).map(|b| NodeOutput::Boolean(*b)).unwrap_or(NodeOutput::None)),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.last" => {
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(v.last().map(|p| NodeOutput::Path(p.clone())).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Points(v)) => Ok(v.last().map(|p| NodeOutput::Point(*p)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Floats(v)) => Ok(v.last().map(|f| NodeOutput::Float(*f)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Ints(v)) => Ok(v.last().map(|i| NodeOutput::Int(*i)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Strings(v)) => Ok(v.last().map(|s| NodeOutput::String(s.clone())).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Booleans(v)) => Ok(v.last().map(|b| NodeOutput::Boolean(*b)).unwrap_or(NodeOutput::None)),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.rest" => {
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Paths(nodebox_ops::list::rest(v))),
+                Some(NodeOutput::Points(v)) => Ok(NodeOutput::Points(nodebox_ops::list::rest(v))),
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Floats(nodebox_ops::list::rest(v))),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::rest(v))),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::rest(v))),
+                Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::rest(v))),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.reverse" => {
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Paths(nodebox_ops::list::reverse(v))),
+                Some(NodeOutput::Points(v)) => Ok(NodeOutput::Points(nodebox_ops::list::reverse(v))),
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Floats(nodebox_ops::list::reverse(v))),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::reverse(v))),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::reverse(v))),
+                Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::reverse(v))),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.slice" => {
+            let start_index = get_int(inputs, "start_index", 0) as usize;
+            let size = get_int(inputs, "size", 10) as usize;
+            let invert = get_bool(inputs, "invert", false);
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Paths(nodebox_ops::list::slice(v, start_index, size, invert))),
+                Some(NodeOutput::Points(v)) => Ok(NodeOutput::Points(nodebox_ops::list::slice(v, start_index, size, invert))),
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Floats(nodebox_ops::list::slice(v, start_index, size, invert))),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::slice(v, start_index, size, invert))),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::slice(v, start_index, size, invert))),
+                Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::slice(v, start_index, size, invert))),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.shift" => {
+            let amount = get_int(inputs, "amount", 1);
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Paths(nodebox_ops::list::shift(v, amount))),
+                Some(NodeOutput::Points(v)) => Ok(NodeOutput::Points(nodebox_ops::list::shift(v, amount))),
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Floats(nodebox_ops::list::shift(v, amount))),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::shift(v, amount))),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::shift(v, amount))),
+                Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::shift(v, amount))),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.repeat" => {
+            let amount = get_int(inputs, "amount", 1) as usize;
+            let per_item = get_bool(inputs, "per_item", false);
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Paths(nodebox_ops::list::repeat(v, amount, per_item))),
+                Some(NodeOutput::Points(v)) => Ok(NodeOutput::Points(nodebox_ops::list::repeat(v, amount, per_item))),
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Floats(nodebox_ops::list::repeat(v, amount, per_item))),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::repeat(v, amount, per_item))),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::repeat(v, amount, per_item))),
+                Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::repeat(v, amount, per_item))),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.sort" => {
+            match inputs.get("list") {
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Floats(nodebox_ops::list::sort_floats(v))),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::sort(v))),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::sort(v))),
+                Some(other) => Ok(other.clone()), // Non-sortable types pass through
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.shuffle" => {
+            let seed = get_int(inputs, "seed", 0) as u64;
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Paths(nodebox_ops::list::shuffle(v, seed))),
+                Some(NodeOutput::Points(v)) => Ok(NodeOutput::Points(nodebox_ops::list::shuffle(v, seed))),
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Floats(nodebox_ops::list::shuffle(v, seed))),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::shuffle(v, seed))),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::shuffle(v, seed))),
+                Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::shuffle(v, seed))),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.pick" => {
+            let amount = get_int(inputs, "amount", 5) as usize;
+            let seed = get_int(inputs, "seed", 0) as u64;
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Paths(nodebox_ops::list::pick(v, amount, seed))),
+                Some(NodeOutput::Points(v)) => Ok(NodeOutput::Points(nodebox_ops::list::pick(v, amount, seed))),
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Floats(nodebox_ops::list::pick(v, amount, seed))),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::pick(v, amount, seed))),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::pick(v, amount, seed))),
+                Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::pick(v, amount, seed))),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.cull" => {
+            let booleans = get_booleans(inputs, "booleans");
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Paths(nodebox_ops::list::cull(v, &booleans))),
+                Some(NodeOutput::Points(v)) => Ok(NodeOutput::Points(nodebox_ops::list::cull(v, &booleans))),
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Floats(nodebox_ops::list::cull(v, &booleans))),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::cull(v, &booleans))),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::cull(v, &booleans))),
+                Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::cull(v, &booleans))),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.take_every" => {
+            let n = get_int(inputs, "n", 1) as usize;
+            match inputs.get("list") {
+                Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Paths(nodebox_ops::list::take_every(v, n))),
+                Some(NodeOutput::Points(v)) => Ok(NodeOutput::Points(nodebox_ops::list::take_every(v, n))),
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Floats(nodebox_ops::list::take_every(v, n))),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::take_every(v, n))),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::take_every(v, n))),
+                Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::take_every(v, n))),
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.distinct" => {
+            match inputs.get("list") {
+                Some(NodeOutput::Floats(v)) => Ok(NodeOutput::Floats(nodebox_ops::list::distinct_floats(v))),
+                Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::distinct(v))),
+                Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::distinct(v))),
+                Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::distinct(v))),
+                Some(other) => Ok(other.clone()), // Types without Hash pass through
+                _ => Ok(NodeOutput::None),
+            }
+        }
+
+        "list.switch" => {
+            let index = get_int(inputs, "index", 0) as usize;
+            // Collect all input lists and select based on index
+            let mut lists: Vec<&NodeOutput> = Vec::new();
+            for port_name in ["input1", "input2", "input3", "input4", "input5", "input6"] {
+                if let Some(output) = inputs.get(port_name) {
+                    lists.push(output);
+                }
+            }
+            if lists.is_empty() {
+                Ok(NodeOutput::None)
+            } else {
+                let idx = index % lists.len();
+                Ok(lists[idx].clone())
+            }
+        }
+
+        "list.keys" | "list.zip_map" => {
+            // These require Map support, return None for now
+            log::warn!("Map-based list node not yet fully supported: {}", proto);
+            Ok(NodeOutput::None)
+        }
+
+        // ========================
+        // Color nodes (4)
+        // ========================
+
+        "color.color" => {
+            Ok(NodeOutput::Color(get_color(inputs, "color", Color::BLACK)))
+        }
+        "color.gray_color" => {
+            let gray = get_float(inputs, "gray", 0.0);
+            let alpha = get_float(inputs, "alpha", 255.0);
+            let range = get_float(inputs, "range", 255.0);
+            if range == 0.0 {
+                Ok(NodeOutput::Color(Color::BLACK))
+            } else {
+                Ok(NodeOutput::Color(Color::gray_alpha(gray / range, alpha / range)))
+            }
+        }
+        "color.rgb_color" => {
+            let r = get_float(inputs, "red", 0.0);
+            let g = get_float(inputs, "green", 0.0);
+            let b = get_float(inputs, "blue", 0.0);
+            let a = get_float(inputs, "alpha", 255.0);
+            let range = get_float(inputs, "range", 255.0);
+            if range == 0.0 {
+                Ok(NodeOutput::Color(Color::BLACK))
+            } else {
+                Ok(NodeOutput::Color(Color::rgba(r / range, g / range, b / range, a / range)))
+            }
+        }
+        "color.hsb_color" => {
+            let h = get_float(inputs, "hue", 0.0);
+            let s = get_float(inputs, "saturation", 0.0);
+            let b = get_float(inputs, "brightness", 0.0);
+            let a = get_float(inputs, "alpha", 255.0);
+            let range = get_float(inputs, "range", 255.0);
+            if range == 0.0 {
+                Ok(NodeOutput::Color(Color::BLACK))
+            } else {
+                Ok(NodeOutput::Color(Color::hsba(h / range, s / range, b / range, a / range)))
+            }
+        }
+
+        // ========================
+        // Core nodes
+        // ========================
+
+        "core.frame" => {
+            Ok(NodeOutput::Float(project_context.frame as f64))
+        }
+
+        // ========================
+        // Network nodes
+        // ========================
+
+        "network.http_get" => {
+            let url = get_string(inputs, "url", "");
+            if url.is_empty() {
+                return Ok(NodeOutput::String(String::new()));
+            }
+            match port.http_get(&url) {
+                Ok(bytes) => Ok(NodeOutput::String(std::string::String::from_utf8_lossy(&bytes).to_string())),
+                Err(e) => {
+                    log::warn!("HTTP GET error for {}: {}", url, e);
+                    Ok(NodeOutput::String(String::new()))
+                }
+            }
+        }
+        "network.encode_url" => {
+            let value = get_string(inputs, "value", "");
+            // Simple percent-encoding for common special characters
+            let encoded = value
+                .replace('%', "%25")
+                .replace(' ', "%20")
+                .replace('&', "%26")
+                .replace('=', "%3D")
+                .replace('+', "%2B")
+                .replace('#', "%23")
+                .replace('?', "%3F")
+                .replace('/', "%2F")
+                .replace('@', "%40")
+                .replace('!', "%21")
+                .replace('$', "%24")
+                .replace('\'', "%27")
+                .replace('(', "%28")
+                .replace(')', "%29")
+                .replace('*', "%2A")
+                .replace(',', "%2C")
+                .replace(';', "%3B");
+            Ok(NodeOutput::String(encoded))
+        }
+
+        // ========================
+        // Data nodes
+        // ========================
+
+        "data.import_text" => {
+            let file_path = get_string(inputs, "file", "");
+            if file_path.is_empty() {
+                return Ok(NodeOutput::Strings(Vec::new()));
+            }
+            match port.read_text_file(project_context, &file_path) {
+                Ok(content) => {
+                    let lines: Vec<String> = content.lines().map(|l| l.to_string()).collect();
+                    Ok(NodeOutput::Strings(lines))
+                }
+                Err(e) => {
+                    log::warn!("Import text error: {}", e);
+                    Ok(NodeOutput::Strings(Vec::new()))
+                }
+            }
+        }
+        "data.import_csv" => {
+            let file_path = get_string(inputs, "file", "");
+            if file_path.is_empty() {
+                return Ok(NodeOutput::Strings(Vec::new()));
+            }
+            match port.read_text_file(project_context, &file_path) {
+                Ok(content) => {
+                    let delimiter = match get_string(inputs, "delimiter", "comma").as_str() {
+                        "semicolon" => ';',
+                        "colon" => ':',
+                        "tab" => '\t',
+                        "space" => ' ',
+                        _ => ',',
+                    };
+                    // Simple CSV parsing: split by delimiter, return as list of strings
+                    let lines: Vec<String> = content.lines()
+                        .map(|line| {
+                            line.split(delimiter)
+                                .map(|field| field.trim().to_string())
+                                .collect::<Vec<_>>()
+                                .join("\t")
+                        })
+                        .collect();
+                    Ok(NodeOutput::Strings(lines))
+                }
+                Err(e) => {
+                    log::warn!("Import CSV error: {}", e);
+                    Ok(NodeOutput::Strings(Vec::new()))
+                }
+            }
+        }
+        "data.lookup" | "data.filter_data" | "data.make_table" => {
+            // These require Map/table support
+            log::warn!("Data node not yet fully supported: {}", proto);
+            Ok(NodeOutput::None)
+        }
+
+        "network.query_json" => {
+            // Basic JSON path query - simplified implementation
+            log::warn!("JSON query node not yet fully supported: {}", proto);
+            Ok(NodeOutput::Strings(Vec::new()))
         }
 
         // Default: pass-through or unknown node
