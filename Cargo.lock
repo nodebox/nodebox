@@ -3016,6 +3016,7 @@ version = "0.1.0"
 dependencies = [
  "arboard",
  "directories",
+ "font-kit",
  "log",
  "rfd",
  "tempfile",

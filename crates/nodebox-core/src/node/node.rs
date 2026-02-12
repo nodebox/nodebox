@@ -142,6 +142,13 @@ impl Node {
             .find(|c| c.input_node == node_name && c.input_port == port_name)
     }
 
+    /// Returns whether a node participates in any connection (as output or input).
+    pub fn is_connected(&self, node_name: &str) -> bool {
+        self.connections
+            .iter()
+            .any(|c| c.output_node == node_name || c.input_node == node_name)
+    }
+
     /// Adds an input port.
     pub fn with_input(mut self, port: Port) -> Self {
         self.inputs.push(port);
@@ -194,6 +201,14 @@ impl Node {
     pub fn with_connection(mut self, connection: Connection) -> Self {
         self.connections.push(connection);
         self
+    }
+
+    /// Connects an output to an input port, replacing any existing connection to that port.
+    pub fn connect(&mut self, connection: Connection) {
+        self.connections.retain(|c| {
+            !(c.input_node == connection.input_node && c.input_port == connection.input_port)
+        });
+        self.connections.push(connection);
     }
 
     /// Sets the rendered child.
@@ -281,6 +296,80 @@ mod tests {
         assert_eq!(node.connections_from("rect1").len(), 1);
         assert_eq!(node.connections_to("colorize1").len(), 1);
         assert!(node.connection_to_port("colorize1", "shape").is_some());
+    }
+
+    #[test]
+    fn test_connect_replaces_existing_connection_to_same_input_port() {
+        let mut node = Node::network("root")
+            .with_child(Node::new("rect1"))
+            .with_child(Node::new("rect2"))
+            .with_child(Node::new("colorize1"));
+
+        node.connect(Connection::new("rect1", "colorize1", "shape"));
+        assert_eq!(node.connections.len(), 1);
+        assert_eq!(node.connections[0].output_node, "rect1");
+
+        // Connecting a different output to the same input port should replace
+        node.connect(Connection::new("rect2", "colorize1", "shape"));
+        assert_eq!(node.connections.len(), 1);
+        assert_eq!(node.connections[0].output_node, "rect2");
+    }
+
+    #[test]
+    fn test_connect_allows_different_input_ports() {
+        let mut node = Node::network("root")
+            .with_child(Node::new("rect1"))
+            .with_child(Node::new("rect2"))
+            .with_child(Node::new("colorize1"));
+
+        node.connect(Connection::new("rect1", "colorize1", "shape"));
+        node.connect(Connection::new("rect2", "colorize1", "fill"));
+        assert_eq!(node.connections.len(), 2);
+    }
+
+    #[test]
+    fn test_is_connected() {
+        let mut node = Node::network("root")
+            .with_child(Node::new("number42"))
+            .with_child(Node::new("number5"))
+            .with_child(Node::new("add"));
+
+        assert!(!node.is_connected("number42"));
+        assert!(!node.is_connected("add"));
+
+        node.connect(Connection::new("number42", "add", "v1"));
+        assert!(node.is_connected("number42"));
+        assert!(node.is_connected("add"));
+
+        node.connect(Connection::new("number5", "add", "v2"));
+        assert!(node.is_connected("number5"));
+    }
+
+    #[test]
+    fn test_replace_connection_disconnects_old_node() {
+        let mut node = Node::network("root")
+            .with_child(Node::new("number42"))
+            .with_child(Node::new("number5"))
+            .with_child(Node::new("add"));
+
+        node.connect(Connection::new("number42", "add", "v1"));
+        assert!(node.is_connected("number42"));
+
+        // Replace the connection to v1 with a different source
+        node.connect(Connection::new("number5", "add", "v1"));
+        assert!(!node.is_connected("number42"));
+        assert!(node.is_connected("number5"));
+    }
+
+    #[test]
+    fn test_connect_same_connection_is_idempotent() {
+        let mut node = Node::network("root")
+            .with_child(Node::new("rect1"))
+            .with_child(Node::new("colorize1"));
+
+        node.connect(Connection::new("rect1", "colorize1", "shape"));
+        node.connect(Connection::new("rect1", "colorize1", "shape"));
+        assert_eq!(node.connections.len(), 1);
     }
 
     #[test]
