@@ -116,6 +116,8 @@ pub const TEXT_EDIT_BG: Color32 = SLATE_700;
 pub const HOVER_BG: Color32 = SLATE_600;
 /// Selection background (visible violet with good text contrast)
 pub const SELECTION_BG: Color32 = VIOLET_800;
+/// Text edit selection highlight (blue, readable with white text)
+pub const TEXT_EDIT_SELECTION_BG: Color32 = Color32::from_rgb(37, 99, 175);
 
 // =============================================================================
 // SEMANTIC COLORS - Text

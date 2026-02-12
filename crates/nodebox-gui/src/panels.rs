@@ -100,6 +100,8 @@ impl ParameterPanel {
                             theme::PORT_VALUE_BACKGROUND,
                         );
 
+                        ui.add_space(theme::PADDING);
+
                         for node_port in &mut node.inputs {
                             let is_connected = connected_ports.contains(&node_port.name);
                             self.show_port_row(
@@ -324,9 +326,17 @@ impl ParameterPanel {
                     let is_editing_y = self.editing.as_ref()
                         .map(|(n, p, _, _)| n == &key_y.0 && p == &key_y.1)
                         .unwrap_or(false);
-                    self.show_drag_value_float(ui, &mut point.x, None, None, 1.0, &key_x, is_editing_x);
-                    ui.add_space(4.0);
-                    self.show_drag_value_float(ui, &mut point.y, None, None, 1.0, &key_y, is_editing_y);
+                    let available = ui.available_width() - theme::PADDING;
+                    let old_spacing = ui.spacing().item_spacing.x;
+                    ui.spacing_mut().item_spacing.x = 16.0;
+                    let field_width = (available - 16.0) / 2.0;
+                    ui.allocate_ui(egui::Vec2::new(field_width, theme::PARAMETER_ROW_HEIGHT), |ui| {
+                        self.show_drag_value_float(ui, &mut point.x, None, None, 1.0, &key_x, is_editing_x);
+                    });
+                    ui.allocate_ui(egui::Vec2::new(field_width, theme::PARAMETER_ROW_HEIGHT), |ui| {
+                        self.show_drag_value_float(ui, &mut point.y, None, None, 1.0, &key_y, is_editing_y);
+                    });
+                    ui.spacing_mut().item_spacing.x = old_spacing;
                 }
             }
             Widget::Menu => {
@@ -475,12 +485,29 @@ impl ParameterPanel {
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{:.2}", value), true));
 
+            // Style: no border, darker background, rounded corners, readable selection
+            let old_selection = ui.visuals().selection.clone();
+            let old_corner_radius = ui.visuals().widgets.active.corner_radius;
+            ui.visuals_mut().selection.stroke = egui::Stroke::new(0.0, egui::Color32::WHITE);
+            ui.visuals_mut().selection.bg_fill = theme::TEXT_EDIT_SELECTION_BG;
+            let rounding = egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8);
+            ui.visuals_mut().widgets.inactive.corner_radius = rounding;
+            ui.visuals_mut().widgets.active.corner_radius = rounding;
+            ui.visuals_mut().widgets.hovered.corner_radius = rounding;
+
             let output = egui::TextEdit::singleline(&mut edit_text)
-                .font(TextStyle::Body)
-                .text_color(theme::VALUE_TEXT)
-                .desired_width(60.0)
+                .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
+                .text_color(egui::Color32::WHITE)
+                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
+                .margin(egui::Margin { left: 4, top: 5, right: 4, bottom: 3 })
+                .background_color(theme::SLATE_800)
                 .frame(true)
                 .show(ui);
+
+            ui.visuals_mut().selection = old_selection;
+            ui.visuals_mut().widgets.inactive.corner_radius = old_corner_radius;
+            ui.visuals_mut().widgets.active.corner_radius = old_corner_radius;
+            ui.visuals_mut().widgets.hovered.corner_radius = old_corner_radius;
 
             // Select all on first frame
             if needs_select {
@@ -522,21 +549,22 @@ impl ParameterPanel {
 
             output.response.request_focus();
         } else {
-            // Show as draggable text (non-selectable)
+            // Show as draggable text (non-selectable) — fill available width for easy clicking
             let text = format!("{:.2}", value);
             let galley = ui.painter().layout_no_wrap(
                 text.clone(),
                 egui::FontId::proportional(11.0),
-                theme::VALUE_TEXT,
+                egui::Color32::WHITE,
             );
             let rect = ui.available_rect_before_wrap();
-            let text_rect = egui::Rect::from_min_size(
-                egui::pos2(rect.left(), rect.center().y - galley.size().y / 2.0),
-                galley.size(),
+            let interact_rect = egui::Rect::from_min_size(
+                rect.min,
+                egui::vec2(ui.available_width() - theme::PADDING, rect.height()),
             );
 
-            let response = ui.allocate_rect(text_rect, Sense::click_and_drag());
-            ui.painter().galley(text_rect.min, galley, theme::VALUE_TEXT);
+            let response = ui.allocate_rect(interact_rect, Sense::click_and_drag());
+            let text_pos = egui::pos2(rect.left() + 4.0, rect.center().y - galley.size().y / 2.0);
+            ui.painter().galley(text_pos, galley, egui::Color32::WHITE);
 
             if response.dragged() {
                 // Modifier keys: Shift = x10, Alt = /100
@@ -578,12 +606,29 @@ impl ParameterPanel {
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{}", value), true));
 
+            // Style: no border, darker background, rounded corners, readable selection
+            let old_selection = ui.visuals().selection.clone();
+            let old_corner_radius = ui.visuals().widgets.active.corner_radius;
+            ui.visuals_mut().selection.stroke = egui::Stroke::new(0.0, egui::Color32::WHITE);
+            ui.visuals_mut().selection.bg_fill = theme::TEXT_EDIT_SELECTION_BG;
+            let rounding = egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8);
+            ui.visuals_mut().widgets.inactive.corner_radius = rounding;
+            ui.visuals_mut().widgets.active.corner_radius = rounding;
+            ui.visuals_mut().widgets.hovered.corner_radius = rounding;
+
             let output = egui::TextEdit::singleline(&mut edit_text)
-                .font(TextStyle::Body)
-                .text_color(theme::VALUE_TEXT)
-                .desired_width(60.0)
+                .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
+                .text_color(egui::Color32::WHITE)
+                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
+                .margin(egui::Margin { left: 4, top: 5, right: 4, bottom: 3 })
+                .background_color(theme::SLATE_800)
                 .frame(true)
                 .show(ui);
+
+            ui.visuals_mut().selection = old_selection;
+            ui.visuals_mut().widgets.inactive.corner_radius = old_corner_radius;
+            ui.visuals_mut().widgets.active.corner_radius = old_corner_radius;
+            ui.visuals_mut().widgets.hovered.corner_radius = old_corner_radius;
 
             // Select all on first frame
             if needs_select {
@@ -620,16 +665,17 @@ impl ParameterPanel {
             let galley = ui.painter().layout_no_wrap(
                 text.clone(),
                 egui::FontId::proportional(11.0),
-                theme::VALUE_TEXT,
+                egui::Color32::WHITE,
             );
             let rect = ui.available_rect_before_wrap();
-            let text_rect = egui::Rect::from_min_size(
-                egui::pos2(rect.left(), rect.center().y - galley.size().y / 2.0),
-                galley.size(),
+            let interact_rect = egui::Rect::from_min_size(
+                rect.min,
+                egui::vec2(ui.available_width() - theme::PADDING, rect.height()),
             );
 
-            let response = ui.allocate_rect(text_rect, Sense::click_and_drag());
-            ui.painter().galley(text_rect.min, galley, theme::VALUE_TEXT);
+            let response = ui.allocate_rect(interact_rect, Sense::click_and_drag());
+            let text_pos = egui::pos2(rect.left() + 4.0, rect.center().y - galley.size().y / 2.0);
+            ui.painter().galley(text_pos, galley, egui::Color32::WHITE);
 
             if response.dragged() {
                 // Modifier keys: Shift = x10, Alt = /100
@@ -741,6 +787,8 @@ impl ParameterPanel {
             0.0,
             theme::PORT_VALUE_BACKGROUND,
         );
+
+        ui.add_space(theme::PADDING);
 
         // Width
         ui.horizontal(|ui| {
