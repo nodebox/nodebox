@@ -171,6 +171,23 @@ pub const PANE_HEADER_HEIGHT: f32 = TITLE_BAR_HEIGHT;
 pub const LABEL_WIDTH: f32 = 112.0;
 
 // =============================================================================
+// DATA TABLE COLORS
+// =============================================================================
+
+/// Zebra stripe: even row background (matches panel bg)
+pub const TABLE_ROW_EVEN: Color32 = SLATE_900;
+/// Zebra stripe: odd row alternating background (between SLATE_900 and SLATE_800)
+pub const TABLE_ROW_ODD: Color32 = Color32::from_rgb(19, 29, 50);
+/// Table header background
+pub const TABLE_HEADER_BG: Color32 = SLATE_800;
+/// Table header text color
+pub const TABLE_HEADER_TEXT: Color32 = SLATE_300;
+/// Table cell text color
+pub const TABLE_CELL_TEXT: Color32 = SLATE_200;
+/// Index column text color (subdued)
+pub const TABLE_INDEX_TEXT: Color32 = SLATE_400;
+
+// =============================================================================
 // PANE HEADER COLORS
 // =============================================================================
 
