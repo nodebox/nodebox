@@ -4,6 +4,7 @@
 
 #![allow(dead_code)]
 
+use std::sync::Arc;
 use eframe::egui;
 use nodebox_core::geometry::{Color, Point};
 use nodebox_core::node::{MenuItem, Node, NodeLibrary, Port, PortRange, PortType, Widget};
@@ -304,7 +305,7 @@ impl NodeLibraryBrowser {
     }
 
     /// Show the library browser and return the name of any node created.
-    pub fn show(&mut self, ui: &mut egui::Ui, library: &mut NodeLibrary) -> Option<String> {
+    pub fn show(&mut self, ui: &mut egui::Ui, library: &mut Arc<NodeLibrary>) -> Option<String> {
         let mut created_node = None;
 
         // Search box
@@ -366,7 +367,7 @@ impl NodeLibraryBrowser {
                         // Create the node
                         let node = create_node_from_template(template, library, pos);
                         let node_name = node.name.clone();
-                        library.root.children.push(node);
+                        Arc::make_mut(library).root.children.push(node);
                         created_node = Some(node_name);
                     }
                     ui.label(template.name);

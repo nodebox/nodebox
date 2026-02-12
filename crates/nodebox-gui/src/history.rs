@@ -1,5 +1,6 @@
 //! Undo/redo history management.
 
+use std::sync::Arc;
 use nodebox_core::node::NodeLibrary;
 
 /// Maximum number of undo states to keep.
@@ -8,12 +9,12 @@ const MAX_HISTORY: usize = 50;
 /// The undo/redo history manager.
 pub struct History {
     /// Past states (undo stack).
-    undo_stack: Vec<NodeLibrary>,
+    undo_stack: Vec<Arc<NodeLibrary>>,
     /// Future states (redo stack).
-    redo_stack: Vec<NodeLibrary>,
+    redo_stack: Vec<Arc<NodeLibrary>>,
     /// The last saved state (to track changes).
     #[allow(dead_code)]
-    last_saved_state: Option<NodeLibrary>,
+    last_saved_state: Option<Arc<NodeLibrary>>,
 }
 
 impl Default for History {
@@ -44,8 +45,8 @@ impl History {
 
     /// Save the current state before making changes.
     /// Call this BEFORE modifying the library.
-    pub fn save_state(&mut self, library: &NodeLibrary) {
-        self.undo_stack.push(library.clone());
+    pub fn save_state(&mut self, library: &Arc<NodeLibrary>) {
+        self.undo_stack.push(Arc::clone(library));
 
         // Clear redo stack when new changes are made
         self.redo_stack.clear();
@@ -58,10 +59,10 @@ impl History {
 
     /// Undo the last change, returning the previous state.
     /// Call this to restore the library to its previous state.
-    pub fn undo(&mut self, current: &NodeLibrary) -> Option<NodeLibrary> {
+    pub fn undo(&mut self, current: &Arc<NodeLibrary>) -> Option<Arc<NodeLibrary>> {
         if let Some(previous) = self.undo_stack.pop() {
             // Save current state for redo
-            self.redo_stack.push(current.clone());
+            self.redo_stack.push(Arc::clone(current));
             Some(previous)
         } else {
             None
@@ -69,10 +70,10 @@ impl History {
     }
 
     /// Redo the last undone change, returning the restored state.
-    pub fn redo(&mut self, current: &NodeLibrary) -> Option<NodeLibrary> {
+    pub fn redo(&mut self, current: &Arc<NodeLibrary>) -> Option<Arc<NodeLibrary>> {
         if let Some(next) = self.redo_stack.pop() {
             // Save current state for undo
-            self.undo_stack.push(current.clone());
+            self.undo_stack.push(Arc::clone(current));
             Some(next)
         } else {
             None
@@ -81,15 +82,15 @@ impl History {
 
     /// Mark the current state as saved.
     #[allow(dead_code)]
-    pub fn mark_saved(&mut self, library: &NodeLibrary) {
-        self.last_saved_state = Some(library.clone());
+    pub fn mark_saved(&mut self, library: &Arc<NodeLibrary>) {
+        self.last_saved_state = Some(Arc::clone(library));
     }
 
     /// Check if the library has unsaved changes since the last save.
     #[allow(dead_code)]
     pub fn has_unsaved_changes(&self, library: &NodeLibrary) -> bool {
         match &self.last_saved_state {
-            Some(saved) => saved != library,
+            Some(saved) => saved.as_ref() != library,
             None => true, // Never saved, so always has changes
         }
     }

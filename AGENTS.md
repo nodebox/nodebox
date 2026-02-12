@@ -253,6 +253,35 @@ When styling egui widgets (DragValue, checkbox, etc.) to match the style guide:
 4. Override ALL states: `inactive`, `hovered`, `active`, `noninteractive`
 5. Save and restore both `visuals` and `spacing` to avoid affecting other widgets
 
+## NodeLibrary Arc Pattern
+
+The `NodeLibrary` is wrapped in `Arc<NodeLibrary>` for cheap cloning and copy-on-write semantics. This enables:
+- **Render dispatch**: The render worker receives a cheap `Arc::clone` of the library without deep-copying the entire node graph.
+- **Undo/redo history**: `History` stores `Vec<Arc<NodeLibrary>>` snapshots that share unchanged data.
+
+### Reading (no mutation)
+Pass `&Arc<NodeLibrary>` or clone the Arc for background threads:
+```rust
+render_worker.submit(Arc::clone(&state.library));
+```
+
+### Writing (mutation)
+Use `Arc::make_mut` to get a mutable reference. This clones the inner data only if other Arcs still reference it (copy-on-write):
+```rust
+Arc::make_mut(&mut state.library).root.children.push(new_node);
+```
+
+For multiple mutations in a block, bind `Arc::make_mut` once:
+```rust
+let lib = Arc::make_mut(&mut state.library);
+lib.root.children.retain(|n| &n.name != name);
+lib.root.connections.retain(|c| &c.output_node != name);
+```
+
+### Function signatures
+- Read-only: `fn show(&self, library: &Arc<NodeLibrary>)`
+- Mutating: `fn show(&mut self, library: &mut Arc<NodeLibrary>)`
+
 ## Build Commands
 
 ### Excluding problematic crates

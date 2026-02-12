@@ -236,7 +236,7 @@ impl NodeBoxApp {
     #[allow(dead_code)]
     pub fn new_for_testing_empty() -> Self {
         let mut state = AppState::new();
-        state.library = nodebox_core::node::NodeLibrary::new("test");
+        state.library = Arc::new(nodebox_core::node::NodeLibrary::new("test"));
         state.geometry.clear();
         let hash = Self::hash_library(&state.library);
         Self {
@@ -418,7 +418,7 @@ impl NodeBoxApp {
             self.project_context.frame = self.animation_bar.frame();
             self.render_worker.request_render(
                 id,
-                self.state.library.clone(),
+                Arc::clone(&self.state.library),
                 cancel_token,
                 self.port.clone(),
                 self.project_context.clone(),
@@ -781,7 +781,7 @@ impl eframe::App for NodeBoxApp {
         if self.node_dialog.visible {
             if let Some(new_node) = self.node_dialog.show(ctx, &self.state.library, &mut self.icon_cache) {
                 let node_name = new_node.name.clone();
-                self.state.library.root.children.push(new_node);
+                Arc::make_mut(&mut self.state.library).root.children.push(new_node);
                 // Select the new node
                 self.state.selected_node = Some(node_name);
             }
@@ -852,7 +852,7 @@ impl NodeBoxApp {
     /// Handle FourPointHandle change (rect x, y, width, height).
     fn handle_four_point_change(&mut self, x: f64, y: f64, width: f64, height: f64) {
         if let Some(ref node_name) = self.state.selected_node {
-            if let Some(node) = self.state.library.root.child_mut(node_name) {
+            if let Some(node) = Arc::make_mut(&mut self.state.library).root.child_mut(node_name) {
                 // Write to "position" Point port (per corevector.ndbx)
                 if let Some(port) = node.input_mut("position") {
                     port.value = nodebox_core::Value::Point(Point::new(x, y));
@@ -870,7 +870,7 @@ impl NodeBoxApp {
     /// Handle parameter change from viewer handles.
     fn handle_parameter_change(&mut self, param_name: &str, new_position: Point) {
         if let Some(ref node_name) = self.state.selected_node {
-            if let Some(node) = self.state.library.root.child_mut(node_name) {
+            if let Some(node) = Arc::make_mut(&mut self.state.library).root.child_mut(node_name) {
                 match param_name {
                     "position" => {
                         // Write to "position" Point port (per corevector.ndbx)
@@ -1063,14 +1063,14 @@ mod tests {
         let mut app = NodeBoxApp::new_for_testing();
 
         // Set up a node with a position parameter
-        app.state.library.root.children.push(
+        Arc::make_mut(&mut app.state.library).root.children.push(
             Node::new("ellipse1")
                 .with_prototype("corevector.ellipse")
                 .with_input(Port::point("position", Point::ZERO))
                 .with_input(Port::float("width", 100.0))
                 .with_input(Port::float("height", 100.0)),
         );
-        app.state.library.root.rendered_child = Some("ellipse1".to_string());
+        Arc::make_mut(&mut app.state.library).root.rendered_child = Some("ellipse1".to_string());
         app.state.selected_node = Some("ellipse1".to_string());
 
         // Reset render_pending to false
@@ -1109,7 +1109,7 @@ mod tests {
         let mut app = NodeBoxApp::new_for_testing();
 
         // Set up a node with position and size parameters
-        app.state.library.root.children.push(
+        Arc::make_mut(&mut app.state.library).root.children.push(
             Node::new("rect1")
                 .with_prototype("corevector.rect")
                 .with_input(Port::float("x", 0.0))
@@ -1117,7 +1117,7 @@ mod tests {
                 .with_input(Port::float("width", 100.0))
                 .with_input(Port::float("height", 100.0)),
         );
-        app.state.library.root.rendered_child = Some("rect1".to_string());
+        Arc::make_mut(&mut app.state.library).root.rendered_child = Some("rect1".to_string());
         app.state.selected_node = Some("rect1".to_string());
 
         // Reset render_pending to false
@@ -1158,21 +1158,21 @@ mod tests {
         let mut app = NodeBoxApp::new_for_testing();
 
         // Set up a node with a width parameter
-        app.state.library.root.children.push(
+        Arc::make_mut(&mut app.state.library).root.children.push(
             Node::new("rect1")
                 .with_prototype("corevector.rect")
                 .with_input(Port::point("position", Point::ZERO))
                 .with_input(Port::float("width", 100.0))
                 .with_input(Port::float("height", 100.0)),
         );
-        app.state.library.root.rendered_child = Some("rect1".to_string());
+        Arc::make_mut(&mut app.state.library).root.rendered_child = Some("rect1".to_string());
 
         // Update the hash to match current state
         app.previous_library_hash = NodeBoxApp::hash_library(&app.state.library);
         app.render_pending = false;
 
         // Modify the width parameter (simulates what happens when user changes value in panel)
-        if let Some(node) = app.state.library.root.child_mut("rect1") {
+        if let Some(node) = Arc::make_mut(&mut app.state.library).root.child_mut("rect1") {
             if let Some(port) = node.input_mut("width") {
                 port.value = nodebox_core::Value::Float(200.0);
             }
@@ -1201,21 +1201,21 @@ mod tests {
         let mut app = NodeBoxApp::new_for_testing();
 
         // Set up a rect node
-        app.state.library.root.children.push(
+        Arc::make_mut(&mut app.state.library).root.children.push(
             Node::new("rect1")
                 .with_prototype("corevector.rect")
                 .with_input(Port::point("position", Point::ZERO))
                 .with_input(Port::float("width", 100.0))
                 .with_input(Port::float("height", 100.0)),
         );
-        app.state.library.root.rendered_child = Some("rect1".to_string());
+        Arc::make_mut(&mut app.state.library).root.rendered_child = Some("rect1".to_string());
 
         // Initial evaluation
         app.update_for_testing();
         let initial_geometry = app.state.geometry.clone();
 
         // Change width parameter
-        if let Some(node) = app.state.library.root.child_mut("rect1") {
+        if let Some(node) = Arc::make_mut(&mut app.state.library).root.child_mut("rect1") {
             if let Some(port) = node.input_mut("width") {
                 port.value = nodebox_core::Value::Float(200.0);
             }

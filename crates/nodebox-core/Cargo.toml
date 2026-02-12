@@ -12,6 +12,10 @@ uuid = { workspace = true }
 font-kit = { workspace = true }
 pathfinder_geometry = { workspace = true }
 
+[[bench]]
+name = "clone_library"
+harness = false
+
 [dev-dependencies]
 proptest = { workspace = true }
 approx = { workspace = true }

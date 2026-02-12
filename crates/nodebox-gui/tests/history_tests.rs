@@ -2,10 +2,11 @@
 
 mod common;
 
+use std::sync::Arc;
 use nodebox_gui::{History, Node, NodeLibrary, Port};
 
 /// Create a simple test library with an ellipse.
-fn create_test_library(x: f64) -> NodeLibrary {
+fn create_test_library(x: f64) -> Arc<NodeLibrary> {
     let mut library = NodeLibrary::new("test");
     library.root = Node::network("root")
         .with_child(
@@ -17,7 +18,7 @@ fn create_test_library(x: f64) -> NodeLibrary {
                 .with_input(Port::float("height", 100.0)),
         )
         .with_rendered_child("ellipse1");
-    library
+    Arc::new(library)
 }
 
 #[test]
