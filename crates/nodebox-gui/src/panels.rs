@@ -328,8 +328,8 @@ impl ParameterPanel {
                         .unwrap_or(false);
                     let available = ui.available_width();
                     let old_spacing = ui.spacing().item_spacing.x;
-                    ui.spacing_mut().item_spacing.x = 16.0;
-                    let field_width = (available - 16.0) / 2.0;
+                    ui.spacing_mut().item_spacing.x = 8.0;
+                    let field_width = (available - 8.0) / 2.0;
                     ui.allocate_ui(egui::Vec2::new(field_width, theme::PARAMETER_ROW_HEIGHT), |ui| {
                         self.show_drag_value_float(ui, &mut point.x, None, None, 1.0, &key_x, is_editing_x);
                     });
