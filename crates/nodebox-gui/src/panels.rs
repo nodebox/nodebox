@@ -272,7 +272,9 @@ impl ParameterPanel {
                         }
 
                         // Request focus on first frame
-                        output.response.request_focus();
+                        if self.editing.is_some() {
+                            output.response.request_focus();
+                        }
                     } else {
                         // Show as clickable text
                         let display = if value.is_empty() { "\"\"" } else { value.as_str() };
@@ -539,7 +541,9 @@ impl ParameterPanel {
                 }
             }
 
-            output.response.request_focus();
+            if self.editing.is_some() {
+                output.response.request_focus();
+            }
         } else {
             // Show as draggable text (non-selectable)
             let text = format!("{:.2}", value);
@@ -633,7 +637,9 @@ impl ParameterPanel {
                 }
             }
 
-            output.response.request_focus();
+            if self.editing.is_some() {
+                output.response.request_focus();
+            }
         } else {
             let text = format!("{}", value);
             let galley = ui.painter().layout_no_wrap(
