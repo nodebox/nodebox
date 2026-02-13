@@ -2,6 +2,7 @@
 
 use std::sync::Arc;
 use eframe::egui::{self, Sense, TextStyle};
+use nodebox_core::geometry::Color;
 use nodebox_core::node::{PortType, Widget};
 use nodebox_core::Value;
 use nodebox_port::{FileFilter, Port, PortError, ProjectContext};
@@ -1045,6 +1046,51 @@ impl ParameterPanel {
             // Update the property if changed
             if (state.library.height() - height).abs() > 0.001 {
                 Arc::make_mut(&mut state.library).set_height(height);
+            }
+        });
+
+        // Background color
+        ui.horizontal(|ui| {
+            ui.set_height(theme::PARAMETER_ROW_HEIGHT);
+
+            // Label
+            ui.allocate_ui_with_layout(
+                egui::Vec2::new(self.label_width, theme::PARAMETER_ROW_HEIGHT),
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui| {
+                    ui.add_space(8.0);
+                    let galley = ui.painter().layout_no_wrap(
+                        "background".to_string(),
+                        egui::FontId::proportional(11.0),
+                        theme::TEXT_NORMAL,
+                    );
+                    let rect = ui.available_rect_before_wrap();
+                    let pos = egui::pos2(
+                        rect.right() - galley.size().x - 8.0,
+                        rect.center().y - galley.size().y / 2.0,
+                    );
+                    ui.painter().galley(pos, galley, theme::TEXT_NORMAL);
+                },
+            );
+
+            // Color widget
+            let color = state.background_color;
+            let mut rgba = [
+                (color.r * 255.0) as u8,
+                (color.g * 255.0) as u8,
+                (color.b * 255.0) as u8,
+                (color.a * 255.0) as u8,
+            ];
+            ui.color_edit_button_srgba_unmultiplied(&mut rgba);
+            let new_color = Color::rgba(
+                rgba[0] as f64 / 255.0,
+                rgba[1] as f64 / 255.0,
+                rgba[2] as f64 / 255.0,
+                rgba[3] as f64 / 255.0,
+            );
+            if new_color != color {
+                state.background_color = new_color;
+                Arc::make_mut(&mut state.library).set_background_color(new_color);
             }
         });
     }

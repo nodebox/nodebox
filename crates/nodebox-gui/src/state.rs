@@ -59,7 +59,7 @@ impl AppState {
             show_about: false,
             geometry: Vec::new(), // Render worker will populate
             selected_node: None,
-            background_color: Color::WHITE,
+            background_color: Color::rgb(232.0 / 255.0, 232.0 / 255.0, 232.0 / 255.0),
             library,
             node_errors: HashMap::new(),
             node_output: NodeOutput::None,
@@ -110,6 +110,7 @@ impl AppState {
 
         // Update state
         self.library = Arc::new(library);
+        self.background_color = self.library.background_color();
         self.current_file = Some(path.to_path_buf());
         self.dirty = false;
         self.selected_node = None;
