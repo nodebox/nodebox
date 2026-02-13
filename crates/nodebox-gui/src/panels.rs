@@ -2,6 +2,7 @@
 
 use std::sync::Arc;
 use eframe::egui::{self, Sense, TextStyle};
+use nodebox_core::geometry::Color;
 use nodebox_core::node::{PortType, Widget};
 use nodebox_core::Value;
 use nodebox_port::{FileFilter, Port, PortError, ProjectContext};
@@ -15,6 +16,10 @@ pub struct ParameterPanel {
     label_width: f32,
     /// Track which port is being edited (node_name, port_name, edit_text, needs_select_all)
     editing: Option<(String, String, String, bool)>,
+    /// Ordered list of tabbable (node_name, port_name) keys, rebuilt every frame.
+    tab_order: Vec<(String, String)>,
+    /// Deferred tab target: set when Tab/Shift+Tab is pressed, consumed next frame.
+    tab_target: Option<(String, String)>,
 }
 
 impl Default for ParameterPanel {
@@ -30,6 +35,8 @@ impl ParameterPanel {
         Self {
             label_width: theme::LABEL_WIDTH,
             editing: None,
+            tab_order: Vec::new(),
+            tab_target: None,
         }
     }
 
@@ -63,6 +70,19 @@ impl ParameterPanel {
                     (None, None)
                 }
             };
+
+            // Build tab order from the immutable view of the node's inputs
+            if let Some(node) = state.library.root.child(&node_name) {
+                self.tab_order = Self::build_tab_order(&node_name, &node.inputs, &connected_ports);
+
+                // Activate pending tab target
+                if let Some(ref target) = self.tab_target.take() {
+                    if self.tab_order.iter().any(|k| k == target) {
+                        let edit_text = Self::get_edit_text_for_target(&node.inputs, target);
+                        self.editing = Some((target.0.clone(), target.1.clone(), edit_text, true));
+                    }
+                }
+            }
 
             // Show header before mutable borrow
             self.show_parameters_header(
@@ -104,6 +124,8 @@ impl ParameterPanel {
                             theme::PORT_VALUE_BACKGROUND,
                         );
 
+                        ui.add_space(theme::PADDING);
+
                         for node_port in &mut node.inputs {
                             let is_connected = connected_ports.contains(&node_port.name);
                             self.show_port_row(
@@ -123,6 +145,90 @@ impl ParameterPanel {
             // No node selected - show document properties
             self.show_document_properties(ui, state);
         }
+    }
+
+    /// Build the tab order for the given node's inputs.
+    /// Returns a list of (node_name, port_key) pairs for all tabbable fields in order.
+    /// Point fields produce two entries: (node, "name_x") and (node, "name_y").
+    fn build_tab_order(
+        node_name: &str,
+        inputs: &[nodebox_core::node::Port],
+        connected_ports: &std::collections::HashSet<String>,
+    ) -> Vec<(String, String)> {
+        let mut order = Vec::new();
+        for port in inputs {
+            if connected_ports.contains(&port.name) {
+                continue;
+            }
+            match port.widget {
+                Widget::Float | Widget::Angle | Widget::Int | Widget::String | Widget::Text => {
+                    order.push((node_name.to_string(), port.name.clone()));
+                }
+                Widget::Point => {
+                    order.push((node_name.to_string(), format!("{}_x", port.name)));
+                    order.push((node_name.to_string(), format!("{}_y", port.name)));
+                }
+                _ => {}
+            }
+        }
+        order
+    }
+
+    /// Find the next or previous tab stop in the tab order, wrapping around.
+    fn next_tab_stop(
+        tab_order: &[(String, String)],
+        current: &(String, String),
+        forward: bool,
+    ) -> Option<(String, String)> {
+        if tab_order.is_empty() {
+            return None;
+        }
+        let pos = tab_order.iter().position(|k| k == current);
+        let next_idx = match pos {
+            Some(idx) => {
+                if forward {
+                    (idx + 1) % tab_order.len()
+                } else if idx == 0 {
+                    tab_order.len() - 1
+                } else {
+                    idx - 1
+                }
+            }
+            None => 0,
+        };
+        Some(tab_order[next_idx].clone())
+    }
+
+    /// Get the text representation of a port value for pre-filling the edit field.
+    fn get_edit_text_for_target(
+        inputs: &[nodebox_core::node::Port],
+        target: &(String, String),
+    ) -> String {
+        // Try exact port name match first
+        if let Some(port) = inputs.iter().find(|p| p.name == target.1) {
+            return match &port.value {
+                Value::Float(v) => format!("{:.2}", v),
+                Value::Int(v) => format!("{}", v),
+                Value::String(v) => v.clone(),
+                _ => String::new(),
+            };
+        }
+        // Try Point suffix: target.1 ends with "_x" or "_y"
+        if let Some(base) = target.1.strip_suffix("_x") {
+            if let Some(port) = inputs.iter().find(|p| p.name == base) {
+                if let Value::Point(ref pt) = port.value {
+                    return format!("{:.2}", pt.x);
+                }
+            }
+        }
+        if let Some(base) = target.1.strip_suffix("_y") {
+            if let Some(port) = inputs.iter().find(|p| p.name == base) {
+                if let Value::Point(ref pt) = port.value {
+                    return format!("{:.2}", pt.y);
+                }
+            }
+        }
+        String::new()
     }
 
     /// Show a single port row with label and value editor.
@@ -195,12 +301,12 @@ impl ParameterPanel {
         match port.widget {
             Widget::Float | Widget::Angle => {
                 if let Value::Float(ref mut value) = port.value {
-                    self.show_drag_value_float(ui, value, port.min, port.max, 1.0, &port_key, is_editing);
+                    self.show_drag_value_float(ui, value, port.min, port.max, 1.0, &port_key, is_editing, theme::PADDING);
                 }
             }
             Widget::Int => {
                 if let Value::Int(ref mut value) = port.value {
-                    self.show_drag_value_int(ui, value, &port_key, is_editing);
+                    self.show_drag_value_int(ui, value, &port_key, is_editing, theme::PADDING);
                 }
             }
             Widget::Toggle => {
@@ -266,16 +372,23 @@ impl ParameterPanel {
 
                         // Commit on enter or focus lost
                         if output.response.lost_focus() {
+                            let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
                             if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                                 self.editing = None;
                             } else {
                                 *value = edit_text;
                                 self.editing = None;
+                                if tab_pressed {
+                                    let forward = !ui.input(|i| i.modifiers.shift);
+                                    self.tab_target = Self::next_tab_stop(&self.tab_order, &port_key, forward);
+                                }
                             }
                         }
 
                         // Request focus on first frame
-                        output.response.request_focus();
+                        if self.editing.is_some() {
+                            output.response.request_focus();
+                        }
                     } else {
                         // Show as clickable text
                         let display = if value.is_empty() { "\"\"" } else { value.as_str() };
@@ -328,9 +441,17 @@ impl ParameterPanel {
                     let is_editing_y = self.editing.as_ref()
                         .map(|(n, p, _, _)| n == &key_y.0 && p == &key_y.1)
                         .unwrap_or(false);
-                    self.show_drag_value_float(ui, &mut point.x, None, None, 1.0, &key_x, is_editing_x);
-                    ui.add_space(4.0);
-                    self.show_drag_value_float(ui, &mut point.y, None, None, 1.0, &key_y, is_editing_y);
+                    let available = ui.available_width() - theme::PADDING;
+                    let old_spacing = ui.spacing().item_spacing.x;
+                    ui.spacing_mut().item_spacing.x = 16.0;
+                    let field_width = (available - 16.0) / 2.0;
+                    ui.allocate_ui(egui::Vec2::new(field_width, theme::PARAMETER_ROW_HEIGHT), |ui| {
+                        self.show_drag_value_float(ui, &mut point.x, None, None, 1.0, &key_x, is_editing_x, 0.0);
+                    });
+                    ui.allocate_ui(egui::Vec2::new(field_width, theme::PARAMETER_ROW_HEIGHT), |ui| {
+                        self.show_drag_value_float(ui, &mut point.y, None, None, 1.0, &key_y, is_editing_y, 0.0);
+                    });
+                    ui.spacing_mut().item_spacing.x = old_spacing;
                 }
             }
             Widget::Menu => {
@@ -481,6 +602,7 @@ impl ParameterPanel {
     }
 
     /// Show a minimal drag value for floats - non-selectable, draggable, click to edit.
+    /// `right_padding` is extra space to reserve on the right (e.g. PADDING for panel edge margin, 0.0 for Point widget fields).
     fn show_drag_value_float(
         &mut self,
         ui: &mut egui::Ui,
@@ -490,6 +612,7 @@ impl ParameterPanel {
         speed: f64,
         port_key: &(String, String),
         is_editing: bool,
+        right_padding: f32,
     ) {
         if is_editing {
             // Show text input for direct editing
@@ -497,12 +620,29 @@ impl ParameterPanel {
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{:.2}", value), true));
 
+            // Frameless TextEdit with manual background for pixel-perfect alignment
+            let old_selection = ui.visuals().selection.clone();
+            ui.visuals_mut().selection.stroke = egui::Stroke::new(0.0, egui::Color32::WHITE);
+            ui.visuals_mut().selection.bg_fill = theme::TEXT_EDIT_SELECTION_BG;
+
+            let bg_idx = ui.painter().add(egui::Shape::Noop);
             let output = egui::TextEdit::singleline(&mut edit_text)
-                .font(TextStyle::Body)
-                .text_color(theme::VALUE_TEXT)
-                .desired_width(60.0)
-                .frame(true)
+                .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
+                .text_color(egui::Color32::WHITE)
+                .desired_width(ui.available_width() - theme::PADDING - right_padding)
+                .margin(egui::Margin::symmetric(4, 0))
+                .frame(false)
                 .show(ui);
+
+            // Paint rounded background behind the text
+            let bg_rect = output.response.rect.expand2(egui::vec2(0.0, 4.0));
+            ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                bg_rect,
+                egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
+                theme::ZINC_700,
+            ));
+
+            ui.visuals_mut().selection = old_selection;
 
             // Select all on first frame
             if needs_select {
@@ -525,40 +665,57 @@ impl ParameterPanel {
 
             // Commit on enter or focus lost
             if output.response.lost_focus() {
+                let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     self.editing = None;
-                } else if let Ok(new_val) = edit_text.parse::<f64>() {
-                    let mut clamped = new_val;
-                    if let Some(min_val) = min {
-                        clamped = clamped.max(min_val);
-                    }
-                    if let Some(max_val) = max {
-                        clamped = clamped.min(max_val);
-                    }
-                    *value = clamped;
-                    self.editing = None;
                 } else {
+                    if let Ok(new_val) = edit_text.parse::<f64>() {
+                        let mut clamped = new_val;
+                        if let Some(min_val) = min {
+                            clamped = clamped.max(min_val);
+                        }
+                        if let Some(max_val) = max {
+                            clamped = clamped.min(max_val);
+                        }
+                        *value = clamped;
+                    }
                     self.editing = None;
+                    if tab_pressed {
+                        let forward = !ui.input(|i| i.modifiers.shift);
+                        self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
+                    }
                 }
             }
 
-            output.response.request_focus();
+            if self.editing.is_some() {
+                output.response.request_focus();
+            }
         } else {
-            // Show as draggable text (non-selectable)
-            let text = format!("{:.2}", value);
-            let galley = ui.painter().layout_no_wrap(
-                text.clone(),
-                egui::FontId::proportional(11.0),
-                theme::VALUE_TEXT,
-            );
-            let rect = ui.available_rect_before_wrap();
-            let text_rect = egui::Rect::from_min_size(
-                egui::pos2(rect.left(), rect.center().y - galley.size().y / 2.0),
-                galley.size(),
-            );
+            // Non-interactive TextEdit for pixel-perfect alignment with editing state
+            let mut display_text = format!("{:.2}", value);
+            let bg_idx = ui.painter().add(egui::Shape::Noop);
+            let te_output = egui::TextEdit::singleline(&mut display_text)
+                .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
+                .text_color(egui::Color32::WHITE)
+                .interactive(false)
+                .frame(false)
+                .margin(egui::Margin::symmetric(4, 0))
+                .desired_width(ui.available_width() - theme::PADDING - right_padding)
+                .show(ui);
 
-            let response = ui.allocate_rect(text_rect, Sense::click_and_drag());
-            ui.painter().galley(text_rect.min, galley, theme::VALUE_TEXT);
+            // Overlay click+drag sensing on the same rect
+            let interact_id = ui.id().with(port_key);
+            let response = ui.interact(te_output.response.rect, interact_id, Sense::click_and_drag());
+
+            // Hover effect: subtle darkened background
+            if response.hovered() || response.dragged() {
+                let hover_rect = te_output.response.rect.expand2(egui::vec2(0.0, 4.0));
+                ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                    hover_rect,
+                    egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
+                    theme::FIELD_HOVER_BG,
+                ));
+            }
 
             if response.dragged() {
                 // Modifier keys: Shift = x10, Alt = /100
@@ -593,19 +750,36 @@ impl ParameterPanel {
     }
 
     /// Show a minimal drag value for ints - non-selectable, draggable, click to edit.
-    fn show_drag_value_int(&mut self, ui: &mut egui::Ui, value: &mut i64, port_key: &(String, String), is_editing: bool) {
+    fn show_drag_value_int(&mut self, ui: &mut egui::Ui, value: &mut i64, port_key: &(String, String), is_editing: bool, right_padding: f32) {
         if is_editing {
             // Show text input for direct editing
             let (mut edit_text, needs_select) = self.editing.as_ref()
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{}", value), true));
 
+            // Frameless TextEdit with manual background for pixel-perfect alignment
+            let old_selection = ui.visuals().selection.clone();
+            ui.visuals_mut().selection.stroke = egui::Stroke::new(0.0, egui::Color32::WHITE);
+            ui.visuals_mut().selection.bg_fill = theme::TEXT_EDIT_SELECTION_BG;
+
+            let bg_idx = ui.painter().add(egui::Shape::Noop);
             let output = egui::TextEdit::singleline(&mut edit_text)
-                .font(TextStyle::Body)
-                .text_color(theme::VALUE_TEXT)
-                .desired_width(60.0)
-                .frame(true)
+                .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
+                .text_color(egui::Color32::WHITE)
+                .desired_width(ui.available_width() - theme::PADDING - right_padding)
+                .margin(egui::Margin::symmetric(4, 0))
+                .frame(false)
                 .show(ui);
+
+            // Paint rounded background behind the text
+            let bg_rect = output.response.rect.expand2(egui::vec2(0.0, 4.0));
+            ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                bg_rect,
+                egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
+                theme::ZINC_700,
+            ));
+
+            ui.visuals_mut().selection = old_selection;
 
             // Select all on first frame
             if needs_select {
@@ -626,32 +800,50 @@ impl ParameterPanel {
             }
 
             if output.response.lost_focus() {
+                let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     self.editing = None;
-                } else if let Ok(new_val) = edit_text.parse::<i64>() {
-                    *value = new_val;
-                    self.editing = None;
                 } else {
+                    if let Ok(new_val) = edit_text.parse::<i64>() {
+                        *value = new_val;
+                    }
                     self.editing = None;
+                    if tab_pressed {
+                        let forward = !ui.input(|i| i.modifiers.shift);
+                        self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
+                    }
                 }
             }
 
-            output.response.request_focus();
+            if self.editing.is_some() {
+                output.response.request_focus();
+            }
         } else {
-            let text = format!("{}", value);
-            let galley = ui.painter().layout_no_wrap(
-                text.clone(),
-                egui::FontId::proportional(11.0),
-                theme::VALUE_TEXT,
-            );
-            let rect = ui.available_rect_before_wrap();
-            let text_rect = egui::Rect::from_min_size(
-                egui::pos2(rect.left(), rect.center().y - galley.size().y / 2.0),
-                galley.size(),
-            );
+            // Non-interactive TextEdit for pixel-perfect alignment with editing state
+            let mut display_text = format!("{}", value);
+            let bg_idx = ui.painter().add(egui::Shape::Noop);
+            let te_output = egui::TextEdit::singleline(&mut display_text)
+                .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
+                .text_color(egui::Color32::WHITE)
+                .interactive(false)
+                .frame(false)
+                .margin(egui::Margin::symmetric(4, 0))
+                .desired_width(ui.available_width() - theme::PADDING - right_padding)
+                .show(ui);
 
-            let response = ui.allocate_rect(text_rect, Sense::click_and_drag());
-            ui.painter().galley(text_rect.min, galley, theme::VALUE_TEXT);
+            // Overlay click+drag sensing on the same rect
+            let interact_id = ui.id().with(port_key);
+            let response = ui.interact(te_output.response.rect, interact_id, Sense::click_and_drag());
+
+            // Hover effect: subtle darkened background
+            if response.hovered() || response.dragged() {
+                let hover_rect = te_output.response.rect.expand2(egui::vec2(0.0, 4.0));
+                ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                    hover_rect,
+                    egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
+                    theme::FIELD_HOVER_BG,
+                ));
+            }
 
             if response.dragged() {
                 // Modifier keys: Shift = x10, Alt = /100
@@ -737,6 +929,25 @@ impl ParameterPanel {
 
     /// Show document properties panel (canvas size, etc.).
     pub fn show_document_properties(&mut self, ui: &mut egui::Ui, state: &mut AppState) {
+        // Build tab order for document properties
+        self.tab_order = vec![
+            ("__document__".to_string(), "width".to_string()),
+            ("__document__".to_string(), "height".to_string()),
+        ];
+
+        // Activate pending tab target
+        if let Some(ref target) = self.tab_target.take() {
+            if self.tab_order.iter().any(|k| k == target) {
+                let edit_text = if target.1 == "width" {
+                    format!("{:.2}", state.library.width())
+                } else {
+                    format!("{:.2}", state.library.height())
+                };
+                self.editing = Some((target.0.clone(), target.1.clone(), edit_text, true));
+            }
+        }
+
+
         // Merged header with "Document"
         self.show_parameters_header(ui, Some("Document"), None);
 
@@ -763,6 +974,8 @@ impl ParameterPanel {
             0.0,
             theme::PORT_VALUE_BACKGROUND,
         );
+
+        ui.add_space(theme::PADDING);
 
         // Width
         ui.horizontal(|ui| {
@@ -794,7 +1007,7 @@ impl ParameterPanel {
             let is_editing = self.editing.as_ref()
                 .map(|(n, p, _, _)| n == &key.0 && p == &key.1)
                 .unwrap_or(false);
-            self.show_drag_value_float(ui, &mut width, Some(1.0), None, 1.0, &key, is_editing);
+            self.show_drag_value_float(ui, &mut width, Some(1.0), None, 1.0, &key, is_editing, theme::PADDING);
 
             // Update the property if changed
             if (state.library.width() - width).abs() > 0.001 {
@@ -832,11 +1045,56 @@ impl ParameterPanel {
             let is_editing = self.editing.as_ref()
                 .map(|(n, p, _, _)| n == &key.0 && p == &key.1)
                 .unwrap_or(false);
-            self.show_drag_value_float(ui, &mut height, Some(1.0), None, 1.0, &key, is_editing);
+            self.show_drag_value_float(ui, &mut height, Some(1.0), None, 1.0, &key, is_editing, theme::PADDING);
 
             // Update the property if changed
             if (state.library.height() - height).abs() > 0.001 {
                 Arc::make_mut(&mut state.library).set_height(height);
+            }
+        });
+
+        // Background color
+        ui.horizontal(|ui| {
+            ui.set_height(theme::PARAMETER_ROW_HEIGHT);
+
+            // Label
+            ui.allocate_ui_with_layout(
+                egui::Vec2::new(self.label_width, theme::PARAMETER_ROW_HEIGHT),
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui| {
+                    ui.add_space(8.0);
+                    let galley = ui.painter().layout_no_wrap(
+                        "background".to_string(),
+                        egui::FontId::proportional(11.0),
+                        theme::TEXT_NORMAL,
+                    );
+                    let rect = ui.available_rect_before_wrap();
+                    let pos = egui::pos2(
+                        rect.right() - galley.size().x - 8.0,
+                        rect.center().y - galley.size().y / 2.0,
+                    );
+                    ui.painter().galley(pos, galley, theme::TEXT_NORMAL);
+                },
+            );
+
+            // Color widget
+            let color = state.background_color;
+            let mut rgba = [
+                (color.r * 255.0) as u8,
+                (color.g * 255.0) as u8,
+                (color.b * 255.0) as u8,
+                (color.a * 255.0) as u8,
+            ];
+            ui.color_edit_button_srgba_unmultiplied(&mut rgba);
+            let new_color = Color::rgba(
+                rgba[0] as f64 / 255.0,
+                rgba[1] as f64 / 255.0,
+                rgba[2] as f64 / 255.0,
+                rgba[3] as f64 / 255.0,
+            );
+            if new_color != color {
+                state.background_color = new_color;
+                Arc::make_mut(&mut state.library).set_background_color(new_color);
             }
         });
     }

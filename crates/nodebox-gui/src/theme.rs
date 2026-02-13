@@ -116,6 +116,10 @@ pub const TEXT_EDIT_BG: Color32 = ZINC_600;
 pub const HOVER_BG: Color32 = ZINC_500;
 /// Selection background (visible violet with good text contrast)
 pub const SELECTION_BG: Color32 = VIOLET_800;
+/// Text edit selection highlight (blue, readable with white text)
+pub const TEXT_EDIT_SELECTION_BG: Color32 = Color32::from_rgb(37, 99, 175);
+/// Field hover background (ZINC_700 at ~50% opacity over ZINC_600)
+pub const FIELD_HOVER_BG: Color32 = Color32::from_rgb(72, 72, 81);
 
 // =============================================================================
 // SEMANTIC COLORS - Text

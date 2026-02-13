@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use super::Node;
 use super::PortType;
+use crate::geometry::Color;
 
 /// A library of nodes, typically loaded from an .ndbx file.
 ///
@@ -71,6 +72,22 @@ impl NodeLibrary {
     /// Note: internally stored as "canvasHeight" for backwards compatibility.
     pub fn set_height(&mut self, height: f64) {
         self.set_property("canvasHeight", (height as i64).to_string());
+    }
+
+    /// Returns the canvas background color from properties.
+    /// Note: internally stored as "canvasBackground" for backwards compatibility.
+    /// Default is gray (232, 232, 232), matching Java NodeBox.
+    pub fn background_color(&self) -> Color {
+        self.properties
+            .get("canvasBackground")
+            .and_then(|s| Color::from_hex(s).ok())
+            .unwrap_or(Color::rgb(232.0 / 255.0, 232.0 / 255.0, 232.0 / 255.0))
+    }
+
+    /// Sets the canvas background color.
+    /// Note: internally stored as "canvasBackground" for backwards compatibility.
+    pub fn set_background_color(&mut self, color: Color) {
+        self.set_property("canvasBackground", color.to_hex());
     }
 
     /// Sets a property.
