@@ -14,7 +14,7 @@ use crate::native_menu::{MenuAction, NativeMenuHandle};
 use crate::recent_files::RecentFiles;
 use crate::network_view::{NetworkAction, NetworkView};
 use crate::node_selection_dialog::NodeSelectionDialog;
-use crate::panels::ParameterPanel;
+use crate::parameter_panel::ParameterPanel;
 use crate::render_worker::{RenderResult, RenderState, RenderWorkerHandle};
 use crate::state::AppState;
 use crate::theme;

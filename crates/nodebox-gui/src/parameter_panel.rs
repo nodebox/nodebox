@@ -20,6 +20,11 @@ pub struct ParameterPanel {
     tab_order: Vec<(String, String)>,
     /// Deferred tab target: set when Tab/Shift+Tab is pressed, consumed next frame.
     tab_target: Option<(String, String)>,
+    /// When true, the current edit was initiated from a label click on a Point field.
+    /// On commit, the value should be applied to both x and y.
+    label_edit_apply_both: bool,
+    /// Set to the committed value when a label-initiated Point edit commits.
+    label_edit_committed_value: Option<f64>,
 }
 
 impl Default for ParameterPanel {
@@ -37,6 +42,8 @@ impl ParameterPanel {
             editing: None,
             tab_order: Vec::new(),
             tab_target: None,
+            label_edit_apply_both: false,
+            label_edit_committed_value: None,
         }
     }
 
@@ -231,6 +238,79 @@ impl ParameterPanel {
         String::new()
     }
 
+    /// Compute the drag speed modifier based on keyboard modifiers.
+    /// Shift = 10x (coarse), Alt = 0.01x (fine), otherwise 1x.
+    fn drag_modifier(ui: &egui::Ui) -> f64 {
+        ui.input(|i| {
+            if i.modifiers.shift {
+                10.0
+            } else if i.modifiers.alt {
+                0.01
+            } else {
+                1.0
+            }
+        })
+    }
+
+    /// Draw a right-aligned label in a fixed-width column, optionally with drag-to-adjust
+    /// and click-to-edit interaction.
+    ///
+    /// Returns the drag delta in pixels (0.0 if not draggable or not dragged).
+    fn show_draggable_label(
+        &mut self,
+        ui: &mut egui::Ui,
+        label: &str,
+        click_edit_state: Option<(String, String, String)>,
+        set_apply_both: bool,
+    ) -> f32 {
+        let label_width = self.label_width;
+        let mut drag_delta_x: f32 = 0.0;
+        let label_owned = label.to_string();
+
+        ui.allocate_ui_with_layout(
+            egui::Vec2::new(label_width, theme::PARAMETER_ROW_HEIGHT),
+            egui::Layout::right_to_left(egui::Align::Center),
+            |ui| {
+                ui.add_space(8.0);
+                let bg_idx = ui.painter().add(egui::Shape::Noop);
+                let galley = ui.painter().layout_no_wrap(
+                    label_owned.clone(),
+                    egui::FontId::proportional(11.0),
+                    theme::TEXT_NORMAL,
+                );
+                let rect = ui.available_rect_before_wrap();
+                let pos = egui::pos2(
+                    rect.right() - galley.size().x - 8.0,
+                    rect.center().y - galley.size().y / 2.0,
+                );
+                ui.painter().galley(pos, galley, theme::TEXT_NORMAL);
+
+                if let Some(ref edit_state) = click_edit_state {
+                    let full_rect = ui.max_rect();
+                    let interact_id = ui.id().with(("label_drag", &label_owned));
+                    let response = ui.interact(full_rect, interact_id, Sense::click_and_drag());
+                    if response.hovered() || response.dragged() {
+                        ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                            full_rect, 0.0, theme::FIELD_HOVER_BG,
+                        ));
+                        ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
+                    }
+                    if response.dragged() {
+                        drag_delta_x = response.drag_delta().x;
+                    }
+                    if response.clicked() {
+                        self.editing = Some((edit_state.0.clone(), edit_state.1.clone(), edit_state.2.clone(), true));
+                        if set_apply_both {
+                            self.label_edit_apply_both = true;
+                        }
+                    }
+                }
+            },
+        );
+
+        drag_delta_x
+    }
+
     /// Show a single port row with label and value editor.
     fn show_port_row(
         &mut self,
@@ -241,28 +321,36 @@ impl ParameterPanel {
         io_port: &dyn Port,
         project_context: &ProjectContext,
     ) {
+        let is_label_draggable = !is_connected
+            && matches!(port.widget, Widget::Float | Widget::Angle | Widget::Int | Widget::Point);
+        let port_name = port.name.clone();
+        let mut label_drag_delta_x: f32 = 0.0;
+
+        // Pre-compute the editing state for label click (avoids borrowing port in the closure)
+        let label_click_edit_state: Option<(String, String, String)> = if is_label_draggable {
+            match (&port.widget, &port.value) {
+                (Widget::Float | Widget::Angle, Value::Float(v)) => {
+                    Some((node_name.to_string(), port.name.clone(), format!("{:.2}", v)))
+                }
+                (Widget::Int, Value::Int(v)) => {
+                    Some((node_name.to_string(), port.name.clone(), format!("{}", v)))
+                }
+                (Widget::Point, Value::Point(p)) => {
+                    Some((node_name.to_string(), format!("{}_x", port.name), format!("{:.2}", p.x)))
+                }
+                _ => None,
+            }
+        } else {
+            None
+        };
+        let label_click_is_point = is_label_draggable && matches!(port.widget, Widget::Point);
+
         ui.horizontal(|ui| {
             ui.set_height(theme::PARAMETER_ROW_HEIGHT);
 
             // Fixed-width label, right-aligned (non-selectable)
-            ui.allocate_ui_with_layout(
-                egui::Vec2::new(self.label_width, theme::PARAMETER_ROW_HEIGHT),
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui| {
-                    ui.add_space(8.0);
-                    // Use painter to draw text directly (non-selectable)
-                    let galley = ui.painter().layout_no_wrap(
-                        port.name.clone(),
-                        egui::FontId::proportional(11.0),
-                        theme::TEXT_NORMAL,
-                    );
-                    let rect = ui.available_rect_before_wrap();
-                    let pos = egui::pos2(
-                        rect.right() - galley.size().x - 8.0,
-                        rect.center().y - galley.size().y / 2.0,
-                    );
-                    ui.painter().galley(pos, galley, theme::TEXT_NORMAL);
-                },
+            label_drag_delta_x = self.show_draggable_label(
+                ui, &port_name, label_click_edit_state, label_click_is_point,
             );
 
             // Value editor
@@ -278,8 +366,51 @@ impl ParameterPanel {
                 ui.painter().galley(pos, galley, theme::TEXT_DISABLED);
             } else {
                 self.show_port_editor(ui, port, node_name, io_port, project_context);
+
+                // Apply label-initiated Point edit to both x and y
+                if let Some(committed_val) = self.label_edit_committed_value.take() {
+                    if let Value::Point(ref mut point) = port.value {
+                        point.y = committed_val;
+                    }
+                    self.label_edit_apply_both = false;
+                } else if self.label_edit_apply_both && self.editing.is_none() {
+                    // Edit was cancelled, clear the flag
+                    self.label_edit_apply_both = false;
+                }
             }
         });
+
+        // Apply label drag delta to port value
+        if label_drag_delta_x != 0.0 {
+            let modifier = Self::drag_modifier(ui);
+            let delta = label_drag_delta_x as f64 * modifier;
+
+            match port.widget {
+                Widget::Float | Widget::Angle => {
+                    if let Value::Float(ref mut value) = port.value {
+                        *value += delta;
+                        if let Some(min_val) = port.min {
+                            *value = value.max(min_val);
+                        }
+                        if let Some(max_val) = port.max {
+                            *value = value.min(max_val);
+                        }
+                    }
+                }
+                Widget::Int => {
+                    if let Value::Int(ref mut value) = port.value {
+                        *value += delta as i64;
+                    }
+                }
+                Widget::Point => {
+                    if let Value::Point(ref mut point) = port.value {
+                        point.x += delta;
+                        point.y += delta;
+                    }
+                }
+                _ => {}
+            }
+        }
     }
 
     /// Show the editor widget for a port value - minimal style with no borders.
@@ -678,6 +809,9 @@ impl ParameterPanel {
                             clamped = clamped.min(max_val);
                         }
                         *value = clamped;
+                        if self.label_edit_apply_both {
+                            self.label_edit_committed_value = Some(clamped);
+                        }
                     }
                     self.editing = None;
                     if tab_pressed {
@@ -718,16 +852,7 @@ impl ParameterPanel {
             }
 
             if response.dragged() {
-                // Modifier keys: Shift = x10, Alt = /100
-                let modifier = ui.input(|i| {
-                    if i.modifiers.shift {
-                        10.0
-                    } else if i.modifiers.alt {
-                        0.01
-                    } else {
-                        1.0
-                    }
-                });
+                let modifier = Self::drag_modifier(ui);
                 let delta = response.drag_delta().x as f64 * speed * modifier;
                 *value += delta;
                 if let Some(min_val) = min {
@@ -853,16 +978,7 @@ impl ParameterPanel {
             }
 
             if response.dragged() {
-                // Modifier keys: Shift = x10, Alt = /100
-                let modifier = ui.input(|i| {
-                    if i.modifiers.shift {
-                        10.0
-                    } else if i.modifiers.alt {
-                        0.01
-                    } else {
-                        1.0
-                    }
-                });
+                let modifier = Self::drag_modifier(ui);
                 let delta = response.drag_delta().x as f64 * modifier;
                 *value += delta as i64;
                 if let Some(min_val) = min {
@@ -991,31 +1107,19 @@ impl ParameterPanel {
         ui.add_space(theme::PADDING);
 
         // Width
+        let current_width = state.library.width();
+        let mut width_label_drag: f32 = 0.0;
         ui.horizontal(|ui| {
             ui.set_height(theme::PARAMETER_ROW_HEIGHT);
 
-            // Label
-            ui.allocate_ui_with_layout(
-                egui::Vec2::new(self.label_width, theme::PARAMETER_ROW_HEIGHT),
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui| {
-                    ui.add_space(8.0);
-                    let galley = ui.painter().layout_no_wrap(
-                        "width".to_string(),
-                        egui::FontId::proportional(11.0),
-                        theme::TEXT_NORMAL,
-                    );
-                    let rect = ui.available_rect_before_wrap();
-                    let pos = egui::pos2(
-                        rect.right() - galley.size().x - 8.0,
-                        rect.center().y - galley.size().y / 2.0,
-                    );
-                    ui.painter().galley(pos, galley, theme::TEXT_NORMAL);
-                },
+            width_label_drag = self.show_draggable_label(
+                ui, "width",
+                Some(("__document__".to_string(), "width".to_string(), format!("{:.2}", current_width))),
+                false,
             );
 
             // Value
-            let mut width = state.library.width();
+            let mut width = current_width;
             let key = ("__document__".to_string(), "width".to_string());
             let is_editing = self.editing.as_ref()
                 .map(|(n, p, _, _)| n == &key.0 && p == &key.1)
@@ -1023,37 +1127,31 @@ impl ParameterPanel {
             self.show_drag_value_float(ui, &mut width, Some(1.0), None, 1.0, &key, is_editing, theme::PADDING);
 
             // Update the property if changed
-            if (state.library.width() - width).abs() > 0.001 {
+            if (current_width - width).abs() > 0.001 {
                 Arc::make_mut(&mut state.library).set_width(width);
             }
         });
+        if width_label_drag != 0.0 {
+            let modifier = Self::drag_modifier(ui);
+            let delta = width_label_drag as f64 * modifier;
+            let new_width = (state.library.width() + delta).max(1.0);
+            Arc::make_mut(&mut state.library).set_width(new_width);
+        }
 
         // Height
+        let current_height = state.library.height();
+        let mut height_label_drag: f32 = 0.0;
         ui.horizontal(|ui| {
             ui.set_height(theme::PARAMETER_ROW_HEIGHT);
 
-            // Label
-            ui.allocate_ui_with_layout(
-                egui::Vec2::new(self.label_width, theme::PARAMETER_ROW_HEIGHT),
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui| {
-                    ui.add_space(8.0);
-                    let galley = ui.painter().layout_no_wrap(
-                        "height".to_string(),
-                        egui::FontId::proportional(11.0),
-                        theme::TEXT_NORMAL,
-                    );
-                    let rect = ui.available_rect_before_wrap();
-                    let pos = egui::pos2(
-                        rect.right() - galley.size().x - 8.0,
-                        rect.center().y - galley.size().y / 2.0,
-                    );
-                    ui.painter().galley(pos, galley, theme::TEXT_NORMAL);
-                },
+            height_label_drag = self.show_draggable_label(
+                ui, "height",
+                Some(("__document__".to_string(), "height".to_string(), format!("{:.2}", current_height))),
+                false,
             );
 
             // Value
-            let mut height = state.library.height();
+            let mut height = current_height;
             let key = ("__document__".to_string(), "height".to_string());
             let is_editing = self.editing.as_ref()
                 .map(|(n, p, _, _)| n == &key.0 && p == &key.1)
@@ -1061,34 +1159,22 @@ impl ParameterPanel {
             self.show_drag_value_float(ui, &mut height, Some(1.0), None, 1.0, &key, is_editing, theme::PADDING);
 
             // Update the property if changed
-            if (state.library.height() - height).abs() > 0.001 {
+            if (current_height - height).abs() > 0.001 {
                 Arc::make_mut(&mut state.library).set_height(height);
             }
         });
+        if height_label_drag != 0.0 {
+            let modifier = Self::drag_modifier(ui);
+            let delta = height_label_drag as f64 * modifier;
+            let new_height = (state.library.height() + delta).max(1.0);
+            Arc::make_mut(&mut state.library).set_height(new_height);
+        }
 
         // Background color
         ui.horizontal(|ui| {
             ui.set_height(theme::PARAMETER_ROW_HEIGHT);
 
-            // Label
-            ui.allocate_ui_with_layout(
-                egui::Vec2::new(self.label_width, theme::PARAMETER_ROW_HEIGHT),
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui| {
-                    ui.add_space(8.0);
-                    let galley = ui.painter().layout_no_wrap(
-                        "background".to_string(),
-                        egui::FontId::proportional(11.0),
-                        theme::TEXT_NORMAL,
-                    );
-                    let rect = ui.available_rect_before_wrap();
-                    let pos = egui::pos2(
-                        rect.right() - galley.size().x - 8.0,
-                        rect.center().y - galley.size().y / 2.0,
-                    );
-                    ui.painter().galley(pos, galley, theme::TEXT_NORMAL);
-                },
-            );
+            self.show_draggable_label(ui, "background", None, false);
 
             // Color widget
             let color = state.background_color;
