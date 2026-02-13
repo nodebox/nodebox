@@ -601,13 +601,14 @@ impl ViewerPane {
         // Draw a subtle grid
         self.draw_grid(&painter, rect);
 
+        // Draw all geometry (using GPU or CPU rendering)
+        self.render_geometry(ui, &painter, state, render_state, rect, center);
+
         // Draw canvas border (uses document width/height)
+        // Drawn after geometry so it's visible on top of the Vello GPU texture.
         if self.show_canvas_border {
             self.draw_canvas_border(&painter, center, state.library.width(), state.library.height());
         }
-
-        // Draw all geometry (using GPU or CPU rendering)
-        self.render_geometry(ui, &painter, state, render_state, rect, center);
 
         // Draw origin crosshair
         if self.show_origin {
