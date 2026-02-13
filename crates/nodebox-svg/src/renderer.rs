@@ -102,14 +102,7 @@ pub fn render_to_svg_with_options(paths: &[Path], options: &SvgOptions) -> Strin
     write!(svg, r#" width="{}" height="{}""#, options.width, options.height).unwrap();
 
     if options.include_viewbox {
-        if options.centered {
-            // Centered viewBox: origin is at center of canvas
-            let half_w = options.width / 2.0;
-            let half_h = options.height / 2.0;
-            write!(svg, r#" viewBox="{} {} {} {}""#, -half_w, -half_h, options.width, options.height).unwrap();
-        } else {
-            write!(svg, r#" viewBox="0 0 {} {}""#, options.width, options.height).unwrap();
-        }
+        write!(svg, r#" viewBox="0 0 {} {}""#, options.width, options.height).unwrap();
     }
 
     writeln!(svg, ">").unwrap();
@@ -118,14 +111,25 @@ pub fn render_to_svg_with_options(paths: &[Path], options: &SvgOptions) -> Strin
     if let Some(bg) = options.background {
         writeln!(
             svg,
-            r#"  <rect width="100%" height="100%" fill="{}"/>"#,
-            color_to_svg(&bg)
+            r#"  <rect width="{}" height="{}" fill="{}"/>"#,
+            options.width, options.height, color_to_svg(&bg)
         ).unwrap();
+    }
+
+    // When centered, wrap geometry in a translate group so (0,0) maps to canvas center
+    if options.centered {
+        let half_w = options.width / 2.0;
+        let half_h = options.height / 2.0;
+        writeln!(svg, r#"  <g transform="translate({half_w},{half_h})">"#).unwrap();
     }
 
     // Render paths
     for path in paths {
         render_path(&mut svg, path, options.precision);
+    }
+
+    if options.centered {
+        writeln!(svg, "  </g>").unwrap();
     }
 
     writeln!(svg, "</svg>").unwrap();
@@ -164,8 +168,8 @@ pub fn render_canvas_to_svg(canvas: &Canvas) -> String {
     if let Some(bg) = options.background {
         writeln!(
             svg,
-            r#"  <rect width="100%" height="100%" fill="{}"/>"#,
-            color_to_svg(&bg)
+            r#"  <rect width="{}" height="{}" fill="{}"/>"#,
+            options.width, options.height, color_to_svg(&bg)
         ).unwrap();
     }
 
@@ -455,7 +459,7 @@ mod tests {
         let svg = render_to_svg_with_options(&[], &options);
 
         // Should not have background rect
-        assert!(!svg.contains(r#"<rect width="100%""#));
+        assert!(!svg.contains("<rect"));
     }
 
     #[test]
@@ -489,9 +493,11 @@ mod tests {
         let options = SvgOptions::new(200.0, 100.0).with_centered(true);
         let svg = render_to_svg_with_options(&[], &options);
 
-        // Centered viewBox should be "-100 -50 200 100"
-        assert!(svg.contains(r#"viewBox="-100 -50 200 100""#),
-            "Centered viewBox should have negative origin. SVG: {}", svg);
+        // Centered mode uses 0-based viewBox with a translate group for compatibility
+        assert!(svg.contains(r#"viewBox="0 0 200 100""#),
+            "Centered viewBox should use 0-based origin. SVG: {}", svg);
+        assert!(svg.contains(r#"translate(100,50)"#),
+            "Centered mode should have translate group. SVG: {}", svg);
     }
 
     #[test]
@@ -501,8 +507,11 @@ mod tests {
         let options = SvgOptions::new(100.0, 100.0).with_centered(true);
         let svg = render_to_svg_with_options(&[rect], &options);
 
-        // The viewBox should be centered
-        assert!(svg.contains(r#"viewBox="-50 -50 100 100""#));
+        // The viewBox should be 0-based
+        assert!(svg.contains(r#"viewBox="0 0 100 100""#));
+
+        // Geometry is wrapped in a translate group
+        assert!(svg.contains(r#"translate(50,50)"#));
 
         // The path should be at the original coordinates (centered at origin)
         assert!(svg.contains("M-25"));
