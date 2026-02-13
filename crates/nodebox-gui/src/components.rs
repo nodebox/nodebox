@@ -45,7 +45,7 @@ pub fn draw_pane_header_with_title(
             egui::pos2(aligned_rect.left(), aligned_rect.top() + 0.5),
             egui::pos2(aligned_rect.right(), aligned_rect.top() + 0.5),
         ],
-        egui::Stroke::new(1.0, theme::SLATE_700),
+        egui::Stroke::new(1.0, theme::ZINC_600),
     );
 
     // Title on left (UPPERCASE)
@@ -72,13 +72,18 @@ pub fn draw_pane_header_with_title(
         egui::Stroke::new(1.0, theme::TEXT_DISABLED),
     );
 
-    // Bottom border (1px dark line) - draw at bottom edge
-    ui.painter().line_segment(
+    // Bottom border (1px dark line) - painted on foreground layer so content
+    // below (canvas, table headers) cannot paint over it.
+    let fg_painter = ui.ctx().layer_painter(egui::LayerId::new(
+        egui::Order::Foreground,
+        ui.id().with("header_border"),
+    ));
+    fg_painter.line_segment(
         [
             egui::pos2(aligned_rect.left(), aligned_rect.bottom() - 0.5),
             egui::pos2(aligned_rect.right(), aligned_rect.bottom() - 0.5),
         ],
-        egui::Stroke::new(1.0, theme::SLATE_950),
+        egui::Stroke::new(1.0, theme::ZINC_900),
     );
 
     // Return header rect and x position after separator (8px margin)
@@ -287,7 +292,7 @@ pub fn header_segmented_control(
         ui.painter().rect_filled(
             selected_rect,
             0.0,
-            theme::SLATE_700,
+            theme::ZINC_600,
         );
     }
 
@@ -374,29 +379,29 @@ pub fn header_zoom_control(
     let old_spacing = ui.spacing().clone();
 
     // All states: no borders, sharp corners, appropriate fill
-    ui.visuals_mut().widgets.inactive.bg_fill = theme::SLATE_800;
-    ui.visuals_mut().widgets.inactive.weak_bg_fill = theme::SLATE_800;
+    ui.visuals_mut().widgets.inactive.bg_fill = theme::ZINC_700;
+    ui.visuals_mut().widgets.inactive.weak_bg_fill = theme::ZINC_700;
     ui.visuals_mut().widgets.inactive.bg_stroke = egui::Stroke::NONE;
     ui.visuals_mut().widgets.inactive.fg_stroke = egui::Stroke::new(1.0, theme::TEXT_DEFAULT);
     ui.visuals_mut().widgets.inactive.corner_radius = egui::CornerRadius::ZERO;
     ui.visuals_mut().widgets.inactive.expansion = 0.0;
 
-    ui.visuals_mut().widgets.hovered.bg_fill = theme::SLATE_700;
-    ui.visuals_mut().widgets.hovered.weak_bg_fill = theme::SLATE_700;
+    ui.visuals_mut().widgets.hovered.bg_fill = theme::ZINC_600;
+    ui.visuals_mut().widgets.hovered.weak_bg_fill = theme::ZINC_600;
     ui.visuals_mut().widgets.hovered.bg_stroke = egui::Stroke::NONE;
     ui.visuals_mut().widgets.hovered.fg_stroke = egui::Stroke::new(1.0, theme::TEXT_STRONG);
     ui.visuals_mut().widgets.hovered.corner_radius = egui::CornerRadius::ZERO;
     ui.visuals_mut().widgets.hovered.expansion = 0.0;
 
-    ui.visuals_mut().widgets.active.bg_fill = theme::SLATE_700;
-    ui.visuals_mut().widgets.active.weak_bg_fill = theme::SLATE_700;
+    ui.visuals_mut().widgets.active.bg_fill = theme::ZINC_600;
+    ui.visuals_mut().widgets.active.weak_bg_fill = theme::ZINC_600;
     ui.visuals_mut().widgets.active.bg_stroke = egui::Stroke::NONE;
     ui.visuals_mut().widgets.active.fg_stroke = egui::Stroke::new(1.0, theme::TEXT_STRONG);
     ui.visuals_mut().widgets.active.corner_radius = egui::CornerRadius::ZERO;
     ui.visuals_mut().widgets.active.expansion = 0.0;
 
-    ui.visuals_mut().widgets.noninteractive.bg_fill = theme::SLATE_800;
-    ui.visuals_mut().widgets.noninteractive.weak_bg_fill = theme::SLATE_800;
+    ui.visuals_mut().widgets.noninteractive.bg_fill = theme::ZINC_700;
+    ui.visuals_mut().widgets.noninteractive.weak_bg_fill = theme::ZINC_700;
     ui.visuals_mut().widgets.noninteractive.bg_stroke = egui::Stroke::NONE;
     ui.visuals_mut().widgets.noninteractive.corner_radius = egui::CornerRadius::ZERO;
     ui.visuals_mut().widgets.noninteractive.expansion = 0.0;
@@ -462,7 +467,7 @@ pub fn header_icon_button(
         ui.painter().rect_filled(
             button_rect,
             0.0,
-            theme::SLATE_700,
+            theme::ZINC_600,
         );
     }
 

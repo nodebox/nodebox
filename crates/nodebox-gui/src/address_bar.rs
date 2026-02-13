@@ -148,13 +148,13 @@ impl AddressBar {
         // Determine button color based on rendering state
         let button_color = if !self.is_rendering {
             // Not rendering: subtle (disabled appearance)
-            theme::SLATE_700
+            theme::ZINC_600
         } else if self.render_elapsed_secs < STOP_BUTTON_HIGHLIGHT_THRESHOLD_SECS {
             // Rendering but less than threshold: subtle
-            theme::SLATE_700
+            theme::ZINC_600
         } else {
             // Rendering and past threshold: prominent
-            theme::SLATE_300
+            theme::ZINC_200
         };
 
         // Draw the stop button (circle with square inside)
