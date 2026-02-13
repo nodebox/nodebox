@@ -937,7 +937,7 @@ impl ViewerPane {
                                 ui.painter().rect_stroke(
                                     swatch_rect,
                                     0.0,
-                                    Stroke::new(1.0, theme::SLATE_600),
+                                    Stroke::new(1.0, theme::ZINC_500),
                                     egui::StrokeKind::Inside,
                                 );
                             }
@@ -1258,7 +1258,7 @@ impl ViewerPane {
                 ui.painter().rect_stroke(
                     swatch_rect,
                     0.0,
-                    Stroke::new(1.0, theme::SLATE_600),
+                    Stroke::new(1.0, theme::ZINC_500),
                     egui::StrokeKind::Inside,
                 );
 
