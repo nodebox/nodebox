@@ -193,12 +193,12 @@ impl ParameterPanel {
         match port.widget {
             Widget::Float | Widget::Angle => {
                 if let Value::Float(ref mut value) = port.value {
-                    self.show_drag_value_float(ui, value, port.min, port.max, 1.0, &port_key, is_editing);
+                    self.show_drag_value_float(ui, value, port.min, port.max, 1.0, &port_key, is_editing, theme::PADDING);
                 }
             }
             Widget::Int => {
                 if let Value::Int(ref mut value) = port.value {
-                    self.show_drag_value_int(ui, value, &port_key, is_editing);
+                    self.show_drag_value_int(ui, value, &port_key, is_editing, theme::PADDING);
                 }
             }
             Widget::Toggle => {
@@ -326,15 +326,15 @@ impl ParameterPanel {
                     let is_editing_y = self.editing.as_ref()
                         .map(|(n, p, _, _)| n == &key_y.0 && p == &key_y.1)
                         .unwrap_or(false);
-                    let available = ui.available_width();
+                    let available = ui.available_width() - theme::PADDING;
                     let old_spacing = ui.spacing().item_spacing.x;
-                    ui.spacing_mut().item_spacing.x = 8.0;
-                    let field_width = (available - 8.0) / 2.0;
+                    ui.spacing_mut().item_spacing.x = 16.0;
+                    let field_width = (available - 16.0) / 2.0;
                     ui.allocate_ui(egui::Vec2::new(field_width, theme::PARAMETER_ROW_HEIGHT), |ui| {
-                        self.show_drag_value_float(ui, &mut point.x, None, None, 1.0, &key_x, is_editing_x);
+                        self.show_drag_value_float(ui, &mut point.x, None, None, 1.0, &key_x, is_editing_x, 0.0);
                     });
                     ui.allocate_ui(egui::Vec2::new(field_width, theme::PARAMETER_ROW_HEIGHT), |ui| {
-                        self.show_drag_value_float(ui, &mut point.y, None, None, 1.0, &key_y, is_editing_y);
+                        self.show_drag_value_float(ui, &mut point.y, None, None, 1.0, &key_y, is_editing_y, 0.0);
                     });
                     ui.spacing_mut().item_spacing.x = old_spacing;
                 }
@@ -469,6 +469,7 @@ impl ParameterPanel {
     }
 
     /// Show a minimal drag value for floats - non-selectable, draggable, click to edit.
+    /// `right_padding` is extra space to reserve on the right (e.g. PADDING for panel edge margin, 0.0 for Point widget fields).
     fn show_drag_value_float(
         &mut self,
         ui: &mut egui::Ui,
@@ -478,6 +479,7 @@ impl ParameterPanel {
         speed: f64,
         port_key: &(String, String),
         is_editing: bool,
+        right_padding: f32,
     ) {
         if is_editing {
             // Show text input for direct editing
@@ -494,7 +496,7 @@ impl ParameterPanel {
             let output = egui::TextEdit::singleline(&mut edit_text)
                 .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
                 .text_color(egui::Color32::WHITE)
-                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
+                .desired_width(ui.available_width() - theme::PADDING - right_padding)
                 .margin(egui::Margin::symmetric(4, 0))
                 .frame(false)
                 .show(ui);
@@ -558,7 +560,7 @@ impl ParameterPanel {
                 .interactive(false)
                 .frame(false)
                 .margin(egui::Margin::symmetric(4, 0))
-                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
+                .desired_width(ui.available_width() - theme::PADDING - right_padding)
                 .show(ui);
 
             // Overlay click+drag sensing on the same rect
@@ -608,7 +610,7 @@ impl ParameterPanel {
     }
 
     /// Show a minimal drag value for ints - non-selectable, draggable, click to edit.
-    fn show_drag_value_int(&mut self, ui: &mut egui::Ui, value: &mut i64, port_key: &(String, String), is_editing: bool) {
+    fn show_drag_value_int(&mut self, ui: &mut egui::Ui, value: &mut i64, port_key: &(String, String), is_editing: bool, right_padding: f32) {
         if is_editing {
             // Show text input for direct editing
             let (mut edit_text, needs_select) = self.editing.as_ref()
@@ -624,7 +626,7 @@ impl ParameterPanel {
             let output = egui::TextEdit::singleline(&mut edit_text)
                 .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
                 .text_color(egui::Color32::WHITE)
-                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
+                .desired_width(ui.available_width() - theme::PADDING - right_padding)
                 .margin(egui::Margin::symmetric(4, 0))
                 .frame(false)
                 .show(ui);
@@ -679,7 +681,7 @@ impl ParameterPanel {
                 .interactive(false)
                 .frame(false)
                 .margin(egui::Margin::symmetric(4, 0))
-                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
+                .desired_width(ui.available_width() - theme::PADDING - right_padding)
                 .show(ui);
 
             // Overlay click+drag sensing on the same rect
@@ -839,7 +841,7 @@ impl ParameterPanel {
             let is_editing = self.editing.as_ref()
                 .map(|(n, p, _, _)| n == &key.0 && p == &key.1)
                 .unwrap_or(false);
-            self.show_drag_value_float(ui, &mut width, Some(1.0), None, 1.0, &key, is_editing);
+            self.show_drag_value_float(ui, &mut width, Some(1.0), None, 1.0, &key, is_editing, theme::PADDING);
 
             // Update the property if changed
             if (state.library.width() - width).abs() > 0.001 {
@@ -877,7 +879,7 @@ impl ParameterPanel {
             let is_editing = self.editing.as_ref()
                 .map(|(n, p, _, _)| n == &key.0 && p == &key.1)
                 .unwrap_or(false);
-            self.show_drag_value_float(ui, &mut height, Some(1.0), None, 1.0, &key, is_editing);
+            self.show_drag_value_float(ui, &mut height, Some(1.0), None, 1.0, &key, is_editing, theme::PADDING);
 
             // Update the property if changed
             if (state.library.height() - height).abs() > 0.001 {
