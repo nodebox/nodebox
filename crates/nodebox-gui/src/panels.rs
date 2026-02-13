@@ -41,8 +41,8 @@ impl ParameterPanel {
         port: &dyn Port,
         project_context: &ProjectContext,
     ) {
-        // Apply minimal styling for the panel
-        ui.style_mut().spacing.item_spacing = egui::vec2(8.0, 2.0);
+        // Zero spacing so header sits flush against content
+        ui.style_mut().spacing.item_spacing = egui::vec2(0.0, 0.0);
 
         if let Some(ref node_name) = state.selected_node.clone() {
             // First, collect connected ports while we only have immutable borrow
@@ -70,6 +70,9 @@ impl ParameterPanel {
                 node_display_name.as_deref(),
                 node_prototype.as_deref(),
             );
+
+            // Restore row spacing for content
+            ui.style_mut().spacing.item_spacing = egui::vec2(8.0, 2.0);
 
             // Find the node in the library for mutation
             if let Some(node) = Arc::make_mut(&mut state.library).root.child_mut(&node_name) {
@@ -734,11 +737,11 @@ impl ParameterPanel {
 
     /// Show document properties panel (canvas size, etc.).
     pub fn show_document_properties(&mut self, ui: &mut egui::Ui, state: &mut AppState) {
-        // Apply minimal styling for the panel
-        ui.style_mut().spacing.item_spacing = egui::vec2(8.0, 2.0);
-
         // Merged header with "Document"
         self.show_parameters_header(ui, Some("Document"), None);
+
+        // Restore row spacing for content
+        ui.style_mut().spacing.item_spacing = egui::vec2(8.0, 2.0);
 
         // Paint two-tone background for the content area
         let content_rect = ui.available_rect_before_wrap();
