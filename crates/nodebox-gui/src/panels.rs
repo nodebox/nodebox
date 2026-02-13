@@ -15,6 +15,10 @@ pub struct ParameterPanel {
     label_width: f32,
     /// Track which port is being edited (node_name, port_name, edit_text, needs_select_all)
     editing: Option<(String, String, String, bool)>,
+    /// Ordered list of tabbable (node_name, port_name) keys, rebuilt every frame.
+    tab_order: Vec<(String, String)>,
+    /// Deferred tab target: set when Tab/Shift+Tab is pressed, consumed next frame.
+    tab_target: Option<(String, String)>,
 }
 
 impl Default for ParameterPanel {
@@ -30,6 +34,8 @@ impl ParameterPanel {
         Self {
             label_width: theme::LABEL_WIDTH,
             editing: None,
+            tab_order: Vec::new(),
+            tab_target: None,
         }
     }
 
@@ -63,6 +69,19 @@ impl ParameterPanel {
                     (None, None)
                 }
             };
+
+            // Build tab order from the immutable view of the node's inputs
+            if let Some(node) = state.library.root.child(&node_name) {
+                self.tab_order = Self::build_tab_order(&node_name, &node.inputs, &connected_ports);
+
+                // Activate pending tab target
+                if let Some(ref target) = self.tab_target.take() {
+                    if self.tab_order.iter().any(|k| k == target) {
+                        let edit_text = Self::get_edit_text_for_target(&node.inputs, target);
+                        self.editing = Some((target.0.clone(), target.1.clone(), edit_text, true));
+                    }
+                }
+            }
 
             // Show header before mutable borrow
             self.show_parameters_header(
@@ -120,6 +139,90 @@ impl ParameterPanel {
             // No node selected - show document properties
             self.show_document_properties(ui, state);
         }
+    }
+
+    /// Build the tab order for the given node's inputs.
+    /// Returns a list of (node_name, port_key) pairs for all tabbable fields in order.
+    /// Point fields produce two entries: (node, "name_x") and (node, "name_y").
+    fn build_tab_order(
+        node_name: &str,
+        inputs: &[nodebox_core::node::Port],
+        connected_ports: &std::collections::HashSet<String>,
+    ) -> Vec<(String, String)> {
+        let mut order = Vec::new();
+        for port in inputs {
+            if connected_ports.contains(&port.name) {
+                continue;
+            }
+            match port.widget {
+                Widget::Float | Widget::Angle | Widget::Int | Widget::String | Widget::Text => {
+                    order.push((node_name.to_string(), port.name.clone()));
+                }
+                Widget::Point => {
+                    order.push((node_name.to_string(), format!("{}_x", port.name)));
+                    order.push((node_name.to_string(), format!("{}_y", port.name)));
+                }
+                _ => {}
+            }
+        }
+        order
+    }
+
+    /// Find the next or previous tab stop in the tab order, wrapping around.
+    fn next_tab_stop(
+        tab_order: &[(String, String)],
+        current: &(String, String),
+        forward: bool,
+    ) -> Option<(String, String)> {
+        if tab_order.is_empty() {
+            return None;
+        }
+        let pos = tab_order.iter().position(|k| k == current);
+        let next_idx = match pos {
+            Some(idx) => {
+                if forward {
+                    (idx + 1) % tab_order.len()
+                } else if idx == 0 {
+                    tab_order.len() - 1
+                } else {
+                    idx - 1
+                }
+            }
+            None => 0,
+        };
+        Some(tab_order[next_idx].clone())
+    }
+
+    /// Get the text representation of a port value for pre-filling the edit field.
+    fn get_edit_text_for_target(
+        inputs: &[nodebox_core::node::Port],
+        target: &(String, String),
+    ) -> String {
+        // Try exact port name match first
+        if let Some(port) = inputs.iter().find(|p| p.name == target.1) {
+            return match &port.value {
+                Value::Float(v) => format!("{:.2}", v),
+                Value::Int(v) => format!("{}", v),
+                Value::String(v) => v.clone(),
+                _ => String::new(),
+            };
+        }
+        // Try Point suffix: target.1 ends with "_x" or "_y"
+        if let Some(base) = target.1.strip_suffix("_x") {
+            if let Some(port) = inputs.iter().find(|p| p.name == base) {
+                if let Value::Point(ref pt) = port.value {
+                    return format!("{:.2}", pt.x);
+                }
+            }
+        }
+        if let Some(base) = target.1.strip_suffix("_y") {
+            if let Some(port) = inputs.iter().find(|p| p.name == base) {
+                if let Value::Point(ref pt) = port.value {
+                    return format!("{:.2}", pt.y);
+                }
+            }
+        }
+        String::new()
     }
 
     /// Show a single port row with label and value editor.
@@ -263,11 +366,16 @@ impl ParameterPanel {
 
                         // Commit on enter or focus lost
                         if output.response.lost_focus() {
+                            let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
                             if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                                 self.editing = None;
                             } else {
                                 *value = edit_text;
                                 self.editing = None;
+                                if tab_pressed {
+                                    let forward = !ui.input(|i| i.modifiers.shift);
+                                    self.tab_target = Self::next_tab_stop(&self.tab_order, &port_key, forward);
+                                }
                             }
                         }
 
@@ -522,20 +630,25 @@ impl ParameterPanel {
 
             // Commit on enter or focus lost
             if output.response.lost_focus() {
+                let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     self.editing = None;
-                } else if let Ok(new_val) = edit_text.parse::<f64>() {
-                    let mut clamped = new_val;
-                    if let Some(min_val) = min {
-                        clamped = clamped.max(min_val);
-                    }
-                    if let Some(max_val) = max {
-                        clamped = clamped.min(max_val);
-                    }
-                    *value = clamped;
-                    self.editing = None;
                 } else {
+                    if let Ok(new_val) = edit_text.parse::<f64>() {
+                        let mut clamped = new_val;
+                        if let Some(min_val) = min {
+                            clamped = clamped.max(min_val);
+                        }
+                        if let Some(max_val) = max {
+                            clamped = clamped.min(max_val);
+                        }
+                        *value = clamped;
+                    }
                     self.editing = None;
+                    if tab_pressed {
+                        let forward = !ui.input(|i| i.modifiers.shift);
+                        self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
+                    }
                 }
             }
 
@@ -623,13 +736,18 @@ impl ParameterPanel {
             }
 
             if output.response.lost_focus() {
+                let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     self.editing = None;
-                } else if let Ok(new_val) = edit_text.parse::<i64>() {
-                    *value = new_val;
-                    self.editing = None;
                 } else {
+                    if let Ok(new_val) = edit_text.parse::<i64>() {
+                        *value = new_val;
+                    }
                     self.editing = None;
+                    if tab_pressed {
+                        let forward = !ui.input(|i| i.modifiers.shift);
+                        self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
+                    }
                 }
             }
 
@@ -736,6 +854,24 @@ impl ParameterPanel {
     pub fn show_document_properties(&mut self, ui: &mut egui::Ui, state: &mut AppState) {
         // Apply minimal styling for the panel
         ui.style_mut().spacing.item_spacing = egui::vec2(8.0, 2.0);
+
+        // Build tab order for document properties
+        self.tab_order = vec![
+            ("__document__".to_string(), "width".to_string()),
+            ("__document__".to_string(), "height".to_string()),
+        ];
+
+        // Activate pending tab target
+        if let Some(ref target) = self.tab_target.take() {
+            if self.tab_order.iter().any(|k| k == target) {
+                let edit_text = if target.1 == "width" {
+                    format!("{:.2}", state.library.width())
+                } else {
+                    format!("{:.2}", state.library.height())
+                };
+                self.editing = Some((target.0.clone(), target.1.clone(), edit_text, true));
+            }
+        }
 
         // Merged header with "Document"
         self.show_parameters_header(ui, Some("Document"), None);
