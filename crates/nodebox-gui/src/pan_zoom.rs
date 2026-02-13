@@ -57,7 +57,8 @@ impl PanZoom {
     /// Returns true if zoom changed.
     pub fn handle_scroll_zoom(&mut self, rect: Rect, ui: &egui::Ui, origin: Vec2) -> bool {
         if let Some(mouse_pos) = ui.input(|i| i.pointer.hover_pos()) {
-            if rect.contains(mouse_pos) {
+            // Use layer-aware check so overlapping windows/dialogs block scroll.
+            if ui.rect_contains_pointer(rect) {
                 let scroll = ui.input(|i| i.raw_scroll_delta.y);
                 if scroll != 0.0 {
                     let zoom_factor = 1.0 + scroll * 0.001;

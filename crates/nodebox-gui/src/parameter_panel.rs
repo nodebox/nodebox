@@ -55,8 +55,8 @@ impl ParameterPanel {
         port: &dyn Port,
         project_context: &ProjectContext,
     ) {
-        // Apply minimal styling for the panel
-        ui.style_mut().spacing.item_spacing = egui::vec2(8.0, 2.0);
+        // Zero spacing so header sits flush against content
+        ui.style_mut().spacing.item_spacing = egui::vec2(0.0, 0.0);
 
         if let Some(ref node_name) = state.selected_node.clone() {
             // First, collect connected ports while we only have immutable borrow
@@ -97,6 +97,9 @@ impl ParameterPanel {
                 node_display_name.as_deref(),
                 node_prototype.as_deref(),
             );
+
+            // Restore row spacing for content
+            ui.style_mut().spacing.item_spacing = egui::vec2(8.0, 2.0);
 
             // Find the node in the library for mutation
             if let Some(node) = Arc::make_mut(&mut state.library).root.child_mut(&node_name) {
@@ -434,7 +437,7 @@ impl ParameterPanel {
             }
             Widget::Int => {
                 if let Value::Int(ref mut value) = port.value {
-                    self.show_drag_value_int(ui, value, &port_key, is_editing, theme::PADDING);
+                    self.show_drag_value_int(ui, value, port.min, port.max, &port_key, is_editing, theme::PADDING);
                 }
             }
             Widget::Toggle => {
@@ -767,7 +770,7 @@ impl ParameterPanel {
             ui.painter().set(bg_idx, egui::Shape::rect_filled(
                 bg_rect,
                 egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
-                theme::SLATE_800,
+                theme::ZINC_700,
             ));
 
             ui.visuals_mut().selection = old_selection;
@@ -872,7 +875,7 @@ impl ParameterPanel {
     }
 
     /// Show a minimal drag value for ints - non-selectable, draggable, click to edit.
-    fn show_drag_value_int(&mut self, ui: &mut egui::Ui, value: &mut i64, port_key: &(String, String), is_editing: bool, right_padding: f32) {
+    fn show_drag_value_int(&mut self, ui: &mut egui::Ui, value: &mut i64, min: Option<f64>, max: Option<f64>, port_key: &(String, String), is_editing: bool, right_padding: f32) {
         if is_editing {
             // Show text input for direct editing
             let (mut edit_text, needs_select) = self.editing.as_ref()
@@ -898,7 +901,7 @@ impl ParameterPanel {
             ui.painter().set(bg_idx, egui::Shape::rect_filled(
                 bg_rect,
                 egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
-                theme::SLATE_800,
+                theme::ZINC_700,
             ));
 
             ui.visuals_mut().selection = old_selection;
@@ -927,7 +930,14 @@ impl ParameterPanel {
                     self.editing = None;
                 } else {
                     if let Ok(new_val) = edit_text.parse::<i64>() {
-                        *value = new_val;
+                        let mut clamped = new_val;
+                        if let Some(min_val) = min {
+                            clamped = clamped.max(min_val as i64);
+                        }
+                        if let Some(max_val) = max {
+                            clamped = clamped.min(max_val as i64);
+                        }
+                        *value = clamped;
                     }
                     self.editing = None;
                     if tab_pressed {
@@ -971,6 +981,12 @@ impl ParameterPanel {
                 let modifier = Self::drag_modifier(ui);
                 let delta = response.drag_delta().x as f64 * modifier;
                 *value += delta as i64;
+                if let Some(min_val) = min {
+                    *value = (*value).max(min_val as i64);
+                }
+                if let Some(max_val) = max {
+                    *value = (*value).min(max_val as i64);
+                }
             }
 
             if response.hovered() {
@@ -1042,9 +1058,6 @@ impl ParameterPanel {
 
     /// Show document properties panel (canvas size, etc.).
     pub fn show_document_properties(&mut self, ui: &mut egui::Ui, state: &mut AppState) {
-        // Apply minimal styling for the panel
-        ui.style_mut().spacing.item_spacing = egui::vec2(8.0, 2.0);
-
         // Build tab order for document properties
         self.tab_order = vec![
             ("__document__".to_string(), "width".to_string()),
@@ -1063,8 +1076,12 @@ impl ParameterPanel {
             }
         }
 
+
         // Merged header with "Document"
         self.show_parameters_header(ui, Some("Document"), None);
+
+        // Restore row spacing for content
+        ui.style_mut().spacing.item_spacing = egui::vec2(8.0, 2.0);
 
         // Paint two-tone background for the content area
         let content_rect = ui.available_rect_before_wrap();

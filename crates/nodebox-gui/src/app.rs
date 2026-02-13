@@ -675,6 +675,15 @@ impl eframe::App for NodeBoxApp {
         }
 
         // 4. Right side panel containing Parameters (top) and Network (bottom)
+        //
+        // Style the built-in separator: egui uses noninteractive.bg_stroke (normal),
+        // hovered.fg_stroke (hover), and active.fg_stroke (dragging).
+        ctx.style_mut(|style| {
+            style.visuals.widgets.noninteractive.bg_stroke = egui::Stroke::new(2.0, theme::ZINC_900);
+            style.visuals.widgets.hovered.fg_stroke = egui::Stroke::new(2.0, theme::ZINC_700);
+            style.visuals.widgets.active.fg_stroke = egui::Stroke::new(2.0, theme::ZINC_300);
+        });
+
         egui::SidePanel::right("right_panel")
             .default_width(450.0)
             .min_width(300.0)
@@ -745,6 +754,13 @@ impl eframe::App for NodeBoxApp {
                     }
                 });
             });
+
+        // Restore widget strokes for the rest of the UI
+        ctx.style_mut(|style| {
+            style.visuals.widgets.noninteractive.bg_stroke = egui::Stroke::NONE;
+            style.visuals.widgets.hovered.fg_stroke = egui::Stroke::new(1.0, theme::ZINC_50);
+            style.visuals.widgets.active.fg_stroke = egui::Stroke::new(1.0, theme::ZINC_50);
+        });
 
         // 5. Central panel: Viewer (left side, takes remaining space) - clean frame
         egui::CentralPanel::default()
