@@ -485,29 +485,29 @@ impl ParameterPanel {
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{:.2}", value), true));
 
-            // Style: no border, darker background, rounded corners, readable selection
+            // Frameless TextEdit with manual background for pixel-perfect alignment
             let old_selection = ui.visuals().selection.clone();
-            let old_corner_radius = ui.visuals().widgets.active.corner_radius;
             ui.visuals_mut().selection.stroke = egui::Stroke::new(0.0, egui::Color32::WHITE);
             ui.visuals_mut().selection.bg_fill = theme::TEXT_EDIT_SELECTION_BG;
-            let rounding = egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8);
-            ui.visuals_mut().widgets.inactive.corner_radius = rounding;
-            ui.visuals_mut().widgets.active.corner_radius = rounding;
-            ui.visuals_mut().widgets.hovered.corner_radius = rounding;
 
+            let bg_idx = ui.painter().add(egui::Shape::Noop);
             let output = egui::TextEdit::singleline(&mut edit_text)
                 .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
                 .text_color(egui::Color32::WHITE)
-                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
-                .margin(egui::Margin { left: 4, top: 5, right: 4, bottom: 3 })
-                .background_color(theme::SLATE_800)
-                .frame(true)
+                .desired_width(ui.available_width() - theme::PADDING)
+                .margin(egui::Margin::symmetric(4, 0))
+                .frame(false)
                 .show(ui);
 
+            // Paint rounded background behind the text
+            let bg_rect = output.response.rect.expand2(egui::vec2(0.0, 4.0));
+            ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                bg_rect,
+                egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
+                theme::SLATE_800,
+            ));
+
             ui.visuals_mut().selection = old_selection;
-            ui.visuals_mut().widgets.inactive.corner_radius = old_corner_radius;
-            ui.visuals_mut().widgets.active.corner_radius = old_corner_radius;
-            ui.visuals_mut().widgets.hovered.corner_radius = old_corner_radius;
 
             // Select all on first frame
             if needs_select {
@@ -549,22 +549,20 @@ impl ParameterPanel {
 
             output.response.request_focus();
         } else {
-            // Show as draggable text (non-selectable) — fill available width for easy clicking
-            let text = format!("{:.2}", value);
-            let galley = ui.painter().layout_no_wrap(
-                text.clone(),
-                egui::FontId::proportional(11.0),
-                egui::Color32::WHITE,
-            );
-            let rect = ui.available_rect_before_wrap();
-            let interact_rect = egui::Rect::from_min_size(
-                rect.min,
-                egui::vec2(ui.available_width() - theme::PADDING, rect.height()),
-            );
+            // Non-interactive TextEdit for pixel-perfect alignment with editing state
+            let mut display_text = format!("{:.2}", value);
+            let te_output = egui::TextEdit::singleline(&mut display_text)
+                .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
+                .text_color(egui::Color32::WHITE)
+                .interactive(false)
+                .frame(false)
+                .margin(egui::Margin::symmetric(4, 0))
+                .desired_width(ui.available_width() - theme::PADDING)
+                .show(ui);
 
-            let response = ui.allocate_rect(interact_rect, Sense::click_and_drag());
-            let text_pos = egui::pos2(rect.left() + 4.0, rect.center().y - galley.size().y / 2.0);
-            ui.painter().galley(text_pos, galley, egui::Color32::WHITE);
+            // Overlay click+drag sensing on the same rect
+            let interact_id = ui.id().with(port_key);
+            let response = ui.interact(te_output.response.rect, interact_id, Sense::click_and_drag());
 
             if response.dragged() {
                 // Modifier keys: Shift = x10, Alt = /100
@@ -606,29 +604,29 @@ impl ParameterPanel {
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{}", value), true));
 
-            // Style: no border, darker background, rounded corners, readable selection
+            // Frameless TextEdit with manual background for pixel-perfect alignment
             let old_selection = ui.visuals().selection.clone();
-            let old_corner_radius = ui.visuals().widgets.active.corner_radius;
             ui.visuals_mut().selection.stroke = egui::Stroke::new(0.0, egui::Color32::WHITE);
             ui.visuals_mut().selection.bg_fill = theme::TEXT_EDIT_SELECTION_BG;
-            let rounding = egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8);
-            ui.visuals_mut().widgets.inactive.corner_radius = rounding;
-            ui.visuals_mut().widgets.active.corner_radius = rounding;
-            ui.visuals_mut().widgets.hovered.corner_radius = rounding;
 
+            let bg_idx = ui.painter().add(egui::Shape::Noop);
             let output = egui::TextEdit::singleline(&mut edit_text)
                 .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
                 .text_color(egui::Color32::WHITE)
-                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
-                .margin(egui::Margin { left: 4, top: 5, right: 4, bottom: 3 })
-                .background_color(theme::SLATE_800)
-                .frame(true)
+                .desired_width(ui.available_width() - theme::PADDING)
+                .margin(egui::Margin::symmetric(4, 0))
+                .frame(false)
                 .show(ui);
 
+            // Paint rounded background behind the text
+            let bg_rect = output.response.rect.expand2(egui::vec2(0.0, 4.0));
+            ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                bg_rect,
+                egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
+                theme::SLATE_800,
+            ));
+
             ui.visuals_mut().selection = old_selection;
-            ui.visuals_mut().widgets.inactive.corner_radius = old_corner_radius;
-            ui.visuals_mut().widgets.active.corner_radius = old_corner_radius;
-            ui.visuals_mut().widgets.hovered.corner_radius = old_corner_radius;
 
             // Select all on first frame
             if needs_select {
@@ -661,21 +659,20 @@ impl ParameterPanel {
 
             output.response.request_focus();
         } else {
-            let text = format!("{}", value);
-            let galley = ui.painter().layout_no_wrap(
-                text.clone(),
-                egui::FontId::proportional(11.0),
-                egui::Color32::WHITE,
-            );
-            let rect = ui.available_rect_before_wrap();
-            let interact_rect = egui::Rect::from_min_size(
-                rect.min,
-                egui::vec2(ui.available_width() - theme::PADDING, rect.height()),
-            );
+            // Non-interactive TextEdit for pixel-perfect alignment with editing state
+            let mut display_text = format!("{}", value);
+            let te_output = egui::TextEdit::singleline(&mut display_text)
+                .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
+                .text_color(egui::Color32::WHITE)
+                .interactive(false)
+                .frame(false)
+                .margin(egui::Margin::symmetric(4, 0))
+                .desired_width(ui.available_width() - theme::PADDING)
+                .show(ui);
 
-            let response = ui.allocate_rect(interact_rect, Sense::click_and_drag());
-            let text_pos = egui::pos2(rect.left() + 4.0, rect.center().y - galley.size().y / 2.0);
-            ui.painter().galley(text_pos, galley, egui::Color32::WHITE);
+            // Overlay click+drag sensing on the same rect
+            let interact_id = ui.id().with(port_key);
+            let response = ui.interact(te_output.response.rect, interact_id, Sense::click_and_drag());
 
             if response.dragged() {
                 // Modifier keys: Shift = x10, Alt = /100
