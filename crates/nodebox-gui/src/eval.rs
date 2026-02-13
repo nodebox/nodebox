@@ -956,21 +956,21 @@ fn execute_node(
         "corevector.line" => {
             let p1 = get_point(inputs, "point1", Point::ZERO);
             let p2 = get_point(inputs, "point2", Point::new(100.0, 100.0));
-            let points = get_int(inputs, "points", 2) as u32;
+            let points = get_int(inputs, "points", 2).max(0) as u32;
             let path = nodebox_ops::line(p1, p2, points);
             Ok(NodeOutput::Path(path))
         }
         "corevector.polygon" => {
             let position = get_point(inputs, "position", Point::ZERO);
             let radius = get_float(inputs, "radius", 50.0);
-            let sides = get_int(inputs, "sides", 6) as u32;
+            let sides = get_int(inputs, "sides", 6).max(0) as u32;
             let align = get_bool(inputs, "align", true);
             let path = nodebox_ops::polygon(position, radius, sides, align);
             Ok(NodeOutput::Path(path))
         }
         "corevector.star" => {
             let position = get_point(inputs, "position", Point::ZERO);
-            let points = get_int(inputs, "points", 5) as u32;
+            let points = get_int(inputs, "points", 5).max(0) as u32;
             let outer = get_float(inputs, "outer", 50.0);
             let inner = get_float(inputs, "inner", 25.0);
             let path = nodebox_ops::star(position, points, outer, inner);
@@ -1046,7 +1046,7 @@ fn execute_node(
         }
         "corevector.copy" => {
             let shape = require_path(inputs, node_name, "shape")?;
-            let copies = get_int(inputs, "copies", 1) as u32;
+            let copies = get_int(inputs, "copies", 1).max(0) as u32;
             let order = nodebox_ops::CopyOrder::from_str(&get_string(inputs, "order", "tsr"));
             // Note: corevector.ndbx uses "translate" (Point) and "scale" (Point)
             let translate = get_point(inputs, "translate", Point::ZERO);
@@ -1126,8 +1126,8 @@ fn execute_node(
 
         // Grid of points
         "corevector.grid" => {
-            let columns = get_int(inputs, "columns", 3) as u32;
-            let rows = get_int(inputs, "rows", 3) as u32;
+            let columns = get_int(inputs, "columns", 3).max(0) as u32;
+            let rows = get_int(inputs, "rows", 3).max(0) as u32;
             let width = get_float(inputs, "width", 100.0);
             let height = get_float(inputs, "height", 100.0);
             // Note: corevector.ndbx uses "position" (Point), not x/y
@@ -1197,7 +1197,7 @@ fn execute_node(
             let position = get_point(inputs, "position", Point::ZERO);
             let angle = get_float(inputs, "angle", 0.0);
             let distance = get_float(inputs, "distance", 100.0);
-            let points = get_int(inputs, "points", 2) as u32;
+            let points = get_int(inputs, "points", 2).max(0) as u32;
             let path = nodebox_ops::line_angle(position, angle, distance, points);
             Ok(NodeOutput::Path(path))
         }
@@ -1707,7 +1707,7 @@ fn execute_node(
         }
         "string.as_number_list" => {
             let s = get_string(inputs, "string", "");
-            let radix = get_int(inputs, "radix", 10) as u32;
+            let radix = get_int(inputs, "radix", 10).max(0) as u32;
             let padding = get_bool(inputs, "padding", true);
             Ok(NodeOutput::Strings(nodebox_ops::string::as_number_list(&s, radix, padding)))
         }

@@ -414,19 +414,19 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
             node = node
                 .with_input(Port::point("point1", Point::ZERO))
                 .with_input(Port::point("point2", Point::new(100.0, 100.0)))
-                .with_input(Port::int("points", 2));
+                .with_input(Port::int("points", 2).with_min(0.0));
         }
         "polygon" => {
             node = node
                 .with_input(Port::point("position", Point::ZERO))
                 .with_input(Port::float("radius", 100.0))
-                .with_input(Port::int("sides", 3))
+                .with_input(Port::int("sides", 3).with_min(3.0))
                 .with_input(Port::boolean("align", false));
         }
         "star" => {
             node = node
                 .with_input(Port::point("position", Point::ZERO))
-                .with_input(Port::int("points", 20))
+                .with_input(Port::int("points", 20).with_min(2.0))
                 .with_input(Port::float("outer", 200.0))
                 .with_input(Port::float("inner", 100.0));
         }
@@ -452,8 +452,8 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
         }
         "grid" => {
             node = node
-                .with_input(Port::int("columns", 10))
-                .with_input(Port::int("rows", 10))
+                .with_input(Port::int("columns", 10).with_min(1.0))
+                .with_input(Port::int("rows", 10).with_min(1.0))
                 .with_input(Port::float("width", 300.0))
                 .with_input(Port::float("height", 300.0))
                 .with_input(Port::point("position", Point::ZERO))
@@ -480,7 +480,7 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
         "copy" => {
             node = node
                 .with_input(Port::geometry("shape"))
-                .with_input(Port::int("copies", 1))
+                .with_input(Port::int("copies", 1).with_min(0.0))
                 .with_input(Port::menu("order", "tsr", vec![
                     MenuItem::new("srt", "Scale Rot Trans"),
                     MenuItem::new("str", "Scale Trans Rot"),
