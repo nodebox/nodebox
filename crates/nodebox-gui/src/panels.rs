@@ -382,7 +382,9 @@ impl ParameterPanel {
                         }
 
                         // Request focus on first frame
-                        output.response.request_focus();
+                        if self.editing.is_some() {
+                            output.response.request_focus();
+                        }
                     } else {
                         // Show as clickable text
                         let display = if value.is_empty() { "\"\"" } else { value.as_str() };
@@ -681,7 +683,9 @@ impl ParameterPanel {
                 }
             }
 
-            output.response.request_focus();
+            if self.editing.is_some() {
+                output.response.request_focus();
+            }
         } else {
             // Non-interactive TextEdit for pixel-perfect alignment with editing state
             let mut display_text = format!("{:.2}", value);
@@ -807,7 +811,9 @@ impl ParameterPanel {
                 }
             }
 
-            output.response.request_focus();
+            if self.editing.is_some() {
+                output.response.request_focus();
+            }
         } else {
             // Non-interactive TextEdit for pixel-perfect alignment with editing state
             let mut display_text = format!("{}", value);
