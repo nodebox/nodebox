@@ -20,6 +20,11 @@ pub struct ParameterPanel {
     tab_order: Vec<(String, String)>,
     /// Deferred tab target: set when Tab/Shift+Tab is pressed, consumed next frame.
     tab_target: Option<(String, String)>,
+    /// When true, the current edit was initiated from a label click on a Point field.
+    /// On commit, the value should be applied to both x and y.
+    label_edit_apply_both: bool,
+    /// Set to the committed value when a label-initiated Point edit commits.
+    label_edit_committed_value: Option<f64>,
 }
 
 impl Default for ParameterPanel {
@@ -37,6 +42,8 @@ impl ParameterPanel {
             editing: None,
             tab_order: Vec::new(),
             tab_target: None,
+            label_edit_apply_both: false,
+            label_edit_committed_value: None,
         }
     }
 
@@ -228,6 +235,20 @@ impl ParameterPanel {
         String::new()
     }
 
+    /// Compute the drag speed modifier based on keyboard modifiers.
+    /// Shift = 10x (coarse), Alt = 0.01x (fine), otherwise 1x.
+    fn drag_modifier(ui: &egui::Ui) -> f64 {
+        ui.input(|i| {
+            if i.modifiers.shift {
+                10.0
+            } else if i.modifiers.alt {
+                0.01
+            } else {
+                1.0
+            }
+        })
+    }
+
     /// Show a single port row with label and value editor.
     fn show_port_row(
         &mut self,
@@ -238,6 +259,30 @@ impl ParameterPanel {
         io_port: &dyn Port,
         project_context: &ProjectContext,
     ) {
+        let is_label_draggable = !is_connected
+            && matches!(port.widget, Widget::Float | Widget::Angle | Widget::Int | Widget::Point);
+        let port_name = port.name.clone();
+        let mut label_drag_delta_x: f32 = 0.0;
+
+        // Pre-compute the editing state for label click (avoids borrowing port in the closure)
+        let label_click_edit_state: Option<(String, String, String)> = if is_label_draggable {
+            match (&port.widget, &port.value) {
+                (Widget::Float | Widget::Angle, Value::Float(v)) => {
+                    Some((node_name.to_string(), port.name.clone(), format!("{:.2}", v)))
+                }
+                (Widget::Int, Value::Int(v)) => {
+                    Some((node_name.to_string(), port.name.clone(), format!("{}", v)))
+                }
+                (Widget::Point, Value::Point(p)) => {
+                    Some((node_name.to_string(), format!("{}_x", port.name), format!("{:.2}", p.x)))
+                }
+                _ => None,
+            }
+        } else {
+            None
+        };
+        let label_click_is_point = is_label_draggable && matches!(port.widget, Widget::Point);
+
         ui.horizontal(|ui| {
             ui.set_height(theme::PARAMETER_ROW_HEIGHT);
 
@@ -247,9 +292,10 @@ impl ParameterPanel {
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui| {
                     ui.add_space(8.0);
+                    let bg_idx = ui.painter().add(egui::Shape::Noop);
                     // Use painter to draw text directly (non-selectable)
                     let galley = ui.painter().layout_no_wrap(
-                        port.name.clone(),
+                        port_name.clone(),
                         egui::FontId::proportional(11.0),
                         theme::TEXT_NORMAL,
                     );
@@ -259,6 +305,30 @@ impl ParameterPanel {
                         rect.center().y - galley.size().y / 2.0,
                     );
                     ui.painter().galley(pos, galley, theme::TEXT_NORMAL);
+
+                    // Overlay drag interaction on the full label area
+                    if is_label_draggable {
+                        let full_rect = ui.max_rect();
+                        let interact_id = ui.id().with(("label_drag", &port_name));
+                        let response = ui.interact(full_rect, interact_id, Sense::click_and_drag());
+                        if response.hovered() || response.dragged() {
+                            ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                                full_rect, 0.0, theme::FIELD_HOVER_BG,
+                            ));
+                            ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
+                        }
+                        if response.dragged() {
+                            label_drag_delta_x = response.drag_delta().x;
+                        }
+                        if response.clicked() {
+                            if let Some(ref state) = label_click_edit_state {
+                                self.editing = Some((state.0.clone(), state.1.clone(), state.2.clone(), true));
+                                if label_click_is_point {
+                                    self.label_edit_apply_both = true;
+                                }
+                            }
+                        }
+                    }
                 },
             );
 
@@ -275,8 +345,51 @@ impl ParameterPanel {
                 ui.painter().galley(pos, galley, theme::TEXT_DISABLED);
             } else {
                 self.show_port_editor(ui, port, node_name, io_port, project_context);
+
+                // Apply label-initiated Point edit to both x and y
+                if let Some(committed_val) = self.label_edit_committed_value.take() {
+                    if let Value::Point(ref mut point) = port.value {
+                        point.y = committed_val;
+                    }
+                    self.label_edit_apply_both = false;
+                } else if self.label_edit_apply_both && self.editing.is_none() {
+                    // Edit was cancelled, clear the flag
+                    self.label_edit_apply_both = false;
+                }
             }
         });
+
+        // Apply label drag delta to port value
+        if label_drag_delta_x != 0.0 {
+            let modifier = Self::drag_modifier(ui);
+            let delta = label_drag_delta_x as f64 * modifier;
+
+            match port.widget {
+                Widget::Float | Widget::Angle => {
+                    if let Value::Float(ref mut value) = port.value {
+                        *value += delta;
+                        if let Some(min_val) = port.min {
+                            *value = value.max(min_val);
+                        }
+                        if let Some(max_val) = port.max {
+                            *value = value.min(max_val);
+                        }
+                    }
+                }
+                Widget::Int => {
+                    if let Value::Int(ref mut value) = port.value {
+                        *value += delta as i64;
+                    }
+                }
+                Widget::Point => {
+                    if let Value::Point(ref mut point) = port.value {
+                        point.x += delta;
+                        point.y += delta;
+                    }
+                }
+                _ => {}
+            }
+        }
     }
 
     /// Show the editor widget for a port value - minimal style with no borders.
@@ -675,6 +788,9 @@ impl ParameterPanel {
                             clamped = clamped.min(max_val);
                         }
                         *value = clamped;
+                        if self.label_edit_apply_both {
+                            self.label_edit_committed_value = Some(clamped);
+                        }
                     }
                     self.editing = None;
                     if tab_pressed {
@@ -715,16 +831,7 @@ impl ParameterPanel {
             }
 
             if response.dragged() {
-                // Modifier keys: Shift = x10, Alt = /100
-                let modifier = ui.input(|i| {
-                    if i.modifiers.shift {
-                        10.0
-                    } else if i.modifiers.alt {
-                        0.01
-                    } else {
-                        1.0
-                    }
-                });
+                let modifier = Self::drag_modifier(ui);
                 let delta = response.drag_delta().x as f64 * speed * modifier;
                 *value += delta;
                 if let Some(min_val) = min {
@@ -843,16 +950,7 @@ impl ParameterPanel {
             }
 
             if response.dragged() {
-                // Modifier keys: Shift = x10, Alt = /100
-                let modifier = ui.input(|i| {
-                    if i.modifiers.shift {
-                        10.0
-                    } else if i.modifiers.alt {
-                        0.01
-                    } else {
-                        1.0
-                    }
-                });
+                let modifier = Self::drag_modifier(ui);
                 let delta = response.drag_delta().x as f64 * modifier;
                 *value += delta as i64;
             }
