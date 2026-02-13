@@ -306,7 +306,7 @@ impl ParameterPanel {
             }
             Widget::Int => {
                 if let Value::Int(ref mut value) = port.value {
-                    self.show_drag_value_int(ui, value, &port_key, is_editing, theme::PADDING);
+                    self.show_drag_value_int(ui, value, port.min, port.max, &port_key, is_editing, theme::PADDING);
                 }
             }
             Widget::Toggle => {
@@ -750,7 +750,7 @@ impl ParameterPanel {
     }
 
     /// Show a minimal drag value for ints - non-selectable, draggable, click to edit.
-    fn show_drag_value_int(&mut self, ui: &mut egui::Ui, value: &mut i64, port_key: &(String, String), is_editing: bool, right_padding: f32) {
+    fn show_drag_value_int(&mut self, ui: &mut egui::Ui, value: &mut i64, min: Option<f64>, max: Option<f64>, port_key: &(String, String), is_editing: bool, right_padding: f32) {
         if is_editing {
             // Show text input for direct editing
             let (mut edit_text, needs_select) = self.editing.as_ref()
@@ -805,7 +805,14 @@ impl ParameterPanel {
                     self.editing = None;
                 } else {
                     if let Ok(new_val) = edit_text.parse::<i64>() {
-                        *value = new_val;
+                        let mut clamped = new_val;
+                        if let Some(min_val) = min {
+                            clamped = clamped.max(min_val as i64);
+                        }
+                        if let Some(max_val) = max {
+                            clamped = clamped.min(max_val as i64);
+                        }
+                        *value = clamped;
                     }
                     self.editing = None;
                     if tab_pressed {
@@ -858,6 +865,12 @@ impl ParameterPanel {
                 });
                 let delta = response.drag_delta().x as f64 * modifier;
                 *value += delta as i64;
+                if let Some(min_val) = min {
+                    *value = (*value).max(min_val as i64);
+                }
+                if let Some(max_val) = max {
+                    *value = (*value).min(max_val as i64);
+                }
             }
 
             if response.hovered() {

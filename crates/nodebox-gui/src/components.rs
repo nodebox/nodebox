@@ -72,13 +72,8 @@ pub fn draw_pane_header_with_title(
         egui::Stroke::new(1.0, theme::TEXT_DISABLED),
     );
 
-    // Bottom border (1px dark line) - painted on foreground layer so content
-    // below (canvas, table headers) cannot paint over it.
-    let fg_painter = ui.ctx().layer_painter(egui::LayerId::new(
-        egui::Order::Foreground,
-        ui.id().with("header_border"),
-    ));
-    fg_painter.line_segment(
+    // Bottom border (1px dark line)
+    ui.painter().line_segment(
         [
             egui::pos2(aligned_rect.left(), aligned_rect.bottom() - 0.5),
             egui::pos2(aligned_rect.right(), aligned_rect.bottom() - 0.5),
