@@ -110,6 +110,7 @@ struct CacheKey {
     zoom: i32,         // Stored as fixed-point (zoom * 1000)
     geometry_hash: u64,
     scale_factor: i32, // pixels_per_point * 100
+    bg_color: [u8; 4], // Background color as RGBA bytes
 }
 
 impl CacheKey {
@@ -121,6 +122,7 @@ impl CacheKey {
         zoom: f32,
         geometry_hash: u64,
         scale_factor: f32,
+        background_color: &Color,
     ) -> Self {
         CacheKey {
             width,
@@ -130,6 +132,12 @@ impl CacheKey {
             zoom: (zoom * 1000.0) as i32,
             geometry_hash,
             scale_factor: (scale_factor * 100.0) as i32,
+            bg_color: [
+                (background_color.r * 255.0) as u8,
+                (background_color.g * 255.0) as u8,
+                (background_color.b * 255.0) as u8,
+                (background_color.a * 255.0) as u8,
+            ],
         }
     }
 }
@@ -286,6 +294,7 @@ impl VelloViewer {
             zoom,
             geometry_hash,
             scale_factor,
+            &self.background_color,
         );
 
         // Check if we need to re-render
@@ -420,11 +429,17 @@ mod tests {
 
     #[test]
     fn test_cache_key_equality() {
-        let key1 = CacheKey::new(100, 100, 0.0, 0.0, 1.0, 12345, 2.0);
-        let key2 = CacheKey::new(100, 100, 0.0, 0.0, 1.0, 12345, 2.0);
-        let key3 = CacheKey::new(100, 100, 1.0, 0.0, 1.0, 12345, 2.0);
+        let white = Color::WHITE;
+        let key1 = CacheKey::new(100, 100, 0.0, 0.0, 1.0, 12345, 2.0, &white);
+        let key2 = CacheKey::new(100, 100, 0.0, 0.0, 1.0, 12345, 2.0, &white);
+        let key3 = CacheKey::new(100, 100, 1.0, 0.0, 1.0, 12345, 2.0, &white);
 
         assert_eq!(key1, key2);
         assert_ne!(key1, key3);
+
+        // Different background color should invalidate cache
+        let red = Color::rgb(1.0, 0.0, 0.0);
+        let key4 = CacheKey::new(100, 100, 0.0, 0.0, 1.0, 12345, 2.0, &red);
+        assert_ne!(key1, key4);
     }
 }
