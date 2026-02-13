@@ -1,6 +1,6 @@
 //! Modal node selection dialog with search and category filtering.
 
-use eframe::egui::{self, Color32, Id, Key, Vec2};
+use eframe::egui::{self, Color32, Key, Vec2};
 use nodebox_core::geometry::Point;
 use nodebox_core::node::{Node, NodeLibrary};
 use crate::icon_cache::IconCache;
@@ -160,19 +160,6 @@ impl NodeSelectionDialog {
                 }
             }
         });
-
-        // Full-screen modal backdrop: absorbs all pointer events so panels
-        // behind the dialog don't respond to clicks or scroll wheel.
-        let screen = ctx.content_rect();
-        egui::Area::new(Id::new("node_dialog_backdrop"))
-            .order(egui::Order::Middle)
-            .fixed_pos(screen.min)
-            .show(ctx, |ui| {
-                let response = ui.allocate_response(screen.size(), egui::Sense::click_and_drag());
-                if response.clicked() {
-                    should_close = true;
-                }
-            });
 
         // Modal window - clean Figma-like styling
         let dialog_frame = egui::Frame::NONE
