@@ -326,7 +326,7 @@ impl ParameterPanel {
                     let is_editing_y = self.editing.as_ref()
                         .map(|(n, p, _, _)| n == &key_y.0 && p == &key_y.1)
                         .unwrap_or(false);
-                    let available = ui.available_width() - theme::PADDING;
+                    let available = ui.available_width();
                     let old_spacing = ui.spacing().item_spacing.x;
                     ui.spacing_mut().item_spacing.x = 16.0;
                     let field_width = (available - 16.0) / 2.0;
@@ -494,7 +494,7 @@ impl ParameterPanel {
             let output = egui::TextEdit::singleline(&mut edit_text)
                 .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
                 .text_color(egui::Color32::WHITE)
-                .desired_width(ui.available_width() - theme::PADDING)
+                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
                 .margin(egui::Margin::symmetric(4, 0))
                 .frame(false)
                 .show(ui);
@@ -551,18 +551,29 @@ impl ParameterPanel {
         } else {
             // Non-interactive TextEdit for pixel-perfect alignment with editing state
             let mut display_text = format!("{:.2}", value);
+            let bg_idx = ui.painter().add(egui::Shape::Noop);
             let te_output = egui::TextEdit::singleline(&mut display_text)
                 .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
                 .text_color(egui::Color32::WHITE)
                 .interactive(false)
                 .frame(false)
                 .margin(egui::Margin::symmetric(4, 0))
-                .desired_width(ui.available_width() - theme::PADDING)
+                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
                 .show(ui);
 
             // Overlay click+drag sensing on the same rect
             let interact_id = ui.id().with(port_key);
             let response = ui.interact(te_output.response.rect, interact_id, Sense::click_and_drag());
+
+            // Hover effect: subtle darkened background
+            if response.hovered() || response.dragged() {
+                let hover_rect = te_output.response.rect.expand2(egui::vec2(0.0, 4.0));
+                ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                    hover_rect,
+                    egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
+                    theme::FIELD_HOVER_BG,
+                ));
+            }
 
             if response.dragged() {
                 // Modifier keys: Shift = x10, Alt = /100
@@ -613,7 +624,7 @@ impl ParameterPanel {
             let output = egui::TextEdit::singleline(&mut edit_text)
                 .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
                 .text_color(egui::Color32::WHITE)
-                .desired_width(ui.available_width() - theme::PADDING)
+                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
                 .margin(egui::Margin::symmetric(4, 0))
                 .frame(false)
                 .show(ui);
@@ -661,18 +672,29 @@ impl ParameterPanel {
         } else {
             // Non-interactive TextEdit for pixel-perfect alignment with editing state
             let mut display_text = format!("{}", value);
+            let bg_idx = ui.painter().add(egui::Shape::Noop);
             let te_output = egui::TextEdit::singleline(&mut display_text)
                 .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
                 .text_color(egui::Color32::WHITE)
                 .interactive(false)
                 .frame(false)
                 .margin(egui::Margin::symmetric(4, 0))
-                .desired_width(ui.available_width() - theme::PADDING)
+                .desired_width(ui.available_width() - 2.0 * theme::PADDING)
                 .show(ui);
 
             // Overlay click+drag sensing on the same rect
             let interact_id = ui.id().with(port_key);
             let response = ui.interact(te_output.response.rect, interact_id, Sense::click_and_drag());
+
+            // Hover effect: subtle darkened background
+            if response.hovered() || response.dragged() {
+                let hover_rect = te_output.response.rect.expand2(egui::vec2(0.0, 4.0));
+                ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                    hover_rect,
+                    egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
+                    theme::FIELD_HOVER_BG,
+                ));
+            }
 
             if response.dragged() {
                 // Modifier keys: Shift = x10, Alt = /100
