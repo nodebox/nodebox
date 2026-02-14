@@ -1236,6 +1236,17 @@ fn execute_node(
             Ok(NodeOutput::Paths(paths))
         }
 
+        // Distribute
+        "corevector.distribute" => {
+            let shapes = require_paths(inputs, node_name, "shapes")?;
+            let horizontal = get_string(inputs, "horizontal", "none");
+            let vertical = get_string(inputs, "vertical", "none");
+            let h = nodebox_ops::HDistribute::from_str(&horizontal);
+            let v = nodebox_ops::VDistribute::from_str(&vertical);
+            let paths = nodebox_ops::distribute(&shapes, h, v);
+            Ok(NodeOutput::Paths(paths))
+        }
+
         // Freehand path
         "corevector.freehand" => {
             let path_string = get_string(inputs, "path", "");

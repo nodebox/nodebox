@@ -1,6 +1,6 @@
 //! Geometry filters - functions that transform existing shapes.
 
-use nodebox_core::geometry::{Point, Path, Geometry, Color, Transform};
+use nodebox_core::geometry::{Point, Path, Geometry, Color, Transform, Rect};
 
 /// Horizontal alignment options.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -48,6 +48,56 @@ impl VAlign {
             "middle" => VAlign::Middle,
             "bottom" => VAlign::Bottom,
             _ => VAlign::None,
+        }
+    }
+}
+
+/// Horizontal distribution mode.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HDistribute {
+    /// No horizontal distribution.
+    None,
+    /// Distribute by left edge.
+    Left,
+    /// Distribute by center.
+    Center,
+    /// Distribute by right edge.
+    Right,
+}
+
+impl HDistribute {
+    /// Parse from string.
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "left" => HDistribute::Left,
+            "center" => HDistribute::Center,
+            "right" => HDistribute::Right,
+            _ => HDistribute::None,
+        }
+    }
+}
+
+/// Vertical distribution mode.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum VDistribute {
+    /// No vertical distribution.
+    None,
+    /// Distribute by top edge.
+    Top,
+    /// Distribute by middle.
+    Middle,
+    /// Distribute by bottom edge.
+    Bottom,
+}
+
+impl VDistribute {
+    /// Parse from string.
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "top" => VDistribute::Top,
+            "middle" => VDistribute::Middle,
+            "bottom" => VDistribute::Bottom,
+            _ => VDistribute::None,
         }
     }
 }
@@ -960,6 +1010,146 @@ pub fn stack(paths: &[Path], direction: StackDirection, margin: f64) -> Vec<Path
     result
 }
 
+/// Internal axis used by the distribute algorithm.
+#[derive(Clone, Copy)]
+enum DistributeAxis {
+    Left,
+    Center,
+    Right,
+    Top,
+    Middle,
+    Bottom,
+}
+
+/// Get the metric value for a shape's bounds on the given axis.
+fn distribute_metric(bounds: &Rect, axis: DistributeAxis) -> f64 {
+    match axis {
+        DistributeAxis::Left => bounds.x,
+        DistributeAxis::Center => bounds.x + bounds.width / 2.0,
+        DistributeAxis::Right => bounds.x + bounds.width,
+        DistributeAxis::Top => bounds.y,
+        DistributeAxis::Middle => bounds.y + bounds.height / 2.0,
+        DistributeAxis::Bottom => bounds.y + bounds.height,
+    }
+}
+
+/// Distribute shapes along a single axis.
+///
+/// Sorts shapes by `main_axis`, finds the two extrema (smallest ext1 and
+/// largest ext2), locks them in place, and evenly spaces all other shapes
+/// between them.
+fn distribute_axis(paths: &[Path], main_axis: DistributeAxis) -> Vec<Path> {
+    let n = paths.len();
+
+    // Determine ext1/ext2 axes and whether this is horizontal
+    let (ext1, ext2, horizontal) = match main_axis {
+        DistributeAxis::Left | DistributeAxis::Center | DistributeAxis::Right => {
+            (DistributeAxis::Left, DistributeAxis::Right, true)
+        }
+        DistributeAxis::Top | DistributeAxis::Middle | DistributeAxis::Bottom => {
+            (DistributeAxis::Top, DistributeAxis::Bottom, false)
+        }
+    };
+
+    // Compute bounds for every shape
+    let bounds: Vec<Rect> = paths
+        .iter()
+        .map(|p| p.bounds().unwrap_or_default())
+        .collect();
+
+    // Sort indices by main_axis metric
+    let mut sorted_indices: Vec<usize> = (0..n).collect();
+    sorted_indices.sort_by(|&a, &b| {
+        distribute_metric(&bounds[a], main_axis)
+            .partial_cmp(&distribute_metric(&bounds[b], main_axis))
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    // Find extremum1: shape with the smallest ext1 value
+    let extremum1_idx = (0..n)
+        .min_by(|&a, &b| {
+            distribute_metric(&bounds[a], ext1)
+                .partial_cmp(&distribute_metric(&bounds[b], ext1))
+                .unwrap_or(std::cmp::Ordering::Equal)
+        })
+        .unwrap();
+
+    // Find extremum2: shape with the largest ext2 value
+    let extremum2_idx = (0..n)
+        .max_by(|&a, &b| {
+            distribute_metric(&bounds[a], ext2)
+                .partial_cmp(&distribute_metric(&bounds[b], ext2))
+                .unwrap_or(std::cmp::Ordering::Equal)
+        })
+        .unwrap();
+
+    let outer1 = distribute_metric(&bounds[extremum1_idx], main_axis);
+    let outer2 = distribute_metric(&bounds[extremum2_idx], main_axis);
+    let skip = (outer2 - outer1) / (n as f64 - 1.0);
+
+    // Build a map: original index -> sorted position
+    let mut sorted_position: Vec<usize> = vec![0; n];
+    for (pos, &orig_idx) in sorted_indices.iter().enumerate() {
+        sorted_position[orig_idx] = pos;
+    }
+
+    let i_e1 = sorted_position[extremum1_idx];
+    let i_e2 = sorted_position[extremum2_idx];
+
+    // Build result preserving original order
+    let mut result = Vec::with_capacity(n);
+    for (idx, path) in paths.iter().enumerate() {
+        if idx == extremum1_idx || idx == extremum2_idx {
+            result.push(path.clone());
+        } else {
+            let mut i = sorted_position[idx];
+            if i < i_e1 {
+                i += 1;
+            }
+            if i > i_e2 {
+                i -= 1;
+            }
+
+            let target = outer1 + (i as f64) * skip;
+            let current = distribute_metric(&bounds[idx], main_axis);
+            let delta = target - current;
+
+            let offset = if horizontal {
+                Point::new(delta, 0.0)
+            } else {
+                Point::new(0.0, delta)
+            };
+            result.push(translate(path, offset));
+        }
+    }
+
+    result
+}
+
+/// Distribute shapes on horizontal and/or vertical axes.
+///
+/// Evenly spaces shapes between the two outermost shapes. Requires at least
+/// 3 shapes for distribution to take effect.
+pub fn distribute(paths: &[Path], horizontal: HDistribute, vertical: VDistribute) -> Vec<Path> {
+    if paths.len() < 3 || (horizontal == HDistribute::None && vertical == VDistribute::None) {
+        return paths.to_vec();
+    }
+
+    let result = match horizontal {
+        HDistribute::None => paths.to_vec(),
+        HDistribute::Left => distribute_axis(paths, DistributeAxis::Left),
+        HDistribute::Center => distribute_axis(paths, DistributeAxis::Center),
+        HDistribute::Right => distribute_axis(paths, DistributeAxis::Right),
+    };
+
+    match vertical {
+        VDistribute::None => result,
+        VDistribute::Top => distribute_axis(&result, DistributeAxis::Top),
+        VDistribute::Middle => distribute_axis(&result, DistributeAxis::Middle),
+        VDistribute::Bottom => distribute_axis(&result, DistributeAxis::Bottom),
+    }
+}
+
 /// Place shapes along a path.
 ///
 /// # Arguments
@@ -1497,5 +1687,154 @@ mod tests {
 
         let placed = shape_on_path(&[shape], &guide, 3, 10.0, 0.0, false);
         assert_eq!(placed.len(), 3);
+    }
+
+    // ========================================================================
+    // Distribute Tests
+    // ========================================================================
+
+    #[test]
+    fn test_distribute_empty() {
+        let result = distribute(&[], HDistribute::Center, VDistribute::None);
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_distribute_fewer_than_3() {
+        let shapes = vec![
+            Path::rect(0.0, 0.0, 20.0, 20.0),
+            Path::rect(100.0, 0.0, 20.0, 20.0),
+        ];
+        let result = distribute(&shapes, HDistribute::Center, VDistribute::None);
+        assert_eq!(result.len(), 2);
+        let b0 = result[0].bounds().unwrap();
+        let b1 = result[1].bounds().unwrap();
+        assert_relative_eq!(b0.x, 0.0, epsilon = 0.01);
+        assert_relative_eq!(b1.x, 100.0, epsilon = 0.01);
+    }
+
+    #[test]
+    fn test_distribute_none_modes() {
+        let shapes = vec![
+            Path::rect(0.0, 0.0, 20.0, 20.0),
+            Path::rect(50.0, 0.0, 30.0, 30.0),
+            Path::rect(120.0, 0.0, 10.0, 10.0),
+        ];
+        let result = distribute(&shapes, HDistribute::None, VDistribute::None);
+        assert_eq!(result.len(), 3);
+        for (orig, res) in shapes.iter().zip(result.iter()) {
+            let ob = orig.bounds().unwrap();
+            let rb = res.bounds().unwrap();
+            assert_relative_eq!(ob.x, rb.x, epsilon = 0.01);
+            assert_relative_eq!(ob.y, rb.y, epsilon = 0.01);
+        }
+    }
+
+    #[test]
+    fn test_distribute_horizontal_center() {
+        // Three shapes at different x positions
+        let shapes = vec![
+            Path::rect(0.0, 0.0, 20.0, 20.0),   // center_x = 10, left=0, right=20
+            Path::rect(80.0, 0.0, 20.0, 20.0),   // center_x = 90, left=80, right=100
+            Path::rect(10.0, 0.0, 20.0, 20.0),   // center_x = 20, left=10, right=30
+        ];
+        let result = distribute(&shapes, HDistribute::Center, VDistribute::None);
+        assert_eq!(result.len(), 3);
+
+        // Extremum1 (smallest left=0): shape 0
+        // Extremum2 (largest right=100): shape 1
+        // outer1 = center of shape 0 = 10
+        // outer2 = center of shape 1 = 90
+        // skip = (90 - 10) / 2 = 40
+        // Shape 2 should get center_x = 10 + 1*40 = 50
+        let centers: Vec<f64> = result
+            .iter()
+            .map(|p| {
+                let b = p.bounds().unwrap();
+                b.x + b.width / 2.0
+            })
+            .collect();
+
+        assert_relative_eq!(centers[0], 10.0, epsilon = 0.1);
+        assert_relative_eq!(centers[1], 90.0, epsilon = 0.1);
+        assert_relative_eq!(centers[2], 50.0, epsilon = 0.1);
+    }
+
+    #[test]
+    fn test_distribute_vertical_middle() {
+        let shapes = vec![
+            Path::rect(0.0, 0.0, 20.0, 20.0),   // middle_y = 10
+            Path::rect(0.0, 80.0, 20.0, 20.0),   // middle_y = 90
+            Path::rect(0.0, 15.0, 20.0, 20.0),   // middle_y = 25
+        ];
+        let result = distribute(&shapes, HDistribute::None, VDistribute::Middle);
+        assert_eq!(result.len(), 3);
+
+        let middles: Vec<f64> = result
+            .iter()
+            .map(|p| {
+                let b = p.bounds().unwrap();
+                b.y + b.height / 2.0
+            })
+            .collect();
+
+        assert_relative_eq!(middles[0], 10.0, epsilon = 0.1);
+        assert_relative_eq!(middles[1], 90.0, epsilon = 0.1);
+        assert_relative_eq!(middles[2], 50.0, epsilon = 0.1);
+    }
+
+    #[test]
+    fn test_distribute_both_axes() {
+        let shapes = vec![
+            Path::rect(0.0, 0.0, 20.0, 20.0),
+            Path::rect(80.0, 80.0, 20.0, 20.0),
+            Path::rect(10.0, 10.0, 20.0, 20.0),
+        ];
+        let result = distribute(&shapes, HDistribute::Center, VDistribute::Middle);
+        assert_eq!(result.len(), 3);
+
+        // Both axes should be distributed
+        let centers_x: Vec<f64> = result
+            .iter()
+            .map(|p| {
+                let b = p.bounds().unwrap();
+                b.x + b.width / 2.0
+            })
+            .collect();
+        let centers_y: Vec<f64> = result
+            .iter()
+            .map(|p| {
+                let b = p.bounds().unwrap();
+                b.y + b.height / 2.0
+            })
+            .collect();
+
+        // Extrema stay in place
+        assert_relative_eq!(centers_x[0], 10.0, epsilon = 0.1);
+        assert_relative_eq!(centers_x[1], 90.0, epsilon = 0.1);
+        assert_relative_eq!(centers_y[0], 10.0, epsilon = 0.1);
+        assert_relative_eq!(centers_y[1], 90.0, epsilon = 0.1);
+        // Middle shape evenly spaced
+        assert_relative_eq!(centers_x[2], 50.0, epsilon = 0.1);
+        assert_relative_eq!(centers_y[2], 50.0, epsilon = 0.1);
+    }
+
+    #[test]
+    fn test_hdistribute_from_str() {
+        assert_eq!(HDistribute::from_str("left"), HDistribute::Left);
+        assert_eq!(HDistribute::from_str("center"), HDistribute::Center);
+        assert_eq!(HDistribute::from_str("right"), HDistribute::Right);
+        assert_eq!(HDistribute::from_str("none"), HDistribute::None);
+        assert_eq!(HDistribute::from_str("unknown"), HDistribute::None);
+        assert_eq!(HDistribute::from_str("LEFT"), HDistribute::Left);
+    }
+
+    #[test]
+    fn test_vdistribute_from_str() {
+        assert_eq!(VDistribute::from_str("top"), VDistribute::Top);
+        assert_eq!(VDistribute::from_str("middle"), VDistribute::Middle);
+        assert_eq!(VDistribute::from_str("bottom"), VDistribute::Bottom);
+        assert_eq!(VDistribute::from_str("none"), VDistribute::None);
+        assert_eq!(VDistribute::from_str("MIDDLE"), VDistribute::Middle);
     }
 }
