@@ -25,6 +25,8 @@ pub struct ParameterPanel {
     label_edit_apply_both: bool,
     /// Set to the committed value when a label-initiated Point edit commits.
     label_edit_committed_value: Option<f64>,
+    /// Accumulates sub-pixel drag deltas so that default (non-Alt) drags snap to integers.
+    drag_accumulator: f64,
 }
 
 impl Default for ParameterPanel {
@@ -44,6 +46,7 @@ impl ParameterPanel {
             tab_target: None,
             label_edit_apply_both: false,
             label_edit_committed_value: None,
+            drag_accumulator: 0.0,
         }
     }
 
@@ -255,16 +258,17 @@ impl ParameterPanel {
     /// Draw a right-aligned label in a fixed-width column, optionally with drag-to-adjust
     /// and click-to-edit interaction.
     ///
-    /// Returns the drag delta in pixels (0.0 if not draggable or not dragged).
+    /// Returns (drag_delta_pixels, drag_started).
     fn show_draggable_label(
         &mut self,
         ui: &mut egui::Ui,
         label: &str,
         click_edit_state: Option<(String, String, String)>,
         set_apply_both: bool,
-    ) -> f32 {
+    ) -> (f32, bool) {
         let label_width = self.label_width;
         let mut drag_delta_x: f32 = 0.0;
+        let mut drag_started = false;
         let label_owned = label.to_string();
 
         ui.allocate_ui_with_layout(
@@ -295,6 +299,9 @@ impl ParameterPanel {
                         ));
                         ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
                     }
+                    if response.drag_started() {
+                        drag_started = true;
+                    }
                     if response.dragged() {
                         drag_delta_x = response.drag_delta().x;
                     }
@@ -308,7 +315,7 @@ impl ParameterPanel {
             },
         );
 
-        drag_delta_x
+        (drag_delta_x, drag_started)
     }
 
     /// Show a single port row with label and value editor.
@@ -325,6 +332,7 @@ impl ParameterPanel {
             && matches!(port.widget, Widget::Float | Widget::Angle | Widget::Int | Widget::Point);
         let port_name = port.name.clone();
         let mut label_drag_delta_x: f32 = 0.0;
+        let mut label_drag_started = false;
 
         // Pre-compute the editing state for label click (avoids borrowing port in the closure)
         let label_click_edit_state: Option<(String, String, String)> = if is_label_draggable {
@@ -349,7 +357,7 @@ impl ParameterPanel {
             ui.set_height(theme::PARAMETER_ROW_HEIGHT);
 
             // Fixed-width label, right-aligned (non-selectable)
-            label_drag_delta_x = self.show_draggable_label(
+            (label_drag_delta_x, label_drag_started) = self.show_draggable_label(
                 ui, &port_name, label_click_edit_state, label_click_is_point,
             );
 
@@ -381,34 +389,51 @@ impl ParameterPanel {
         });
 
         // Apply label drag delta to port value
+        if label_drag_started {
+            self.drag_accumulator = 0.0;
+        }
         if label_drag_delta_x != 0.0 {
             let modifier = Self::drag_modifier(ui);
-            let delta = label_drag_delta_x as f64 * modifier;
+            self.drag_accumulator += label_drag_delta_x as f64 * modifier;
 
-            match port.widget {
-                Widget::Float | Widget::Angle => {
-                    if let Value::Float(ref mut value) = port.value {
-                        *value += delta;
-                        if let Some(min_val) = port.min {
-                            *value = value.max(min_val);
+            let apply_delta = if ui.input(|i| i.modifiers.alt) {
+                // Fine mode: apply full fractional delta
+                let d = self.drag_accumulator;
+                self.drag_accumulator = 0.0;
+                d
+            } else {
+                // Integer mode: only apply integer portion
+                let int_delta = self.drag_accumulator.trunc();
+                self.drag_accumulator -= int_delta;
+                int_delta
+            };
+
+            if apply_delta != 0.0 {
+                match port.widget {
+                    Widget::Float | Widget::Angle => {
+                        if let Value::Float(ref mut value) = port.value {
+                            *value += apply_delta;
+                            if let Some(min_val) = port.min {
+                                *value = value.max(min_val);
+                            }
+                            if let Some(max_val) = port.max {
+                                *value = value.min(max_val);
+                            }
                         }
-                        if let Some(max_val) = port.max {
-                            *value = value.min(max_val);
+                    }
+                    Widget::Int => {
+                        if let Value::Int(ref mut value) = port.value {
+                            *value += apply_delta as i64;
                         }
                     }
-                }
-                Widget::Int => {
-                    if let Value::Int(ref mut value) = port.value {
-                        *value += delta as i64;
+                    Widget::Point => {
+                        if let Value::Point(ref mut point) = port.value {
+                            point.x += apply_delta;
+                            point.y += apply_delta;
+                        }
                     }
+                    _ => {}
                 }
-                Widget::Point => {
-                    if let Value::Point(ref mut point) = port.value {
-                        point.x += delta;
-                        point.y += delta;
-                    }
-                }
-                _ => {}
             }
         }
     }
@@ -851,10 +876,28 @@ impl ParameterPanel {
                 ));
             }
 
+            if response.drag_started() {
+                self.drag_accumulator = 0.0;
+            }
             if response.dragged() {
                 let modifier = Self::drag_modifier(ui);
-                let delta = response.drag_delta().x as f64 * speed * modifier;
-                *value += delta;
+                self.drag_accumulator += response.drag_delta().x as f64 * speed * modifier;
+
+                let apply_delta = if ui.input(|i| i.modifiers.alt) {
+                    // Fine mode: apply full fractional delta
+                    let d = self.drag_accumulator;
+                    self.drag_accumulator = 0.0;
+                    d
+                } else {
+                    // Integer mode: only apply integer portion
+                    let int_delta = self.drag_accumulator.trunc();
+                    self.drag_accumulator -= int_delta;
+                    int_delta
+                };
+
+                if apply_delta != 0.0 {
+                    *value += apply_delta;
+                }
                 if let Some(min_val) = min {
                     *value = value.max(min_val);
                 }
@@ -977,10 +1020,17 @@ impl ParameterPanel {
                 ));
             }
 
+            if response.drag_started() {
+                self.drag_accumulator = 0.0;
+            }
             if response.dragged() {
                 let modifier = Self::drag_modifier(ui);
-                let delta = response.drag_delta().x as f64 * modifier;
-                *value += delta as i64;
+                self.drag_accumulator += response.drag_delta().x as f64 * modifier;
+                let int_delta = self.drag_accumulator.trunc() as i64;
+                if int_delta != 0 {
+                    *value += int_delta;
+                    self.drag_accumulator -= int_delta as f64;
+                }
                 if let Some(min_val) = min {
                     *value = (*value).max(min_val as i64);
                 }
@@ -1109,10 +1159,11 @@ impl ParameterPanel {
         // Width
         let current_width = state.library.width();
         let mut width_label_drag: f32 = 0.0;
+        let mut width_drag_started = false;
         ui.horizontal(|ui| {
             ui.set_height(theme::PARAMETER_ROW_HEIGHT);
 
-            width_label_drag = self.show_draggable_label(
+            (width_label_drag, width_drag_started) = self.show_draggable_label(
                 ui, "width",
                 Some(("__document__".to_string(), "width".to_string(), format!("{:.2}", current_width))),
                 false,
@@ -1131,20 +1182,37 @@ impl ParameterPanel {
                 Arc::make_mut(&mut state.library).set_width(width);
             }
         });
+        if width_drag_started {
+            self.drag_accumulator = 0.0;
+        }
         if width_label_drag != 0.0 {
             let modifier = Self::drag_modifier(ui);
-            let delta = width_label_drag as f64 * modifier;
-            let new_width = (state.library.width() + delta).max(1.0);
-            Arc::make_mut(&mut state.library).set_width(new_width);
+            self.drag_accumulator += width_label_drag as f64 * modifier;
+
+            let apply_delta = if ui.input(|i| i.modifiers.alt) {
+                let d = self.drag_accumulator;
+                self.drag_accumulator = 0.0;
+                d
+            } else {
+                let int_delta = self.drag_accumulator.trunc();
+                self.drag_accumulator -= int_delta;
+                int_delta
+            };
+
+            if apply_delta != 0.0 {
+                let new_width = (state.library.width() + apply_delta).max(1.0);
+                Arc::make_mut(&mut state.library).set_width(new_width);
+            }
         }
 
         // Height
         let current_height = state.library.height();
         let mut height_label_drag: f32 = 0.0;
+        let mut height_drag_started = false;
         ui.horizontal(|ui| {
             ui.set_height(theme::PARAMETER_ROW_HEIGHT);
 
-            height_label_drag = self.show_draggable_label(
+            (height_label_drag, height_drag_started) = self.show_draggable_label(
                 ui, "height",
                 Some(("__document__".to_string(), "height".to_string(), format!("{:.2}", current_height))),
                 false,
@@ -1163,11 +1231,27 @@ impl ParameterPanel {
                 Arc::make_mut(&mut state.library).set_height(height);
             }
         });
+        if height_drag_started {
+            self.drag_accumulator = 0.0;
+        }
         if height_label_drag != 0.0 {
             let modifier = Self::drag_modifier(ui);
-            let delta = height_label_drag as f64 * modifier;
-            let new_height = (state.library.height() + delta).max(1.0);
-            Arc::make_mut(&mut state.library).set_height(new_height);
+            self.drag_accumulator += height_label_drag as f64 * modifier;
+
+            let apply_delta = if ui.input(|i| i.modifiers.alt) {
+                let d = self.drag_accumulator;
+                self.drag_accumulator = 0.0;
+                d
+            } else {
+                let int_delta = self.drag_accumulator.trunc();
+                self.drag_accumulator -= int_delta;
+                int_delta
+            };
+
+            if apply_delta != 0.0 {
+                let new_height = (state.library.height() + apply_delta).max(1.0);
+                Arc::make_mut(&mut state.library).set_height(new_height);
+            }
         }
 
         // Background color
