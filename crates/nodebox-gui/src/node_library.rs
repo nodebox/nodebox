@@ -510,8 +510,8 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                     MenuItem::new("length", "By length"),
                     MenuItem::new("amount", "By amount"),
                 ]))
-                .with_input(Port::float("length", 10.0))
-                .with_input(Port::int("points", 10))
+                .with_input(Port::float("length", 10.0).with_min(1.0))
+                .with_input(Port::int("points", 10).with_min(1.0))
                 .with_input(Port::boolean("per_contour", false));
         }
         "wiggle" => {
