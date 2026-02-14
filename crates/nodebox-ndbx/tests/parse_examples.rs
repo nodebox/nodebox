@@ -1,11 +1,11 @@
 //! Integration tests for parsing actual NDBX files.
 
-use nodebox_ndbx::{parse_file, NdbxError, MIN_SUPPORTED_VERSION};
+use nodebox_ndbx::{parse_file, parse_file_with_warnings};
 use std::path::Path;
 
-/// Test that parsing old format versions (< 21) returns an error.
+/// Test that parsing old format versions (< 21) succeeds best-effort with warnings.
 #[test]
-fn test_parse_old_version_returns_error() {
+fn test_parse_old_version_loads_with_warning() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../examples/01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
 
@@ -15,15 +15,16 @@ fn test_parse_old_version_returns_error() {
     }
 
     // This file has formatVersion="17" which is below our minimum supported version
-    let result = parse_file(&path);
-    assert!(result.is_err(), "Expected error for old format version");
+    // but should load best-effort with a warning
+    let (library, warnings) = parse_file_with_warnings(&path)
+        .expect("Old version files should load best-effort");
+    assert!(!warnings.is_empty(), "Expected warning for old format version");
+    assert!(warnings[0].contains("17"), "Warning should mention the file's version");
+    assert_eq!(library.format_version, 22, "Should be upgraded to current version");
 
-    match result.unwrap_err() {
-        NdbxError::UnsupportedVersion(v) => {
-            assert!(v < MIN_SUPPORTED_VERSION, "Expected version < 21, got {}", v);
-        }
-        other => panic!("Expected UnsupportedVersion error, got: {:?}", other),
-    }
+    // parse_file (without warnings) should also succeed
+    let library = parse_file(&path).expect("parse_file should also succeed for old versions");
+    assert_eq!(library.format_version, 22);
 }
 
 /// Test parsing the corevector library.
@@ -61,9 +62,9 @@ fn test_parse_corevector_library() {
     assert!(rect_port_names.contains(&"height"), "rect missing height port");
 }
 
-/// Test that parsing a very old demo file (version 0) returns an error.
+/// Test that parsing a very old demo file (version 0) succeeds best-effort with warnings.
 #[test]
-fn test_parse_old_demo_file_returns_error() {
+fn test_parse_old_demo_file_loads_with_warning() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../src/test/files/demo.ndbx");
 
@@ -72,7 +73,9 @@ fn test_parse_old_demo_file_returns_error() {
         return;
     }
 
-    // This file has an old/missing format version
-    let result = parse_file(&path);
-    assert!(result.is_err(), "Expected error for old format version");
+    // This file has an old/missing format version but should still load best-effort
+    let (library, warnings) = parse_file_with_warnings(&path)
+        .expect("Old demo file should load best-effort");
+    assert_eq!(library.format_version, 22, "Should be upgraded to current version");
+    // May or may not have warnings depending on the file's version
 }

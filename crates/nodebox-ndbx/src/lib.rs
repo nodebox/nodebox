@@ -21,6 +21,6 @@ mod serializer;
 mod upgrades;
 
 pub use error::{NdbxError, Result};
-pub use parser::{parse, parse_file};
+pub use parser::{parse, parse_file, parse_file_with_warnings};
 pub use serializer::{serialize, serialize_to_file};
-pub use upgrades::{upgrade, CURRENT_FORMAT_VERSION, MIN_SUPPORTED_VERSION};
+pub use upgrades::{upgrade, UpgradeResult, CURRENT_FORMAT_VERSION, MIN_SUPPORTED_VERSION};

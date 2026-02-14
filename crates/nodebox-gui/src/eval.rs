@@ -1159,10 +1159,10 @@ fn execute_node(
             let shape = require_path(inputs, node_name, "shape")?;
             let method = get_string(inputs, "method", "length");
             let path = if method == "length" {
-                let length = get_float(inputs, "length", 10.0);
+                let length = get_float(inputs, "length", 10.0).max(1.0);
                 nodebox_ops::resample_by_length(&shape, length)
             } else {
-                let points = get_int(inputs, "points", 20) as usize;
+                let points = get_int(inputs, "points", 20).max(0) as usize;
                 nodebox_ops::resample(&shape, points)
             };
             Ok(NodeOutput::Path(path))

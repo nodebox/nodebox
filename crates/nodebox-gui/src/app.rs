@@ -11,9 +11,11 @@ use crate::components;
 use crate::history::History;
 use crate::icon_cache::IconCache;
 use crate::native_menu::{MenuAction, NativeMenuHandle};
+use crate::notification_banner;
 use crate::recent_files::RecentFiles;
 use crate::network_view::{NetworkAction, NetworkView};
 use crate::node_selection_dialog::NodeSelectionDialog;
+use nodebox_core::node::{Connection, PortType};
 use crate::parameter_panel::ParameterPanel;
 use crate::render_worker::{RenderResult, RenderState, RenderWorkerHandle};
 use crate::state::AppState;
@@ -48,6 +50,9 @@ pub struct NodeBoxApp {
     native_menu: Option<NativeMenuHandle>,
     /// Recent files list for "Open Recent" menu.
     recent_files: RecentFiles,
+    /// Pending connection to create after the node dialog selects a node.
+    /// Stores (from_node_name, output_type) from a drag-to-empty-space action.
+    pending_connection: Option<(String, PortType)>,
 }
 
 impl NodeBoxApp {
@@ -116,6 +121,7 @@ impl NodeBoxApp {
             render_pending: true,
             native_menu,
             recent_files,
+            pending_connection: None,
         }
     }
 
@@ -196,6 +202,7 @@ impl NodeBoxApp {
             render_pending: true,
             native_menu,
             recent_files,
+            pending_connection: None,
         }
     }
 
@@ -226,6 +233,7 @@ impl NodeBoxApp {
             render_pending: false,
             native_menu: None,
             recent_files: RecentFiles::new(),
+            pending_connection: None,
         }
     }
 
@@ -257,6 +265,7 @@ impl NodeBoxApp {
             render_pending: false,
             native_menu: None,
             recent_files: RecentFiles::new(),
+            pending_connection: None,
         }
     }
 
@@ -487,15 +496,15 @@ impl NodeBoxApp {
         // Collect recent files to avoid borrow issues
         let recent_files_list = self.recent_files.files();
 
-        egui::menu::bar(ui, |ui| {
+        egui::MenuBar::new().ui(ui, |ui| {
             ui.menu_button("File", |ui| {
                 if ui.button("New").clicked() {
                     self.state.new_document();
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("Open...").clicked() {
                     self.open_file();
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.menu_button("Open Recent", |ui| {
                     if recent_files_list.is_empty() {
@@ -510,7 +519,7 @@ impl NodeBoxApp {
                                 .unwrap_or("Unknown");
                             if ui.button(display_name).clicked() {
                                 path_to_open = Some(path.clone());
-                                ui.close_menu();
+                                ui.close();
                             }
                         }
                         if let Some(path) = path_to_open {
@@ -520,25 +529,25 @@ impl NodeBoxApp {
                     }
                     if ui.add_enabled(!recent_files_list.is_empty(), egui::Button::new("Clear Recent")).clicked() {
                         self.clear_recent_files();
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
                 if ui.button("Save").clicked() {
                     self.save_file();
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("Save As...").clicked() {
                     self.save_file_as();
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.separator();
                 if ui.button("Export SVG...").clicked() {
                     self.export_svg();
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("Export PNG...").clicked() {
                     self.export_png();
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.separator();
                 if ui.button("Quit").clicked() {
@@ -558,7 +567,7 @@ impl NodeBoxApp {
                         self.previous_library_hash = Self::hash_library(&self.state.library);
                         self.render_pending = true;
                     }
-                    ui.close_menu();
+                    ui.close();
                 }
                 let redo_text = if self.history.can_redo() {
                     format!("Redo ({})", self.history.redo_count())
@@ -571,26 +580,26 @@ impl NodeBoxApp {
                         self.previous_library_hash = Self::hash_library(&self.state.library);
                         self.render_pending = true;
                     }
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.separator();
                 if ui.button("Delete Selected").clicked() {
-                    ui.close_menu();
+                    ui.close();
                 }
             });
 
             ui.menu_button("View", |ui| {
                 if ui.button("Zoom In").clicked() {
                     self.viewer_pane.zoom_in();
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("Zoom Out").clicked() {
                     self.viewer_pane.zoom_out();
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("Fit to Window").clicked() {
                     self.viewer_pane.fit_to_window();
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.separator();
                 ui.checkbox(&mut self.viewer_pane.show_handles, "Show Handles");
@@ -602,7 +611,7 @@ impl NodeBoxApp {
             ui.menu_button("Help", |ui| {
                 if ui.button("About NodeBox").clicked() {
                     self.state.show_about = true;
-                    ui.close_menu();
+                    ui.close();
                 }
             });
         });
@@ -659,6 +668,27 @@ impl eframe::App for NodeBoxApp {
                     AddressBarAction::None => {}
                 }
             });
+
+        // 2b. Notification banners (below address bar, only shown when notifications exist)
+        if !self.state.notifications.is_empty() {
+            let banner_height = notification_banner::BANNER_HEIGHT
+                * self.state.notifications.len() as f32;
+            egui::TopBottomPanel::top("notification_banners")
+                .exact_height(banner_height)
+                .frame(egui::Frame::NONE)
+                .show(ctx, |ui| {
+                    let notifs: Vec<_> = self.state.notifications
+                        .iter()
+                        .map(|n| (n.id, n.message.clone(), n.level.clone()))
+                        .collect();
+
+                    let dismissed = notification_banner::show_notifications(ui, &notifs);
+
+                    for id in dismissed {
+                        self.state.dismiss_notification(id);
+                    }
+                });
+        }
 
         // 3. Animation bar (bottom) - frameless, handles its own styling
         let anim_response = egui::TopBottomPanel::bottom("animation_bar")
@@ -752,6 +782,10 @@ impl eframe::App for NodeBoxApp {
                         NetworkAction::OpenNodeDialog(pos) => {
                             self.node_dialog.open(pos);
                         }
+                        NetworkAction::OpenNodeDialogForConnection { position, from_node, output_type } => {
+                            self.node_dialog.open_for_connection(position, output_type.clone());
+                            self.pending_connection = Some((from_node, output_type));
+                        }
                         NetworkAction::None => {}
                     }
 
@@ -810,10 +844,29 @@ impl eframe::App for NodeBoxApp {
         if self.node_dialog.visible {
             if let Some(new_node) = self.node_dialog.show(ctx, &self.state.library, &mut self.icon_cache) {
                 let node_name = new_node.name.clone();
+
+                // Find the first compatible input port for any pending connection
+                let connection_to_create = self.pending_connection.take().and_then(|(from_node, output_type)| {
+                    new_node.inputs.iter()
+                        .find(|p| PortType::is_compatible(&output_type, &p.port_type))
+                        .map(|p| (from_node, p.name.clone()))
+                });
+
                 Arc::make_mut(&mut self.state.library).root.children.push(new_node);
-                // Select the new node
-                self.state.selected_node = Some(node_name);
+                self.state.selected_node = Some(node_name.clone());
+
+                // Create the auto-connection if drag-to-create was used
+                if let Some((from_node, port_name)) = connection_to_create {
+                    Arc::make_mut(&mut self.state.library)
+                        .root
+                        .connect(Connection::new(from_node, node_name, port_name));
+                }
             }
+        }
+
+        // Clear pending connection if dialog was dismissed
+        if !self.node_dialog.visible {
+            self.pending_connection = None;
         }
 
         // 7. About dialog

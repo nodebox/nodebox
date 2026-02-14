@@ -32,6 +32,7 @@ mod icon_cache;
 mod network_view;
 mod node_library;
 mod node_selection_dialog;
+mod notification_banner;
 mod pan_zoom;
 mod parameter_panel;
 pub mod render_worker;
@@ -51,7 +52,7 @@ pub mod vello_viewer;
 // Re-export key types for testing and external use
 pub use app::NodeBoxApp;
 pub use history::History;
-pub use state::{populate_default_ports, AppState};
+pub use state::{populate_default_ports, AppState, Notification, NotificationLevel};
 
 // Re-export commonly used types from dependencies
 pub use nodebox_core::geometry::{Color, Path, Point};

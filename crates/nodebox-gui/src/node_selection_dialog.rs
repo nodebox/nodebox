@@ -2,13 +2,13 @@
 
 use eframe::egui::{self, Color32, Key, Vec2};
 use nodebox_core::geometry::Point;
-use nodebox_core::node::{Node, NodeLibrary};
+use nodebox_core::node::{Node, NodeLibrary, PortType};
 use crate::icon_cache::IconCache;
-use crate::node_library::{NodeTemplate, NODE_TEMPLATES, create_node_from_template};
+use crate::node_library::{NodeTemplate, NODE_TEMPLATES, create_node_from_template, template_has_compatible_input};
 use crate::theme;
 
 /// Categories for filtering nodes.
-const CATEGORIES: &[&str] = &["All", "geometry", "transform", "color", "math", "string", "list", "data", "core"];
+const CATEGORIES: &[&str] = &["All", "geometry", "transform", "color", "math", "string", "list", "core", "data", "network"];
 
 /// The modal node selection dialog.
 pub struct NodeSelectionDialog {
@@ -26,6 +26,8 @@ pub struct NodeSelectionDialog {
     create_position: Point,
     /// Whether search input should be focused.
     focus_search: bool,
+    /// When set, only show nodes that have an input port compatible with this output type.
+    filter_output_type: Option<PortType>,
 }
 
 impl Default for NodeSelectionDialog {
@@ -45,6 +47,7 @@ impl NodeSelectionDialog {
             selected_index: 0,
             create_position: Point::ZERO,
             focus_search: false,
+            filter_output_type: None,
         };
         dialog.update_filtered_list();
         dialog
@@ -58,6 +61,20 @@ impl NodeSelectionDialog {
         self.selected_index = 0;
         self.create_position = position;
         self.focus_search = true;
+        self.filter_output_type = None;
+        self.update_filtered_list();
+    }
+
+    /// Open the dialog at the given position, filtered to show only nodes
+    /// that have an input port compatible with the given output type.
+    pub fn open_for_connection(&mut self, position: Point, output_type: PortType) {
+        self.visible = true;
+        self.search_query.clear();
+        self.selected_category = None;
+        self.selected_index = 0;
+        self.create_position = position;
+        self.focus_search = true;
+        self.filter_output_type = Some(output_type);
         self.update_filtered_list();
     }
 
@@ -65,6 +82,7 @@ impl NodeSelectionDialog {
     pub fn close(&mut self) {
         self.visible = false;
         self.search_query.clear();
+        self.filter_output_type = None;
     }
 
     /// Update the filtered list based on search query and category.
@@ -74,6 +92,13 @@ impl NodeSelectionDialog {
         let query = self.search_query.to_lowercase();
 
         for (i, template) in NODE_TEMPLATES.iter().enumerate() {
+            // Filter by compatible input port type (if set)
+            if let Some(ref output_type) = self.filter_output_type {
+                if !template_has_compatible_input(template, output_type) {
+                    continue;
+                }
+            }
+
             // Filter by category
             if let Some(ref cat) = self.selected_category {
                 if template.category != cat {
