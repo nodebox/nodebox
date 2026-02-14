@@ -70,6 +70,9 @@ struct ConnectionDrag {
     output_type: PortType,
     /// Current mouse position (end of wire).
     to_pos: Pos2,
+    /// Whether this drag originated from a disconnect-and-reroute (input port drag).
+    /// When true, releasing on empty space will NOT open the node selection dialog.
+    is_reroute: bool,
 }
 
 /// Visual constants (matching NodeBox Java).
@@ -340,6 +343,7 @@ impl NetworkView {
                     from_node: child.name.clone(),
                     output_type: child.output_type.clone(),
                     to_pos: output_pos,
+                    is_reroute: false,
                 });
             }
 
@@ -446,21 +450,24 @@ impl NetworkView {
                 }
 
                 // If no connection was made and cursor is not over any node, open dialog
+                // (but not for disconnect-and-reroute drags — those just cancel)
                 if !connection_made {
                     let over_any_node = network.children.iter().any(|child| {
                         self.node_rect(child, offset).contains(hover_pos)
                     });
                     if !over_any_node {
                         if let Some(ref drag) = self.creating_connection {
-                            let grid_pos = self.screen_to_grid(hover_pos, offset);
-                            action = NetworkAction::OpenNodeDialogForConnection {
-                                position: Point::new(
-                                    grid_pos.x.round() as f64,
-                                    grid_pos.y.round() as f64,
-                                ),
-                                from_node: drag.from_node.clone(),
-                                output_type: drag.output_type.clone(),
-                            };
+                            if !drag.is_reroute {
+                                let grid_pos = self.screen_to_grid(hover_pos, offset);
+                                action = NetworkAction::OpenNodeDialogForConnection {
+                                    position: Point::new(
+                                        grid_pos.x.round() as f64,
+                                        grid_pos.y.round() as f64,
+                                    ),
+                                    from_node: drag.from_node.clone(),
+                                    output_type: drag.output_type.clone(),
+                                };
+                            }
                         }
                     }
                 }
@@ -486,6 +493,7 @@ impl NetworkView {
                     from_node: from_node_name,
                     output_type,
                     to_pos: output_pos,
+                    is_reroute: true,
                 });
             }
         }

@@ -380,14 +380,40 @@ impl NodeLibraryBrowser {
     }
 }
 
-/// Check if a node created from this template would have any input port
-/// compatible with the given output type.
+/// Check if the first input port of a node template is directly compatible
+/// with the given output type. Uses strict rules (no string conversion,
+/// no number→point promotion) — only same-type, List wildcard, and Int↔Float.
 pub fn template_has_compatible_input(template: &NodeTemplate, output_type: &PortType) -> bool {
     let temp_lib = NodeLibrary::new("_temp");
     let node = create_node_from_template(template, &temp_lib, Point::ZERO);
     node.inputs
-        .iter()
-        .any(|port| PortType::is_compatible(output_type, &port.port_type))
+        .first()
+        .is_some_and(|port| is_directly_compatible(output_type, &port.port_type))
+}
+
+/// Strict type compatibility for dialog filtering.
+/// Only allows: same type, List wildcard, and Int↔Float.
+/// Excludes the broad everything→String and Number→Point rules.
+fn is_directly_compatible(output_type: &PortType, input_type: &PortType) -> bool {
+    if output_type == input_type {
+        return true;
+    }
+    // List input accepts any type
+    if matches!(input_type, PortType::List) {
+        return true;
+    }
+    // List output connects to any input
+    if matches!(output_type, PortType::List) {
+        return true;
+    }
+    // Int <-> Float
+    if matches!(output_type, PortType::Int) && matches!(input_type, PortType::Float) {
+        return true;
+    }
+    if matches!(output_type, PortType::Float) && matches!(input_type, PortType::Int) {
+        return true;
+    }
+    false
 }
 
 /// Create a new node from a template.
