@@ -17,6 +17,31 @@
         <string>NodeBox Document</string>
         <key>CFBundleTypeRole</key>
         <string>Editor</string>
+        <key>LSItemContentTypes</key>
+        <array>
+          <string>net.nodebox.ndbx</string>
+        </array>
+      </dict>
+    </array>
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+      <dict>
+        <key>UTTypeIdentifier</key>
+        <string>net.nodebox.ndbx</string>
+        <key>UTTypeDescription</key>
+        <string>NodeBox Document</string>
+        <key>UTTypeConformsTo</key>
+        <array>
+          <string>public.xml</string>
+          <string>public.data</string>
+        </array>
+        <key>UTTypeTagSpecification</key>
+        <dict>
+          <key>public.filename-extension</key>
+          <array>
+            <string>ndbx</string>
+          </array>
+        </dict>
       </dict>
     </array>
     <key>CFBundleExecutable</key>
@@ -36,36 +61,12 @@
     <key>CFBundleSignature</key>
     <string>ndbx</string>
     <key>CFBundleGetInfoString</key>
-    <string>@@VERSION@@, Copyright EMRG, (c) 2004-2013</string>
+    <string>@@VERSION@@, Copyright EMRG</string>
     <key>CFBundleShortVersionString</key>
     <string>@@VERSION@@</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>NSHighResolutionCapable</key>
     <true/>
-    <key>Java</key>
-    <dict>
-      <key>ClassPath</key>
-      <string>$APP_PACKAGE/Contents/Resources/Java/lib/nodebox.jar</string>
-      <key>JVMVersion</key>
-      <string>1.6+</string>
-      <key>MainClass</key>
-      <string>nodebox.client.Application</string>
-      <key>Properties</key>
-      <dict>
-        <key>com.apple.mrj.application.live-resize</key>
-        <string>false</string>
-        <key>apple.laf.useScreenMenuBar</key>
-        <string>true</string>
-        <key>com.apple.mrj.application.apple.menu.about.name</key>
-        <string>NodeBox</string>
-        <key>apple.awt.graphics.UseQuartz</key>
-        <string>false</string>
-      </dict>
-      <key>VMOptions</key>
-      <string>-Xms1024m -Xmx4096m</string>
-      <key>WorkingDirectory</key>
-      <string>$APP_PACKAGE/Contents/Resources/Java</string>
-   </dict>
   </dict>
 </plist>

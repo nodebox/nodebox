@@ -619,6 +619,22 @@ impl eframe::App for NodeBoxApp {
             }
         }
 
+        // Handle dropped files (drag-and-drop .ndbx files onto the window)
+        let dropped_file = ctx.input(|i| {
+            i.raw.dropped_files.iter().find_map(|f| {
+                f.path.as_ref().and_then(|p| {
+                    if p.extension().is_some_and(|ext| ext == "ndbx") {
+                        Some(p.clone())
+                    } else {
+                        None
+                    }
+                })
+            })
+        });
+        if let Some(path) = dropped_file {
+            self.open_dropped_file(&path);
+        }
+
         // Poll for background render results
         self.poll_render_results();
 
@@ -957,6 +973,22 @@ impl NodeBoxApp {
             }
             Ok(None) => {} // User cancelled
             Err(e) => log::error!("Failed to open file dialog: {}", e),
+        }
+    }
+
+    /// Open a file dropped onto the window (drag-and-drop).
+    fn open_dropped_file(&mut self, path: &std::path::Path) {
+        if let Err(e) = self.state.load_file(path) {
+            log::error!("Failed to load dropped file: {}", e);
+        } else {
+            if let (Some(parent), Some(file_name)) = (path.parent(), path.file_name()) {
+                self.project_context =
+                    ProjectContext::new(parent, file_name.to_string_lossy().to_string());
+            }
+            self.add_to_recent_files(path.to_path_buf());
+            self.history = History::new();
+            self.previous_library_hash = Self::hash_library(&self.state.library);
+            self.render_pending = true;
         }
     }
 
