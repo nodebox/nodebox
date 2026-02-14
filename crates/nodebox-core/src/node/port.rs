@@ -13,6 +13,7 @@ pub enum PortType {
     Point,
     Color,
     Geometry,
+    Data,
     List,
     Context,
     State,
@@ -31,6 +32,7 @@ impl PortType {
             "point" => PortType::Point,
             "color" => PortType::Color,
             "geometry" => PortType::Geometry,
+            "data" => PortType::Data,
             "list" => PortType::List,
             "context" => PortType::Context,
             "state" => PortType::State,
@@ -48,6 +50,7 @@ impl PortType {
             PortType::Point => "point",
             PortType::Color => "color",
             PortType::Geometry => "geometry",
+            PortType::Data => "data",
             PortType::List => "list",
             PortType::Context => "context",
             PortType::State => "state",
@@ -65,6 +68,7 @@ impl PortType {
             PortType::Point => Value::Point(Point::ZERO),
             PortType::Color => Value::Color(Color::BLACK),
             PortType::Geometry => Value::Null,
+            PortType::Data => Value::Null,
             PortType::List => Value::List(Vec::new()),
             PortType::Context | PortType::State | PortType::Custom(_) => Value::Null,
         }
@@ -86,6 +90,14 @@ impl PortType {
 
         // PortType::List output can connect to any input (runtime type determined by actual data)
         if matches!(output_type, PortType::List) {
+            return true;
+        }
+
+        // Data <-> List bidirectional (data nodes consume and produce lists of data rows)
+        if matches!(output_type, PortType::Data) && matches!(input_type, PortType::List) {
+            return true;
+        }
+        if matches!(output_type, PortType::List) && matches!(input_type, PortType::Data) {
             return true;
         }
 

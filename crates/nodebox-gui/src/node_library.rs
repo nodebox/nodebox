@@ -275,6 +275,37 @@ pub const NODE_TEMPLATES: &[NodeTemplate] = &[
         category: "color",
         description: "Create a grayscale color",
     },
+    // Data nodes
+    NodeTemplate {
+        name: "import_text",
+        prototype: "data.import_text",
+        category: "data",
+        description: "Import a text file and return each line",
+    },
+    NodeTemplate {
+        name: "import_csv",
+        prototype: "data.import_csv",
+        category: "data",
+        description: "Import a CSV file as structured data",
+    },
+    NodeTemplate {
+        name: "make_table",
+        prototype: "data.make_table",
+        category: "data",
+        description: "Build a data table from lists",
+    },
+    NodeTemplate {
+        name: "lookup",
+        prototype: "data.lookup",
+        category: "data",
+        description: "Look up a value by key in data",
+    },
+    NodeTemplate {
+        name: "filter_data",
+        prototype: "data.filter_data",
+        category: "data",
+        description: "Filter data rows by key/value comparison",
+    },
     // Core nodes
     NodeTemplate {
         name: "frame",
@@ -317,7 +348,7 @@ impl NodeLibraryBrowser {
 
         // Category filter buttons
         ui.horizontal_wrapped(|ui| {
-            let categories = ["geometry", "transform", "color", "math", "string", "list", "core"];
+            let categories = ["geometry", "transform", "color", "math", "string", "list", "data", "core"];
             for cat in categories {
                 let is_selected = self.selected_category.as_deref() == Some(cat);
                 if ui.selectable_label(is_selected, cat).clicked() {
@@ -694,6 +725,68 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                 .with_input(Port::float("alpha", 255.0))
                 .with_input(Port::float("range", 255.0))
                 .with_output_type(PortType::Color);
+        }
+        // Data nodes
+        "import_text" => {
+            node = node
+                .with_input(Port::string("file", "").with_widget(Widget::File))
+                .with_output_type(PortType::String)
+                .with_output_range(PortRange::List);
+        }
+        "import_csv" => {
+            node = node
+                .with_input(Port::string("file", "").with_widget(Widget::File))
+                .with_input(Port::menu("delimiter", "comma", vec![
+                    MenuItem::new("comma", ","),
+                    MenuItem::new("semicolon", ";"),
+                    MenuItem::new("colon", ":"),
+                    MenuItem::new("tab", "Tab"),
+                    MenuItem::new("space", "Space"),
+                ]))
+                .with_input(Port::menu("quotes", "double", vec![
+                    MenuItem::new("double", "\""),
+                    MenuItem::new("single", "'"),
+                ]))
+                .with_input(Port::menu("number_separator", "period", vec![
+                    MenuItem::new("period", "."),
+                    MenuItem::new("comma", ","),
+                ]))
+                .with_output_type(PortType::Data)
+                .with_output_range(PortRange::List);
+        }
+        "make_table" => {
+            node = node
+                .with_input(Port::string("headers", "alpha;beta"))
+                .with_input(Port::new("list1", PortType::List).with_port_range(PortRange::List))
+                .with_input(Port::new("list2", PortType::List).with_port_range(PortRange::List))
+                .with_input(Port::new("list3", PortType::List).with_port_range(PortRange::List))
+                .with_input(Port::new("list4", PortType::List).with_port_range(PortRange::List))
+                .with_input(Port::new("list5", PortType::List).with_port_range(PortRange::List))
+                .with_input(Port::new("list6", PortType::List).with_port_range(PortRange::List))
+                .with_output_type(PortType::Data)
+                .with_output_range(PortRange::List);
+        }
+        "lookup" => {
+            node = node
+                .with_input(Port::new("list", PortType::Data))
+                .with_input(Port::string("key", "x"))
+                .with_output_type(PortType::String);
+        }
+        "filter_data" => {
+            node = node
+                .with_input(Port::new("data", PortType::Data).with_port_range(PortRange::List))
+                .with_input(Port::string("key", "name"))
+                .with_input(Port::menu("op", "=", vec![
+                    MenuItem::new("=", "= Equal To"),
+                    MenuItem::new("!=", "!= Not Equal To"),
+                    MenuItem::new(">", "> Greater Than"),
+                    MenuItem::new(">=", ">= Greater or Equal"),
+                    MenuItem::new("<", "< Smaller Than"),
+                    MenuItem::new("<=", "<= Smaller or Equal"),
+                ]))
+                .with_input(Port::string("value", ""))
+                .with_output_type(PortType::Data)
+                .with_output_range(PortRange::List);
         }
         // Core nodes
         "frame" => {

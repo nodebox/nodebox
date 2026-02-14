@@ -8,6 +8,7 @@ use nodebox_core::node::{Node, NodeLibrary, EvalError};
 use nodebox_core::node::PortRange;
 use nodebox_core::Value;
 use nodebox_port::{Port, ProjectContext};
+use nodebox_ops::data::DataValue;
 use crate::render_worker::CancellationToken;
 
 /// Error information for a specific node.
@@ -77,6 +78,10 @@ pub enum NodeOutput {
     Boolean(bool),
     /// A list of boolean values.
     Booleans(Vec<bool>),
+    /// A single data row (map of key-value pairs).
+    DataRow(HashMap<String, DataValue>),
+    /// A list of data rows.
+    DataRows(Vec<HashMap<String, DataValue>>),
 }
 
 impl NodeOutput {
@@ -156,6 +161,22 @@ impl NodeOutput {
             NodeOutput::Points(pts) => pts.iter().map(|p| format!("{:.2}, {:.2}", p.x, p.y)).collect(),
             NodeOutput::Path(_) => vec!["[Path]".to_string()],
             NodeOutput::Paths(ps) => (0..ps.len()).map(|i| format!("[Path {}]", i)).collect(),
+            NodeOutput::DataRow(row) => {
+                let mut pairs: Vec<String> = row.iter()
+                    .map(|(k, v)| format!("{}: {}", k, v.as_string()))
+                    .collect();
+                pairs.sort(); // Stable display order
+                vec![format!("{{{}}}", pairs.join(", "))]
+            }
+            NodeOutput::DataRows(rows) => {
+                rows.iter().map(|row| {
+                    let mut pairs: Vec<String> = row.iter()
+                        .map(|(k, v)| format!("{}: {}", k, v.as_string()))
+                        .collect();
+                    pairs.sort();
+                    format!("{{{}}}", pairs.join(", "))
+                }).collect()
+            }
         }
     }
 
@@ -170,6 +191,7 @@ impl NodeOutput {
             NodeOutput::Color(_) | NodeOutput::Colors(_) => "color",
             NodeOutput::Point(_) | NodeOutput::Points(_) => "point",
             NodeOutput::Path(_) | NodeOutput::Paths(_) => "path",
+            NodeOutput::DataRow(_) | NodeOutput::DataRows(_) => "data",
         }
     }
 
@@ -184,6 +206,7 @@ impl NodeOutput {
             NodeOutput::Strings(ss) => ss.len(),
             NodeOutput::Booleans(bs) => bs.len(),
             NodeOutput::Colors(cs) => cs.len(),
+            NodeOutput::DataRows(rs) => rs.len(),
             _ => 1,
         }
     }
@@ -215,6 +238,7 @@ impl NodeOutput {
             NodeOutput::Strings(ss) => ss.iter().map(|s| NodeOutput::String(s.clone())).collect(),
             NodeOutput::Booleans(bs) => bs.iter().map(|b| NodeOutput::Boolean(*b)).collect(),
             NodeOutput::Colors(cs) => cs.iter().map(|c| NodeOutput::Color(*c)).collect(),
+            NodeOutput::DataRows(rs) => rs.iter().map(|r| NodeOutput::DataRow(r.clone())).collect(),
             v => vec![v.clone()], // Single values remain single
         }
     }
@@ -229,6 +253,7 @@ impl NodeOutput {
             NodeOutput::Strings(ss) => ss.len(),
             NodeOutput::Booleans(bs) => bs.len(),
             NodeOutput::Colors(cs) => cs.len(),
+            NodeOutput::DataRows(rs) => rs.len(),
             NodeOutput::None => 0,
             _ => 1,
         }
@@ -526,6 +551,13 @@ fn collect_results(results: Vec<NodeOutput>) -> NodeOutput {
             }).collect();
             NodeOutput::Colors(colors)
         }
+        Some(NodeOutput::DataRow(_)) => {
+            let rows: Vec<HashMap<String, DataValue>> = results.into_iter().filter_map(|r| match r {
+                NodeOutput::DataRow(row) => Some(row),
+                _ => None,
+            }).collect();
+            NodeOutput::DataRows(rows)
+        }
         _ => {
             // Default: collect as Paths (geometry operations)
             let paths: Vec<Path> = results.into_iter()
@@ -800,7 +832,17 @@ fn value_to_output(value: &Value) -> NodeOutput {
         Value::List(_) => NodeOutput::None, // TODO: handle lists
         Value::Null => NodeOutput::None,
         Value::Path(p) => NodeOutput::Path(p.clone()),
-        Value::Map(_) => NodeOutput::None, // TODO: handle maps
+        Value::Map(map) => {
+            let row: HashMap<String, DataValue> = map.iter().map(|(k, v)| {
+                let dv = match v {
+                    Value::Float(f) => DataValue::Float(*f),
+                    Value::Int(i) => DataValue::Float(*i as f64),
+                    _ => DataValue::String(format!("{:?}", v)),
+                };
+                (k.clone(), dv)
+            }).collect();
+            NodeOutput::DataRow(row)
+        }
     }
 }
 
@@ -891,6 +933,32 @@ fn get_booleans(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<bool> {
     match inputs.get(name) {
         Some(NodeOutput::Booleans(bs)) => bs.clone(),
         Some(NodeOutput::Boolean(b)) => vec![*b],
+        _ => Vec::new(),
+    }
+}
+
+/// Get a list of data rows from input.
+fn get_data_rows(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<HashMap<String, DataValue>> {
+    match inputs.get(name) {
+        Some(NodeOutput::DataRows(rs)) => rs.clone(),
+        Some(NodeOutput::DataRow(r)) => vec![r.clone()],
+        _ => Vec::new(),
+    }
+}
+
+/// Convert any NodeOutput to a list of DataValues (for make_table inputs).
+fn get_as_data_values(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<DataValue> {
+    match inputs.get(name) {
+        Some(NodeOutput::Floats(fs)) => fs.iter().map(|f| DataValue::Float(*f)).collect(),
+        Some(NodeOutput::Float(f)) => vec![DataValue::Float(*f)],
+        Some(NodeOutput::Ints(is)) => is.iter().map(|i| DataValue::Float(*i as f64)).collect(),
+        Some(NodeOutput::Int(i)) => vec![DataValue::Float(*i as f64)],
+        Some(NodeOutput::Strings(ss)) => ss.iter().map(|s| DataValue::String(s.clone())).collect(),
+        Some(NodeOutput::String(s)) => vec![DataValue::String(s.clone())],
+        Some(NodeOutput::Booleans(bs)) => bs.iter().map(|b| DataValue::String(b.to_string())).collect(),
+        Some(NodeOutput::Boolean(b)) => vec![DataValue::String(b.to_string())],
+        Some(NodeOutput::Points(pts)) => pts.iter().map(|p| DataValue::String(format!("{:.2}, {:.2}", p.x, p.y))).collect(),
+        Some(NodeOutput::Point(p)) => vec![DataValue::String(format!("{:.2}, {:.2}", p.x, p.y))],
         _ => Vec::new(),
     }
 }
@@ -2054,38 +2122,75 @@ fn execute_node(
         "data.import_csv" => {
             let file_path = get_string(inputs, "file", "");
             if file_path.is_empty() {
-                return Ok(NodeOutput::Strings(Vec::new()));
+                return Ok(NodeOutput::DataRows(Vec::new()));
             }
             match port.read_text_file(project_context, &file_path) {
                 Ok(content) => {
                     let delimiter = match get_string(inputs, "delimiter", "comma").as_str() {
-                        "semicolon" => ';',
-                        "colon" => ':',
-                        "tab" => '\t',
-                        "space" => ' ',
-                        _ => ',',
+                        "semicolon" => b';',
+                        "colon" => b':',
+                        "tab" => b'\t',
+                        "space" => b' ',
+                        _ => b',',
                     };
-                    // Simple CSV parsing: split by delimiter, return as list of strings
-                    let lines: Vec<String> = content.lines()
-                        .map(|line| {
-                            line.split(delimiter)
-                                .map(|field| field.trim().to_string())
-                                .collect::<Vec<_>>()
-                                .join("\t")
-                        })
-                        .collect();
-                    Ok(NodeOutput::Strings(lines))
+                    let quote_char = match get_string(inputs, "quotes", "double").as_str() {
+                        "single" => b'\'',
+                        _ => b'"',
+                    };
+                    let number_separator = get_string(inputs, "number_separator", "period");
+                    let rows = nodebox_ops::data::import_csv(
+                        &content, delimiter, quote_char, &number_separator,
+                    );
+                    Ok(NodeOutput::DataRows(rows))
                 }
                 Err(e) => {
                     log::warn!("Import CSV error: {}", e);
-                    Ok(NodeOutput::Strings(Vec::new()))
+                    Ok(NodeOutput::DataRows(Vec::new()))
                 }
             }
         }
-        "data.lookup" | "data.filter_data" | "data.make_table" => {
-            // These require Map/table support
-            log::warn!("Data node not yet fully supported: {}", proto);
-            Ok(NodeOutput::None)
+        "data.make_table" => {
+            let headers_str = get_string(inputs, "headers", "alpha;beta");
+            let headers: Vec<String> = headers_str
+                .split(|c| c == ';' || c == ',')
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .collect();
+
+            let lists: Vec<Vec<DataValue>> = (1..=6)
+                .map(|i| get_as_data_values(inputs, &format!("list{}", i)))
+                .collect();
+
+            let rows = nodebox_ops::data::make_table(&headers, &lists);
+            Ok(NodeOutput::DataRows(rows))
+        }
+        "data.lookup" => {
+            let key = get_string(inputs, "key", "x");
+            match inputs.get("list") {
+                Some(NodeOutput::DataRow(row)) => {
+                    match nodebox_ops::data::lookup(row, &key) {
+                        Some(DataValue::Float(f)) => Ok(NodeOutput::Float(f)),
+                        Some(DataValue::String(s)) => Ok(NodeOutput::String(s)),
+                        None => Ok(NodeOutput::String(String::new())),
+                    }
+                }
+                Some(NodeOutput::DataRows(rows)) if !rows.is_empty() => {
+                    match nodebox_ops::data::lookup(&rows[0], &key) {
+                        Some(DataValue::Float(f)) => Ok(NodeOutput::Float(f)),
+                        Some(DataValue::String(s)) => Ok(NodeOutput::String(s)),
+                        None => Ok(NodeOutput::String(String::new())),
+                    }
+                }
+                _ => Ok(NodeOutput::String(String::new())),
+            }
+        }
+        "data.filter_data" => {
+            let rows = get_data_rows(inputs, "data");
+            let key = get_string(inputs, "key", "name");
+            let op = get_string(inputs, "op", "=");
+            let value = get_string(inputs, "value", "");
+            let filtered = nodebox_ops::data::filter_data(&rows, &key, &op, &value);
+            Ok(NodeOutput::DataRows(filtered))
         }
 
         "network.query_json" => {

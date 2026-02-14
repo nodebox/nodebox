@@ -11,6 +11,7 @@ authors.workspace = true
 nodebox-core = { path = "../nodebox-core" }
 rayon = "1.10"
 usvg = "0.42"
+csv = "1"
 
 [features]
 default = []

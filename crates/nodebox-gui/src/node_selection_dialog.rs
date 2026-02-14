@@ -8,7 +8,7 @@ use crate::node_library::{NodeTemplate, NODE_TEMPLATES, create_node_from_templat
 use crate::theme;
 
 /// Categories for filtering nodes.
-const CATEGORIES: &[&str] = &["All", "geometry", "transform", "color", "math", "string", "list", "core"];
+const CATEGORIES: &[&str] = &["All", "geometry", "transform", "color", "math", "string", "list", "data", "core"];
 
 /// The modal node selection dialog.
 pub struct NodeSelectionDialog {
