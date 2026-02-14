@@ -143,6 +143,7 @@ impl ParameterPanel {
                                 node_port,
                                 is_connected,
                                 &node_name_clone,
+                                node_prototype.as_deref(),
                                 port,
                                 project_context,
                             );
@@ -338,6 +339,7 @@ impl ParameterPanel {
         port: &mut nodebox_core::node::Port,
         is_connected: bool,
         node_name: &str,
+        node_prototype: Option<&str>,
         io_port: &dyn Port,
         project_context: &ProjectContext,
     ) {
@@ -386,7 +388,7 @@ impl ParameterPanel {
                 let pos = egui::pos2(rect.left(), rect.center().y - galley.size().y / 2.0);
                 ui.painter().galley(pos, galley, theme::TEXT_DISABLED);
             } else {
-                self.show_port_editor(ui, port, node_name, io_port, project_context);
+                self.show_port_editor(ui, port, node_name, node_prototype, io_port, project_context);
 
                 // Apply label-initiated Point edit to both x and y
                 if let Some(committed_val) = self.label_edit_committed_value.take() {
@@ -457,6 +459,7 @@ impl ParameterPanel {
         ui: &mut egui::Ui,
         port: &mut nodebox_core::node::Port,
         node_name: &str,
+        node_prototype: Option<&str>,
         io_port: &dyn Port,
         project_context: &ProjectContext,
     ) {
@@ -742,10 +745,17 @@ impl ParameterPanel {
                                 &["OK"],
                             );
                         } else {
+                            // Choose file filters based on the node type
+                            let filters = match node_prototype {
+                                Some("data.import_csv") => vec![FileFilter::csv()],
+                                Some("data.import_text") => vec![FileFilter::text()],
+                                Some("corevector.import_svg") => vec![FileFilter::svg()],
+                                _ => vec![], // No filter = all files
+                            };
                             // Use sandboxed file dialog through Port
                             match io_port.show_open_file_dialog(
                                 project_context,
-                                &[FileFilter::svg()],
+                                &filters,
                             ) {
                                 Ok(Some(relative_path)) => {
                                     // Store the relative path
