@@ -6,7 +6,7 @@ use nodebox_port::{Port, ProjectContext};
 use std::sync::Arc;
 
 use crate::address_bar::{AddressBar, AddressBarAction};
-use crate::animation_bar::AnimationBar;
+use crate::animation_bar::{AnimationBar, AnimationEvent};
 use crate::components;
 use crate::history::History;
 use crate::icon_cache::IconCache;
@@ -661,16 +661,26 @@ impl eframe::App for NodeBoxApp {
             });
 
         // 3. Animation bar (bottom) - frameless, handles its own styling
-        egui::TopBottomPanel::bottom("animation_bar")
+        let anim_response = egui::TopBottomPanel::bottom("animation_bar")
             .exact_height(theme::ANIMATION_BAR_HEIGHT)
             .frame(egui::Frame::NONE)
             .show(ctx, |ui| {
-                let _event = self.animation_bar.show(ui);
+                self.animation_bar.show(ui)
             });
+        match anim_response.inner {
+            AnimationEvent::FrameChanged(_)
+            | AnimationEvent::Rewind
+            | AnimationEvent::Stop => {
+                self.render_pending = true;
+            }
+            _ => {}
+        }
 
         // Update animation playback
         if self.animation_bar.is_playing() {
-            self.animation_bar.update();
+            if self.animation_bar.update() {
+                self.render_pending = true;
+            }
             ctx.request_repaint();
         }
 
