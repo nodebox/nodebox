@@ -503,14 +503,20 @@ impl ParameterPanel {
 
                         // Commit on enter or focus lost
                         if output.response.lost_focus() {
-                            let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
+                            // key_pressed only matches Tab without modifiers;
+                            // check Shift+Tab separately for backward navigation.
+                            let (tab_pressed, shift_tab) = ui.input_mut(|i| {
+                                let plain = i.count_and_consume_key(egui::Modifiers::NONE, egui::Key::Tab) > 0;
+                                let shifted = i.count_and_consume_key(egui::Modifiers::SHIFT, egui::Key::Tab) > 0;
+                                (plain || shifted, shifted)
+                            });
                             if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                                 self.editing = None;
                             } else {
                                 *value = edit_text;
                                 self.editing = None;
                                 if tab_pressed {
-                                    let forward = !ui.input(|i| i.modifiers.shift);
+                                    let forward = !shift_tab;
                                     self.tab_target = Self::next_tab_stop(&self.tab_order, &port_key, forward);
                                 }
                             }
@@ -796,7 +802,13 @@ impl ParameterPanel {
 
             // Commit on enter or focus lost
             if output.response.lost_focus() {
-                let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
+                // key_pressed only matches Tab without modifiers;
+                // check Shift+Tab separately for backward navigation.
+                let (tab_pressed, shift_tab) = ui.input_mut(|i| {
+                    let plain = i.count_and_consume_key(egui::Modifiers::NONE, egui::Key::Tab) > 0;
+                    let shifted = i.count_and_consume_key(egui::Modifiers::SHIFT, egui::Key::Tab) > 0;
+                    (plain || shifted, shifted)
+                });
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     self.editing = None;
                 } else {
@@ -815,7 +827,7 @@ impl ParameterPanel {
                     }
                     self.editing = None;
                     if tab_pressed {
-                        let forward = !ui.input(|i| i.modifiers.shift);
+                        let forward = !shift_tab;
                         self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
                     }
                 }
@@ -925,7 +937,13 @@ impl ParameterPanel {
             }
 
             if output.response.lost_focus() {
-                let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
+                // key_pressed only matches Tab without modifiers;
+                // check Shift+Tab separately for backward navigation.
+                let (tab_pressed, shift_tab) = ui.input_mut(|i| {
+                    let plain = i.count_and_consume_key(egui::Modifiers::NONE, egui::Key::Tab) > 0;
+                    let shifted = i.count_and_consume_key(egui::Modifiers::SHIFT, egui::Key::Tab) > 0;
+                    (plain || shifted, shifted)
+                });
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     self.editing = None;
                 } else {
@@ -941,7 +959,7 @@ impl ParameterPanel {
                     }
                     self.editing = None;
                     if tab_pressed {
-                        let forward = !ui.input(|i| i.modifiers.shift);
+                        let forward = !shift_tab;
                         self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
                     }
                 }
