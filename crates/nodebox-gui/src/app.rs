@@ -670,7 +670,9 @@ impl eframe::App for NodeBoxApp {
 
         // Update animation playback
         if self.animation_bar.is_playing() {
-            self.animation_bar.update();
+            if self.animation_bar.update() {
+                self.render_pending = true;
+            }
             ctx.request_repaint();
         }
 

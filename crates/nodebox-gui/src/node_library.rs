@@ -698,6 +698,7 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
         // Core nodes
         "frame" => {
             // No input ports; outputs the current frame number
+            node = node.with_output_type(PortType::Float);
         }
         _ => {}
     }
