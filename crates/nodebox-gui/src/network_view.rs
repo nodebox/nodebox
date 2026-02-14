@@ -122,9 +122,19 @@ impl NetworkView {
         }
     }
 
+    /// Whether the user is currently dragging selected nodes.
+    pub fn is_dragging_nodes(&self) -> bool {
+        self.is_dragging_selection
+    }
+
     /// Get the currently selected nodes.
     pub fn selected_nodes(&self) -> &HashSet<String> {
         &self.selected
+    }
+
+    /// Set the selected nodes (used by undo/redo to restore selection).
+    pub fn set_selected(&mut self, names: HashSet<String>) {
+        self.selected = names;
     }
 
     /// Clone all selected nodes and their internal/incoming connections.

@@ -27,6 +27,8 @@ pub struct ParameterPanel {
     label_edit_committed_value: Option<f64>,
     /// Accumulates sub-pixel drag deltas so that default (non-Alt) drags snap to integers.
     drag_accumulator: f64,
+    /// Whether the user is currently dragging a parameter label or drag-value widget.
+    is_dragging: bool,
 }
 
 impl Default for ParameterPanel {
@@ -47,7 +49,13 @@ impl ParameterPanel {
             label_edit_apply_both: false,
             label_edit_committed_value: None,
             drag_accumulator: 0.0,
+            is_dragging: false,
         }
+    }
+
+    /// Whether the user is currently dragging a parameter label or drag-value widget.
+    pub fn is_dragging(&self) -> bool {
+        self.is_dragging
     }
 
     /// Show the parameter panel.
@@ -58,8 +66,22 @@ impl ParameterPanel {
         port: &dyn Port,
         project_context: &ProjectContext,
     ) {
+        // Clear drag state when the primary button is released
+        if self.is_dragging && ui.input(|i| !i.pointer.primary_down()) {
+            self.is_dragging = false;
+        }
+
         // Zero spacing so header sits flush against content
         ui.style_mut().spacing.item_spacing = egui::vec2(0.0, 0.0);
+
+        // Validate that the selected node still exists (e.g., after undo).
+        // If not, clear the stale selection to avoid "not found" errors
+        // and a double PARAMETERS header render.
+        if let Some(ref name) = state.selected_node {
+            if state.library.root.child(name).is_none() {
+                state.selected_node = None;
+            }
+        }
 
         if let Some(ref node_name) = state.selected_node.clone() {
             // First, collect connected ports while we only have immutable borrow
@@ -314,6 +336,7 @@ impl ParameterPanel {
                     }
                     if response.drag_started() {
                         drag_started = true;
+                        self.is_dragging = true;
                     }
                     if response.dragged() {
                         drag_delta_x = response.drag_delta().x;
@@ -930,6 +953,7 @@ impl ParameterPanel {
 
             if response.drag_started() {
                 self.drag_accumulator = 0.0;
+                self.is_dragging = true;
             }
             if response.dragged() {
                 let modifier = Self::drag_modifier(ui);
@@ -1079,6 +1103,7 @@ impl ParameterPanel {
 
             if response.drag_started() {
                 self.drag_accumulator = 0.0;
+                self.is_dragging = true;
             }
             if response.dragged() {
                 let modifier = Self::drag_modifier(ui);
