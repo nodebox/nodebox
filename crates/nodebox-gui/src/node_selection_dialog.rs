@@ -8,7 +8,7 @@ use crate::node_library::{NodeTemplate, NODE_TEMPLATES, create_node_from_templat
 use crate::theme;
 
 /// Categories for filtering nodes.
-const CATEGORIES: &[&str] = &["All", "geometry", "transform", "color"];
+const CATEGORIES: &[&str] = &["All", "geometry", "transform", "color", "math", "string", "list", "core"];
 
 /// The modal node selection dialog.
 pub struct NodeSelectionDialog {
@@ -247,7 +247,7 @@ impl NodeSelectionDialog {
                             egui::Label::new(
                                 egui::RichText::new(cat).color(text_color).size(10.0),
                             ).sense(egui::Sense::click())
-                        );
+                        ).on_hover_cursor(egui::CursorIcon::PointingHand);
 
                         if response.clicked() {
                             if cat == "All" {
