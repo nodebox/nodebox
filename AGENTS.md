@@ -44,6 +44,9 @@ Prereqs: Java JDK and Apache Ant are required; Maven is used for dependency reso
 - PRs should describe the user-visible change, list test commands run, and include screenshots or recordings for UI updates.
 - Link relevant issues or tickets when applicable.
 
+## Code Quality
+- **Fix all compiler warnings before handing off code.** Run `cargo check --workspace --exclude nodebox-python` and ensure zero warnings before completing a task. Deprecation warnings, unused imports, dead code warnings, and any other diagnostics must be resolved — not suppressed — unless there is a documented reason (see "Rust Dead Code Warnings" for approved suppression patterns).
+
 ## Notes for Contributors
 - Versioning lives in `src/main/resources/version.properties`; update it when preparing a release build.
 - **NEVER modify the Java code** (`src/main/java`). The Java codebase is legacy and read-only; use it only as a reference. All new development happens in the Rust crates under `crates/`.

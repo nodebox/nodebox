@@ -496,15 +496,15 @@ impl NodeBoxApp {
         // Collect recent files to avoid borrow issues
         let recent_files_list = self.recent_files.files();
 
-        egui::menu::bar(ui, |ui| {
+        egui::MenuBar::new().ui(ui, |ui| {
             ui.menu_button("File", |ui| {
                 if ui.button("New").clicked() {
                     self.state.new_document();
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("Open...").clicked() {
                     self.open_file();
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.menu_button("Open Recent", |ui| {
                     if recent_files_list.is_empty() {
@@ -519,7 +519,7 @@ impl NodeBoxApp {
                                 .unwrap_or("Unknown");
                             if ui.button(display_name).clicked() {
                                 path_to_open = Some(path.clone());
-                                ui.close_menu();
+                                ui.close();
                             }
                         }
                         if let Some(path) = path_to_open {
@@ -529,25 +529,25 @@ impl NodeBoxApp {
                     }
                     if ui.add_enabled(!recent_files_list.is_empty(), egui::Button::new("Clear Recent")).clicked() {
                         self.clear_recent_files();
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
                 if ui.button("Save").clicked() {
                     self.save_file();
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("Save As...").clicked() {
                     self.save_file_as();
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.separator();
                 if ui.button("Export SVG...").clicked() {
                     self.export_svg();
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("Export PNG...").clicked() {
                     self.export_png();
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.separator();
                 if ui.button("Quit").clicked() {
@@ -567,7 +567,7 @@ impl NodeBoxApp {
                         self.previous_library_hash = Self::hash_library(&self.state.library);
                         self.render_pending = true;
                     }
-                    ui.close_menu();
+                    ui.close();
                 }
                 let redo_text = if self.history.can_redo() {
                     format!("Redo ({})", self.history.redo_count())
@@ -580,26 +580,26 @@ impl NodeBoxApp {
                         self.previous_library_hash = Self::hash_library(&self.state.library);
                         self.render_pending = true;
                     }
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.separator();
                 if ui.button("Delete Selected").clicked() {
-                    ui.close_menu();
+                    ui.close();
                 }
             });
 
             ui.menu_button("View", |ui| {
                 if ui.button("Zoom In").clicked() {
                     self.viewer_pane.zoom_in();
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("Zoom Out").clicked() {
                     self.viewer_pane.zoom_out();
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("Fit to Window").clicked() {
                     self.viewer_pane.fit_to_window();
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.separator();
                 ui.checkbox(&mut self.viewer_pane.show_handles, "Show Handles");
@@ -611,7 +611,7 @@ impl NodeBoxApp {
             ui.menu_button("Help", |ui| {
                 if ui.button("About NodeBox").clicked() {
                     self.state.show_about = true;
-                    ui.close_menu();
+                    ui.close();
                 }
             });
         });
