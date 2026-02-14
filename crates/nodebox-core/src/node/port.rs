@@ -79,6 +79,16 @@ impl PortType {
             return true;
         }
 
+        // PortType::List is a generic type — list inputs accept any output type
+        if matches!(input_type, PortType::List) {
+            return true;
+        }
+
+        // PortType::List output can connect to any input (runtime type determined by actual data)
+        if matches!(output_type, PortType::List) {
+            return true;
+        }
+
         // Everything can be converted to a string
         if matches!(input_type, PortType::String) {
             return true;
@@ -387,6 +397,21 @@ mod tests {
         // Number -> Point
         assert!(PortType::is_compatible(&PortType::Int, &PortType::Point));
         assert!(PortType::is_compatible(&PortType::Float, &PortType::Point));
+
+        // List input accepts any type (generic list nodes)
+        assert!(PortType::is_compatible(&PortType::Geometry, &PortType::List));
+        assert!(PortType::is_compatible(&PortType::Color, &PortType::List));
+        assert!(PortType::is_compatible(&PortType::Point, &PortType::List));
+        assert!(PortType::is_compatible(&PortType::Float, &PortType::List));
+        assert!(PortType::is_compatible(&PortType::Int, &PortType::List));
+        assert!(PortType::is_compatible(&PortType::String, &PortType::List));
+
+        // List output connects to any type (runtime type determined by data)
+        assert!(PortType::is_compatible(&PortType::List, &PortType::Geometry));
+        assert!(PortType::is_compatible(&PortType::List, &PortType::Color));
+        assert!(PortType::is_compatible(&PortType::List, &PortType::Point));
+        assert!(PortType::is_compatible(&PortType::List, &PortType::Float));
+        assert!(PortType::is_compatible(&PortType::List, &PortType::Int));
 
         // Incompatible
         assert!(!PortType::is_compatible(&PortType::String, &PortType::Int));
