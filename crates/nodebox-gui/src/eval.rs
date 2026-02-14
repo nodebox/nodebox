@@ -2023,10 +2023,30 @@ fn execute_node(
             }
         }
 
-        "list.keys" | "list.zip_map" => {
-            // These require Map support, return None for now
-            log::warn!("Map-based list node not yet fully supported: {}", proto);
-            Ok(NodeOutput::None)
+        "list.keys" => {
+            let rows = get_data_rows(inputs, "maps");
+            let mut key_set = std::collections::BTreeSet::new();
+            for row in &rows {
+                for key in row.keys() {
+                    key_set.insert(key.clone());
+                }
+            }
+            let keys: Vec<String> = key_set.into_iter().collect();
+            Ok(NodeOutput::Strings(keys))
+        }
+
+        "list.zip_map" => {
+            let keys: Vec<String> = match inputs.get("keys") {
+                Some(NodeOutput::Strings(ss)) => ss.clone(),
+                Some(NodeOutput::String(s)) => vec![s.clone()],
+                _ => Vec::new(),
+            };
+            let values = get_as_data_values(inputs, "values");
+            let mut map = HashMap::new();
+            for (k, v) in keys.into_iter().zip(values.into_iter()) {
+                map.insert(k, v);
+            }
+            Ok(NodeOutput::DataRow(map))
         }
 
         // ========================

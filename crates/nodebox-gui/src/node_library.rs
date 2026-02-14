@@ -766,6 +766,18 @@ pub const NODE_TEMPLATES: &[NodeTemplate] = &[
         category: "list",
         description: "Combine multiple lists into one",
     },
+    NodeTemplate {
+        name: "keys",
+        prototype: "list.keys",
+        category: "list",
+        description: "Get the keys from a list of maps",
+    },
+    NodeTemplate {
+        name: "zip_map",
+        prototype: "list.zip_map",
+        category: "list",
+        description: "Combine keys and values into a map",
+    },
     // ========================
     // Core nodes
     // ========================
@@ -1784,6 +1796,18 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                 .with_input(Port::geometry("list2"))
                 .with_input(Port::geometry("list3"))
                 .with_output_type(PortType::Geometry);
+        }
+        "keys" => {
+            node = node
+                .with_input(Port::new("maps", PortType::List).with_port_range(PortRange::List))
+                .with_output_type(PortType::Data)
+                .with_output_range(PortRange::List);
+        }
+        "zip_map" => {
+            node = node
+                .with_input(Port::new("keys", PortType::String).with_port_range(PortRange::List))
+                .with_input(Port::new("values", PortType::List).with_port_range(PortRange::List))
+                .with_output_type(PortType::Data);
         }
         // ========================
         // Core nodes
