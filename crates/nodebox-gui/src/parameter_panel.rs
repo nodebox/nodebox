@@ -688,57 +688,72 @@ impl ParameterPanel {
             }
             Widget::File => {
                 if let Value::String(ref mut path) = port.value {
-                    // Show filename or placeholder
+                    // Show filename or placeholder, styled like the string widget
                     let display_text = if path.is_empty() {
                         "(none)".to_string()
                     } else {
                         // Extract just the filename from the path
-                        std::path::Path::new(path)
+                        std::path::Path::new(path.as_str())
                             .file_name()
                             .map(|s| s.to_string_lossy().to_string())
                             .unwrap_or_else(|| path.clone())
                     };
 
-                    let galley = ui.painter().layout_no_wrap(
-                        display_text,
-                        egui::FontId::proportional(11.0),
-                        if path.is_empty() { theme::TEXT_DISABLED } else { theme::VALUE_TEXT },
+                    // Use non-interactive TextEdit for pixel-perfect alignment with string widget
+                    let mut display = display_text.clone();
+                    let bg_idx = ui.painter().add(egui::Shape::Noop);
+                    let available_w = ui.available_width() - theme::PADDING - theme::PADDING;
+
+                    // Reserve space for the "..." button on the right
+                    let dots_width = 20.0;
+
+                    let te_output = egui::TextEdit::singleline(&mut display)
+                        .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
+                        .text_color(if path.is_empty() { theme::TEXT_DISABLED } else { egui::Color32::WHITE })
+                        .interactive(false)
+                        .frame(false)
+                        .margin(egui::Margin::symmetric(4, 0))
+                        .desired_width(available_w - dots_width)
+                        .show(ui);
+
+                    // Draw "..." button right-aligned in the remaining space
+                    let row_rect = te_output.response.rect;
+                    let dots_rect = egui::Rect::from_min_size(
+                        egui::pos2(row_rect.right(), row_rect.top()),
+                        egui::vec2(dots_width, row_rect.height()),
                     );
-                    let rect = ui.available_rect_before_wrap();
-                    let text_pos = egui::pos2(rect.left(), rect.center().y - galley.size().y / 2.0);
-                    ui.painter().galley(text_pos, galley.clone(), theme::VALUE_TEXT);
-
-                    // Add browse button after the text
-                    let button_x = rect.left() + galley.size().x + 8.0;
-                    let button_rect = egui::Rect::from_min_size(
-                        egui::pos2(button_x, rect.center().y - 8.0),
-                        egui::vec2(16.0, 16.0),
-                    );
-
-                    let button_response = ui.allocate_rect(button_rect, Sense::click());
-
-                    // Draw folder icon or "..." button
-                    let button_color = if button_response.hovered() {
-                        theme::TEXT_BRIGHT
-                    } else {
-                        theme::TEXT_NORMAL
-                    };
+                    let dots_color = theme::TEXT_SUBDUED;
                     ui.painter().text(
-                        button_rect.center(),
+                        dots_rect.center(),
                         egui::Align2::CENTER_CENTER,
-                        "…",
-                        egui::FontId::proportional(14.0),
-                        button_color,
+                        "...",
+                        egui::FontId::proportional(theme::FONT_SIZE_SMALL),
+                        dots_color,
                     );
 
-                    if button_response.hovered() {
+                    // Overlay click sensing on the full row (text + dots)
+                    let full_rect = egui::Rect::from_min_max(row_rect.min, dots_rect.max);
+                    let interact_id = ui.id().with(&port_key);
+                    let response = ui.interact(full_rect, interact_id, Sense::click());
+
+                    // Hover effect: subtle darkened background (same as string widget)
+                    if response.hovered() {
+                        let hover_rect = full_rect.expand2(egui::vec2(0.0, 4.0));
+                        ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                            hover_rect,
+                            egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
+                            theme::FIELD_HOVER_BG,
+                        ));
+                    }
+
+                    if response.hovered() {
                         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                     }
 
-                    if button_response.clicked() {
+                    // Click to open file picker
+                    if response.clicked() {
                         // Check if project is saved first
                         if !project_context.is_saved() {
-                            // Show message to save project first
                             let _ = io_port.show_message_dialog(
                                 "Save Project First",
                                 "Please save your project before importing files.",
@@ -752,18 +767,15 @@ impl ParameterPanel {
                                 Some("corevector.import_svg") => vec![FileFilter::svg()],
                                 _ => vec![], // No filter = all files
                             };
-                            // Use sandboxed file dialog through Port
                             match io_port.show_open_file_dialog(
                                 project_context,
                                 &filters,
                             ) {
                                 Ok(Some(relative_path)) => {
-                                    // Store the relative path
                                     *path = relative_path.to_string();
                                 }
                                 Ok(None) => {} // User cancelled
                                 Err(PortError::SandboxViolation) => {
-                                    // File is outside project directory
                                     let _ = io_port.show_message_dialog(
                                         "File Outside Project",
                                         "Please copy the file to your project folder first.",
