@@ -1248,7 +1248,7 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
         }
         "distribute" => {
             node = node
-                .with_input(Port::geometry("shapes"))
+                .with_input(Port::geometry("shapes").with_port_range(PortRange::List))
                 .with_input(Port::menu("horizontal", "none", vec![
                     MenuItem::new("none", "No Change"),
                     MenuItem::new("left", "Left"),
