@@ -13,13 +13,23 @@ use nodebox_core::Value;
 use crate::error::{NdbxError, Result};
 use crate::upgrades::upgrade;
 
+/// Parses an NDBX file from the given path, returning the library and any warnings.
+///
+/// Unlike `parse_file`, this function also returns non-fatal warnings
+/// (e.g., when loading old format versions best-effort).
+pub fn parse_file_with_warnings(path: impl AsRef<Path>) -> Result<(NodeLibrary, Vec<String>)> {
+    let content = fs::read_to_string(path)?;
+    let mut library = parse(&content)?;
+    let upgrade_result = upgrade(&mut library)?;
+    Ok((library, upgrade_result.warnings))
+}
+
 /// Parses an NDBX file from the given path.
 ///
 /// After parsing, the library is automatically upgraded to the current format version.
+/// Warnings from upgrading old format versions are discarded.
 pub fn parse_file(path: impl AsRef<Path>) -> Result<NodeLibrary> {
-    let content = fs::read_to_string(path)?;
-    let mut library = parse(&content)?;
-    upgrade(&mut library)?;
+    let (library, _warnings) = parse_file_with_warnings(path)?;
     Ok(library)
 }
 

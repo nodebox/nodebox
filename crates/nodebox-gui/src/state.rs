@@ -7,6 +7,27 @@ use nodebox_core::geometry::{Path as GeoPath, Color, Point};
 use nodebox_core::node::{Node, NodeLibrary, MenuItem, Port, PortRange, Widget};
 use crate::eval::NodeOutput;
 
+/// Severity level for a notification.
+#[derive(Debug, Clone, PartialEq)]
+pub enum NotificationLevel {
+    /// Informational notice.
+    #[allow(dead_code)]
+    Info,
+    /// Warning about potential issues.
+    Warning,
+}
+
+/// A dismissible notification shown to the user.
+#[derive(Debug, Clone)]
+pub struct Notification {
+    /// Unique identifier for this notification.
+    pub id: u64,
+    /// The message to display.
+    pub message: String,
+    /// Severity level.
+    pub level: NotificationLevel,
+}
+
 /// The main application state.
 pub struct AppState {
     /// Current file path (if saved).
@@ -37,6 +58,12 @@ pub struct AppState {
 
     /// The raw output of the rendered node (for non-geometry data display).
     pub node_output: NodeOutput,
+
+    /// Active notifications (dismissible banners).
+    pub notifications: Vec<Notification>,
+
+    /// Counter for generating unique notification IDs.
+    notification_counter: u64,
 }
 
 impl Default for AppState {
@@ -63,6 +90,8 @@ impl AppState {
             library,
             node_errors: HashMap::new(),
             node_output: NodeOutput::None,
+            notifications: Vec::new(),
+            notification_counter: 0,
         }
     }
 
@@ -95,6 +124,7 @@ impl AppState {
         self.node_output = NodeOutput::None;
         self.selected_node = None;
         self.node_errors.clear();
+        self.notifications.clear();
     }
 
     /// Load a file.
@@ -102,8 +132,9 @@ impl AppState {
     /// Note: Geometry is cleared - the render worker will evaluate with
     /// the proper Port and populate it.
     pub fn load_file(&mut self, path: &Path) -> Result<(), String> {
-        // Parse the .ndbx file
-        let mut library = nodebox_ndbx::parse_file(path).map_err(|e| e.to_string())?;
+        // Parse the .ndbx file with warnings (old format versions load best-effort)
+        let (mut library, warnings) =
+            nodebox_ndbx::parse_file_with_warnings(path).map_err(|e| e.to_string())?;
 
         // Ensure all nodes have their default ports populated
         populate_default_ports(&mut library.root);
@@ -118,7 +149,26 @@ impl AppState {
         self.node_output = NodeOutput::None;
         self.node_errors.clear();
 
+        // Surface any warnings as notifications
+        self.notifications.clear();
+        for warning in warnings {
+            self.add_notification(warning, NotificationLevel::Warning);
+        }
+
         Ok(())
+    }
+
+    /// Add a notification and return its ID.
+    pub fn add_notification(&mut self, message: String, level: NotificationLevel) -> u64 {
+        self.notification_counter += 1;
+        let id = self.notification_counter;
+        self.notifications.push(Notification { id, message, level });
+        id
+    }
+
+    /// Dismiss (remove) a notification by ID.
+    pub fn dismiss_notification(&mut self, id: u64) {
+        self.notifications.retain(|n| n.id != id);
     }
 
     /// Save the current document.

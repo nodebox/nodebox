@@ -1,9 +1,8 @@
 //! Tests for loading and evaluating .ndbx files.
 //!
-//! Note: The Rust implementation only supports .ndbx format version 21+.
-//! Older example files (version 17) from the Java implementation are rejected.
-//! These tests verify that behavior and test evaluation with programmatically
-//! created libraries.
+//! Note: Old .ndbx files (version < 21) from the Java implementation are loaded
+//! best-effort with a warning. These tests verify that behavior and test evaluation
+//! with programmatically created libraries.
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -12,7 +11,6 @@ use nodebox_core::geometry::{Color, Point};
 use nodebox_core::node::{Connection, Node, NodeLibrary, Port};
 use nodebox_gui::eval::evaluate_network;
 use nodebox_gui::{populate_default_ports, AppState};
-use nodebox_ndbx::NdbxError;
 use nodebox_port::{Port as PortTrait, ProjectContext, TestPort};
 
 /// Create a test port and project context for evaluation tests.
@@ -47,23 +45,22 @@ fn libraries_dir() -> PathBuf {
 // ============================================================================
 
 #[test]
-fn test_old_version_files_are_rejected() {
+fn test_old_version_files_load_with_warning() {
     // The Primitives example has formatVersion="17" which is below our minimum (21)
+    // but should load best-effort with a warning
     let path = examples_dir().join("01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
     if !path.exists() {
         println!("Skipping test - example file not found");
         return;
     }
 
-    let result = nodebox_ndbx::parse_file(&path);
-    assert!(result.is_err(), "Old version files should be rejected");
+    let result = nodebox_ndbx::parse_file_with_warnings(&path);
+    assert!(result.is_ok(), "Old version files should load best-effort");
 
-    match result.unwrap_err() {
-        NdbxError::UnsupportedVersion(v) => {
-            assert_eq!(v, 17, "Expected version 17 rejection");
-        }
-        other => panic!("Expected UnsupportedVersion error, got: {:?}", other),
-    }
+    let (library, warnings) = result.unwrap();
+    assert!(!warnings.is_empty(), "Should have a warning about old format version");
+    assert!(warnings[0].contains("17"), "Warning should mention the file's version");
+    assert_eq!(library.format_version, 22, "Should be upgraded to current version");
 }
 
 #[test]
@@ -338,10 +335,10 @@ fn test_app_state_new() {
 }
 
 #[test]
-fn test_app_state_load_file_old_version() {
+fn test_app_state_load_file_old_version_warns() {
     let mut state = AppState::new();
 
-    // Try to load an old version file - should fail
+    // Old version files should load best-effort with notifications
     let path = examples_dir().join("01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
     if !path.exists() {
         println!("Skipping test - example file not found");
@@ -350,8 +347,12 @@ fn test_app_state_load_file_old_version() {
 
     let result = state.load_file(&path);
     assert!(
-        result.is_err(),
-        "load_file should fail for old version files"
+        result.is_ok(),
+        "load_file should succeed for old version files (best-effort)"
+    );
+    assert!(
+        !state.notifications.is_empty(),
+        "Should have notification warning about old format"
     );
 }
 
