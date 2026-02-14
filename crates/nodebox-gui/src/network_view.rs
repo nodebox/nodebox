@@ -48,6 +48,8 @@ pub struct NetworkView {
     drag_select_current: Pos2,
     /// Selection state before the rect selection started (for shift+drag additive selection).
     selection_before_drag: HashSet<String>,
+    /// Whether the current drag started as an alt-drag copy operation.
+    is_alt_copy_drag: bool,
 }
 
 /// State for dragging a new connection.
@@ -103,12 +105,82 @@ impl NetworkView {
             drag_select_start: Pos2::ZERO,
             drag_select_current: Pos2::ZERO,
             selection_before_drag: HashSet::new(),
+            is_alt_copy_drag: false,
         }
     }
 
     /// Get the currently selected nodes.
     pub fn selected_nodes(&self) -> &HashSet<String> {
         &self.selected
+    }
+
+    /// Clone all selected nodes and their internal/incoming connections.
+    /// Updates `self.selected` to point to the new clones.
+    fn perform_alt_copy(&mut self, library: &mut Arc<NodeLibrary>) {
+        let lib = Arc::make_mut(library);
+
+        // Collect existing names to track uniqueness across the batch.
+        let mut used_names: HashSet<String> =
+            lib.root.children.iter().map(|c| c.name.clone()).collect();
+
+        // Phase 1: Build old_name -> new_name mapping.
+        let mut name_map: HashMap<String, String> = HashMap::new();
+        let selected_names: Vec<String> = self.selected.iter().cloned().collect();
+
+        for old_name in &selected_names {
+            let prefix = extract_name_prefix(old_name);
+            let new_name = generate_unique_name(prefix, &used_names);
+            used_names.insert(new_name.clone());
+            name_map.insert(old_name.clone(), new_name);
+        }
+
+        // Phase 2: Clone nodes with new names.
+        let mut new_nodes = Vec::new();
+        for old_name in &selected_names {
+            if let Some(original) = lib.root.child(old_name) {
+                let mut cloned = original.clone();
+                cloned.name = name_map[old_name].clone();
+                new_nodes.push(cloned);
+            }
+        }
+
+        // Phase 3: Duplicate connections.
+        let mut new_connections = Vec::new();
+        for conn in &lib.root.connections {
+            let out_in_selection = name_map.contains_key(&conn.output_node);
+            let in_in_selection = name_map.contains_key(&conn.input_node);
+
+            if out_in_selection && in_in_selection {
+                // Internal connection: remap both ends to clones.
+                new_connections.push(Connection::new(
+                    &name_map[&conn.output_node],
+                    &name_map[&conn.input_node],
+                    &conn.input_port,
+                ));
+            } else if in_in_selection {
+                // Incoming connection: keep output node, remap input to clone.
+                new_connections.push(Connection::new(
+                    &conn.output_node,
+                    &name_map[&conn.input_node],
+                    &conn.input_port,
+                ));
+            }
+            // Outgoing connections (out_in_selection && !in_in_selection): NOT duplicated.
+        }
+
+        // Phase 4: Mutate the network.
+        for node in new_nodes {
+            lib.root.children.push(node);
+        }
+        lib.root.connections.extend(new_connections);
+
+        // Phase 5: Update selection to the clones.
+        self.selected.clear();
+        for new_name in name_map.values() {
+            self.selected.insert(new_name.clone());
+        }
+
+        self.is_alt_copy_drag = true;
     }
 
     /// Show the network view. Returns any action that should be handled by the app.
@@ -460,11 +532,21 @@ impl NetworkView {
                 self.selected.clear();
                 self.selected.insert(name);
             }
+
+            // Alt/Option-drag: clone selected nodes (originals stay, clones get dragged)
+            if ui.input(|i| i.modifiers.alt) {
+                self.perform_alt_copy(library);
+            }
+
             self.is_dragging_selection = true;
         }
 
         // Apply drag delta to all selected nodes
         if self.is_dragging_selection {
+            // Show copy cursor if this was an alt-copy drag
+            if self.is_alt_copy_drag {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::Copy);
+            }
             let pointer_delta = ui.input(|i| {
                 if i.pointer.is_decidedly_dragging() {
                     i.pointer.delta()
@@ -494,6 +576,7 @@ impl NetworkView {
                 }
             }
             self.is_dragging_selection = false;
+            self.is_alt_copy_drag = false;
         }
 
         // Set rendered node (on double-click)
@@ -1063,4 +1146,191 @@ fn cubic_bezier(p0: Pos2, p1: Pos2, p2: Pos2, p3: Pos2, t: f32) -> Pos2 {
 fn is_hidden_port(_port_type: &PortType) -> bool {
     // For now, show all ports. Can be extended to hide certain types.
     false
+}
+
+/// Strip trailing digits from a node name to get the base prefix.
+///
+/// Examples: `"rect1"` → `"rect"`, `"ellipse"` → `"ellipse"`, `"a1b2"` → `"a1b"`
+fn extract_name_prefix(name: &str) -> &str {
+    let prefix_end = name.trim_end_matches(|c: char| c.is_ascii_digit()).len();
+    if prefix_end == 0 {
+        name
+    } else {
+        &name[..prefix_end]
+    }
+}
+
+/// Generate a unique name given a prefix and a set of existing names.
+///
+/// Always appends a numeric index: `prefix1`, `prefix2`, etc.
+fn generate_unique_name(prefix: &str, existing: &HashSet<String>) -> String {
+    for i in 1..1000 {
+        let name = format!("{}{}", prefix, i);
+        if !existing.contains(&name) {
+            return name;
+        }
+    }
+    // Fallback (shouldn't happen in practice)
+    format!("{}{}", prefix, 1000)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nodebox_core::node::{Node, NodeLibrary};
+
+    #[test]
+    fn test_extract_name_prefix() {
+        assert_eq!(extract_name_prefix("rect1"), "rect");
+        assert_eq!(extract_name_prefix("rect"), "rect");
+        assert_eq!(extract_name_prefix("ellipse42"), "ellipse");
+        assert_eq!(extract_name_prefix("a1b2"), "a1b");
+        assert_eq!(extract_name_prefix(""), "");
+        // All-digit name: returns the whole name (prefix_end == 0)
+        assert_eq!(extract_name_prefix("123"), "123");
+    }
+
+    #[test]
+    fn test_generate_unique_name_available() {
+        let existing = HashSet::new();
+        assert_eq!(generate_unique_name("rect", &existing), "rect1");
+    }
+
+    #[test]
+    fn test_generate_unique_name_increments() {
+        let existing: HashSet<String> = ["rect".into()].into();
+        assert_eq!(generate_unique_name("rect", &existing), "rect1");
+
+        let existing: HashSet<String> = ["rect".into(), "rect1".into()].into();
+        assert_eq!(generate_unique_name("rect", &existing), "rect2");
+    }
+
+    #[test]
+    fn test_alt_copy_single_node() {
+        let mut library = Arc::new(NodeLibrary::new("test"));
+        {
+            let lib = Arc::make_mut(&mut library);
+            lib.root.children.push(Node::new("rect").with_position(1.0, 2.0));
+            lib.root.children.push(Node::new("rect1")); // Take up "rect1" so clone becomes "rect2"
+        }
+
+        let mut view = NetworkView::new();
+        view.selected.insert("rect".into());
+
+        view.perform_alt_copy(&mut library);
+
+        // Original should still exist
+        assert!(library.root.child("rect").is_some());
+        // Clone should exist with incremented name (skips "rect1" which is taken)
+        assert!(library.root.child("rect2").is_some());
+        // Clone should have same position as original
+        let clone = library.root.child("rect2").unwrap();
+        assert_eq!(clone.position.x, 1.0);
+        assert_eq!(clone.position.y, 2.0);
+        // Selection should point to clone
+        assert!(view.selected.contains("rect2"));
+        assert!(!view.selected.contains("rect"));
+        assert_eq!(view.selected.len(), 1);
+    }
+
+    #[test]
+    fn test_alt_copy_multiple_nodes_with_internal_connections() {
+        let mut library = Arc::new(NodeLibrary::new("test"));
+        {
+            let lib = Arc::make_mut(&mut library);
+            lib.root.children.push(Node::new("rect1"));
+            lib.root.children.push(Node::new("translate1"));
+            lib.root.connections.push(Connection::new("rect1", "translate1", "shape"));
+        }
+
+        let mut view = NetworkView::new();
+        view.selected.insert("rect1".into());
+        view.selected.insert("translate1".into());
+
+        view.perform_alt_copy(&mut library);
+
+        // Should have 4 nodes total
+        assert_eq!(library.root.children.len(), 4);
+        // Original connection should still exist
+        assert!(library.root.connections.iter().any(|c|
+            c.output_node == "rect1" && c.input_node == "translate1" && c.input_port == "shape"
+        ));
+        // Internal connection should be duplicated with new names
+        // (rect2 -> translate2 or similar)
+        let new_names: Vec<String> = view.selected.iter().cloned().collect();
+        let has_internal_conn = library.root.connections.iter().any(|c|
+            new_names.contains(&c.output_node) && new_names.contains(&c.input_node) && c.input_port == "shape"
+        );
+        assert!(has_internal_conn, "Internal connection should be duplicated");
+    }
+
+    #[test]
+    fn test_alt_copy_incoming_connections_preserved() {
+        let mut library = Arc::new(NodeLibrary::new("test"));
+        {
+            let lib = Arc::make_mut(&mut library);
+            lib.root.children.push(Node::new("source1")); // Not selected
+            lib.root.children.push(Node::new("rect1")); // Selected
+            lib.root.connections.push(Connection::new("source1", "rect1", "shape"));
+        }
+
+        let mut view = NetworkView::new();
+        view.selected.insert("rect1".into());
+
+        view.perform_alt_copy(&mut library);
+
+        let clone_name: String = view.selected.iter().next().unwrap().clone();
+        // Incoming connection from non-selected node should be duplicated
+        assert!(library.root.connections.iter().any(|c|
+            c.output_node == "source1" && c.input_node == clone_name && c.input_port == "shape"
+        ));
+    }
+
+    #[test]
+    fn test_alt_copy_outgoing_connections_not_duplicated() {
+        let mut library = Arc::new(NodeLibrary::new("test"));
+        {
+            let lib = Arc::make_mut(&mut library);
+            lib.root.children.push(Node::new("rect1")); // Selected
+            lib.root.children.push(Node::new("target1")); // Not selected
+            lib.root.connections.push(Connection::new("rect1", "target1", "shape"));
+        }
+
+        let mut view = NetworkView::new();
+        view.selected.insert("rect1".into());
+
+        view.perform_alt_copy(&mut library);
+
+        let clone_name: String = view.selected.iter().next().unwrap().clone();
+        // Outgoing connection should NOT be duplicated
+        assert!(!library.root.connections.iter().any(|c|
+            c.output_node == clone_name && c.input_node == "target1"
+        ));
+        // Original connection should still exist
+        assert_eq!(library.root.connections.len(), 1);
+    }
+
+    #[test]
+    fn test_alt_copy_name_collision_across_batch() {
+        let mut library = Arc::new(NodeLibrary::new("test"));
+        {
+            let lib = Arc::make_mut(&mut library);
+            lib.root.children.push(Node::new("rect"));
+            lib.root.children.push(Node::new("rect1"));
+        }
+
+        let mut view = NetworkView::new();
+        view.selected.insert("rect".into());
+        view.selected.insert("rect1".into());
+
+        view.perform_alt_copy(&mut library);
+
+        // Should have 4 nodes, each with a unique name
+        assert_eq!(library.root.children.len(), 4);
+        let names: HashSet<String> = library.root.children.iter().map(|c| c.name.clone()).collect();
+        assert_eq!(names.len(), 4);
+        // rect and rect1 still exist, two new names generated
+        assert!(names.contains("rect"));
+        assert!(names.contains("rect1"));
+    }
 }
