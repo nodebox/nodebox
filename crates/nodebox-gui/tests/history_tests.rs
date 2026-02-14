@@ -232,3 +232,154 @@ fn test_history_redo_on_empty_returns_none() {
     let result = history.redo(&library);
     assert!(result.is_none());
 }
+
+// --- Undo group tests ---
+
+#[test]
+fn test_save_state_suppressed_during_group() {
+    let mut history = History::new();
+    let library_v1 = create_test_library(0.0);
+
+    // Begin a group
+    history.begin_undo_group(&library_v1);
+
+    // Multiple save_state calls should be suppressed
+    for i in 1..=5 {
+        let lib = create_test_library(i as f64 * 10.0);
+        history.save_state(&lib);
+    }
+
+    // End the group with the final state
+    let library_final = create_test_library(50.0);
+    history.end_undo_group(&library_final);
+
+    // Only one undo entry (the group itself)
+    assert_eq!(history.undo_count(), 1);
+}
+
+#[test]
+fn test_group_undo_restores_pre_group_state() {
+    let mut history = History::new();
+    let library_v1 = create_test_library(0.0);
+
+    // Begin group with state A (x=0)
+    history.begin_undo_group(&library_v1);
+
+    // Simulate intermediate changes during drag
+    let library_v2 = create_test_library(25.0);
+    history.save_state(&library_v2);
+    let library_v3 = create_test_library(50.0);
+    history.save_state(&library_v3);
+
+    // End group with final state (x=50)
+    history.end_undo_group(&library_v3);
+
+    assert_eq!(history.undo_count(), 1);
+
+    // Undo should restore the pre-group state (x=0)
+    let restored = history.undo(&library_v3).unwrap();
+    let node = restored.root.child("ellipse1").unwrap();
+    let x = node.input("x").unwrap().value.as_float().unwrap();
+    assert!((x - 0.0).abs() < 0.001, "Expected x=0.0 (pre-group), got x={}", x);
+}
+
+#[test]
+fn test_end_group_without_begin_is_noop() {
+    let mut history = History::new();
+    let library = create_test_library(0.0);
+
+    // end_undo_group without begin should not crash or add entries
+    history.end_undo_group(&library);
+
+    assert_eq!(history.undo_count(), 0);
+    assert!(!history.can_undo());
+}
+
+#[test]
+fn test_no_op_group_creates_no_entry() {
+    let mut history = History::new();
+    let library = create_test_library(0.0);
+
+    // Begin and end group with the same state (no actual changes)
+    history.begin_undo_group(&library);
+    history.end_undo_group(&library);
+
+    // No undo entry should be created since nothing changed
+    assert_eq!(history.undo_count(), 0);
+}
+
+#[test]
+fn test_group_clears_redo_stack() {
+    let mut history = History::new();
+
+    // Set up: create some undo history, then undo to populate redo stack
+    let library_v1 = create_test_library(0.0);
+    history.save_state(&library_v1);
+    let library_v2 = create_test_library(50.0);
+    history.undo(&library_v2);
+    assert!(history.can_redo());
+
+    // Now perform a group operation
+    let library_v3 = create_test_library(100.0);
+    history.begin_undo_group(&library_v3);
+    let library_v4 = create_test_library(200.0);
+    history.end_undo_group(&library_v4);
+
+    // Redo stack should be cleared by the group
+    assert!(!history.can_redo());
+    assert_eq!(history.redo_count(), 0);
+}
+
+#[test]
+fn test_nested_begin_group_keeps_first() {
+    let mut history = History::new();
+    let library_a = create_test_library(0.0);
+    let library_b = create_test_library(50.0);
+
+    // First begin_undo_group captures state A
+    history.begin_undo_group(&library_a);
+
+    // Second begin_undo_group should be ignored (first wins)
+    history.begin_undo_group(&library_b);
+
+    let library_c = create_test_library(100.0);
+    history.end_undo_group(&library_c);
+
+    // Undo should restore A (from the first begin), not B
+    let restored = history.undo(&library_c).unwrap();
+    let node = restored.root.child("ellipse1").unwrap();
+    let x = node.input("x").unwrap().value.as_float().unwrap();
+    assert!((x - 0.0).abs() < 0.001, "Expected x=0.0 (first begin), got x={}", x);
+}
+
+#[test]
+fn test_group_followed_by_normal_saves() {
+    let mut history = History::new();
+
+    // Do a grouped operation
+    let library_v1 = create_test_library(0.0);
+    history.begin_undo_group(&library_v1);
+    let library_v2 = create_test_library(50.0);
+    history.end_undo_group(&library_v2);
+
+    // Then do normal saves
+    let library_v3 = create_test_library(75.0);
+    history.save_state(&library_v3);
+
+    // Should have 2 entries: the group + the normal save
+    assert_eq!(history.undo_count(), 2);
+}
+
+#[test]
+fn test_is_in_group() {
+    let mut history = History::new();
+    let library = create_test_library(0.0);
+
+    assert!(!history.is_in_group());
+
+    history.begin_undo_group(&library);
+    assert!(history.is_in_group());
+
+    history.end_undo_group(&library);
+    assert!(!history.is_in_group());
+}

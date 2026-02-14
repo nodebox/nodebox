@@ -122,6 +122,11 @@ impl NetworkView {
         }
     }
 
+    /// Whether the user is currently dragging selected nodes.
+    pub fn is_dragging_nodes(&self) -> bool {
+        self.is_dragging_selection
+    }
+
     /// Get the currently selected nodes.
     pub fn selected_nodes(&self) -> &HashSet<String> {
         &self.selected

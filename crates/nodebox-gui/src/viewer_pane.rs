@@ -273,6 +273,12 @@ impl ViewerPane {
         }
     }
 
+    /// Whether the user is currently dragging a handle in the viewer.
+    pub fn is_dragging(&self) -> bool {
+        self.dragging_handle.is_some()
+            || self.four_point_handle.as_ref().is_some_and(|fp| fp.is_dragging())
+    }
+
     /// Get the current pan offset.
     #[allow(dead_code)]
     pub fn pan(&self) -> Vec2 {

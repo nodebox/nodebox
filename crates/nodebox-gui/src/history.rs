@@ -15,6 +15,9 @@ pub struct History {
     /// The last saved state (to track changes).
     #[allow(dead_code)]
     last_saved_state: Option<Arc<NodeLibrary>>,
+    /// When set, an undo group is active: `save_state` calls are suppressed
+    /// and the stored state will be pushed as a single undo entry on `end_undo_group`.
+    group_start_state: Option<Arc<NodeLibrary>>,
 }
 
 impl Default for History {
@@ -30,6 +33,7 @@ impl History {
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
             last_saved_state: None,
+            group_start_state: None,
         }
     }
 
@@ -45,7 +49,14 @@ impl History {
 
     /// Save the current state before making changes.
     /// Call this BEFORE modifying the library.
+    ///
+    /// If an undo group is active (between `begin_undo_group` and `end_undo_group`),
+    /// this call is suppressed — the group will create a single undo entry on end.
     pub fn save_state(&mut self, library: &Arc<NodeLibrary>) {
+        if self.group_start_state.is_some() {
+            return;
+        }
+
         self.undo_stack.push(Arc::clone(library));
 
         // Clear redo stack when new changes are made
@@ -55,6 +66,37 @@ impl History {
         while self.undo_stack.len() > MAX_HISTORY {
             self.undo_stack.remove(0);
         }
+    }
+
+    /// Begin an undo group. All `save_state` calls between `begin_undo_group` and
+    /// `end_undo_group` are suppressed. When the group ends, a single undo entry
+    /// is created that restores the state from before the group started.
+    ///
+    /// If a group is already active, this call is ignored (the first begin wins).
+    pub fn begin_undo_group(&mut self, library: &Arc<NodeLibrary>) {
+        if self.group_start_state.is_none() {
+            self.group_start_state = Some(Arc::clone(library));
+        }
+    }
+
+    /// End an undo group. Pushes the pre-group state as a single undo entry.
+    /// If no group is active, this is a no-op. If the state hasn't changed
+    /// since the group started, no undo entry is created.
+    pub fn end_undo_group(&mut self, current: &Arc<NodeLibrary>) {
+        if let Some(start_state) = self.group_start_state.take() {
+            if start_state.as_ref() != current.as_ref() {
+                self.undo_stack.push(start_state);
+                self.redo_stack.clear();
+                while self.undo_stack.len() > MAX_HISTORY {
+                    self.undo_stack.remove(0);
+                }
+            }
+        }
+    }
+
+    /// Check if an undo group is currently active.
+    pub fn is_in_group(&self) -> bool {
+        self.group_start_state.is_some()
     }
 
     /// Undo the last change, returning the previous state.

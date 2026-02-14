@@ -53,6 +53,8 @@ pub struct NodeBoxApp {
     /// Pending connection to create after the node dialog selects a node.
     /// Stores (from_node_name, output_type) from a drag-to-empty-space action.
     pending_connection: Option<(String, PortType)>,
+    /// Whether any component was dragging in the previous frame (for undo group detection).
+    was_dragging: bool,
 }
 
 impl NodeBoxApp {
@@ -122,6 +124,7 @@ impl NodeBoxApp {
             native_menu,
             recent_files,
             pending_connection: None,
+            was_dragging: false,
         }
     }
 
@@ -203,6 +206,7 @@ impl NodeBoxApp {
             native_menu,
             recent_files,
             pending_connection: None,
+            was_dragging: false,
         }
     }
 
@@ -234,6 +238,7 @@ impl NodeBoxApp {
             native_menu: None,
             recent_files: RecentFiles::new(),
             pending_connection: None,
+            was_dragging: false,
         }
     }
 
@@ -266,6 +271,7 @@ impl NodeBoxApp {
             native_menu: None,
             recent_files: RecentFiles::new(),
             pending_connection: None,
+            was_dragging: false,
         }
     }
 
@@ -714,6 +720,10 @@ impl eframe::App for NodeBoxApp {
             ctx.request_repaint();
         }
 
+        // Capture pre-frame library state for undo group detection.
+        // This is a cheap Arc clone (just a pointer + refcount increment).
+        let pre_frame_library = Arc::clone(&self.state.library);
+
         // 4. Right side panel containing Parameters (top) and Network (bottom)
         //
         // Style the built-in separator: egui uses noninteractive.bg_stroke (normal),
@@ -919,6 +929,26 @@ impl eframe::App for NodeBoxApp {
                 self.render_pending = true;
             }
         }
+
+        // Detect drag transitions for undo grouping.
+        // When a drag starts, begin an undo group so all intermediate changes
+        // are collapsed into a single undo entry. When the drag ends, close the group.
+        let is_dragging = self.viewer_pane.is_dragging()
+            || self.network_view.is_dragging_nodes()
+            || self.parameters.is_dragging();
+
+        if is_dragging && !self.was_dragging {
+            // Drag just started — begin undo group with the pre-frame state
+            // (captured before any panel mutations this frame).
+            self.history.begin_undo_group(&pre_frame_library);
+        }
+        if !is_dragging && self.was_dragging {
+            // Drag just ended — close the group (creates a single undo entry).
+            self.history.end_undo_group(&self.state.library);
+            // Update hash so check_for_changes doesn't create a duplicate entry.
+            self.previous_library_hash = Self::hash_library(&self.state.library);
+        }
+        self.was_dragging = is_dragging;
 
         // Check for state changes and save to history
         self.check_for_changes();
@@ -1311,5 +1341,173 @@ mod tests {
             app.state.geometry, initial_geometry,
             "Geometry should update after parameter change"
         );
+    }
+
+    /// Test that a simulated drag gesture creates only a single undo entry.
+    /// This simulates the full drag lifecycle: begin group, mutate across multiple
+    /// frames (calling check_for_changes each time), end group.
+    #[test]
+    fn test_drag_creates_single_undo_entry() {
+        let mut app = NodeBoxApp::new_for_testing();
+
+        // Set up a node with a width parameter
+        Arc::make_mut(&mut app.state.library).root.children.push(
+            Node::new("rect1")
+                .with_prototype("corevector.rect")
+                .with_input(Port::point("position", Point::ZERO))
+                .with_input(Port::float("width", 100.0))
+                .with_input(Port::float("height", 100.0)),
+        );
+        Arc::make_mut(&mut app.state.library).root.rendered_child = Some("rect1".to_string());
+        app.previous_library_hash = NodeBoxApp::hash_library(&app.state.library);
+
+        assert_eq!(app.history.undo_count(), 0);
+
+        // Simulate drag start: capture pre-drag state
+        let pre_drag_library = Arc::clone(&app.state.library);
+        app.history.begin_undo_group(&pre_drag_library);
+
+        // Simulate 10 frames of dragging (each mutates the library)
+        for i in 1..=10 {
+            let new_width = 100.0 + (i as f64 * 10.0);
+            if let Some(node) = Arc::make_mut(&mut app.state.library).root.child_mut("rect1") {
+                if let Some(port) = node.input_mut("width") {
+                    port.value = nodebox_core::Value::Float(new_width);
+                }
+            }
+            // check_for_changes should NOT create undo entries during group
+            app.check_for_changes();
+        }
+
+        // During drag: no undo entries should have been created
+        assert_eq!(app.history.undo_count(), 0, "No undo entries during active group");
+
+        // Simulate drag end
+        app.history.end_undo_group(&app.state.library);
+        app.previous_library_hash = NodeBoxApp::hash_library(&app.state.library);
+
+        // Exactly one undo entry should exist (the group)
+        assert_eq!(app.history.undo_count(), 1, "Drag should create exactly one undo entry");
+    }
+
+    /// Test that undoing a drag restores the pre-drag state.
+    #[test]
+    fn test_drag_undo_restores_pre_drag_state() {
+        let mut app = NodeBoxApp::new_for_testing();
+
+        // Set up a node with width=100
+        Arc::make_mut(&mut app.state.library).root.children.push(
+            Node::new("rect1")
+                .with_prototype("corevector.rect")
+                .with_input(Port::point("position", Point::ZERO))
+                .with_input(Port::float("width", 100.0))
+                .with_input(Port::float("height", 100.0)),
+        );
+        Arc::make_mut(&mut app.state.library).root.rendered_child = Some("rect1".to_string());
+        app.previous_library_hash = NodeBoxApp::hash_library(&app.state.library);
+
+        // Simulate drag: width goes from 100 → 200
+        let pre_drag = Arc::clone(&app.state.library);
+        app.history.begin_undo_group(&pre_drag);
+
+        for i in 1..=10 {
+            let new_width = 100.0 + (i as f64 * 10.0);
+            if let Some(node) = Arc::make_mut(&mut app.state.library).root.child_mut("rect1") {
+                if let Some(port) = node.input_mut("width") {
+                    port.value = nodebox_core::Value::Float(new_width);
+                }
+            }
+            app.check_for_changes();
+        }
+
+        app.history.end_undo_group(&app.state.library);
+
+        // Current width should be 200
+        let current_width = app.state.library.root.child("rect1").unwrap()
+            .input("width").unwrap().value.as_float().unwrap();
+        assert!((current_width - 200.0).abs() < 0.001);
+
+        // Undo should restore to width=100
+        if let Some(restored) = app.history.undo(&app.state.library) {
+            app.state.library = restored;
+        }
+        let restored_width = app.state.library.root.child("rect1").unwrap()
+            .input("width").unwrap().value.as_float().unwrap();
+        assert!((restored_width - 100.0).abs() < 0.001,
+            "Expected width=100 after undo, got {}", restored_width);
+    }
+
+    /// Test that non-drag changes still create individual undo entries.
+    #[test]
+    fn test_non_drag_changes_still_create_undo_entries() {
+        let mut app = NodeBoxApp::new_for_testing();
+
+        Arc::make_mut(&mut app.state.library).root.children.push(
+            Node::new("rect1")
+                .with_prototype("corevector.rect")
+                .with_input(Port::point("position", Point::ZERO))
+                .with_input(Port::float("width", 100.0))
+                .with_input(Port::float("height", 100.0)),
+        );
+        Arc::make_mut(&mut app.state.library).root.rendered_child = Some("rect1".to_string());
+        app.previous_library_hash = NodeBoxApp::hash_library(&app.state.library);
+
+        // Make two separate changes (not grouped)
+        if let Some(node) = Arc::make_mut(&mut app.state.library).root.child_mut("rect1") {
+            if let Some(port) = node.input_mut("width") {
+                port.value = nodebox_core::Value::Float(150.0);
+            }
+        }
+        app.check_for_changes();
+
+        if let Some(node) = Arc::make_mut(&mut app.state.library).root.child_mut("rect1") {
+            if let Some(port) = node.input_mut("width") {
+                port.value = nodebox_core::Value::Float(200.0);
+            }
+        }
+        app.check_for_changes();
+
+        // Should have 2 separate undo entries
+        assert_eq!(app.history.undo_count(), 2,
+            "Non-drag changes should create separate undo entries");
+    }
+
+    /// Test that a drag followed by a normal change creates 2 undo entries.
+    #[test]
+    fn test_drag_then_normal_change() {
+        let mut app = NodeBoxApp::new_for_testing();
+
+        Arc::make_mut(&mut app.state.library).root.children.push(
+            Node::new("rect1")
+                .with_prototype("corevector.rect")
+                .with_input(Port::point("position", Point::ZERO))
+                .with_input(Port::float("width", 100.0))
+                .with_input(Port::float("height", 100.0)),
+        );
+        Arc::make_mut(&mut app.state.library).root.rendered_child = Some("rect1".to_string());
+        app.previous_library_hash = NodeBoxApp::hash_library(&app.state.library);
+
+        // Drag operation
+        let pre_drag = Arc::clone(&app.state.library);
+        app.history.begin_undo_group(&pre_drag);
+        if let Some(node) = Arc::make_mut(&mut app.state.library).root.child_mut("rect1") {
+            if let Some(port) = node.input_mut("width") {
+                port.value = nodebox_core::Value::Float(200.0);
+            }
+        }
+        app.check_for_changes();
+        app.history.end_undo_group(&app.state.library);
+        app.previous_library_hash = NodeBoxApp::hash_library(&app.state.library);
+
+        // Normal change after drag
+        if let Some(node) = Arc::make_mut(&mut app.state.library).root.child_mut("rect1") {
+            if let Some(port) = node.input_mut("height") {
+                port.value = nodebox_core::Value::Float(200.0);
+            }
+        }
+        app.check_for_changes();
+
+        // Should have 2 entries: one from drag group + one from normal change
+        assert_eq!(app.history.undo_count(), 2);
     }
 }
