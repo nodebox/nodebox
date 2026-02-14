@@ -238,6 +238,30 @@ impl ParameterPanel {
         String::new()
     }
 
+    /// Scan the current frame's input events for a pending Tab key press.
+    /// Returns `Some(true)` for forward Tab, `Some(false)` for Shift+Tab (backward),
+    /// or `None` if no Tab press is pending.
+    ///
+    /// Must be called BEFORE `TextEdit::show()` to reliably detect Tab direction,
+    /// because egui's focus system may consume the event during widget processing.
+    fn detect_pending_tab(ui: &egui::Ui) -> Option<bool> {
+        ui.input(|i| {
+            i.events.iter().find_map(|event| {
+                if let egui::Event::Key {
+                    key: egui::Key::Tab,
+                    pressed: true,
+                    modifiers,
+                    ..
+                } = event
+                {
+                    Some(!modifiers.shift)
+                } else {
+                    None
+                }
+            })
+        })
+    }
+
     /// Compute the drag speed modifier based on keyboard modifiers.
     /// Shift = 10x (coarse), Alt = 0.01x (fine), otherwise 1x.
     fn drag_modifier(ui: &egui::Ui) -> f64 {
@@ -474,6 +498,9 @@ impl ParameterPanel {
                             .map(|(_, _, t, sel)| (t.clone(), *sel))
                             .unwrap_or_else(|| (value.clone(), true));
 
+                        // Pre-scan: detect Tab/Shift+Tab BEFORE TextEdit processes events.
+                        let pending_tab_direction = Self::detect_pending_tab(ui);
+
                         let output = egui::TextEdit::singleline(&mut edit_text)
                             .font(TextStyle::Body)
                             .text_color(theme::VALUE_TEXT)
@@ -503,20 +530,12 @@ impl ParameterPanel {
 
                         // Commit on enter or focus lost
                         if output.response.lost_focus() {
-                            // key_pressed only matches Tab without modifiers;
-                            // check Shift+Tab separately for backward navigation.
-                            let (tab_pressed, shift_tab) = ui.input_mut(|i| {
-                                let plain = i.count_and_consume_key(egui::Modifiers::NONE, egui::Key::Tab) > 0;
-                                let shifted = i.count_and_consume_key(egui::Modifiers::SHIFT, egui::Key::Tab) > 0;
-                                (plain || shifted, shifted)
-                            });
                             if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                                 self.editing = None;
                             } else {
                                 *value = edit_text;
                                 self.editing = None;
-                                if tab_pressed {
-                                    let forward = !shift_tab;
+                                if let Some(forward) = pending_tab_direction {
                                     self.tab_target = Self::next_tab_stop(&self.tab_order, &port_key, forward);
                                 }
                             }
@@ -757,6 +776,9 @@ impl ParameterPanel {
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{:.2}", value), true));
 
+            // Pre-scan: detect Tab/Shift+Tab BEFORE TextEdit processes events.
+            let pending_tab_direction = Self::detect_pending_tab(ui);
+
             // Frameless TextEdit with manual background for pixel-perfect alignment
             let old_selection = ui.visuals().selection.clone();
             ui.visuals_mut().selection.stroke = egui::Stroke::new(0.0, egui::Color32::WHITE);
@@ -802,13 +824,6 @@ impl ParameterPanel {
 
             // Commit on enter or focus lost
             if output.response.lost_focus() {
-                // key_pressed only matches Tab without modifiers;
-                // check Shift+Tab separately for backward navigation.
-                let (tab_pressed, shift_tab) = ui.input_mut(|i| {
-                    let plain = i.count_and_consume_key(egui::Modifiers::NONE, egui::Key::Tab) > 0;
-                    let shifted = i.count_and_consume_key(egui::Modifiers::SHIFT, egui::Key::Tab) > 0;
-                    (plain || shifted, shifted)
-                });
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     self.editing = None;
                 } else {
@@ -826,8 +841,7 @@ impl ParameterPanel {
                         }
                     }
                     self.editing = None;
-                    if tab_pressed {
-                        let forward = !shift_tab;
+                    if let Some(forward) = pending_tab_direction {
                         self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
                     }
                 }
@@ -894,6 +908,9 @@ impl ParameterPanel {
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{}", value), true));
 
+            // Pre-scan: detect Tab/Shift+Tab BEFORE TextEdit processes events.
+            let pending_tab_direction = Self::detect_pending_tab(ui);
+
             // Frameless TextEdit with manual background for pixel-perfect alignment
             let old_selection = ui.visuals().selection.clone();
             ui.visuals_mut().selection.stroke = egui::Stroke::new(0.0, egui::Color32::WHITE);
@@ -937,13 +954,6 @@ impl ParameterPanel {
             }
 
             if output.response.lost_focus() {
-                // key_pressed only matches Tab without modifiers;
-                // check Shift+Tab separately for backward navigation.
-                let (tab_pressed, shift_tab) = ui.input_mut(|i| {
-                    let plain = i.count_and_consume_key(egui::Modifiers::NONE, egui::Key::Tab) > 0;
-                    let shifted = i.count_and_consume_key(egui::Modifiers::SHIFT, egui::Key::Tab) > 0;
-                    (plain || shifted, shifted)
-                });
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     self.editing = None;
                 } else {
@@ -958,8 +968,7 @@ impl ParameterPanel {
                         *value = clamped;
                     }
                     self.editing = None;
-                    if tab_pressed {
-                        let forward = !shift_tab;
+                    if let Some(forward) = pending_tab_direction {
                         self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
                     }
                 }
