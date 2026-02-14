@@ -517,7 +517,7 @@ impl ParameterPanel {
 
                         let output = egui::TextEdit::singleline(&mut edit_text)
                             .font(TextStyle::Body)
-                            .text_color(theme::VALUE_TEXT)
+                            .text_color(egui::Color32::WHITE)
                             .desired_width(120.0)
                             .frame(true)
                             .show(ui);
@@ -569,7 +569,7 @@ impl ParameterPanel {
                         let galley = ui.painter().layout_no_wrap(
                             display.to_string(),
                             egui::FontId::proportional(11.0),
-                            theme::VALUE_TEXT,
+                            egui::Color32::WHITE,
                         );
                         let rect = ui.available_rect_before_wrap();
                         let text_rect = egui::Rect::from_min_size(
@@ -578,7 +578,7 @@ impl ParameterPanel {
                         );
 
                         let response = ui.allocate_rect(text_rect, Sense::click());
-                        ui.painter().galley(text_rect.min, galley, theme::VALUE_TEXT);
+                        ui.painter().galley(text_rect.min, galley, egui::Color32::WHITE);
 
                         if response.clicked() {
                             self.editing = Some((port_key.0, port_key.1, value.clone(), true));
