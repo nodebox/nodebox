@@ -122,15 +122,31 @@ impl NodeSelectionDialog {
             return Some(60);
         }
 
-        // Tier 4: Description contains query
+        // Tier 4: Word-initial match (e.g., "rn" matches "random_numbers")
+        let query_chars: Vec<char> = query.chars().collect();
+        let initials: Vec<char> = name
+            .split('_')
+            .filter_map(|w| w.chars().next())
+            .collect();
+        if query_chars.len() <= initials.len() {
+            let mut qi = 0;
+            for &ic in &initials {
+                if qi < query_chars.len() && ic == query_chars[qi] {
+                    qi += 1;
+                }
+            }
+            if qi == query_chars.len() {
+                return Some(50);
+            }
+        }
+
+        // Tier 5: Description contains query
         if desc.contains(query) {
             return Some(40);
         }
 
-        // Tier 5: Subsequence match on name (fuzzy)
+        // Tier 6: Subsequence match on name (fuzzy)
         let name_chars: Vec<char> = name.chars().collect();
-        let query_chars: Vec<char> = query.chars().collect();
-
         if query_chars.len() <= name_chars.len() {
             let mut qi = 0;
             for &nc in &name_chars {
@@ -437,6 +453,86 @@ mod tests {
         let dialog = NodeSelectionDialog::new();
         let t = make_template("ellipse", "Create an ellipse or circle");
         assert_eq!(dialog.match_score(&t, "xyz"), None);
+    }
+
+    #[test]
+    fn word_initial_match_scores_above_description() {
+        let dialog = NodeSelectionDialog::new();
+        // "cr" should match word initials of convert_range (c=convert, r=range)
+        let t = make_template("convert_range", "Map a value from one range to another");
+        let score = dialog.match_score(&t, "cr");
+        assert!(
+            score.is_some(),
+            "convert_range should match 'cr' via word initials"
+        );
+        assert!(
+            score.unwrap() > 40,
+            "word-initial match ({}) should score above description match (40)",
+            score.unwrap()
+        );
+    }
+
+    #[test]
+    fn word_initial_match_for_random_numbers() {
+        let dialog = NodeSelectionDialog::new();
+        // "rn" should match word initials of random_numbers (r=random, n=numbers)
+        let t = make_template("random_numbers", "Generate a list of random numbers");
+        let score = dialog.match_score(&t, "rn");
+        assert!(
+            score.is_some(),
+            "random_numbers should match 'rn' via word initials"
+        );
+        assert!(
+            score.unwrap() > 20,
+            "word-initial match ({}) should score above plain subsequence (20)",
+            score.unwrap()
+        );
+    }
+
+    #[test]
+    fn rn_ranks_random_numbers_above_translate() {
+        let mut dialog = NodeSelectionDialog::new();
+        dialog.search_query = "rn".to_string();
+        dialog.update_filtered_list();
+
+        let rn_pos = dialog
+            .filtered_indices
+            .iter()
+            .position(|&(idx, _)| NODE_TEMPLATES[idx].name == "random_numbers");
+        let tr_pos = dialog
+            .filtered_indices
+            .iter()
+            .position(|&(idx, _)| NODE_TEMPLATES[idx].name == "translate");
+
+        assert!(rn_pos.is_some(), "random_numbers should be in results");
+        assert!(tr_pos.is_some(), "translate should be in results");
+        assert!(
+            rn_pos.unwrap() < tr_pos.unwrap(),
+            "random_numbers should appear before translate for query 'rn'"
+        );
+    }
+
+    #[test]
+    fn cr_ranks_convert_range_above_ellipse() {
+        let mut dialog = NodeSelectionDialog::new();
+        dialog.search_query = "cr".to_string();
+        dialog.update_filtered_list();
+
+        let cr_pos = dialog
+            .filtered_indices
+            .iter()
+            .position(|&(idx, _)| NODE_TEMPLATES[idx].name == "convert_range");
+        let el_pos = dialog
+            .filtered_indices
+            .iter()
+            .position(|&(idx, _)| NODE_TEMPLATES[idx].name == "ellipse");
+
+        assert!(cr_pos.is_some(), "convert_range should be in results");
+        assert!(el_pos.is_some(), "ellipse should be in results");
+        assert!(
+            cr_pos.unwrap() < el_pos.unwrap(),
+            "convert_range should appear before ellipse for query 'cr'"
+        );
     }
 
     #[test]
