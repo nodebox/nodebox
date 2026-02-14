@@ -247,7 +247,7 @@ impl NodeSelectionDialog {
                             egui::Label::new(
                                 egui::RichText::new(cat).color(text_color).size(10.0),
                             ).sense(egui::Sense::click())
-                        );
+                        ).on_hover_cursor(egui::CursorIcon::PointingHand);
 
                         if response.clicked() {
                             if cat == "All" {
