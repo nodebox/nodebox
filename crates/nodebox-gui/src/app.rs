@@ -11,6 +11,7 @@ use crate::components;
 use crate::history::History;
 use crate::icon_cache::IconCache;
 use crate::native_menu::{MenuAction, NativeMenuHandle};
+use crate::notification_banner;
 use crate::recent_files::RecentFiles;
 use crate::network_view::{NetworkAction, NetworkView};
 use crate::node_selection_dialog::NodeSelectionDialog;
@@ -659,6 +660,27 @@ impl eframe::App for NodeBoxApp {
                     AddressBarAction::None => {}
                 }
             });
+
+        // 2b. Notification banners (below address bar, only shown when notifications exist)
+        if !self.state.notifications.is_empty() {
+            let banner_height = notification_banner::BANNER_HEIGHT
+                * self.state.notifications.len() as f32;
+            egui::TopBottomPanel::top("notification_banners")
+                .exact_height(banner_height)
+                .frame(egui::Frame::NONE)
+                .show(ctx, |ui| {
+                    let notifs: Vec<_> = self.state.notifications
+                        .iter()
+                        .map(|n| (n.id, n.message.clone(), n.level.clone()))
+                        .collect();
+
+                    let dismissed = notification_banner::show_notifications(ui, &notifs);
+
+                    for id in dismissed {
+                        self.state.dismiss_notification(id);
+                    }
+                });
+        }
 
         // 3. Animation bar (bottom) - frameless, handles its own styling
         let anim_response = egui::TopBottomPanel::bottom("animation_bar")
