@@ -132,6 +132,11 @@ impl NetworkView {
         &self.selected
     }
 
+    /// Set the selected nodes (used by undo/redo to restore selection).
+    pub fn set_selected(&mut self, names: HashSet<String>) {
+        self.selected = names;
+    }
+
     /// Clone all selected nodes and their internal/incoming connections.
     /// Updates `self.selected` to point to the new clones.
     fn perform_alt_copy(&mut self, library: &mut Arc<NodeLibrary>) {

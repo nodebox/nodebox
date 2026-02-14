@@ -51,7 +51,7 @@ pub mod vello_viewer;
 
 // Re-export key types for testing and external use
 pub use app::NodeBoxApp;
-pub use history::History;
+pub use history::{History, SelectionSnapshot};
 pub use state::{populate_default_ports, AppState, Notification, NotificationLevel};
 
 // Re-export commonly used types from dependencies

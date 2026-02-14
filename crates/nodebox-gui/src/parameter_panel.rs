@@ -74,6 +74,15 @@ impl ParameterPanel {
         // Zero spacing so header sits flush against content
         ui.style_mut().spacing.item_spacing = egui::vec2(0.0, 0.0);
 
+        // Validate that the selected node still exists (e.g., after undo).
+        // If not, clear the stale selection to avoid "not found" errors
+        // and a double PARAMETERS header render.
+        if let Some(ref name) = state.selected_node {
+            if state.library.root.child(name).is_none() {
+                state.selected_node = None;
+            }
+        }
+
         if let Some(ref node_name) = state.selected_node.clone() {
             // First, collect connected ports while we only have immutable borrow
             let connected_ports: std::collections::HashSet<String> = state

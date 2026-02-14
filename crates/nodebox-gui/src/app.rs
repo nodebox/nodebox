@@ -8,7 +8,7 @@ use std::sync::Arc;
 use crate::address_bar::{AddressBar, AddressBarAction};
 use crate::animation_bar::{AnimationBar, AnimationEvent};
 use crate::components;
-use crate::history::History;
+use crate::history::{History, SelectionSnapshot};
 use crate::icon_cache::IconCache;
 use crate::native_menu::{MenuAction, NativeMenuHandle};
 use crate::notification_banner;
@@ -42,6 +42,8 @@ pub struct NodeBoxApp {
     previous_library_hash: u64,
     /// Snapshot of the library at end of last frame, used for undo (pre-mutation state).
     previous_library: Arc<nodebox_core::node::NodeLibrary>,
+    /// Snapshot of the selection at end of last frame, used for undo (pre-mutation state).
+    previous_selection: SelectionSnapshot,
     /// Background render worker.
     render_worker: RenderWorkerHandle,
     /// State tracking for render requests.
@@ -122,6 +124,7 @@ impl NodeBoxApp {
             history: History::new(),
             previous_library_hash: hash,
             previous_library: prev_library,
+            previous_selection: SelectionSnapshot::default(),
             render_worker: RenderWorkerHandle::spawn(),
             render_state: RenderState::new(),
             render_pending: true,
@@ -206,6 +209,7 @@ impl NodeBoxApp {
             history: History::new(),
             previous_library_hash: hash,
             previous_library: prev_library,
+            previous_selection: SelectionSnapshot::default(),
             render_worker: RenderWorkerHandle::spawn(),
             render_state: RenderState::new(),
             render_pending: true,
@@ -240,6 +244,7 @@ impl NodeBoxApp {
             history: History::new(),
             previous_library_hash: hash,
             previous_library: prev_library,
+            previous_selection: SelectionSnapshot::default(),
             render_worker: RenderWorkerHandle::spawn(),
             render_state: RenderState::new(),
             render_pending: false,
@@ -275,6 +280,7 @@ impl NodeBoxApp {
             history: History::new(),
             previous_library_hash: hash,
             previous_library: prev_library,
+            previous_selection: SelectionSnapshot::default(),
             render_worker: RenderWorkerHandle::spawn(),
             render_state: RenderState::new(),
             render_pending: false,
@@ -354,10 +360,11 @@ impl NodeBoxApp {
         // Check for changes and save to history (using previous_library for correct undo)
         let current_hash = Self::hash_library(&self.state.library);
         if current_hash != self.previous_library_hash {
-            self.history.save_state(&self.previous_library);
+            self.history.save_state(&self.previous_library, &self.previous_selection);
             self.previous_library_hash = current_hash;
             if !self.history.is_in_group() {
                 self.previous_library = Arc::clone(&self.state.library);
+                self.previous_selection = self.current_selection();
             }
             self.state.dirty = true;
         }
@@ -462,6 +469,29 @@ impl NodeBoxApp {
         }
     }
 
+    /// Build a snapshot of the current selection state.
+    fn current_selection(&self) -> SelectionSnapshot {
+        SelectionSnapshot {
+            selected_nodes: self.network_view.selected_nodes().clone(),
+            selected_node: self.state.selected_node.clone(),
+        }
+    }
+
+    /// Apply a restored selection snapshot, validating that referenced nodes
+    /// still exist in the current library (prunes stale names).
+    fn apply_selection(&mut self, snapshot: SelectionSnapshot) {
+        let valid_selected: std::collections::HashSet<String> = snapshot
+            .selected_nodes
+            .into_iter()
+            .filter(|name| self.state.library.root.child(name).is_some())
+            .collect();
+        let valid_selected_node = snapshot
+            .selected_node
+            .filter(|name| self.state.library.root.child(name).is_some());
+        self.network_view.set_selected(valid_selected);
+        self.state.selected_node = valid_selected_node;
+    }
+
     /// Check for changes and save to history, queue render if needed.
     ///
     /// Saves the *previous* library state (from before this frame's mutations)
@@ -469,14 +499,15 @@ impl NodeBoxApp {
     fn check_for_changes(&mut self) {
         let current_hash = Self::hash_library(&self.state.library);
         if current_hash != self.previous_library_hash {
-            self.history.save_state(&self.previous_library);
+            self.history.save_state(&self.previous_library, &self.previous_selection);
             self.previous_library_hash = current_hash;
-            // Only update previous_library when not in an undo group.
+            // Only update previous_library/selection when not in an undo group.
             // During a group, the group_start_state tracks the pre-drag snapshot
-            // and previous_library must stay frozen so that the next non-grouped
+            // and previous state must stay frozen so that the next non-grouped
             // change still records the correct pre-mutation state.
             if !self.history.is_in_group() {
                 self.previous_library = Arc::clone(&self.state.library);
+                self.previous_selection = self.current_selection();
             }
             self.state.dirty = true;
             self.render_pending = true; // Queue async render
@@ -495,18 +526,24 @@ impl NodeBoxApp {
             MenuAction::ExportPng => self.export_png(),
             MenuAction::ExportSvg => self.export_svg(),
             MenuAction::Undo => {
-                if let Some(previous) = self.history.undo(&self.state.library) {
+                let sel = self.current_selection();
+                if let Some((previous, prev_sel)) = self.history.undo(&self.state.library, &sel) {
                     self.state.library = previous;
                     self.previous_library_hash = Self::hash_library(&self.state.library);
                     self.previous_library = Arc::clone(&self.state.library);
+                    self.apply_selection(prev_sel);
+                    self.previous_selection = self.current_selection();
                     self.render_pending = true;
                 }
             }
             MenuAction::Redo => {
-                if let Some(next) = self.history.redo(&self.state.library) {
+                let sel = self.current_selection();
+                if let Some((next, next_sel)) = self.history.redo(&self.state.library, &sel) {
                     self.state.library = next;
                     self.previous_library_hash = Self::hash_library(&self.state.library);
                     self.previous_library = Arc::clone(&self.state.library);
+                    self.apply_selection(next_sel);
+                    self.previous_selection = self.current_selection();
                     self.render_pending = true;
                 }
             }
@@ -593,10 +630,13 @@ impl NodeBoxApp {
                     "Undo".to_string()
                 };
                 if ui.add_enabled(self.history.can_undo(), egui::Button::new(undo_text)).clicked() {
-                    if let Some(previous) = self.history.undo(&self.state.library) {
+                    let sel = self.current_selection();
+                    if let Some((previous, prev_sel)) = self.history.undo(&self.state.library, &sel) {
                         self.state.library = previous;
                         self.previous_library_hash = Self::hash_library(&self.state.library);
                         self.previous_library = Arc::clone(&self.state.library);
+                        self.apply_selection(prev_sel);
+                        self.previous_selection = self.current_selection();
                         self.render_pending = true;
                     }
                     ui.close();
@@ -607,10 +647,13 @@ impl NodeBoxApp {
                     "Redo".to_string()
                 };
                 if ui.add_enabled(self.history.can_redo(), egui::Button::new(redo_text)).clicked() {
-                    if let Some(next) = self.history.redo(&self.state.library) {
+                    let sel = self.current_selection();
+                    if let Some((next, next_sel)) = self.history.redo(&self.state.library, &sel) {
                         self.state.library = next;
                         self.previous_library_hash = Self::hash_library(&self.state.library);
                         self.previous_library = Arc::clone(&self.state.library);
+                        self.apply_selection(next_sel);
+                        self.previous_selection = self.current_selection();
                         self.render_pending = true;
                     }
                     ui.close();
@@ -747,9 +790,10 @@ impl eframe::App for NodeBoxApp {
             ctx.request_repaint();
         }
 
-        // Capture pre-frame library state for undo group detection.
-        // This is a cheap Arc clone (just a pointer + refcount increment).
+        // Capture pre-frame library state and selection for undo group detection.
+        // These are cheap clones (Arc pointer + small HashSet).
         let pre_frame_library = Arc::clone(&self.state.library);
+        let pre_frame_selection = self.current_selection();
 
         // 4. Right side panel containing Parameters (top) and Network (bottom)
         //
@@ -943,18 +987,24 @@ impl eframe::App for NodeBoxApp {
         }
 
         if do_undo {
-            if let Some(previous) = self.history.undo(&self.state.library) {
+            let sel = self.current_selection();
+            if let Some((previous, prev_sel)) = self.history.undo(&self.state.library, &sel) {
                 self.state.library = previous;
                 self.previous_library_hash = Self::hash_library(&self.state.library);
                 self.previous_library = Arc::clone(&self.state.library);
+                self.apply_selection(prev_sel);
+                self.previous_selection = self.current_selection();
                 self.render_pending = true;
             }
         }
         if do_redo {
-            if let Some(next) = self.history.redo(&self.state.library) {
+            let sel = self.current_selection();
+            if let Some((next, next_sel)) = self.history.redo(&self.state.library, &sel) {
                 self.state.library = next;
                 self.previous_library_hash = Self::hash_library(&self.state.library);
                 self.previous_library = Arc::clone(&self.state.library);
+                self.apply_selection(next_sel);
+                self.previous_selection = self.current_selection();
                 self.render_pending = true;
             }
         }
@@ -969,7 +1019,7 @@ impl eframe::App for NodeBoxApp {
         if is_dragging && !self.was_dragging {
             // Drag just started — begin undo group with the pre-frame state
             // (captured before any panel mutations this frame).
-            self.history.begin_undo_group(&pre_frame_library);
+            self.history.begin_undo_group(&pre_frame_library, &pre_frame_selection);
         }
         if !is_dragging && self.was_dragging {
             // Drag just ended — close the group (creates a single undo entry).
@@ -977,6 +1027,7 @@ impl eframe::App for NodeBoxApp {
             // Update hash and snapshot so check_for_changes doesn't create a duplicate entry.
             self.previous_library_hash = Self::hash_library(&self.state.library);
             self.previous_library = Arc::clone(&self.state.library);
+            self.previous_selection = self.current_selection();
         }
         self.was_dragging = is_dragging;
 
@@ -1397,7 +1448,8 @@ mod tests {
 
         // Simulate drag start: capture pre-drag state
         let pre_drag_library = Arc::clone(&app.state.library);
-        app.history.begin_undo_group(&pre_drag_library);
+        let sel = SelectionSnapshot::default();
+        app.history.begin_undo_group(&pre_drag_library, &sel);
 
         // Simulate 10 frames of dragging (each mutates the library)
         for i in 1..=10 {
@@ -1442,7 +1494,8 @@ mod tests {
 
         // Simulate drag: width goes from 100 → 200
         let pre_drag = Arc::clone(&app.state.library);
-        app.history.begin_undo_group(&pre_drag);
+        let sel = SelectionSnapshot::default();
+        app.history.begin_undo_group(&pre_drag, &sel);
 
         for i in 1..=10 {
             let new_width = 100.0 + (i as f64 * 10.0);
@@ -1462,7 +1515,8 @@ mod tests {
         assert!((current_width - 200.0).abs() < 0.001);
 
         // Undo should restore to width=100
-        if let Some(restored) = app.history.undo(&app.state.library) {
+        let sel = SelectionSnapshot::default();
+        if let Some((restored, _)) = app.history.undo(&app.state.library, &sel) {
             app.state.library = restored;
         }
         let restored_width = app.state.library.root.child("rect1").unwrap()
@@ -1525,7 +1579,8 @@ mod tests {
 
         // Drag operation
         let pre_drag = Arc::clone(&app.state.library);
-        app.history.begin_undo_group(&pre_drag);
+        let sel = SelectionSnapshot::default();
+        app.history.begin_undo_group(&pre_drag, &sel);
         if let Some(node) = Arc::make_mut(&mut app.state.library).root.child_mut("rect1") {
             if let Some(port) = node.input_mut("width") {
                 port.value = nodebox_core::Value::Float(200.0);
@@ -1581,8 +1636,11 @@ mod tests {
         assert!((width - 200.0).abs() < 0.001);
 
         // Undo should restore width=100
-        if let Some(restored) = app.history.undo(&app.state.library) {
-            app.state.library = restored;
+        {
+            let sel = SelectionSnapshot::default();
+            if let Some((restored, _)) = app.history.undo(&app.state.library, &sel) {
+                app.state.library = restored;
+            }
         }
         let restored_width = app.state.library.root.child("rect1").unwrap()
             .input("width").unwrap().value.as_float().unwrap();
@@ -1611,8 +1669,11 @@ mod tests {
             "Node should have been added");
 
         // Undo should remove the node
-        if let Some(restored) = app.history.undo(&app.state.library) {
-            app.state.library = restored;
+        {
+            let sel = SelectionSnapshot::default();
+            if let Some((restored, _)) = app.history.undo(&app.state.library, &sel) {
+                app.state.library = restored;
+            }
         }
         assert_eq!(app.state.library.root.children.len(), initial_count,
             "Undo should remove the created node");
@@ -1654,8 +1715,11 @@ mod tests {
             "Connection should exist");
 
         // Undo should remove the connection
-        if let Some(restored) = app.history.undo(&app.state.library) {
-            app.state.library = restored;
+        {
+            let sel = SelectionSnapshot::default();
+            if let Some((restored, _)) = app.history.undo(&app.state.library, &sel) {
+                app.state.library = restored;
+            }
         }
         assert_eq!(app.state.library.root.connections.len(), 0,
             "Undo should remove the connection");
@@ -1687,8 +1751,11 @@ mod tests {
         assert_eq!(app.state.library.root.rendered_child.as_deref(), Some("rect1"));
 
         // Undo should restore rendered to ellipse1
-        if let Some(restored) = app.history.undo(&app.state.library) {
-            app.state.library = restored;
+        {
+            let sel = SelectionSnapshot::default();
+            if let Some((restored, _)) = app.history.undo(&app.state.library, &sel) {
+                app.state.library = restored;
+            }
         }
         assert_eq!(app.state.library.root.rendered_child.as_deref(), Some("ellipse1"),
             "Undo should restore the rendered node to ellipse1");
@@ -1722,7 +1789,8 @@ mod tests {
 
         // Operation 2: Drag (change width from 50 to 200)
         let pre_drag = Arc::clone(&app.state.library);
-        app.history.begin_undo_group(&pre_drag);
+        let sel = SelectionSnapshot::default();
+        app.history.begin_undo_group(&pre_drag, &sel);
         for i in 1..=5 {
             if let Some(node) = Arc::make_mut(&mut app.state.library).root.child_mut("rect1") {
                 if let Some(port) = node.input_mut("width") {
@@ -1740,8 +1808,11 @@ mod tests {
             "Should have exactly 2 undo entries, not more");
 
         // Undo #1: Should undo the drag (width back to 50)
-        if let Some(restored) = app.history.undo(&app.state.library) {
-            app.state.library = restored;
+        {
+            let sel = SelectionSnapshot::default();
+            if let Some((restored, _)) = app.history.undo(&app.state.library, &sel) {
+                app.state.library = restored;
+            }
         }
         let width = app.state.library.root.child("rect1").unwrap()
             .input("width").unwrap().value.as_float().unwrap();
@@ -1751,10 +1822,127 @@ mod tests {
             "First undo should keep rendered=rect1");
 
         // Undo #2: Should undo the rendered node change (back to ellipse1)
-        if let Some(restored) = app.history.undo(&app.state.library) {
-            app.state.library = restored;
+        {
+            let sel = SelectionSnapshot::default();
+            if let Some((restored, _)) = app.history.undo(&app.state.library, &sel) {
+                app.state.library = restored;
+            }
         }
         assert_eq!(app.state.library.root.rendered_child.as_deref(), Some("ellipse1"),
             "Second undo should restore rendered to ellipse1");
+    }
+
+    /// Test that undoing node creation clears the selection.
+    /// When a node is created and selected, undoing should clear the selection
+    /// because the node no longer exists.
+    #[test]
+    fn test_undo_node_creation_clears_selection() {
+        let mut app = NodeBoxApp::new_for_testing_empty();
+
+        // Create a new node and select it
+        Arc::make_mut(&mut app.state.library).root.children.push(
+            Node::new("ellipse1")
+                .with_prototype("corevector.ellipse")
+                .with_input(Port::float("width", 100.0)),
+        );
+        app.state.selected_node = Some("ellipse1".to_string());
+        app.network_view.set_selected(["ellipse1".to_string()].into_iter().collect());
+        app.check_for_changes();
+
+        assert_eq!(app.state.selected_node.as_deref(), Some("ellipse1"));
+        assert!(app.network_view.selected_nodes().contains("ellipse1"));
+
+        // Undo: node is removed, selection should be cleared
+        let sel = app.current_selection();
+        if let Some((restored, restored_sel)) = app.history.undo(&app.state.library, &sel) {
+            app.state.library = restored;
+            app.apply_selection(restored_sel);
+        }
+
+        assert_eq!(app.state.selected_node, None,
+            "Selection should be cleared after undoing node creation");
+        assert!(app.network_view.selected_nodes().is_empty(),
+            "Network view selection should be empty after undoing node creation");
+    }
+
+    /// Test that undoing restores the previous selection.
+    /// If node A was selected, then node B was created and selected,
+    /// undoing should restore node A as selected.
+    #[test]
+    fn test_undo_restores_previous_selection() {
+        let mut app = NodeBoxApp::new_for_testing_empty();
+
+        // Start with node A
+        Arc::make_mut(&mut app.state.library).root.children.push(
+            Node::new("rect1")
+                .with_prototype("corevector.rect")
+                .with_input(Port::float("width", 100.0)),
+        );
+        app.state.selected_node = Some("rect1".to_string());
+        app.network_view.set_selected(["rect1".to_string()].into_iter().collect());
+        app.previous_library_hash = NodeBoxApp::hash_library(&app.state.library);
+        app.previous_library = Arc::clone(&app.state.library);
+        app.previous_selection = app.current_selection();
+
+        // Create node B and select it
+        Arc::make_mut(&mut app.state.library).root.children.push(
+            Node::new("ellipse1")
+                .with_prototype("corevector.ellipse")
+                .with_input(Port::float("width", 100.0)),
+        );
+        app.state.selected_node = Some("ellipse1".to_string());
+        app.network_view.set_selected(["ellipse1".to_string()].into_iter().collect());
+        app.check_for_changes();
+
+        assert_eq!(app.state.selected_node.as_deref(), Some("ellipse1"));
+
+        // Undo: node B removed, selection should restore to rect1
+        let sel = app.current_selection();
+        if let Some((restored, restored_sel)) = app.history.undo(&app.state.library, &sel) {
+            app.state.library = restored;
+            app.apply_selection(restored_sel);
+        }
+
+        assert_eq!(app.state.selected_node.as_deref(), Some("rect1"),
+            "Undo should restore previous selection to rect1");
+        assert!(app.network_view.selected_nodes().contains("rect1"),
+            "Network view should show rect1 selected after undo");
+    }
+
+    /// Test that redo restores the selection from before the undo.
+    #[test]
+    fn test_redo_restores_selection() {
+        let mut app = NodeBoxApp::new_for_testing_empty();
+
+        // Create node and select it
+        Arc::make_mut(&mut app.state.library).root.children.push(
+            Node::new("ellipse1")
+                .with_prototype("corevector.ellipse")
+                .with_input(Port::float("width", 100.0)),
+        );
+        app.state.selected_node = Some("ellipse1".to_string());
+        app.network_view.set_selected(["ellipse1".to_string()].into_iter().collect());
+        app.check_for_changes();
+
+        // Undo: removes node, clears selection
+        let sel = app.current_selection();
+        if let Some((restored, restored_sel)) = app.history.undo(&app.state.library, &sel) {
+            app.state.library = restored;
+            app.apply_selection(restored_sel);
+        }
+
+        assert_eq!(app.state.selected_node, None);
+
+        // Redo: restores node and selection
+        let sel = app.current_selection();
+        if let Some((restored, restored_sel)) = app.history.redo(&app.state.library, &sel) {
+            app.state.library = restored;
+            app.apply_selection(restored_sel);
+        }
+
+        assert_eq!(app.state.selected_node.as_deref(), Some("ellipse1"),
+            "Redo should restore selection to ellipse1");
+        assert!(app.network_view.selected_nodes().contains("ellipse1"),
+            "Network view should show ellipse1 selected after redo");
     }
 }
