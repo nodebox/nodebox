@@ -143,6 +143,27 @@ impl NodeOutput {
         matches!(self, NodeOutput::Path(_) | NodeOutput::Paths(_) | NodeOutput::Point(_) | NodeOutput::Points(_))
     }
 
+    /// Returns true if this output contains data rows.
+    pub fn is_data_rows(&self) -> bool {
+        matches!(self, NodeOutput::DataRow(_) | NodeOutput::DataRows(_))
+    }
+
+    /// Extract data rows from the output, if it contains any.
+    pub fn as_data_rows(&self) -> Option<&Vec<HashMap<String, DataValue>>> {
+        match self {
+            NodeOutput::DataRows(rows) => Some(rows),
+            _ => None,
+        }
+    }
+
+    /// Extract a single data row from the output, if it is one.
+    pub fn as_data_row(&self) -> Option<&HashMap<String, DataValue>> {
+        match self {
+            NodeOutput::DataRow(row) => Some(row),
+            _ => None,
+        }
+    }
+
     /// Convert to a flat list of display strings for the data viewer.
     pub fn to_display_strings(&self) -> Vec<String> {
         match self {
