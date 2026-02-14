@@ -218,13 +218,10 @@ impl Node {
     }
 
     /// Generates a unique name for a new child based on a prefix.
+    /// Always appends an index (e.g. "rect1", "rect2") so names can be used as identifiers.
     pub fn unique_child_name(&self, prefix: &str) -> String {
         let existing: std::collections::HashSet<_> =
             self.children.iter().map(|c| c.name.as_str()).collect();
-
-        if !existing.contains(prefix) {
-            return prefix.to_string();
-        }
 
         for i in 1..1000 {
             let name = format!("{}{}", prefix, i);
@@ -378,7 +375,9 @@ mod tests {
             .with_child(Node::new("rect"))
             .with_child(Node::new("rect1"));
 
-        assert_eq!(node.unique_child_name("ellipse"), "ellipse");
+        // Always appends an index, even for new prefixes
+        assert_eq!(node.unique_child_name("ellipse"), "ellipse1");
+        // Skips existing "rect1", returns "rect2"
         assert_eq!(node.unique_child_name("rect"), "rect2");
     }
 }
