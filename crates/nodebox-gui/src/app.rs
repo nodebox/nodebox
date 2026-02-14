@@ -917,6 +917,10 @@ impl eframe::App for NodeBoxApp {
                         self.handle_four_point_change(x, y, width, height);
                         self.render_pending = true;
                     }
+                    HandleResult::StringChange { param, value } => {
+                        self.handle_string_change(&param, &value);
+                        self.render_pending = true;
+                    }
                     HandleResult::None => {}
                 }
             });
@@ -1055,6 +1059,17 @@ impl NodeBoxApp {
                 }
                 if let Some(port) = node.input_mut("height") {
                     port.value = nodebox_core::Value::Float(height);
+                }
+            }
+        }
+    }
+
+    /// Handle string parameter change from freehand handle.
+    fn handle_string_change(&mut self, param_name: &str, value: &str) {
+        if let Some(ref node_name) = self.state.selected_node {
+            if let Some(node) = Arc::make_mut(&mut self.state.library).root.child_mut(node_name) {
+                if let Some(port) = node.input_mut(param_name) {
+                    port.value = nodebox_core::Value::String(value.to_string());
                 }
             }
         }
@@ -1285,6 +1300,10 @@ mod tests {
                 app.handle_four_point_change(x, y, width, height);
                 app.render_pending = true;
             }
+            HandleResult::StringChange { param, value } => {
+                app.handle_string_change(&param, &value);
+                app.render_pending = true;
+            }
             HandleResult::None => {}
         }
 
@@ -1332,6 +1351,10 @@ mod tests {
             HandleResult::FourPointChange { x, y, width, height } => {
                 app.handle_four_point_change(x, y, width, height);
                 app.render_pending = true; // This is the fix!
+            }
+            HandleResult::StringChange { param, value } => {
+                app.handle_string_change(&param, &value);
+                app.render_pending = true;
             }
             HandleResult::None => {}
         }
