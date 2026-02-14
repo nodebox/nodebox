@@ -751,6 +751,9 @@ impl eframe::App for NodeBoxApp {
                         self.state.selected_node = selected.iter().next().cloned();
                     } else if selected.is_empty() {
                         self.state.selected_node = None;
+                    } else if !self.state.selected_node.as_ref().is_some_and(|n| selected.contains(n)) {
+                        // Multiple selected but current isn't among them (e.g., after alt-drag copy)
+                        self.state.selected_node = selected.iter().next().cloned();
                     }
                 });
             });
