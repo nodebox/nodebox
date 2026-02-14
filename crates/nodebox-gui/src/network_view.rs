@@ -1162,11 +1162,8 @@ fn extract_name_prefix(name: &str) -> &str {
 
 /// Generate a unique name given a prefix and a set of existing names.
 ///
-/// Tries `prefix`, then `prefix1`, `prefix2`, etc.
+/// Always appends a numeric index: `prefix1`, `prefix2`, etc.
 fn generate_unique_name(prefix: &str, existing: &HashSet<String>) -> String {
-    if !existing.contains(prefix) {
-        return prefix.to_string();
-    }
     for i in 1..1000 {
         let name = format!("{}{}", prefix, i);
         if !existing.contains(&name) {
@@ -1196,7 +1193,7 @@ mod tests {
     #[test]
     fn test_generate_unique_name_available() {
         let existing = HashSet::new();
-        assert_eq!(generate_unique_name("rect", &existing), "rect");
+        assert_eq!(generate_unique_name("rect", &existing), "rect1");
     }
 
     #[test]
