@@ -99,6 +99,12 @@ pub const NODE_TEMPLATES: &[NodeTemplate] = &[
         category: "transform",
         description: "Create multiple copies",
     },
+    NodeTemplate {
+        name: "distribute",
+        prototype: "corevector.distribute",
+        category: "transform",
+        description: "Distribute shapes on a horizontal or vertical axis",
+    },
     // Color nodes
     NodeTemplate {
         name: "colorize",
@@ -492,6 +498,23 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                 .with_input(Port::point("translate", Point::ZERO))
                 .with_input(Port::float("rotate", 0.0))
                 .with_input(Port::point("scale", Point::new(100.0, 100.0)));
+        }
+        "distribute" => {
+            node = node
+                .with_input(Port::geometry("shapes"))
+                .with_input(Port::menu("horizontal", "none", vec![
+                    MenuItem::new("none", "No Change"),
+                    MenuItem::new("left", "Left"),
+                    MenuItem::new("center", "Center"),
+                    MenuItem::new("right", "Right"),
+                ]))
+                .with_input(Port::menu("vertical", "none", vec![
+                    MenuItem::new("none", "No Change"),
+                    MenuItem::new("top", "Top"),
+                    MenuItem::new("middle", "Middle"),
+                    MenuItem::new("bottom", "Bottom"),
+                ]))
+                .with_output_range(PortRange::List);
         }
         "colorize" => {
             node = node
