@@ -1861,7 +1861,7 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
             node = node
                 .with_input(Port::new("list", PortType::Data))
                 .with_input(Port::string("key", "x"))
-                .with_output_type(PortType::String);
+                .with_output_type(PortType::Data);
         }
         "filter_data" => {
             node = node

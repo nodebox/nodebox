@@ -101,6 +101,13 @@ impl PortType {
             return true;
         }
 
+        // Data output can connect to numeric inputs (e.g. lookup returns Float for numeric columns)
+        if matches!(output_type, PortType::Data)
+            && matches!(input_type, PortType::Float | PortType::Int | PortType::Point)
+        {
+            return true;
+        }
+
         // Everything can be converted to a string
         if matches!(input_type, PortType::String) {
             return true;
