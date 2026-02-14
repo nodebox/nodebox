@@ -32,6 +32,55 @@ pub enum HandleResult {
     PointChange { param: String, value: Point },
     /// FourPointHandle changed (x, y, width, height).
     FourPointChange { x: f64, y: f64, width: f64, height: f64 },
+    /// A string parameter changed (e.g., freehand path drawing).
+    StringChange { param: String, value: String },
+}
+
+/// State for freehand drawing on the canvas.
+struct FreehandState {
+    /// The parameter name to write to ("path").
+    param_name: String,
+    /// Whether we are currently drawing (mouse is pressed).
+    is_drawing: bool,
+    /// The accumulated path string.
+    path_string: String,
+    /// Whether the next point starts a new contour (needs "M" prefix).
+    new_contour: bool,
+}
+
+impl FreehandState {
+    fn new(param_name: &str, initial_path: &str) -> Self {
+        Self {
+            param_name: param_name.to_string(),
+            is_drawing: false,
+            path_string: initial_path.to_string(),
+            new_contour: true,
+        }
+    }
+
+    /// Start a new drawing stroke.
+    fn start_stroke(&mut self) {
+        self.is_drawing = true;
+        self.new_contour = true;
+    }
+
+    /// Add a point to the current stroke.
+    fn add_point(&mut self, x: f64, y: f64) {
+        if self.new_contour {
+            self.path_string.push('M');
+            self.new_contour = false;
+        } else {
+            self.path_string.push(' ');
+        }
+        // Match Java format: "%.2f,%.2f"
+        use std::fmt::Write;
+        let _ = write!(self.path_string, "{:.2},{:.2}", x, y);
+    }
+
+    /// End the current stroke.
+    fn end_stroke(&mut self) {
+        self.is_drawing = false;
+    }
 }
 
 /// Which tab is currently selected in the viewer.
@@ -238,6 +287,8 @@ pub struct ViewerPane {
     preferred_geometry_tab: ViewerTab,
     /// Whether the Visual tab is available (rendered node outputs Geometry/Point).
     visual_tab_available: bool,
+    /// Freehand drawing state (active when a freehand node is selected).
+    freehand_state: Option<FreehandState>,
 }
 
 impl Default for ViewerPane {
@@ -270,6 +321,7 @@ impl ViewerPane {
             data_view_mode: DataViewMode::Points,
             preferred_geometry_tab: ViewerTab::Viewer,
             visual_tab_available: true,
+            freehand_state: None,
         }
     }
 
@@ -277,6 +329,7 @@ impl ViewerPane {
     pub fn is_dragging(&self) -> bool {
         self.dragging_handle.is_some()
             || self.four_point_handle.as_ref().is_some_and(|fp| fp.is_dragging())
+            || self.freehand_state.as_ref().is_some_and(|fs| fs.is_drawing)
     }
 
     /// Get the current pan offset.
@@ -659,6 +712,67 @@ impl ViewerPane {
         // Handle interactions (only if not panning)
         if !self.is_space_pressed && self.show_handles {
             let mouse_pos = ui.input(|i| i.pointer.hover_pos());
+
+            // Handle freehand drawing (takes priority when freehand node is selected)
+            if self.freehand_state.is_some() {
+                // Draw cursor indicator (5px radius circle, like Java FreehandHandle)
+                if let Some(pos) = mouse_pos {
+                    if response.hovered() {
+                        painter.circle_stroke(
+                            pos,
+                            5.0,
+                            Stroke::new(1.0, Color32::from_gray(128)),
+                        );
+                    }
+                }
+
+                // Mouse pressed: start new contour
+                if response.drag_started_by(egui::PointerButton::Primary) {
+                    let freehand = self.freehand_state.as_mut().unwrap();
+                    freehand.start_stroke();
+                    if let Some(pos) = mouse_pos {
+                        let world = screen_to_world(pos, self.pan_zoom.zoom, self.pan_zoom.pan, center);
+                        freehand.add_point(world.x, world.y);
+                    }
+                    return HandleResult::StringChange {
+                        param: self.freehand_state.as_ref().unwrap().param_name.clone(),
+                        value: self.freehand_state.as_ref().unwrap().path_string.clone(),
+                    };
+                }
+
+                // Mouse dragged: add points to current contour
+                if self.freehand_state.as_ref().unwrap().is_drawing
+                    && response.dragged_by(egui::PointerButton::Primary)
+                {
+                    if let Some(pos) = mouse_pos {
+                        let freehand = self.freehand_state.as_mut().unwrap();
+                        let world = screen_to_world(pos, self.pan_zoom.zoom, self.pan_zoom.pan, center);
+                        freehand.add_point(world.x, world.y);
+                    }
+                    return HandleResult::StringChange {
+                        param: self.freehand_state.as_ref().unwrap().param_name.clone(),
+                        value: self.freehand_state.as_ref().unwrap().path_string.clone(),
+                    };
+                }
+
+                // Mouse released: end stroke
+                if self.freehand_state.as_ref().unwrap().is_drawing
+                    && response.drag_stopped_by(egui::PointerButton::Primary)
+                {
+                    self.freehand_state.as_mut().unwrap().end_stroke();
+                    return HandleResult::StringChange {
+                        param: self.freehand_state.as_ref().unwrap().param_name.clone(),
+                        value: self.freehand_state.as_ref().unwrap().path_string.clone(),
+                    };
+                }
+
+                // Change cursor to crosshair when hovering over canvas with freehand active
+                if response.hovered() {
+                    ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
+                }
+
+                return HandleResult::None;
+            }
 
             // Handle FourPointHandle first (takes priority)
             if let Some(ref mut four_point) = self.four_point_handle {
@@ -1613,7 +1727,26 @@ impl ViewerPane {
 
                                 handle_set.add(Handle::point("position", position));
                             }
-                            _ => {}
+                            "corevector.freehand" => {
+                                // Read current path string from the node
+                                let path = node
+                                    .input("path")
+                                    .and_then(|p| p.value.as_string())
+                                    .unwrap_or("");
+
+                                // Initialize freehand state if not already active
+                                if self.freehand_state.is_none() {
+                                    self.freehand_state = Some(FreehandState::new("path", path));
+                                } else if let Some(ref mut fs) = self.freehand_state {
+                                    // Sync with node's current value when not drawing
+                                    if !fs.is_drawing {
+                                        fs.path_string = path.to_string();
+                                    }
+                                }
+                            }
+                            _ => {
+                                self.freehand_state = None;
+                            }
                         }
                     }
 
@@ -1631,11 +1764,13 @@ impl ViewerPane {
                 } else {
                     self.handles = None;
                     self.four_point_handle = None;
+                    self.freehand_state = None;
                 }
             }
             None => {
                 self.handles = None;
                 self.four_point_handle = None;
+                self.freehand_state = None;
             }
         }
     }
