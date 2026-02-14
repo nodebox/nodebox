@@ -67,6 +67,8 @@ pub use vello_renderer::{VelloConfig, VelloError, VelloRenderer, ViewTransform};
 #[cfg(feature = "gpu-rendering")]
 pub use vello_viewer::VelloViewer;
 
+#[cfg(target_os = "macos")]
+pub mod macos_file_open;
 mod native_menu;
 mod recent_files;
 
@@ -103,6 +105,13 @@ pub fn run() -> eframe::Result<()> {
     eframe::run_native(
         "NodeBox",
         options,
-        Box::new(move |cc| Ok(Box::new(NodeBoxApp::new_with_port(cc, port.clone(), initial_file)))),
+        Box::new(move |cc| {
+            // On macOS, inject application:openFiles: into winit's delegate class
+            // so the app can receive file-open events from Finder double-clicks.
+            #[cfg(target_os = "macos")]
+            macos_file_open::inject_file_open_handler();
+
+            Ok(Box::new(NodeBoxApp::new_with_port(cc, port.clone(), initial_file)))
+        }),
     )
 }
