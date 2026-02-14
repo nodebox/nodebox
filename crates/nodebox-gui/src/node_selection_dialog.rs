@@ -18,8 +18,8 @@ pub struct NodeSelectionDialog {
     search_query: String,
     /// Selected category (None = All).
     selected_category: Option<String>,
-    /// Filtered list of node indices.
-    filtered_indices: Vec<usize>,
+    /// Filtered list of (template index, match score) pairs, sorted by score descending.
+    filtered_indices: Vec<(usize, u32)>,
     /// Currently selected index in filtered list.
     selected_index: usize,
     /// Position where the node should be created.
@@ -68,6 +68,7 @@ impl NodeSelectionDialog {
     }
 
     /// Update the filtered list based on search query and category.
+    /// Results are sorted by match score (best matches first).
     fn update_filtered_list(&mut self) {
         self.filtered_indices.clear();
         let query = self.search_query.to_lowercase();
@@ -80,16 +81,18 @@ impl NodeSelectionDialog {
                 }
             }
 
-            // Filter by search query
+            // Filter and score by search query
             if !query.is_empty() {
-                let matches = self.fuzzy_match(template, &query);
-                if !matches {
-                    continue;
+                if let Some(score) = self.match_score(template, &query) {
+                    self.filtered_indices.push((i, score));
                 }
+            } else {
+                self.filtered_indices.push((i, 0));
             }
-
-            self.filtered_indices.push(i);
         }
+
+        // Sort by score descending; stable sort preserves template order for equal scores.
+        self.filtered_indices.sort_by(|a, b| b.1.cmp(&a.1));
 
         // Reset selection if out of bounds
         if self.selected_index >= self.filtered_indices.len() {
@@ -97,25 +100,53 @@ impl NodeSelectionDialog {
         }
     }
 
-    /// Perform fuzzy matching on a template.
-    fn fuzzy_match(&self, template: &NodeTemplate, query: &str) -> bool {
+    /// Compute a match score for a template against the search query.
+    /// Returns `None` if the template does not match, or `Some(score)` where
+    /// higher scores indicate better matches.
+    fn match_score(&self, template: &NodeTemplate, query: &str) -> Option<u32> {
         let name = template.name.to_lowercase();
         let desc = template.description.to_lowercase();
 
-        // Exact start match
+        // Tier 1: Exact name match
+        if name == query {
+            return Some(100);
+        }
+
+        // Tier 2: Name starts with query (prefix match)
         if name.starts_with(query) {
-            return true;
+            return Some(80);
         }
 
-        // Contains match
-        if name.contains(query) || desc.contains(query) {
-            return true;
+        // Tier 3: Name contains query (substring match)
+        if name.contains(query) {
+            return Some(60);
         }
 
-        // First letters match (e.g., "rc" matches "rect create")
-        let name_chars: Vec<char> = name.chars().collect();
+        // Tier 4: Word-initial match (e.g., "rn" matches "random_numbers")
         let query_chars: Vec<char> = query.chars().collect();
+        let initials: Vec<char> = name
+            .split('_')
+            .filter_map(|w| w.chars().next())
+            .collect();
+        if query_chars.len() <= initials.len() {
+            let mut qi = 0;
+            for &ic in &initials {
+                if qi < query_chars.len() && ic == query_chars[qi] {
+                    qi += 1;
+                }
+            }
+            if qi == query_chars.len() {
+                return Some(50);
+            }
+        }
 
+        // Tier 5: Description contains query
+        if desc.contains(query) {
+            return Some(40);
+        }
+
+        // Tier 6: Subsequence match on name (fuzzy)
+        let name_chars: Vec<char> = name.chars().collect();
         if query_chars.len() <= name_chars.len() {
             let mut qi = 0;
             for &nc in &name_chars {
@@ -124,11 +155,11 @@ impl NodeSelectionDialog {
                 }
             }
             if qi == query_chars.len() {
-                return true;
+                return Some(20);
             }
         }
 
-        false
+        None
     }
 
     /// Show the dialog. Returns the selected template if one was chosen.
@@ -217,7 +248,7 @@ impl NodeSelectionDialog {
 
                     // Handle Enter key on search input
                     if response.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter)) {
-                        if let Some(&idx) = self.filtered_indices.get(self.selected_index) {
+                        if let Some(&(idx, _)) = self.filtered_indices.get(self.selected_index) {
                             let template = &NODE_TEMPLATES[idx];
                             result = Some(create_node_from_template(template, library, self.create_position));
                             should_close = true;
@@ -279,7 +310,7 @@ impl NodeSelectionDialog {
                 egui::ScrollArea::vertical()
                     .auto_shrink([false, false])
                     .show(ui, |ui| {
-                        for (list_idx, &template_idx) in self.filtered_indices.iter().enumerate() {
+                        for (list_idx, &(template_idx, _)) in self.filtered_indices.iter().enumerate() {
                             let template = &NODE_TEMPLATES[template_idx];
                             let is_selected = list_idx == self.selected_index;
 
@@ -366,5 +397,164 @@ impl NodeSelectionDialog {
         }
 
         result
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_template(name: &'static str, description: &'static str) -> NodeTemplate {
+        NodeTemplate {
+            name,
+            prototype: "",
+            category: "geometry",
+            description,
+        }
+    }
+
+    #[test]
+    fn exact_match_scores_highest() {
+        let dialog = NodeSelectionDialog::new();
+        let t = make_template("sample", "Sample a path");
+        assert_eq!(dialog.match_score(&t, "sample"), Some(100));
+    }
+
+    #[test]
+    fn prefix_match() {
+        let dialog = NodeSelectionDialog::new();
+        let t = make_template("sample", "Sample a path");
+        assert_eq!(dialog.match_score(&t, "sam"), Some(80));
+    }
+
+    #[test]
+    fn substring_match_in_name() {
+        let dialog = NodeSelectionDialog::new();
+        let t = make_template("resample", "Resample path points");
+        assert_eq!(dialog.match_score(&t, "sample"), Some(60));
+    }
+
+    #[test]
+    fn description_match() {
+        let dialog = NodeSelectionDialog::new();
+        let t = make_template("ellipse", "Create an ellipse or circle");
+        assert_eq!(dialog.match_score(&t, "circle"), Some(40));
+    }
+
+    #[test]
+    fn subsequence_match() {
+        let dialog = NodeSelectionDialog::new();
+        let t = make_template("resample", "Resample path points");
+        assert_eq!(dialog.match_score(&t, "rsl"), Some(20));
+    }
+
+    #[test]
+    fn no_match() {
+        let dialog = NodeSelectionDialog::new();
+        let t = make_template("ellipse", "Create an ellipse or circle");
+        assert_eq!(dialog.match_score(&t, "xyz"), None);
+    }
+
+    #[test]
+    fn word_initial_match_scores_above_description() {
+        let dialog = NodeSelectionDialog::new();
+        // "cr" should match word initials of convert_range (c=convert, r=range)
+        let t = make_template("convert_range", "Map a value from one range to another");
+        let score = dialog.match_score(&t, "cr");
+        assert!(
+            score.is_some(),
+            "convert_range should match 'cr' via word initials"
+        );
+        assert!(
+            score.unwrap() > 40,
+            "word-initial match ({}) should score above description match (40)",
+            score.unwrap()
+        );
+    }
+
+    #[test]
+    fn word_initial_match_for_random_numbers() {
+        let dialog = NodeSelectionDialog::new();
+        // "rn" should match word initials of random_numbers (r=random, n=numbers)
+        let t = make_template("random_numbers", "Generate a list of random numbers");
+        let score = dialog.match_score(&t, "rn");
+        assert!(
+            score.is_some(),
+            "random_numbers should match 'rn' via word initials"
+        );
+        assert!(
+            score.unwrap() > 20,
+            "word-initial match ({}) should score above plain subsequence (20)",
+            score.unwrap()
+        );
+    }
+
+    #[test]
+    fn rn_ranks_random_numbers_above_translate() {
+        let mut dialog = NodeSelectionDialog::new();
+        dialog.search_query = "rn".to_string();
+        dialog.update_filtered_list();
+
+        let rn_pos = dialog
+            .filtered_indices
+            .iter()
+            .position(|&(idx, _)| NODE_TEMPLATES[idx].name == "random_numbers");
+        let tr_pos = dialog
+            .filtered_indices
+            .iter()
+            .position(|&(idx, _)| NODE_TEMPLATES[idx].name == "translate");
+
+        assert!(rn_pos.is_some(), "random_numbers should be in results");
+        assert!(tr_pos.is_some(), "translate should be in results");
+        assert!(
+            rn_pos.unwrap() < tr_pos.unwrap(),
+            "random_numbers should appear before translate for query 'rn'"
+        );
+    }
+
+    #[test]
+    fn cr_ranks_convert_range_above_ellipse() {
+        let mut dialog = NodeSelectionDialog::new();
+        dialog.search_query = "cr".to_string();
+        dialog.update_filtered_list();
+
+        let cr_pos = dialog
+            .filtered_indices
+            .iter()
+            .position(|&(idx, _)| NODE_TEMPLATES[idx].name == "convert_range");
+        let el_pos = dialog
+            .filtered_indices
+            .iter()
+            .position(|&(idx, _)| NODE_TEMPLATES[idx].name == "ellipse");
+
+        assert!(cr_pos.is_some(), "convert_range should be in results");
+        assert!(el_pos.is_some(), "ellipse should be in results");
+        assert!(
+            cr_pos.unwrap() < el_pos.unwrap(),
+            "convert_range should appear before ellipse for query 'cr'"
+        );
+    }
+
+    #[test]
+    fn sample_ranks_above_resample() {
+        let mut dialog = NodeSelectionDialog::new();
+        dialog.search_query = "sample".to_string();
+        dialog.update_filtered_list();
+
+        let sample_pos = dialog
+            .filtered_indices
+            .iter()
+            .position(|&(idx, _)| NODE_TEMPLATES[idx].name == "sample");
+        let resample_pos = dialog
+            .filtered_indices
+            .iter()
+            .position(|&(idx, _)| NODE_TEMPLATES[idx].name == "resample");
+
+        assert!(sample_pos.is_some(), "sample should be in results");
+        assert!(resample_pos.is_some(), "resample should be in results");
+        assert!(
+            sample_pos.unwrap() < resample_pos.unwrap(),
+            "sample (exact) should appear before resample (substring)"
+        );
     }
 }
