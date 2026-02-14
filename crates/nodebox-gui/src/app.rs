@@ -14,6 +14,7 @@ use crate::native_menu::{MenuAction, NativeMenuHandle};
 use crate::recent_files::RecentFiles;
 use crate::network_view::{NetworkAction, NetworkView};
 use crate::node_selection_dialog::NodeSelectionDialog;
+use nodebox_core::node::{Connection, PortType};
 use crate::parameter_panel::ParameterPanel;
 use crate::render_worker::{RenderResult, RenderState, RenderWorkerHandle};
 use crate::state::AppState;
@@ -48,6 +49,9 @@ pub struct NodeBoxApp {
     native_menu: Option<NativeMenuHandle>,
     /// Recent files list for "Open Recent" menu.
     recent_files: RecentFiles,
+    /// Pending connection to create after the node dialog selects a node.
+    /// Stores (from_node_name, output_type) from a drag-to-empty-space action.
+    pending_connection: Option<(String, PortType)>,
 }
 
 impl NodeBoxApp {
@@ -116,6 +120,7 @@ impl NodeBoxApp {
             render_pending: true,
             native_menu,
             recent_files,
+            pending_connection: None,
         }
     }
 
@@ -196,6 +201,7 @@ impl NodeBoxApp {
             render_pending: true,
             native_menu,
             recent_files,
+            pending_connection: None,
         }
     }
 
@@ -226,6 +232,7 @@ impl NodeBoxApp {
             render_pending: false,
             native_menu: None,
             recent_files: RecentFiles::new(),
+            pending_connection: None,
         }
     }
 
@@ -257,6 +264,7 @@ impl NodeBoxApp {
             render_pending: false,
             native_menu: None,
             recent_files: RecentFiles::new(),
+            pending_connection: None,
         }
     }
 
@@ -752,6 +760,10 @@ impl eframe::App for NodeBoxApp {
                         NetworkAction::OpenNodeDialog(pos) => {
                             self.node_dialog.open(pos);
                         }
+                        NetworkAction::OpenNodeDialogForConnection { position, from_node, output_type } => {
+                            self.node_dialog.open_for_connection(position, output_type.clone());
+                            self.pending_connection = Some((from_node, output_type));
+                        }
                         NetworkAction::None => {}
                     }
 
@@ -810,10 +822,29 @@ impl eframe::App for NodeBoxApp {
         if self.node_dialog.visible {
             if let Some(new_node) = self.node_dialog.show(ctx, &self.state.library, &mut self.icon_cache) {
                 let node_name = new_node.name.clone();
+
+                // Find the first compatible input port for any pending connection
+                let connection_to_create = self.pending_connection.take().and_then(|(from_node, output_type)| {
+                    new_node.inputs.iter()
+                        .find(|p| PortType::is_compatible(&output_type, &p.port_type))
+                        .map(|p| (from_node, p.name.clone()))
+                });
+
                 Arc::make_mut(&mut self.state.library).root.children.push(new_node);
-                // Select the new node
-                self.state.selected_node = Some(node_name);
+                self.state.selected_node = Some(node_name.clone());
+
+                // Create the auto-connection if drag-to-create was used
+                if let Some((from_node, port_name)) = connection_to_create {
+                    Arc::make_mut(&mut self.state.library)
+                        .root
+                        .connect(Connection::new(from_node, node_name, port_name));
+                }
             }
+        }
+
+        // Clear pending connection if dialog was dismissed
+        if !self.node_dialog.visible {
+            self.pending_connection = None;
         }
 
         // 7. About dialog

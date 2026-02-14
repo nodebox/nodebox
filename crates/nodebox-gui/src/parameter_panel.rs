@@ -1,7 +1,7 @@
 //! UI panels for the NodeBox application.
 
 use std::sync::Arc;
-use eframe::egui::{self, Sense, TextStyle};
+use eframe::egui::{self, Sense};
 use nodebox_core::geometry::Color;
 use nodebox_core::node::{PortType, Widget};
 use nodebox_core::Value;
@@ -507,7 +507,7 @@ impl ParameterPanel {
             Widget::String | Widget::Text => {
                 if let Value::String(ref mut value) = port.value {
                     if is_editing {
-                        // Show text input
+                        // Show text input for direct editing
                         let (mut edit_text, needs_select) = self.editing.as_ref()
                             .map(|(_, _, t, sel)| (t.clone(), *sel))
                             .unwrap_or_else(|| (value.clone(), true));
@@ -515,19 +515,35 @@ impl ParameterPanel {
                         // Capture Enter state before TextEdit may consume it.
                         let enter_pressed = Self::detect_enter_pressed(ui);
 
+                        // Frameless TextEdit with manual background for pixel-perfect alignment
+                        let old_selection = ui.visuals().selection.clone();
+                        ui.visuals_mut().selection.stroke = egui::Stroke::new(0.0, egui::Color32::WHITE);
+                        ui.visuals_mut().selection.bg_fill = theme::TEXT_EDIT_SELECTION_BG;
+
+                        let bg_idx = ui.painter().add(egui::Shape::Noop);
                         let output = egui::TextEdit::singleline(&mut edit_text)
-                            .font(TextStyle::Body)
-                            .text_color(theme::VALUE_TEXT)
-                            .desired_width(120.0)
-                            .frame(true)
+                            .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
+                            .text_color(egui::Color32::WHITE)
+                            .desired_width(ui.available_width() - theme::PADDING - theme::PADDING)
+                            .margin(egui::Margin::symmetric(4, 0))
+                            .frame(false)
                             .show(ui);
+
+                        // Paint rounded background behind the text
+                        let bg_rect = output.response.rect.expand2(egui::vec2(0.0, 4.0));
+                        ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                            bg_rect,
+                            egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
+                            theme::ZINC_700,
+                        ));
+
+                        ui.visuals_mut().selection = old_selection;
 
                         // Select all on first frame
                         if needs_select {
                             if let Some((_, _, _, ref mut sel)) = self.editing {
                                 *sel = false;
                             }
-                            // Set cursor to select all
                             let text_len = edit_text.chars().count();
                             let mut state = output.state.clone();
                             state.cursor.set_char_range(Some(egui::text::CCursorRange::two(
@@ -564,27 +580,40 @@ impl ParameterPanel {
                             output.response.request_focus();
                         }
                     } else {
-                        // Show as clickable text
-                        let display = if value.is_empty() { "\"\"" } else { value.as_str() };
-                        let galley = ui.painter().layout_no_wrap(
-                            display.to_string(),
-                            egui::FontId::proportional(11.0),
-                            theme::VALUE_TEXT,
-                        );
-                        let rect = ui.available_rect_before_wrap();
-                        let text_rect = egui::Rect::from_min_size(
-                            egui::pos2(rect.left(), rect.center().y - galley.size().y / 2.0),
-                            galley.size(),
-                        );
+                        // Non-interactive TextEdit for pixel-perfect alignment with editing state
+                        let display = if value.is_empty() { "\"\"".to_string() } else { value.clone() };
+                        let mut display_text = display;
+                        let bg_idx = ui.painter().add(egui::Shape::Noop);
+                        let te_output = egui::TextEdit::singleline(&mut display_text)
+                            .font(egui::FontId::proportional(theme::FONT_SIZE_SMALL))
+                            .text_color(egui::Color32::WHITE)
+                            .interactive(false)
+                            .frame(false)
+                            .margin(egui::Margin::symmetric(4, 0))
+                            .desired_width(ui.available_width() - theme::PADDING - theme::PADDING)
+                            .show(ui);
 
-                        let response = ui.allocate_rect(text_rect, Sense::click());
-                        ui.painter().galley(text_rect.min, galley, theme::VALUE_TEXT);
+                        // Overlay click sensing on the same rect
+                        let interact_id = ui.id().with(&port_key);
+                        let response = ui.interact(te_output.response.rect, interact_id, Sense::click());
 
-                        if response.clicked() {
-                            self.editing = Some((port_key.0, port_key.1, value.clone(), true));
+                        // Hover effect: subtle darkened background
+                        if response.hovered() {
+                            let hover_rect = te_output.response.rect.expand2(egui::vec2(0.0, 4.0));
+                            ui.painter().set(bg_idx, egui::Shape::rect_filled(
+                                hover_rect,
+                                egui::CornerRadius::same(theme::CORNER_RADIUS_SMALL as u8),
+                                theme::FIELD_HOVER_BG,
+                            ));
                         }
+
                         if response.hovered() {
                             ui.ctx().set_cursor_icon(egui::CursorIcon::Text);
+                        }
+
+                        // Click to edit
+                        if response.clicked() {
+                            self.editing = Some((port_key.0, port_key.1, value.clone(), true));
                         }
                     }
                 }
