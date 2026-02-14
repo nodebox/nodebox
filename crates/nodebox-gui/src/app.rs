@@ -635,6 +635,12 @@ impl eframe::App for NodeBoxApp {
             self.open_dropped_file(&path);
         }
 
+        // Handle files opened via macOS file association (Finder double-click)
+        #[cfg(target_os = "macos")]
+        for path in crate::macos_file_open::take_pending_files() {
+            self.open_dropped_file(&path);
+        }
+
         // Poll for background render results
         self.poll_render_results();
 
