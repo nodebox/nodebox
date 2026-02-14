@@ -380,6 +380,16 @@ impl NodeLibraryBrowser {
     }
 }
 
+/// Check if a node created from this template would have any input port
+/// compatible with the given output type.
+pub fn template_has_compatible_input(template: &NodeTemplate, output_type: &PortType) -> bool {
+    let temp_lib = NodeLibrary::new("_temp");
+    let node = create_node_from_template(template, &temp_lib, Point::ZERO);
+    node.inputs
+        .iter()
+        .any(|port| PortType::is_compatible(output_type, &port.port_type))
+}
+
 /// Create a new node from a template.
 pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary, position: Point) -> Node {
     // Generate unique name

@@ -17,6 +17,16 @@ pub enum NetworkAction {
     None,
     /// Open the node selection dialog at the given position (in grid units).
     OpenNodeDialog(Point),
+    /// Open the node selection dialog filtered by type compatibility,
+    /// for creating a node and connecting it to an existing output.
+    OpenNodeDialogForConnection {
+        /// Position where the new node should be created (in grid units).
+        position: Point,
+        /// The source node whose output is being connected.
+        from_node: String,
+        /// The output type of the source node (for filtering compatible nodes).
+        output_type: PortType,
+    },
 }
 
 
@@ -411,6 +421,7 @@ impl NetworkView {
 
         // Handle connection creation end (use inflated hit areas for easy drop)
         if self.creating_connection.is_some() && ui.input(|i| i.pointer.any_released()) {
+            let mut connection_made = false;
             if let Some(hover_pos) = ui.input(|i| i.pointer.hover_pos()) {
                 // Find which input port we're over using inflated hit areas (is_connecting=true)
                 if let Some((node_name, port_name, _)) =
@@ -427,8 +438,29 @@ impl NetworkView {
                                         node_name,
                                         port_name,
                                     ));
+                                    connection_made = true;
                                 }
                             }
+                        }
+                    }
+                }
+
+                // If no connection was made and cursor is not over any node, open dialog
+                if !connection_made {
+                    let over_any_node = network.children.iter().any(|child| {
+                        self.node_rect(child, offset).contains(hover_pos)
+                    });
+                    if !over_any_node {
+                        if let Some(ref drag) = self.creating_connection {
+                            let grid_pos = self.screen_to_grid(hover_pos, offset);
+                            action = NetworkAction::OpenNodeDialogForConnection {
+                                position: Point::new(
+                                    grid_pos.x.round() as f64,
+                                    grid_pos.y.round() as f64,
+                                ),
+                                from_node: drag.from_node.clone(),
+                                output_type: drag.output_type.clone(),
+                            };
                         }
                     }
                 }
