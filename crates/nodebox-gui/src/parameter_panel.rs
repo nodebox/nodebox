@@ -238,28 +238,17 @@ impl ParameterPanel {
         String::new()
     }
 
-    /// Scan the current frame's input events for a pending Tab key press.
-    /// Returns `Some(true)` for forward Tab, `Some(false)` for Shift+Tab (backward),
-    /// or `None` if no Tab press is pending.
+    /// Detect whether a TextEdit lost focus due to Tab/Shift+Tab navigation.
     ///
-    /// Must be called BEFORE `TextEdit::show()` to reliably detect Tab direction,
-    /// because egui's focus system may consume the event during widget processing.
-    fn detect_pending_tab(ui: &egui::Ui) -> Option<bool> {
-        ui.input(|i| {
-            i.events.iter().find_map(|event| {
-                if let egui::Event::Key {
-                    key: egui::Key::Tab,
-                    pressed: true,
-                    modifiers,
-                    ..
-                } = event
-                {
-                    Some(!modifiers.shift)
-                } else {
-                    None
-                }
-            })
-        })
+    /// On some platforms (e.g. Linux/X11), Shift+Tab generates `ISO_Left_Tab`
+    /// instead of `Key::Tab`, so scanning for `Key::Tab` events is unreliable.
+    /// Instead, we infer Tab navigation by exclusion: if focus was lost and it
+    /// wasn't from Escape, Enter, or a mouse click, it must be Tab/Shift+Tab.
+    ///
+    /// Call BEFORE `TextEdit::show()` to capture `Enter` state before the
+    /// TextEdit potentially consumes the event.
+    fn detect_enter_pressed(ui: &egui::Ui) -> bool {
+        ui.input(|i| i.key_pressed(egui::Key::Enter))
     }
 
     /// Compute the drag speed modifier based on keyboard modifiers.
@@ -498,8 +487,8 @@ impl ParameterPanel {
                             .map(|(_, _, t, sel)| (t.clone(), *sel))
                             .unwrap_or_else(|| (value.clone(), true));
 
-                        // Pre-scan: detect Tab/Shift+Tab BEFORE TextEdit processes events.
-                        let pending_tab_direction = Self::detect_pending_tab(ui);
+                        // Capture Enter state before TextEdit may consume it.
+                        let enter_pressed = Self::detect_enter_pressed(ui);
 
                         let output = egui::TextEdit::singleline(&mut edit_text)
                             .font(TextStyle::Body)
@@ -535,7 +524,11 @@ impl ParameterPanel {
                             } else {
                                 *value = edit_text;
                                 self.editing = None;
-                                if let Some(forward) = pending_tab_direction {
+                                // If focus was lost from keyboard Tab navigation
+                                // (not Enter, not mouse click), advance to next/prev field.
+                                let mouse_clicked = ui.input(|i| i.pointer.any_pressed());
+                                if !enter_pressed && !mouse_clicked {
+                                    let forward = !ui.input(|i| i.modifiers.shift);
                                     self.tab_target = Self::next_tab_stop(&self.tab_order, &port_key, forward);
                                 }
                             }
@@ -776,8 +769,8 @@ impl ParameterPanel {
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{:.2}", value), true));
 
-            // Pre-scan: detect Tab/Shift+Tab BEFORE TextEdit processes events.
-            let pending_tab_direction = Self::detect_pending_tab(ui);
+            // Capture Enter state before TextEdit may consume it.
+            let enter_pressed = Self::detect_enter_pressed(ui);
 
             // Frameless TextEdit with manual background for pixel-perfect alignment
             let old_selection = ui.visuals().selection.clone();
@@ -841,7 +834,11 @@ impl ParameterPanel {
                         }
                     }
                     self.editing = None;
-                    if let Some(forward) = pending_tab_direction {
+                    // If focus was lost from keyboard Tab navigation
+                    // (not Enter, not mouse click), advance to next/prev field.
+                    let mouse_clicked = ui.input(|i| i.pointer.any_pressed());
+                    if !enter_pressed && !mouse_clicked {
+                        let forward = !ui.input(|i| i.modifiers.shift);
                         self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
                     }
                 }
@@ -908,8 +905,8 @@ impl ParameterPanel {
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{}", value), true));
 
-            // Pre-scan: detect Tab/Shift+Tab BEFORE TextEdit processes events.
-            let pending_tab_direction = Self::detect_pending_tab(ui);
+            // Capture Enter state before TextEdit may consume it.
+            let enter_pressed = Self::detect_enter_pressed(ui);
 
             // Frameless TextEdit with manual background for pixel-perfect alignment
             let old_selection = ui.visuals().selection.clone();
@@ -968,7 +965,11 @@ impl ParameterPanel {
                         *value = clamped;
                     }
                     self.editing = None;
-                    if let Some(forward) = pending_tab_direction {
+                    // If focus was lost from keyboard Tab navigation
+                    // (not Enter, not mouse click), advance to next/prev field.
+                    let mouse_clicked = ui.input(|i| i.pointer.any_pressed());
+                    if !enter_pressed && !mouse_clicked {
+                        let forward = !ui.input(|i| i.modifiers.shift);
                         self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
                     }
                 }
