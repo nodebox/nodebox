@@ -241,6 +241,19 @@ impl ParameterPanel {
         String::new()
     }
 
+    /// Detect whether a TextEdit lost focus due to Tab/Shift+Tab navigation.
+    ///
+    /// On some platforms (e.g. Linux/X11), Shift+Tab generates `ISO_Left_Tab`
+    /// instead of `Key::Tab`, so scanning for `Key::Tab` events is unreliable.
+    /// Instead, we infer Tab navigation by exclusion: if focus was lost and it
+    /// wasn't from Escape, Enter, or a mouse click, it must be Tab/Shift+Tab.
+    ///
+    /// Call BEFORE `TextEdit::show()` to capture `Enter` state before the
+    /// TextEdit potentially consumes the event.
+    fn detect_enter_pressed(ui: &egui::Ui) -> bool {
+        ui.input(|i| i.key_pressed(egui::Key::Enter))
+    }
+
     /// Compute the drag speed modifier based on keyboard modifiers.
     /// Shift = 10x (coarse), Alt = 0.01x (fine), otherwise 1x.
     fn drag_modifier(ui: &egui::Ui) -> f64 {
@@ -499,6 +512,9 @@ impl ParameterPanel {
                             .map(|(_, _, t, sel)| (t.clone(), *sel))
                             .unwrap_or_else(|| (value.clone(), true));
 
+                        // Capture Enter state before TextEdit may consume it.
+                        let enter_pressed = Self::detect_enter_pressed(ui);
+
                         let output = egui::TextEdit::singleline(&mut edit_text)
                             .font(TextStyle::Body)
                             .text_color(theme::VALUE_TEXT)
@@ -528,13 +544,15 @@ impl ParameterPanel {
 
                         // Commit on enter or focus lost
                         if output.response.lost_focus() {
-                            let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
                             if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                                 self.editing = None;
                             } else {
                                 *value = edit_text;
                                 self.editing = None;
-                                if tab_pressed {
+                                // If focus was lost from keyboard Tab navigation
+                                // (not Enter, not mouse click), advance to next/prev field.
+                                let mouse_clicked = ui.input(|i| i.pointer.any_pressed());
+                                if !enter_pressed && !mouse_clicked {
                                     let forward = !ui.input(|i| i.modifiers.shift);
                                     self.tab_target = Self::next_tab_stop(&self.tab_order, &port_key, forward);
                                 }
@@ -776,6 +794,9 @@ impl ParameterPanel {
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{:.2}", value), true));
 
+            // Capture Enter state before TextEdit may consume it.
+            let enter_pressed = Self::detect_enter_pressed(ui);
+
             // Frameless TextEdit with manual background for pixel-perfect alignment
             let old_selection = ui.visuals().selection.clone();
             ui.visuals_mut().selection.stroke = egui::Stroke::new(0.0, egui::Color32::WHITE);
@@ -821,7 +842,6 @@ impl ParameterPanel {
 
             // Commit on enter or focus lost
             if output.response.lost_focus() {
-                let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     self.editing = None;
                 } else {
@@ -839,7 +859,10 @@ impl ParameterPanel {
                         }
                     }
                     self.editing = None;
-                    if tab_pressed {
+                    // If focus was lost from keyboard Tab navigation
+                    // (not Enter, not mouse click), advance to next/prev field.
+                    let mouse_clicked = ui.input(|i| i.pointer.any_pressed());
+                    if !enter_pressed && !mouse_clicked {
                         let forward = !ui.input(|i| i.modifiers.shift);
                         self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
                     }
@@ -925,6 +948,9 @@ impl ParameterPanel {
                 .map(|(_, _, t, sel)| (t.clone(), *sel))
                 .unwrap_or_else(|| (format!("{}", value), true));
 
+            // Capture Enter state before TextEdit may consume it.
+            let enter_pressed = Self::detect_enter_pressed(ui);
+
             // Frameless TextEdit with manual background for pixel-perfect alignment
             let old_selection = ui.visuals().selection.clone();
             ui.visuals_mut().selection.stroke = egui::Stroke::new(0.0, egui::Color32::WHITE);
@@ -968,7 +994,6 @@ impl ParameterPanel {
             }
 
             if output.response.lost_focus() {
-                let tab_pressed = ui.input(|i| i.key_pressed(egui::Key::Tab));
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     self.editing = None;
                 } else {
@@ -983,7 +1008,10 @@ impl ParameterPanel {
                         *value = clamped;
                     }
                     self.editing = None;
-                    if tab_pressed {
+                    // If focus was lost from keyboard Tab navigation
+                    // (not Enter, not mouse click), advance to next/prev field.
+                    let mouse_clicked = ui.input(|i| i.pointer.any_pressed());
+                    if !enter_pressed && !mouse_clicked {
                         let forward = !ui.input(|i| i.modifiers.shift);
                         self.tab_target = Self::next_tab_stop(&self.tab_order, port_key, forward);
                     }
