@@ -637,16 +637,34 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                 .with_output_type(PortType::String)
                 .with_output_range(PortRange::List);
         }
-        // List nodes
+        // List nodes — accept any list type via PortType::List
         "count" | "first" | "reverse" | "shuffle" | "slice" => {
-            node = node.with_input(Port::geometry("list").with_port_range(PortRange::List));
+            node = node.with_input(Port::new("list", PortType::List).with_port_range(PortRange::List));
             match template.name {
-                "shuffle" => { node = node.with_input(Port::int("seed", 0)); }
+                "count" => {
+                    node = node.with_output_type(PortType::Int);
+                }
+                "first" => {
+                    node = node.with_output_type(PortType::List);
+                }
+                "reverse" => {
+                    node = node
+                        .with_output_type(PortType::List)
+                        .with_output_range(PortRange::List);
+                }
+                "shuffle" => {
+                    node = node
+                        .with_input(Port::int("seed", 0))
+                        .with_output_type(PortType::List)
+                        .with_output_range(PortRange::List);
+                }
                 "slice" => {
                     node = node
                         .with_input(Port::int("start_index", 0))
                         .with_input(Port::int("size", 10))
-                        .with_input(Port::boolean("invert", false));
+                        .with_input(Port::boolean("invert", false))
+                        .with_output_type(PortType::List)
+                        .with_output_range(PortRange::List);
                 }
                 _ => {}
             }

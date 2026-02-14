@@ -1724,6 +1724,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Int(v.len() as i64)),
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Int(v.len() as i64)),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Int(v.len() as i64)),
+                Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Int(v.len() as i64)),
                 _ => Ok(NodeOutput::Int(0)),
             }
         }
@@ -1736,6 +1737,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(v.first().map(|i| NodeOutput::Int(*i)).unwrap_or(NodeOutput::None)),
                 Some(NodeOutput::Strings(v)) => Ok(v.first().map(|s| NodeOutput::String(s.clone())).unwrap_or(NodeOutput::None)),
                 Some(NodeOutput::Booleans(v)) => Ok(v.first().map(|b| NodeOutput::Boolean(*b)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Colors(v)) => Ok(v.first().map(|c| NodeOutput::Color(*c)).unwrap_or(NodeOutput::None)),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1748,6 +1750,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(v.get(1).map(|i| NodeOutput::Int(*i)).unwrap_or(NodeOutput::None)),
                 Some(NodeOutput::Strings(v)) => Ok(v.get(1).map(|s| NodeOutput::String(s.clone())).unwrap_or(NodeOutput::None)),
                 Some(NodeOutput::Booleans(v)) => Ok(v.get(1).map(|b| NodeOutput::Boolean(*b)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Colors(v)) => Ok(v.get(1).map(|c| NodeOutput::Color(*c)).unwrap_or(NodeOutput::None)),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1760,6 +1763,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(v.last().map(|i| NodeOutput::Int(*i)).unwrap_or(NodeOutput::None)),
                 Some(NodeOutput::Strings(v)) => Ok(v.last().map(|s| NodeOutput::String(s.clone())).unwrap_or(NodeOutput::None)),
                 Some(NodeOutput::Booleans(v)) => Ok(v.last().map(|b| NodeOutput::Boolean(*b)).unwrap_or(NodeOutput::None)),
+                Some(NodeOutput::Colors(v)) => Ok(v.last().map(|c| NodeOutput::Color(*c)).unwrap_or(NodeOutput::None)),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1772,6 +1776,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::rest(v))),
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::rest(v))),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::rest(v))),
+                Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Colors(nodebox_ops::list::rest(v))),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1784,6 +1789,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::reverse(v))),
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::reverse(v))),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::reverse(v))),
+                Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Colors(nodebox_ops::list::reverse(v))),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1799,6 +1805,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::slice(v, start_index, size, invert))),
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::slice(v, start_index, size, invert))),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::slice(v, start_index, size, invert))),
+                Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Colors(nodebox_ops::list::slice(v, start_index, size, invert))),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1812,6 +1819,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::shift(v, amount))),
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::shift(v, amount))),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::shift(v, amount))),
+                Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Colors(nodebox_ops::list::shift(v, amount))),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1826,6 +1834,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::repeat(v, amount, per_item))),
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::repeat(v, amount, per_item))),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::repeat(v, amount, per_item))),
+                Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Colors(nodebox_ops::list::repeat(v, amount, per_item))),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1849,6 +1858,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::shuffle(v, seed))),
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::shuffle(v, seed))),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::shuffle(v, seed))),
+                Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Colors(nodebox_ops::list::shuffle(v, seed))),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1863,6 +1873,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::pick(v, amount, seed))),
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::pick(v, amount, seed))),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::pick(v, amount, seed))),
+                Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Colors(nodebox_ops::list::pick(v, amount, seed))),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1876,6 +1887,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::cull(v, &booleans))),
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::cull(v, &booleans))),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::cull(v, &booleans))),
+                Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Colors(nodebox_ops::list::cull(v, &booleans))),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1889,6 +1901,7 @@ fn execute_node(
                 Some(NodeOutput::Ints(v)) => Ok(NodeOutput::Ints(nodebox_ops::list::take_every(v, n))),
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(nodebox_ops::list::take_every(v, n))),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(nodebox_ops::list::take_every(v, n))),
+                Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Colors(nodebox_ops::list::take_every(v, n))),
                 _ => Ok(NodeOutput::None),
             }
         }
