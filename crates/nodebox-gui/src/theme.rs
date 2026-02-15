@@ -277,8 +277,8 @@ pub const TEXT_NORMAL: Color32 = TEXT_DEFAULT;
 pub const TEXT_BRIGHT: Color32 = TEXT_STRONG;
 
 // Port/parameter colors (labels on left are darker)
-pub const PORT_LABEL_BACKGROUND: Color32 = ZINC_700;
-pub const PORT_VALUE_BACKGROUND: Color32 = ZINC_600;
+pub const PORT_LABEL_BACKGROUND: Color32 = ZINC_800;
+pub const PORT_VALUE_BACKGROUND: Color32 = ZINC_700;
 
 // Tab colors
 pub const SELECTED_TAB_BACKGROUND: Color32 = ZINC_600;

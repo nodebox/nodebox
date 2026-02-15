@@ -860,9 +860,9 @@ impl eframe::App for NodeBoxApp {
                 let stroke_color = if is_active {
                     theme::ZINC_300
                 } else if is_hovered {
-                    theme::ZINC_700
+                    theme::ZINC_400
                 } else {
-                    theme::ZINC_900
+                    theme::ZINC_600
                 };
                 ui.painter().line_segment(
                     [
