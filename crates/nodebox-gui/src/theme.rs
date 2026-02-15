@@ -241,6 +241,10 @@ pub const BUTTON_ICON_SIZE: f32 = 16.0;
 pub const ICON_SIZE_SMALL: f32 = 16.0;
 /// Scroll bar width
 pub const SCROLL_BAR_WIDTH: f32 = 8.0;
+/// Splitter bar visual thickness (drawn line).
+pub const SPLITTER_THICKNESS: f32 = 2.0;
+/// Splitter interaction zone height (larger than visual for easy grabbing).
+pub const SPLITTER_AFFORDANCE: f32 = 8.0;
 
 // =============================================================================
 // TYPOGRAPHY
@@ -273,8 +277,8 @@ pub const TEXT_NORMAL: Color32 = TEXT_DEFAULT;
 pub const TEXT_BRIGHT: Color32 = TEXT_STRONG;
 
 // Port/parameter colors (labels on left are darker)
-pub const PORT_LABEL_BACKGROUND: Color32 = ZINC_700;
-pub const PORT_VALUE_BACKGROUND: Color32 = ZINC_600;
+pub const PORT_LABEL_BACKGROUND: Color32 = ZINC_800;
+pub const PORT_VALUE_BACKGROUND: Color32 = ZINC_700;
 
 // Tab colors
 pub const SELECTED_TAB_BACKGROUND: Color32 = ZINC_600;
