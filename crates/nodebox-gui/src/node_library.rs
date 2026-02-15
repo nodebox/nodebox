@@ -772,6 +772,18 @@ pub const NODE_TEMPLATES: &[NodeTemplate] = &[
         category: "list",
         description: "Combine multiple lists into one",
     },
+    NodeTemplate {
+        name: "keys",
+        prototype: "list.keys",
+        category: "list",
+        description: "Get the keys from a list of maps",
+    },
+    NodeTemplate {
+        name: "zip_map",
+        prototype: "list.zip_map",
+        category: "list",
+        description: "Combine keys and values into a map",
+    },
     // ========================
     // Core nodes
     // ========================
@@ -794,7 +806,25 @@ pub const NODE_TEMPLATES: &[NodeTemplate] = &[
         name: "import_csv",
         prototype: "data.import_csv",
         category: "data",
-        description: "Import data from a CSV file",
+        description: "Import a CSV file as structured data",
+    },
+    NodeTemplate {
+        name: "make_table",
+        prototype: "data.make_table",
+        category: "data",
+        description: "Build a data table from lists",
+    },
+    NodeTemplate {
+        name: "lookup",
+        prototype: "data.lookup",
+        category: "data",
+        description: "Look up a value by key in data",
+    },
+    NodeTemplate {
+        name: "filter_data",
+        prototype: "data.filter_data",
+        category: "data",
+        description: "Filter data rows by key/value comparison",
     },
     // ========================
     // Network nodes
@@ -1790,6 +1820,18 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                 .with_input(Port::geometry("list3"))
                 .with_output_type(PortType::Geometry);
         }
+        "keys" => {
+            node = node
+                .with_input(Port::new("maps", PortType::List).with_port_range(PortRange::List))
+                .with_output_type(PortType::Data)
+                .with_output_range(PortRange::List);
+        }
+        "zip_map" => {
+            node = node
+                .with_input(Port::new("keys", PortType::String).with_port_range(PortRange::List))
+                .with_input(Port::new("values", PortType::List).with_port_range(PortRange::List))
+                .with_output_type(PortType::Data);
+        }
         // ========================
         // Core nodes
         // ========================
@@ -1815,7 +1857,49 @@ pub fn create_node_from_template(template: &NodeTemplate, library: &NodeLibrary,
                     MenuItem::new("tab", "Tab"),
                     MenuItem::new("space", "Space"),
                 ]))
-                .with_output_type(PortType::String)
+                .with_input(Port::menu("quotes", "double", vec![
+                    MenuItem::new("double", "\""),
+                    MenuItem::new("single", "'"),
+                ]))
+                .with_input(Port::menu("number_separator", "period", vec![
+                    MenuItem::new("period", "."),
+                    MenuItem::new("comma", ","),
+                ]))
+                .with_output_type(PortType::Data)
+                .with_output_range(PortRange::List);
+        }
+        "make_table" => {
+            node = node
+                .with_input(Port::string("headers", "alpha;beta"))
+                .with_input(Port::new("list1", PortType::List).with_port_range(PortRange::List))
+                .with_input(Port::new("list2", PortType::List).with_port_range(PortRange::List))
+                .with_input(Port::new("list3", PortType::List).with_port_range(PortRange::List))
+                .with_input(Port::new("list4", PortType::List).with_port_range(PortRange::List))
+                .with_input(Port::new("list5", PortType::List).with_port_range(PortRange::List))
+                .with_input(Port::new("list6", PortType::List).with_port_range(PortRange::List))
+                .with_output_type(PortType::Data)
+                .with_output_range(PortRange::List);
+        }
+        "lookup" => {
+            node = node
+                .with_input(Port::new("list", PortType::Data))
+                .with_input(Port::string("key", "x"))
+                .with_output_type(PortType::Data);
+        }
+        "filter_data" => {
+            node = node
+                .with_input(Port::new("data", PortType::Data).with_port_range(PortRange::List))
+                .with_input(Port::string("key", "name"))
+                .with_input(Port::menu("op", "=", vec![
+                    MenuItem::new("=", "= Equal To"),
+                    MenuItem::new("!=", "!= Not Equal To"),
+                    MenuItem::new(">", "> Greater Than"),
+                    MenuItem::new(">=", ">= Greater or Equal"),
+                    MenuItem::new("<", "< Smaller Than"),
+                    MenuItem::new("<=", "<= Smaller or Equal"),
+                ]))
+                .with_input(Port::string("value", ""))
+                .with_output_type(PortType::Data)
                 .with_output_range(PortRange::List);
         }
         // ========================

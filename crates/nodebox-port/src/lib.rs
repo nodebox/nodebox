@@ -316,6 +316,16 @@ impl FileFilter {
     pub fn png() -> Self {
         Self::new("PNG Files", vec!["png".to_string()])
     }
+
+    /// Create a filter for CSV files.
+    pub fn csv() -> Self {
+        Self::new("CSV Files", vec!["csv".to_string(), "tsv".to_string()])
+    }
+
+    /// Create a filter for text files.
+    pub fn text() -> Self {
+        Self::new("Text Files", vec!["txt".to_string(), "text".to_string(), "csv".to_string(), "tsv".to_string(), "log".to_string()])
+    }
 }
 
 /// Log level for the `log` method.

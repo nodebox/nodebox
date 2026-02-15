@@ -3,7 +3,10 @@
 use eframe::egui::{self, Color32, ColorImage, Pos2, Rect, Stroke, TextureHandle, TextureOptions, Vec2};
 use egui_extras::{Column, TableBuilder};
 use nodebox_core::geometry::{Color, Path, PathPoint, Point, PointType};
+use std::collections::HashMap;
+use nodebox_ops::data::DataValue;
 use crate::components;
+use crate::eval::NodeOutput;
 use crate::handles::{FourPointHandle, HandleSet, HANDLE_COLOR};
 use crate::pan_zoom::PanZoom;
 use crate::state::AppState;
@@ -944,6 +947,13 @@ impl ViewerPane {
                 DataViewMode::Paths => Self::show_paths_table(ui, state),
                 DataViewMode::Points => Self::show_points_table(ui, state),
             }
+        } else if state.node_output.is_data_rows() {
+            // Data rows output: show multi-column data table
+            if state.node_output.item_count() == 0 {
+                Self::show_data_empty(ui);
+            } else {
+                Self::show_data_rows_table(ui, &state.node_output);
+            }
         } else {
             // Non-geometry output: show values table
             if state.node_output.item_count() == 0 {
@@ -1074,6 +1084,115 @@ impl ViewerPane {
                                 .size(11.0),
                         );
                     });
+                });
+            });
+    }
+
+    /// Show a multi-column table for DataRow/DataRows output.
+    fn show_data_rows_table(ui: &mut egui::Ui, output: &NodeOutput) {
+        let text_height = theme::ROW_HEIGHT;
+
+        // Collect all rows into a reference list
+        let rows: Vec<&HashMap<String, DataValue>> = match output {
+            NodeOutput::DataRows(rs) => rs.iter().collect(),
+            NodeOutput::DataRow(r) => vec![r],
+            _ => return,
+        };
+
+        if rows.is_empty() {
+            return;
+        }
+
+        // Determine column headers: collect all keys across all rows, sorted for stable display
+        let mut column_set = std::collections::BTreeSet::new();
+        for row in &rows {
+            for key in row.keys() {
+                column_set.insert(key.clone());
+            }
+        }
+        let columns: Vec<String> = column_set.into_iter().collect();
+
+        if columns.is_empty() {
+            return;
+        }
+
+        // Build table with Index + one column per data key
+        let mut table = TableBuilder::new(ui)
+            .striped(false)
+            .resizable(true)
+            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+            .min_scrolled_height(0.0)
+            .max_scroll_height(f32::INFINITY)
+            .column(Column::exact(60.0)); // Index
+
+        for _ in &columns {
+            table = table.column(Column::initial(120.0).at_least(60.0).clip(true));
+        }
+
+        table
+            .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                // Index header
+                header.col(|ui| {
+                    ui.painter().rect_filled(ui.max_rect(), 0.0, theme::TABLE_HEADER_BG);
+                    ui.add_space(8.0);
+                    ui.label(
+                        egui::RichText::new("Index")
+                            .color(theme::TABLE_HEADER_TEXT)
+                            .size(11.0),
+                    );
+                });
+                // Data column headers
+                for col_name in &columns {
+                    header.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, theme::TABLE_HEADER_BG);
+                        ui.add_space(8.0);
+                        ui.label(
+                            egui::RichText::new(col_name)
+                                .color(theme::TABLE_HEADER_TEXT)
+                                .size(11.0),
+                        );
+                    });
+                }
+            })
+            .body(|body| {
+                body.rows(text_height, rows.len(), |mut row| {
+                    let row_index = row.index();
+                    let data_row = rows[row_index];
+                    let row_bg = if row_index % 2 == 0 {
+                        theme::TABLE_ROW_EVEN
+                    } else {
+                        theme::TABLE_ROW_ODD
+                    };
+
+                    // Index column
+                    row.col(|ui| {
+                        ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new(format!("{}", row_index))
+                                    .color(theme::TABLE_INDEX_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    });
+
+                    // Data columns
+                    for col_name in &columns {
+                        row.col(|ui| {
+                            ui.painter().rect_filled(ui.max_rect(), 0.0, row_bg);
+                            ui.add_space(8.0);
+                            let cell_text = match data_row.get(col_name) {
+                                Some(val) => val.as_string(),
+                                None => String::new(),
+                            };
+                            ui.label(
+                                egui::RichText::new(cell_text)
+                                    .color(theme::TABLE_CELL_TEXT)
+                                    .size(11.0),
+                            );
+                        });
+                    }
                 });
             });
     }

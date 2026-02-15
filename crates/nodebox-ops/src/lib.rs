@@ -18,6 +18,7 @@ pub mod filters;
 pub mod math;
 pub mod list;
 pub mod string;
+pub mod data;
 pub mod parallel;
 pub mod svg;
 
