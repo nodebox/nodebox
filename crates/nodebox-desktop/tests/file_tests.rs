@@ -11,11 +11,11 @@ use nodebox_core::geometry::{Color, Point};
 use nodebox_core::node::{Connection, Node, NodeLibrary, Port};
 use nodebox_desktop::eval::evaluate_network;
 use nodebox_desktop::{populate_default_ports, AppState};
-use nodebox_core::port::{Port as PortTrait, ProjectContext, TestPort};
+use nodebox_core::platform::{Platform, ProjectContext, TestPlatform};
 
-/// Create a test port and project context for evaluation tests.
-fn test_port_and_context() -> (Arc<dyn PortTrait>, ProjectContext) {
-    (Arc::new(TestPort::new()), ProjectContext::new_unsaved())
+/// Create a test platform and project context for evaluation tests.
+fn test_port_and_context() -> (Arc<dyn Platform>, ProjectContext) {
+    (Arc::new(TestPlatform::new()), ProjectContext::new_unsaved())
 }
 
 /// Get the path to the examples directory.

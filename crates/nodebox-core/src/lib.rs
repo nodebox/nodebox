@@ -7,7 +7,7 @@
 //! - Geometry operations (generators, filters, math, etc.)
 //! - NDBX file format (parse/serialize)
 //! - SVG rendering
-//! - Platform abstraction (Port trait)
+//! - Platform abstraction (Platform trait)
 
 pub mod geometry;
 pub mod node;
@@ -15,7 +15,7 @@ pub mod value;
 pub mod ops;
 pub mod ndbx;
 pub mod svg;
-pub mod port;
+pub mod platform;
 
 // Re-export commonly used types at the crate root
 pub use geometry::{

@@ -7,7 +7,7 @@ use nodebox_core::geometry::font;
 use nodebox_core::node::{Node, NodeLibrary, EvalError};
 use nodebox_core::node::PortRange;
 use nodebox_core::Value;
-use nodebox_core::port::{Port, ProjectContext};
+use nodebox_core::platform::{Platform, ProjectContext};
 use nodebox_core::ops;
 use ops::data::DataValue;
 use crate::render_worker::CancellationToken;
@@ -294,7 +294,7 @@ impl NodeOutput {
 /// The `port` and `project_context` are used for sandboxed file access (e.g., import_svg).
 pub fn evaluate_network(
     library: &NodeLibrary,
-    port: &Arc<dyn Port>,
+    port: &Arc<dyn Platform>,
     project_context: &ProjectContext,
 ) -> (Vec<Path>, NodeOutput, Vec<NodeError>) {
     let network = &library.root;
@@ -360,7 +360,7 @@ pub fn evaluate_network_cancellable(
     library: &NodeLibrary,
     cancel_token: &CancellationToken,
     cache: &mut HashMap<String, NodeOutput>,
-    port: &Arc<dyn Port>,
+    port: &Arc<dyn Platform>,
     project_context: &ProjectContext,
 ) -> EvalOutcome {
     let network = &library.root;
@@ -600,7 +600,7 @@ fn evaluate_node_cancellable(
     node_name: &str,
     cache: &mut HashMap<String, EvalResult>,
     cancel_token: &CancellationToken,
-    port: &Arc<dyn Port>,
+    port: &Arc<dyn Platform>,
     project_context: &ProjectContext,
 ) -> EvalResult {
     // Check cancellation before starting this node
@@ -746,7 +746,7 @@ fn evaluate_node(
     network: &Node,
     node_name: &str,
     cache: &mut HashMap<String, EvalResult>,
-    port: &Arc<dyn Port>,
+    port: &Arc<dyn Platform>,
     project_context: &ProjectContext,
 ) -> EvalResult {
     // Check cache first
@@ -1013,7 +1013,7 @@ fn require_paths(inputs: &HashMap<String, NodeOutput>, node_name: &str, port_nam
 fn execute_node(
     node: &Node,
     inputs: &HashMap<String, NodeOutput>,
-    port: &Arc<dyn Port>,
+    port: &Arc<dyn Platform>,
     project_context: &ProjectContext,
 ) -> EvalResult {
     // Get the function name (prototype determines what the node does)
@@ -2271,11 +2271,11 @@ fn execute_node(
 mod tests {
     use super::*;
     use nodebox_core::node::{Port as NodePort, Connection, PortRange};
-    use nodebox_core::port::{TestPort, ProjectContext};
+    use nodebox_core::platform::{TestPlatform, ProjectContext};
 
-    /// Create a test port and project context for evaluation tests.
-    fn test_port_and_context() -> (Arc<dyn nodebox_core::port::Port>, ProjectContext) {
-        (Arc::new(TestPort::new()), ProjectContext::new_unsaved())
+    /// Create a test platform and project context for evaluation tests.
+    fn test_port_and_context() -> (Arc<dyn nodebox_core::platform::Platform>, ProjectContext) {
+        (Arc::new(TestPlatform::new()), ProjectContext::new_unsaved())
     }
 
     #[test]

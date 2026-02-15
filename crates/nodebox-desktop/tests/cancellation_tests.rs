@@ -8,11 +8,11 @@ use nodebox_core::geometry::Point;
 use nodebox_core::node::{Node, NodeLibrary, Port};
 use nodebox_desktop::eval::{EvalOutcome, NodeOutput, evaluate_network_cancellable};
 use nodebox_desktop::render_worker::CancellationToken;
-use nodebox_core::port::{Port as PortTrait, ProjectContext, TestPort};
+use nodebox_core::platform::{Platform, ProjectContext, TestPlatform};
 
-/// Create a test port and project context for evaluation tests.
-fn test_port_and_context() -> (Arc<dyn PortTrait>, ProjectContext) {
-    (Arc::new(TestPort::new()), ProjectContext::new_unsaved())
+/// Create a test platform and project context for evaluation tests.
+fn test_port_and_context() -> (Arc<dyn Platform>, ProjectContext) {
+    (Arc::new(TestPlatform::new()), ProjectContext::new_unsaved())
 }
 
 /// Helper to create a library with a large grid that generates many iterations.
@@ -185,7 +185,7 @@ fn test_cancellation_response_time() {
     let library_clone = library.clone();
     let handle = thread::spawn(move || {
         let mut thread_cache: HashMap<String, NodeOutput> = HashMap::new();
-        let port: Arc<dyn PortTrait> = Arc::new(TestPort::new());
+        let port: Arc<dyn Platform> = Arc::new(TestPlatform::new());
         let ctx = ProjectContext::new_unsaved();
         evaluate_network_cancellable(&library_clone, &token_for_thread, &mut thread_cache, &port, &ctx)
     });

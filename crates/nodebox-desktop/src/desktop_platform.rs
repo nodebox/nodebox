@@ -1,31 +1,31 @@
-//! Desktop (macOS, Windows, Linux) implementation of the Port trait.
+//! Desktop (macOS, Windows, Linux) implementation of the Platform trait.
 
-use nodebox_core::port::{
-    DirectoryEntry, FileFilter, LogLevel, PlatformInfo, Port, PortError, ProjectContext,
+use nodebox_core::platform::{
+    DirectoryEntry, FileFilter, LogLevel, PlatformInfo, Platform, PlatformError, ProjectContext,
     RelativePath,
 };
 use std::path::{Path, PathBuf};
 
-/// Desktop implementation of the Port trait.
+/// Desktop implementation of the Platform trait.
 ///
 /// Uses native filesystem, rfd for dialogs, arboard for clipboard, and ureq for HTTP.
 #[derive(Debug, Default)]
-pub struct DesktopPort;
+pub struct DesktopPlatform;
 
-impl DesktopPort {
-    /// Create a new DesktopPort instance.
+impl DesktopPlatform {
+    /// Create a new DesktopPlatform instance.
     pub fn new() -> Self {
         Self
     }
 
     /// Get the library directory for the current platform.
-    fn library_dir(&self) -> Result<PathBuf, PortError> {
+    fn library_dir(&self) -> Result<PathBuf, PlatformError> {
         if let Some(proj_dirs) =
             directories::ProjectDirs::from("net", "nodebox", "NodeBox")
         {
             Ok(proj_dirs.data_dir().join("libraries"))
         } else {
-            Err(PortError::Other(
+            Err(PlatformError::Other(
                 "Could not determine library directory".to_string(),
             ))
         }
@@ -37,25 +37,25 @@ impl DesktopPort {
     fn validate_within_project(
         ctx: &ProjectContext,
         path: &Path,
-    ) -> Result<RelativePath, PortError> {
-        let root = ctx.root.as_ref().ok_or(PortError::Unsupported)?;
+    ) -> Result<RelativePath, PlatformError> {
+        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
 
         // Canonicalize both paths to resolve symlinks and normalize
         let canonical_root = root.canonicalize().map_err(|e| {
-            PortError::IoError(format!("Failed to canonicalize project root: {}", e))
+            PlatformError::IoError(format!("Failed to canonicalize project root: {}", e))
         })?;
         let canonical_path = path.canonicalize().map_err(|e| {
-            PortError::IoError(format!("Failed to canonicalize selected path: {}", e))
+            PlatformError::IoError(format!("Failed to canonicalize selected path: {}", e))
         })?;
 
         // Check if the selected path is within the project root
         if canonical_path.starts_with(&canonical_root) {
             let relative = canonical_path
                 .strip_prefix(&canonical_root)
-                .map_err(|_| PortError::SandboxViolation)?;
+                .map_err(|_| PlatformError::SandboxViolation)?;
             RelativePath::new(relative)
         } else {
-            Err(PortError::SandboxViolation)
+            Err(PlatformError::SandboxViolation)
         }
     }
 
@@ -65,12 +65,12 @@ impl DesktopPort {
     fn validate_save_path_within_project(
         ctx: &ProjectContext,
         path: &Path,
-    ) -> Result<RelativePath, PortError> {
-        let root = ctx.root.as_ref().ok_or(PortError::Unsupported)?;
+    ) -> Result<RelativePath, PlatformError> {
+        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
 
         // Canonicalize the project root
         let canonical_root = root.canonicalize().map_err(|e| {
-            PortError::IoError(format!("Failed to canonicalize project root: {}", e))
+            PlatformError::IoError(format!("Failed to canonicalize project root: {}", e))
         })?;
 
         // For the save path, canonicalize the parent directory (which should exist)
@@ -80,7 +80,7 @@ impl DesktopPort {
                 // Try to canonicalize the parent. If it doesn't exist, try its parent, etc.
                 let canonical_parent = if parent.exists() {
                     parent.canonicalize().map_err(|e| {
-                        PortError::IoError(format!(
+                        PlatformError::IoError(format!(
                             "Failed to canonicalize parent directory: {}",
                             e
                         ))
@@ -92,7 +92,7 @@ impl DesktopPort {
                     loop {
                         if ancestor.exists() {
                             break ancestor.canonicalize().map_err(|e| {
-                                PortError::IoError(format!(
+                                PlatformError::IoError(format!(
                                     "Failed to canonicalize ancestor: {}",
                                     e
                                 ))
@@ -101,7 +101,7 @@ impl DesktopPort {
                         if let Some(p) = ancestor.parent() {
                             ancestor = p.to_path_buf();
                         } else {
-                            return Err(PortError::SandboxViolation);
+                            return Err(PlatformError::SandboxViolation);
                         }
                     }
                 };
@@ -114,7 +114,7 @@ impl DesktopPort {
                     } else {
                         canonical_parent
                             .strip_prefix(&canonical_root)
-                            .map_err(|_| PortError::SandboxViolation)?
+                            .map_err(|_| PlatformError::SandboxViolation)?
                             .to_path_buf()
                     };
 
@@ -151,10 +151,10 @@ impl DesktopPort {
 
                     RelativePath::new(full_relative)
                 } else {
-                    Err(PortError::SandboxViolation)
+                    Err(PlatformError::SandboxViolation)
                 }
             } else {
-                Err(PortError::SandboxViolation)
+                Err(PlatformError::SandboxViolation)
             }
         } else {
             // Path has no parent - just a filename, which is fine
@@ -163,15 +163,15 @@ impl DesktopPort {
     }
 }
 
-impl Port for DesktopPort {
+impl Platform for DesktopPlatform {
     fn platform_info(&self) -> PlatformInfo {
         PlatformInfo::current()
     }
 
-    fn read_file(&self, ctx: &ProjectContext, path: &RelativePath) -> Result<Vec<u8>, PortError> {
-        let root = ctx.root.as_ref().ok_or(PortError::Unsupported)?;
+    fn read_file(&self, ctx: &ProjectContext, path: &RelativePath) -> Result<Vec<u8>, PlatformError> {
+        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
         let full_path = root.join(path.as_path());
-        std::fs::read(&full_path).map_err(PortError::from)
+        std::fs::read(&full_path).map_err(PlatformError::from)
     }
 
     fn write_file(
@@ -179,8 +179,8 @@ impl Port for DesktopPort {
         ctx: &ProjectContext,
         path: &RelativePath,
         data: &[u8],
-    ) -> Result<(), PortError> {
-        let root = ctx.root.as_ref().ok_or(PortError::Unsupported)?;
+    ) -> Result<(), PlatformError> {
+        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
         let full_path = root.join(path.as_path());
 
         // Create parent directories if needed
@@ -188,15 +188,15 @@ impl Port for DesktopPort {
             std::fs::create_dir_all(parent)?;
         }
 
-        std::fs::write(&full_path, data).map_err(PortError::from)
+        std::fs::write(&full_path, data).map_err(PlatformError::from)
     }
 
     fn list_directory(
         &self,
         ctx: &ProjectContext,
         path: &RelativePath,
-    ) -> Result<Vec<DirectoryEntry>, PortError> {
-        let root = ctx.root.as_ref().ok_or(PortError::Unsupported)?;
+    ) -> Result<Vec<DirectoryEntry>, PlatformError> {
+        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
         let full_path = root.join(path.as_path());
 
         let entries = std::fs::read_dir(&full_path)?
@@ -213,22 +213,22 @@ impl Port for DesktopPort {
         Ok(entries)
     }
 
-    fn read_text_file(&self, ctx: &ProjectContext, path: &str) -> Result<String, PortError> {
-        let root = ctx.root.as_ref().ok_or(PortError::Unsupported)?;
+    fn read_text_file(&self, ctx: &ProjectContext, path: &str) -> Result<String, PlatformError> {
+        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
         let relative = RelativePath::new(path)?;
         let full_path = root.join(relative.as_path());
         let bytes = std::fs::read(&full_path)?;
-        String::from_utf8(bytes).map_err(|_| PortError::IoError("Invalid UTF-8".to_string()))
+        String::from_utf8(bytes).map_err(|_| PlatformError::IoError("Invalid UTF-8".to_string()))
     }
 
-    fn read_binary_file(&self, ctx: &ProjectContext, path: &str) -> Result<Vec<u8>, PortError> {
-        let root = ctx.root.as_ref().ok_or(PortError::Unsupported)?;
+    fn read_binary_file(&self, ctx: &ProjectContext, path: &str) -> Result<Vec<u8>, PlatformError> {
+        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
         let relative = RelativePath::new(path)?;
         let full_path = root.join(relative.as_path());
-        std::fs::read(&full_path).map_err(PortError::from)
+        std::fs::read(&full_path).map_err(PlatformError::from)
     }
 
-    fn load_app_resource(&self, name: &str) -> Result<Vec<u8>, PortError> {
+    fn load_app_resource(&self, name: &str) -> Result<Vec<u8>, PlatformError> {
         // Locate resources relative to executable or in standard location
         let exe_dir = std::env::current_exe()
             .ok()
@@ -243,50 +243,50 @@ impl Port for DesktopPort {
         for dir in resource_dirs.iter().flatten() {
             let path = dir.join(name);
             if path.exists() {
-                return std::fs::read(&path).map_err(PortError::from);
+                return std::fs::read(&path).map_err(PlatformError::from);
             }
         }
 
-        Err(PortError::NotFound)
+        Err(PlatformError::NotFound)
     }
 
-    fn read_project(&self, ctx: &ProjectContext) -> Result<Vec<u8>, PortError> {
-        let path = ctx.project_path().ok_or(PortError::Unsupported)?;
-        std::fs::read(&path).map_err(PortError::from)
+    fn read_project(&self, ctx: &ProjectContext) -> Result<Vec<u8>, PlatformError> {
+        let path = ctx.project_path().ok_or(PlatformError::Unsupported)?;
+        std::fs::read(&path).map_err(PlatformError::from)
     }
 
-    fn write_project(&self, ctx: &ProjectContext, data: &[u8]) -> Result<(), PortError> {
-        let path = ctx.project_path().ok_or(PortError::Unsupported)?;
+    fn write_project(&self, ctx: &ProjectContext, data: &[u8]) -> Result<(), PlatformError> {
+        let path = ctx.project_path().ok_or(PlatformError::Unsupported)?;
 
         // Create parent directories if needed
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
 
-        std::fs::write(&path, data).map_err(PortError::from)
+        std::fs::write(&path, data).map_err(PlatformError::from)
     }
 
-    fn load_library(&self, name: &str) -> Result<Vec<u8>, PortError> {
+    fn load_library(&self, name: &str) -> Result<Vec<u8>, PlatformError> {
         let library_dir = self.library_dir()?;
         let library_path = library_dir.join(format!("{}.ndbx", name));
 
         if !library_path.exists() {
-            return Err(PortError::LibraryNotFound(name.to_string()));
+            return Err(PlatformError::LibraryNotFound(name.to_string()));
         }
 
-        std::fs::read(&library_path).map_err(PortError::from)
+        std::fs::read(&library_path).map_err(PlatformError::from)
     }
 
-    fn http_get(&self, url: &str) -> Result<Vec<u8>, PortError> {
+    fn http_get(&self, url: &str) -> Result<Vec<u8>, PlatformError> {
         let response = ureq::get(url)
             .call()
-            .map_err(|e| PortError::NetworkError(e.to_string()))?;
+            .map_err(|e| PlatformError::NetworkError(e.to_string()))?;
 
         let mut bytes = Vec::new();
         response
             .into_reader()
             .read_to_end(&mut bytes)
-            .map_err(|e| PortError::NetworkError(e.to_string()))?;
+            .map_err(|e| PlatformError::NetworkError(e.to_string()))?;
 
         Ok(bytes)
     }
@@ -294,7 +294,7 @@ impl Port for DesktopPort {
     fn show_open_project_dialog(
         &self,
         filters: &[FileFilter],
-    ) -> Result<Option<PathBuf>, PortError> {
+    ) -> Result<Option<PathBuf>, PlatformError> {
         let mut dialog = rfd::FileDialog::new();
 
         for filter in filters {
@@ -309,7 +309,7 @@ impl Port for DesktopPort {
         &self,
         filters: &[FileFilter],
         default_name: Option<&str>,
-    ) -> Result<Option<PathBuf>, PortError> {
+    ) -> Result<Option<PathBuf>, PlatformError> {
         let mut dialog = rfd::FileDialog::new();
 
         for filter in filters {
@@ -328,8 +328,8 @@ impl Port for DesktopPort {
         &self,
         ctx: &ProjectContext,
         filters: &[FileFilter],
-    ) -> Result<Option<RelativePath>, PortError> {
-        let root = ctx.root.as_ref().ok_or(PortError::Unsupported)?;
+    ) -> Result<Option<RelativePath>, PlatformError> {
+        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
         let mut dialog = rfd::FileDialog::new();
 
         // Start in the project directory
@@ -355,8 +355,8 @@ impl Port for DesktopPort {
         ctx: &ProjectContext,
         filters: &[FileFilter],
         default_name: Option<&str>,
-    ) -> Result<Option<RelativePath>, PortError> {
-        let root = ctx.root.as_ref().ok_or(PortError::Unsupported)?;
+    ) -> Result<Option<RelativePath>, PlatformError> {
+        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
         let mut dialog = rfd::FileDialog::new();
 
         // Start in the project directory
@@ -384,8 +384,8 @@ impl Port for DesktopPort {
     fn show_select_folder_dialog(
         &self,
         ctx: &ProjectContext,
-    ) -> Result<Option<RelativePath>, PortError> {
-        let root = ctx.root.as_ref().ok_or(PortError::Unsupported)?;
+    ) -> Result<Option<RelativePath>, PlatformError> {
+        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
         let mut dialog = rfd::FileDialog::new();
 
         // Start in the project directory
@@ -401,7 +401,7 @@ impl Port for DesktopPort {
         }
     }
 
-    fn show_confirm_dialog(&self, title: &str, message: &str) -> Result<bool, PortError> {
+    fn show_confirm_dialog(&self, title: &str, message: &str) -> Result<bool, PlatformError> {
         let result = rfd::MessageDialog::new()
             .set_title(title)
             .set_description(message)
@@ -416,7 +416,7 @@ impl Port for DesktopPort {
         title: &str,
         message: &str,
         buttons: &[&str],
-    ) -> Result<Option<usize>, PortError> {
+    ) -> Result<Option<usize>, PlatformError> {
         // rfd doesn't support custom button labels directly
         // Map to available button types based on count
         let button_type = match buttons.len() {
@@ -448,24 +448,24 @@ impl Port for DesktopPort {
         Ok(index)
     }
 
-    fn clipboard_read_text(&self) -> Result<Option<String>, PortError> {
+    fn clipboard_read_text(&self) -> Result<Option<String>, PlatformError> {
         let mut clipboard =
-            arboard::Clipboard::new().map_err(|e| PortError::Other(e.to_string()))?;
+            arboard::Clipboard::new().map_err(|e| PlatformError::Other(e.to_string()))?;
 
         match clipboard.get_text() {
             Ok(text) => Ok(Some(text)),
             Err(arboard::Error::ContentNotAvailable) => Ok(None),
-            Err(e) => Err(PortError::Other(e.to_string())),
+            Err(e) => Err(PlatformError::Other(e.to_string())),
         }
     }
 
-    fn clipboard_write_text(&self, text: &str) -> Result<(), PortError> {
+    fn clipboard_write_text(&self, text: &str) -> Result<(), PlatformError> {
         let mut clipboard =
-            arboard::Clipboard::new().map_err(|e| PortError::Other(e.to_string()))?;
+            arboard::Clipboard::new().map_err(|e| PlatformError::Other(e.to_string()))?;
 
         clipboard
             .set_text(text)
-            .map_err(|e| PortError::Other(e.to_string()))
+            .map_err(|e| PlatformError::Other(e.to_string()))
     }
 
     fn log(&self, level: LogLevel, message: &str) {
@@ -485,13 +485,13 @@ impl Port for DesktopPort {
         log::trace!("[PERF] {} - {}", name, details);
     }
 
-    fn get_config_dir(&self) -> Result<PathBuf, PortError> {
+    fn get_config_dir(&self) -> Result<PathBuf, PlatformError> {
         if let Some(proj_dirs) =
             directories::ProjectDirs::from("net", "nodebox", "NodeBox")
         {
             Ok(proj_dirs.config_dir().to_path_buf())
         } else {
-            Err(PortError::Other(
+            Err(PlatformError::Other(
                 "Could not determine config directory".to_string(),
             ))
         }
@@ -518,7 +518,7 @@ mod tests {
 
     #[test]
     fn test_platform_info() {
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
         let info = port.platform_info();
 
         assert!(info.has_filesystem);
@@ -529,7 +529,7 @@ mod tests {
     #[test]
     fn test_read_write_file() {
         let (_temp_dir, ctx) = create_test_context();
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         let path = RelativePath::new("test.txt").unwrap();
         let data = b"Hello, World!";
@@ -545,7 +545,7 @@ mod tests {
     #[test]
     fn test_write_creates_directories() {
         let (_temp_dir, ctx) = create_test_context();
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         let path = RelativePath::new("subdir/nested/file.txt").unwrap();
         let data = b"nested content";
@@ -559,18 +559,18 @@ mod tests {
     #[test]
     fn test_read_nonexistent_file() {
         let (_temp_dir, ctx) = create_test_context();
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         let path = RelativePath::new("nonexistent.txt").unwrap();
         let result = port.read_file(&ctx, &path);
 
-        assert!(matches!(result, Err(PortError::NotFound)));
+        assert!(matches!(result, Err(PlatformError::NotFound)));
     }
 
     #[test]
     fn test_list_directory() {
         let (_temp_dir, ctx) = create_test_context();
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         // Create some files and directories
         port.write_file(&ctx, &RelativePath::new("file1.txt").unwrap(), b"1")
@@ -597,7 +597,7 @@ mod tests {
     #[test]
     fn test_read_write_project() {
         let (_temp_dir, ctx) = create_test_context();
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         let data = b"<ndbx>project content</ndbx>";
 
@@ -609,15 +609,15 @@ mod tests {
 
     #[test]
     fn test_load_library_not_found() {
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
         let result = port.load_library("nonexistent_library_xyz");
 
-        assert!(matches!(result, Err(PortError::LibraryNotFound(_))));
+        assert!(matches!(result, Err(PlatformError::LibraryNotFound(_))));
     }
 
     #[test]
     fn test_get_config_dir() {
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
         let result = port.get_config_dir();
 
         assert!(result.is_ok());
@@ -629,7 +629,7 @@ mod tests {
 
     #[test]
     fn test_log_levels() {
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         // Just verify these don't panic
         port.log(LogLevel::Error, "test error");
@@ -640,7 +640,7 @@ mod tests {
 
     #[test]
     fn test_performance_marks() {
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         // Just verify these don't panic
         port.performance_mark("test-mark");
@@ -656,7 +656,7 @@ mod tests {
         std::fs::write(&file_path, "test content").unwrap();
 
         // Validation should succeed
-        let result = DesktopPort::validate_within_project(&ctx, &file_path);
+        let result = DesktopPlatform::validate_within_project(&ctx, &file_path);
         assert!(result.is_ok());
         let relative = result.unwrap();
         assert_eq!(relative.as_path(), Path::new("test_file.txt"));
@@ -673,7 +673,7 @@ mod tests {
         std::fs::write(&file_path, "nested content").unwrap();
 
         // Validation should succeed
-        let result = DesktopPort::validate_within_project(&ctx, &file_path);
+        let result = DesktopPlatform::validate_within_project(&ctx, &file_path);
         assert!(result.is_ok());
         let relative = result.unwrap();
         assert_eq!(relative.as_path(), Path::new("subdir/nested_file.txt"));
@@ -691,8 +691,8 @@ mod tests {
         std::fs::write(&outside_file, "outside content").unwrap();
 
         // Validation should fail with SandboxViolation
-        let result = DesktopPort::validate_within_project(&ctx, &outside_file);
-        assert!(matches!(result, Err(PortError::SandboxViolation)));
+        let result = DesktopPlatform::validate_within_project(&ctx, &outside_file);
+        assert!(matches!(result, Err(PlatformError::SandboxViolation)));
     }
 
     #[test]
@@ -707,8 +707,8 @@ mod tests {
         std::fs::write(&parent_file, "parent content").unwrap();
 
         // Validation should fail
-        let result = DesktopPort::validate_within_project(&ctx, &parent_file);
-        assert!(matches!(result, Err(PortError::SandboxViolation)));
+        let result = DesktopPlatform::validate_within_project(&ctx, &parent_file);
+        assert!(matches!(result, Err(PlatformError::SandboxViolation)));
     }
 
     #[test]
@@ -718,7 +718,7 @@ mod tests {
         // Save path to an existing location (the file doesn't exist but parent does)
         let save_path = ctx.root.as_ref().unwrap().join("new_file.txt");
 
-        let result = DesktopPort::validate_save_path_within_project(&ctx, &save_path);
+        let result = DesktopPlatform::validate_save_path_within_project(&ctx, &save_path);
         assert!(result.is_ok());
         let relative = result.unwrap();
         assert_eq!(relative.as_path(), Path::new("new_file.txt"));
@@ -735,7 +735,7 @@ mod tests {
         // Save path to the existing subdirectory
         let save_path = subdir.join("new_image.png");
 
-        let result = DesktopPort::validate_save_path_within_project(&ctx, &save_path);
+        let result = DesktopPlatform::validate_save_path_within_project(&ctx, &save_path);
         assert!(result.is_ok());
         let relative = result.unwrap();
         assert_eq!(relative.as_path(), Path::new("assets/new_image.png"));
@@ -751,14 +751,14 @@ mod tests {
         // Try to save outside the project
         let outside_path = temp_dir.path().join("outside.txt");
 
-        let result = DesktopPort::validate_save_path_within_project(&ctx, &outside_path);
-        assert!(matches!(result, Err(PortError::SandboxViolation)));
+        let result = DesktopPlatform::validate_save_path_within_project(&ctx, &outside_path);
+        assert!(matches!(result, Err(PlatformError::SandboxViolation)));
     }
 
     #[test]
     fn test_read_text_file() {
         let (_temp_dir, ctx) = create_test_context();
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         // Create a text file
         let file_path = ctx.root.as_ref().unwrap().join("test.txt");
@@ -772,7 +772,7 @@ mod tests {
     #[test]
     fn test_read_text_file_nested() {
         let (_temp_dir, ctx) = create_test_context();
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         // Create a nested text file
         let subdir = ctx.root.as_ref().unwrap().join("assets");
@@ -787,7 +787,7 @@ mod tests {
     #[test]
     fn test_read_text_file_invalid_utf8() {
         let (_temp_dir, ctx) = create_test_context();
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         // Create a binary file (invalid UTF-8)
         let file_path = ctx.root.as_ref().unwrap().join("binary.dat");
@@ -795,37 +795,37 @@ mod tests {
 
         // Should fail with IoError for invalid UTF-8
         let result = port.read_text_file(&ctx, "binary.dat");
-        assert!(matches!(result, Err(PortError::IoError(_))));
+        assert!(matches!(result, Err(PlatformError::IoError(_))));
     }
 
     #[test]
     fn test_read_text_file_rejects_sandbox_violation() {
         let (_temp_dir, ctx) = create_test_context();
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         // Try to read with ".." in path
         let result = port.read_text_file(&ctx, "../escape.txt");
-        assert!(matches!(result, Err(PortError::SandboxViolation)));
+        assert!(matches!(result, Err(PlatformError::SandboxViolation)));
 
         // Try with absolute path
         let result = port.read_text_file(&ctx, "/etc/passwd");
-        assert!(matches!(result, Err(PortError::SandboxViolation)));
+        assert!(matches!(result, Err(PlatformError::SandboxViolation)));
     }
 
     #[test]
     fn test_read_text_file_unsaved_project() {
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
         let ctx = ProjectContext::new_unsaved();
 
         // Should fail because project is unsaved
         let result = port.read_text_file(&ctx, "test.txt");
-        assert!(matches!(result, Err(PortError::Unsupported)));
+        assert!(matches!(result, Err(PlatformError::Unsupported)));
     }
 
     #[test]
     fn test_read_binary_file() {
         let (_temp_dir, ctx) = create_test_context();
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         // Create a binary file
         let data = vec![0x89, 0x50, 0x4E, 0x47]; // PNG magic bytes
@@ -840,19 +840,19 @@ mod tests {
     #[test]
     fn test_read_binary_file_rejects_sandbox_violation() {
         let (_temp_dir, ctx) = create_test_context();
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         // Try to read with ".." in path
         let result = port.read_binary_file(&ctx, "../escape.bin");
-        assert!(matches!(result, Err(PortError::SandboxViolation)));
+        assert!(matches!(result, Err(PlatformError::SandboxViolation)));
     }
 
     #[test]
     fn test_load_app_resource_not_found() {
-        let port = DesktopPort::new();
+        let port = DesktopPlatform::new();
 
         // Resources that don't exist should return NotFound
         let result = port.load_app_resource("nonexistent/icon.png");
-        assert!(matches!(result, Err(PortError::NotFound)));
+        assert!(matches!(result, Err(PlatformError::NotFound)));
     }
 }

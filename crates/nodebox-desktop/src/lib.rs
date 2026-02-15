@@ -20,9 +20,9 @@
 //! - `vello_renderer` - High-level Vello renderer wrapper
 
 #[cfg(not(target_arch = "wasm32"))]
-mod desktop_port;
+mod desktop_platform;
 #[cfg(not(target_arch = "wasm32"))]
-pub use desktop_port::DesktopPort;
+pub use desktop_platform::DesktopPlatform;
 
 mod address_bar;
 mod animation_bar;
@@ -62,6 +62,7 @@ pub use state::{populate_default_ports, AppState, Notification, NotificationLeve
 // Re-export commonly used types from dependencies
 pub use nodebox_core::geometry::{Color, Path, Point};
 pub use nodebox_core::node::{Connection, Node, NodeLibrary, Port};
+pub use nodebox_core::platform::Platform;
 pub use nodebox_core::Value;
 
 // Re-export GPU rendering types when feature is enabled
@@ -80,14 +81,14 @@ use std::sync::Arc;
 
 /// Run the NodeBox GUI application.
 ///
-/// This is a convenience function that creates a DesktopPort and runs the app.
+/// This is a convenience function that creates a DesktopPlatform and runs the app.
 /// For more control, use `NodeBoxApp::new_with_port` directly.
 pub fn run() -> eframe::Result<()> {
     // Initialize logging
     env_logger::init();
 
-    // Create the desktop port for file operations
-    let port: Arc<dyn nodebox_core::port::Port> = Arc::new(crate::DesktopPort::new());
+    // Create the desktop platform for file operations
+    let port: Arc<dyn nodebox_core::platform::Platform> = Arc::new(crate::DesktopPlatform::new());
 
     // Get initial file from command line arguments
     let initial_file: Option<PathBuf> = std::env::args()

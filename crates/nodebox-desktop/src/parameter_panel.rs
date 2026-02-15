@@ -5,7 +5,7 @@ use eframe::egui::{self, Sense};
 use nodebox_core::geometry::Color;
 use nodebox_core::node::{PortType, Widget};
 use nodebox_core::Value;
-use nodebox_core::port::{FileFilter, Port, PortError, ProjectContext};
+use nodebox_core::platform::{FileFilter, Platform, PlatformError, ProjectContext};
 use crate::components;
 use crate::state::AppState;
 use crate::theme;
@@ -63,7 +63,7 @@ impl ParameterPanel {
         &mut self,
         ui: &mut egui::Ui,
         state: &mut AppState,
-        port: &dyn Port,
+        port: &dyn Platform,
         project_context: &ProjectContext,
     ) {
         // Clear drag state when the primary button is released
@@ -363,7 +363,7 @@ impl ParameterPanel {
         is_connected: bool,
         node_name: &str,
         node_prototype: Option<&str>,
-        io_port: &dyn Port,
+        io_port: &dyn Platform,
         project_context: &ProjectContext,
     ) {
         let is_label_draggable = !is_connected
@@ -483,7 +483,7 @@ impl ParameterPanel {
         port: &mut nodebox_core::node::Port,
         node_name: &str,
         node_prototype: Option<&str>,
-        io_port: &dyn Port,
+        io_port: &dyn Platform,
         project_context: &ProjectContext,
     ) {
         let port_key = (node_name.to_string(), port.name.clone());
@@ -798,7 +798,7 @@ impl ParameterPanel {
                                     *path = relative_path.to_string();
                                 }
                                 Ok(None) => {} // User cancelled
-                                Err(PortError::SandboxViolation) => {
+                                Err(PlatformError::SandboxViolation) => {
                                     let _ = io_port.show_message_dialog(
                                         "File Outside Project",
                                         "Please copy the file to your project folder first.",
