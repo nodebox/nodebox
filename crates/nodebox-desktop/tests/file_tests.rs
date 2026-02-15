@@ -14,7 +14,7 @@ use nodebox_desktop::{populate_default_ports, AppState};
 use nodebox_core::platform::{Platform, ProjectContext, TestPlatform};
 
 /// Create a test platform and project context for evaluation tests.
-fn test_port_and_context() -> (Arc<dyn Platform>, ProjectContext) {
+fn test_platform_and_context() -> (Arc<dyn Platform>, ProjectContext) {
     (Arc::new(TestPlatform::new()), ProjectContext::new_unsaved())
 }
 
@@ -167,19 +167,19 @@ fn test_evaluate_primitives() {
     let mut test_library = library.clone();
     test_library.root.rendered_child = Some("rect1".to_string());
 
-    let (port, ctx) = test_port_and_context();
+    let (port, ctx) = test_platform_and_context();
     let (paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(paths.len(), 1, "rect1 should produce one path");
 
     // Test ellipse
     test_library.root.rendered_child = Some("ellipse1".to_string());
-    let (port, ctx) = test_port_and_context();
+    let (port, ctx) = test_platform_and_context();
     let (paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(paths.len(), 1, "ellipse1 should produce one path");
 
     // Test polygon
     test_library.root.rendered_child = Some("polygon1".to_string());
-    let (port, ctx) = test_port_and_context();
+    let (port, ctx) = test_platform_and_context();
     let (paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(paths.len(), 1, "polygon1 should produce one path");
 }
@@ -189,7 +189,7 @@ fn test_evaluate_primitives_full() {
     let library = create_primitives_library();
 
     // The rendered child is "combine1" which uses list.combine
-    let (port, ctx) = test_port_and_context();
+    let (port, ctx) = test_platform_and_context();
     let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
     // Should have 3 shapes: rect, ellipse, polygon (each colorized)
@@ -209,7 +209,7 @@ fn test_evaluate_colorized_primitives() {
 
     // Test colorized rect (colorize1 <- rect1)
     test_library.root.rendered_child = Some("colorize1".to_string());
-    let (port, ctx) = test_port_and_context();
+    let (port, ctx) = test_platform_and_context();
     let (paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
 
     assert_eq!(paths.len(), 1, "colorize1 should produce one path");
@@ -228,7 +228,7 @@ fn test_primitives_shapes_at_different_positions() {
     // Evaluate rect1 alone
     let mut test_library = library.clone();
     test_library.root.rendered_child = Some("rect1".to_string());
-    let (port, ctx) = test_port_and_context();
+    let (port, ctx) = test_platform_and_context();
     let (rect_paths, _output, _errors) = evaluate_network(&test_library, &port, &ctx);
     assert_eq!(rect_paths.len(), 1, "rect1 should produce one path");
     let rect_bounds = rect_paths[0].bounds().unwrap();

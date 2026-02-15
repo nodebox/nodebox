@@ -2274,7 +2274,7 @@ mod tests {
     use nodebox_core::platform::{TestPlatform, ProjectContext};
 
     /// Create a test platform and project context for evaluation tests.
-    fn test_port_and_context() -> (Arc<dyn nodebox_core::platform::Platform>, ProjectContext) {
+    fn test_platform_and_context() -> (Arc<dyn nodebox_core::platform::Platform>, ProjectContext) {
         (Arc::new(TestPlatform::new()), ProjectContext::new_unsaved())
     }
 
@@ -2291,7 +2291,7 @@ mod tests {
             )
             .with_rendered_child("ellipse1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2322,7 +2322,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "colorize1", "shape"))
             .with_rendered_child("colorize1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2361,7 +2361,7 @@ mod tests {
             .with_connection(Connection::new("rect1", "merge1", "shapes"))
             .with_rendered_child("merge1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         // Merge collects all connected shapes
         assert_eq!(paths.len(), 2);
@@ -2380,7 +2380,7 @@ mod tests {
             )
             .with_rendered_child("rect1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2402,7 +2402,7 @@ mod tests {
             )
             .with_rendered_child("line1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2425,7 +2425,7 @@ mod tests {
             )
             .with_rendered_child("polygon1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2449,7 +2449,7 @@ mod tests {
             )
             .with_rendered_child("star1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2474,7 +2474,7 @@ mod tests {
             )
             .with_rendered_child("arc1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
     }
@@ -2499,7 +2499,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "translate1", "shape"))
             .with_rendered_child("translate1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2533,7 +2533,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "scale1", "shape"))
             .with_rendered_child("scale1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2567,7 +2567,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "copy1", "shape"))
             .with_rendered_child("copy1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         // Should have 3 copies
         assert_eq!(paths.len(), 3);
@@ -2576,7 +2576,7 @@ mod tests {
     #[test]
     fn test_evaluate_empty_network() {
         let library = NodeLibrary::new("test");
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
@@ -2594,7 +2594,7 @@ mod tests {
             );
         // No rendered_child set
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
@@ -2614,7 +2614,7 @@ mod tests {
             .with_rendered_child("colorize1");
 
         // Should handle missing input gracefully
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
@@ -2630,7 +2630,7 @@ mod tests {
             .with_rendered_child("unknown1");
 
         // Should handle unknown node type gracefully
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
     }
@@ -2655,7 +2655,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "resample1", "shape"))
             .with_rendered_child("resample1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
         // Resampled path should have the specified number of points
@@ -2685,7 +2685,7 @@ mod tests {
             .with_connection(Connection::new("grid1", "connect1", "points"))
             .with_rendered_child("connect1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
     }
@@ -2709,7 +2709,7 @@ mod tests {
             )
             .with_rendered_child("ellipse1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2736,7 +2736,7 @@ mod tests {
             )
             .with_rendered_child("rect1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2762,7 +2762,7 @@ mod tests {
             )
             .with_rendered_child("rect1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
         // If roundness is applied, the path should have more points than a simple rect
@@ -2783,7 +2783,7 @@ mod tests {
             )
             .with_rendered_child("polygon1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2809,7 +2809,7 @@ mod tests {
             )
             .with_rendered_child("star1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2838,7 +2838,7 @@ mod tests {
             )
             .with_rendered_child("arc1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2874,7 +2874,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "copy1", "shape"))
             .with_rendered_child("copy1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 3, "Should have 3 copies");
 
@@ -2912,7 +2912,7 @@ mod tests {
             .with_connection(Connection::new("grid1", "connect1", "points"))
             .with_rendered_child("connect1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -2946,7 +2946,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "wiggle1", "shape"))
             .with_rendered_child("wiggle1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert!(!paths.is_empty(), "Wiggle should produce output");
     }
@@ -2976,7 +2976,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "fit1", "shape"))
             .with_rendered_child("fit1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
@@ -3079,7 +3079,7 @@ mod tests {
             .with_connection(Connection::new("polygon1", "combine1", "list3"))
             .with_rendered_child("combine1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
         assert_eq!(
@@ -3150,7 +3150,7 @@ mod tests {
             .with_connection(Connection::new("colorize3", "combine1", "list3"))
             .with_rendered_child("combine1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
         assert_eq!(
@@ -3188,7 +3188,7 @@ mod tests {
             .with_connection(Connection::new("rect1", "colorize1", "shape"))
             .with_rendered_child("colorize1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
         assert_eq!(
@@ -3229,7 +3229,7 @@ mod tests {
             .with_connection(Connection::new("ellipse1", "combine1", "list2"))
             .with_rendered_child("combine1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
         // With no port definitions, list matching treats inputs as VALUE range
@@ -3268,7 +3268,7 @@ mod tests {
             .with_connection(Connection::new("grid1", "rect1", "position"))
             .with_rendered_child("rect1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
 
         // THE KEY ASSERTION: Must produce 100 rectangles, not 1!
@@ -3297,7 +3297,7 @@ mod tests {
             )
             .with_rendered_child("colorize1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, errors) = evaluate_network(&library, &port, &ctx);
 
         // Should have no paths output
@@ -3332,7 +3332,7 @@ mod tests {
             .with_connection(Connection::new("colorize1", "translate1", "shape"))
             .with_rendered_child("translate1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, errors) = evaluate_network(&library, &port, &ctx);
 
         // Should have no output
@@ -3355,7 +3355,7 @@ mod tests {
             )
             .with_rendered_child("ellipse1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, errors) = evaluate_network(&library, &port, &ctx);
 
         // Should have output
@@ -3377,7 +3377,7 @@ mod tests {
             )
             .with_rendered_child("my_colorize_node");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (_paths, _output, errors) = evaluate_network(&library, &port, &ctx);
 
         assert!(!errors.is_empty(), "Should have an error");
@@ -3412,7 +3412,7 @@ mod tests {
             .with_connection(Connection::new("sample1", "rgb1", "red"))
             .with_rendered_child("rgb1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (_paths, output, errors) = evaluate_network(&library, &port, &ctx);
 
         assert!(errors.is_empty(), "Should not produce errors: {:?}", errors);
@@ -3442,7 +3442,7 @@ mod tests {
             )
             .with_rendered_child("ellipse1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (paths, _output, errors) = evaluate_network(&library, &port, &ctx);
 
         assert!(!paths.is_empty(), "Generator should produce output with defaults");
@@ -3493,7 +3493,7 @@ mod tests {
             .with_connection(Connection::new("sample1", "rgb_color1", "red"))
             .with_rendered_child("rgb_color1");
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
         let (_paths, output, errors) = evaluate_network(&library, &port, &ctx);
         assert!(errors.is_empty(), "Should not produce errors: {:?}", errors);
         match &output {

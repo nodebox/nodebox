@@ -11,7 +11,7 @@ use nodebox_desktop::render_worker::CancellationToken;
 use nodebox_core::platform::{Platform, ProjectContext, TestPlatform};
 
 /// Create a test platform and project context for evaluation tests.
-fn test_port_and_context() -> (Arc<dyn Platform>, ProjectContext) {
+fn test_platform_and_context() -> (Arc<dyn Platform>, ProjectContext) {
     (Arc::new(TestPlatform::new()), ProjectContext::new_unsaved())
 }
 
@@ -71,7 +71,7 @@ fn test_evaluation_completes_without_cancellation() {
     let token = CancellationToken::new();
     let mut cache: HashMap<String, NodeOutput> = HashMap::new();
 
-    let (port, ctx) = test_port_and_context();
+    let (port, ctx) = test_platform_and_context();
     let outcome = evaluate_network_cancellable(&library, &token, &mut cache, &port, &ctx);
 
     match outcome {
@@ -94,7 +94,7 @@ fn test_evaluation_cancelled_immediately() {
     // Cancel immediately
     token.cancel();
 
-    let (port, ctx) = test_port_and_context();
+    let (port, ctx) = test_platform_and_context();
     let outcome = evaluate_network_cancellable(&library, &token, &mut cache, &port, &ctx);
 
     match outcome {
@@ -120,7 +120,7 @@ fn test_cache_preserved_after_cancellation() {
         token_clone.cancel();
     });
 
-    let (port, ctx) = test_port_and_context();
+    let (port, ctx) = test_platform_and_context();
     let outcome = evaluate_network_cancellable(&library, &token, &mut cache, &port, &ctx);
 
     // The outcome could be either cancelled or completed depending on timing
@@ -143,7 +143,7 @@ fn test_cache_reused_after_cancellation() {
 
     // First render - complete fully
     let token1 = CancellationToken::new();
-    let (port, ctx) = test_port_and_context();
+    let (port, ctx) = test_platform_and_context();
     let outcome1 = evaluate_network_cancellable(&library, &token1, &mut cache, &port, &ctx);
 
     match outcome1 {
@@ -220,7 +220,7 @@ fn test_multiple_rapid_cancellations() {
             token.cancel();
         }
 
-        let (port, ctx) = test_port_and_context();
+        let (port, ctx) = test_platform_and_context();
     let outcome = evaluate_network_cancellable(&library, &token, &mut cache, &port, &ctx);
 
         // Should not panic or hang regardless of timing
@@ -240,7 +240,7 @@ fn test_empty_network_not_affected_by_cancellation() {
 
     token.cancel(); // Pre-cancel
 
-    let (port, ctx) = test_port_and_context();
+    let (port, ctx) = test_platform_and_context();
     let outcome = evaluate_network_cancellable(&library, &token, &mut cache, &port, &ctx);
 
     // Empty network should complete (nothing to cancel)
