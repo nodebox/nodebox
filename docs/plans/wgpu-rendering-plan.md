@@ -18,7 +18,7 @@ Node Evaluation → Path/Contour Geometry → egui Painter → tiny-skia (CPU) �
 - **pathfinder_geometry** - Geometry primitives (used in nodebox-core)
 
 ### Rendering Location
-- `crates/nodebox-gui/src/viewer_pane.rs:714-803` - Manual path rendering
+- `crates/nodebox-desktop/src/viewer_pane.rs:714-803` - Manual path rendering
 - Uses `egui::Painter` with `egui::Shape::line()` and `egui::Shape::convex_polygon()`
 - Cubic bezier curves manually sampled to line segments (10 samples per curve)
 
@@ -65,7 +65,7 @@ Node Evaluation → Path Geometry → kurbo BezPath → Vello Scene → wgpu Tex
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     nodebox-gui                                 │
+│                     nodebox-desktop                                 │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────────┐  │
 │  │   egui UI    │    │ VelloViewer  │    │  egui_wgpu       │  │
@@ -119,7 +119,7 @@ impl From<nodebox_core::Color> for peniko::Color {
 **Goal:** Set up wgpu infrastructure alongside existing rendering
 
 #### Tasks:
-1. **Add dependencies to nodebox-gui/Cargo.toml:**
+1. **Add dependencies to nodebox-desktop/Cargo.toml:**
    ```toml
    # GPU rendering
    vello = "0.4"
@@ -130,12 +130,12 @@ impl From<nodebox_core::Color> for peniko::Color {
    ```
 
 2. **Create geometry conversion module:**
-   - `crates/nodebox-gui/src/vello_convert.rs`
+   - `crates/nodebox-desktop/src/vello_convert.rs`
    - Implement `From<&Path>` for `kurbo::BezPath`
    - Implement color conversion
 
 3. **Create Vello renderer wrapper:**
-   - `crates/nodebox-gui/src/vello_renderer.rs`
+   - `crates/nodebox-desktop/src/vello_renderer.rs`
    - Initialize Vello with shared wgpu device from egui
    - Render to texture method
 
@@ -152,7 +152,7 @@ impl From<nodebox_core::Color> for peniko::Color {
 
 #### Tasks:
 1. **Create VelloViewer widget:**
-   - `crates/nodebox-gui/src/vello_viewer.rs`
+   - `crates/nodebox-desktop/src/vello_viewer.rs`
    - Manage wgpu texture lifecycle
    - Handle resize events
    - Display rendered texture in egui
@@ -215,7 +215,7 @@ impl From<nodebox_core::Color> for peniko::Color {
 
 ### New Files
 ```
-crates/nodebox-gui/src/
+crates/nodebox-desktop/src/
 ├── vello_convert.rs      # Geometry conversion (Path → kurbo)
 ├── vello_renderer.rs     # Vello wrapper and texture management
 ├── vello_viewer.rs       # Vello-powered viewer widget
@@ -224,7 +224,7 @@ crates/nodebox-gui/src/
 
 ### Modified Files
 ```
-crates/nodebox-gui/
+crates/nodebox-desktop/
 ├── Cargo.toml           # Add vello, wgpu dependencies
 ├── src/app.rs           # Initialize GPU context
 ├── src/viewer_pane.rs   # Switch between CPU/GPU rendering

@@ -1,0 +1,27 @@
+//! Operations for NodeBox.
+//!
+//! Functions for generating and manipulating geometry,
+//! as well as math, list, and string operations.
+//!
+//! # Modules
+//!
+//! - [`generators`] - Functions that create new geometry (ellipse, rect, line, etc.)
+//! - [`filters`] - Functions that transform existing geometry (align, colorize, fit, etc.)
+//! - [`math`] - Mathematical operations (arithmetic, trigonometry, random, etc.)
+//! - [`list`] - List manipulation operations (sort, filter, combine, etc.)
+//! - [`string`] - String manipulation operations (case, split, format, etc.)
+//! - [`parallel`] - Parallel versions of operations using Rayon
+//! - [`svg`] - SVG import functionality
+
+pub mod generators;
+pub mod filters;
+pub mod math;
+pub mod list;
+pub mod string;
+pub mod data;
+pub mod parallel;
+pub mod svg;
+
+pub use generators::*;
+pub use filters::*;
+pub use svg::import_svg;

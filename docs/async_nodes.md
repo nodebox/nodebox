@@ -225,7 +225,7 @@ Keyboard shortcut: `Cmd+.` (macOS) or `Ctrl+.` (Windows/Linux)
 
 ## Related Files
 
-- `crates/nodebox-gui/src/render_worker.rs` - CancellationToken, worker loop
-- `crates/nodebox-gui/src/eval.rs` - evaluate_network_cancellable()
-- `crates/nodebox-gui/src/address_bar.rs` - Stop button UI
-- `crates/nodebox-gui/tests/cancellation_tests.rs` - Integration tests
+- `crates/nodebox-desktop/src/render_worker.rs` - CancellationToken, worker loop
+- `crates/nodebox-desktop/src/eval.rs` - evaluate_network_cancellable()
+- `crates/nodebox-desktop/src/address_bar.rs` - Stop button UI
+- `crates/nodebox-desktop/tests/cancellation_tests.rs` - Integration tests

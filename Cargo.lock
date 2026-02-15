@@ -2957,17 +2957,7 @@ name = "nodebox"
 version = "0.1.0"
 dependencies = [
  "eframe",
- "nodebox-gui",
-]
-
-[[package]]
-name = "nodebox-cli"
-version = "0.1.0"
-dependencies = [
- "nodebox-core",
- "nodebox-ndbx",
- "nodebox-ops",
- "nodebox-svg",
+ "nodebox-desktop",
 ]
 
 [[package]]
@@ -2975,16 +2965,24 @@ name = "nodebox-core"
 version = "0.1.0"
 dependencies = [
  "approx",
+ "csv",
  "font-kit",
+ "log",
  "pathfinder_geometry",
  "proptest",
+ "quick-xml 0.31.0",
+ "rayon",
+ "tempfile",
+ "thiserror 1.0.69",
+ "usvg",
  "uuid",
 ]
 
 [[package]]
-name = "nodebox-gui"
+name = "nodebox-desktop"
 version = "0.1.0"
 dependencies = [
+ "arboard",
  "directories",
  "eframe",
  "egui",
@@ -2992,58 +2990,20 @@ dependencies = [
  "egui_extras",
  "egui_kittest",
  "env_logger",
+ "font-kit",
  "image",
  "log",
  "muda",
  "nodebox-core",
- "nodebox-ndbx",
- "nodebox-ops",
- "nodebox-port",
- "nodebox-svg",
  "pollster",
+ "rfd",
  "serde",
  "serde_json",
  "smol",
  "tempfile",
  "tiny-skia",
- "vello",
-]
-
-[[package]]
-name = "nodebox-ndbx"
-version = "0.1.0"
-dependencies = [
- "nodebox-core",
- "proptest",
- "quick-xml 0.31.0",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "nodebox-ops"
-version = "0.1.0"
-dependencies = [
- "approx",
- "csv",
- "nodebox-core",
- "proptest",
- "rayon",
- "tempfile",
- "usvg",
-]
-
-[[package]]
-name = "nodebox-port"
-version = "0.1.0"
-dependencies = [
- "arboard",
- "directories",
- "font-kit",
- "log",
- "rfd",
- "tempfile",
- "thiserror 1.0.69",
  "ureq",
+ "vello",
 ]
 
 [[package]]
@@ -3051,17 +3011,8 @@ name = "nodebox-python"
 version = "0.1.0"
 dependencies = [
  "nodebox-core",
- "nodebox-ops",
  "pyo3",
  "tempfile",
-]
-
-[[package]]
-name = "nodebox-svg"
-version = "0.1.0"
-dependencies = [
- "approx",
- "nodebox-core",
 ]
 
 [[package]]

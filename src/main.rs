@@ -1,3 +1,3 @@
 fn main() -> eframe::Result<()> {
-    nodebox_gui::run()
+    nodebox_desktop::run()
 }

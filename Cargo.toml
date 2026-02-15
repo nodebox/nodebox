@@ -9,7 +9,7 @@ name = "NodeBox"
 path = "src/main.rs"
 
 [dependencies]
-nodebox-gui = { path = "crates/nodebox-gui" }
+nodebox-desktop = { path = "crates/nodebox-desktop" }
 eframe = "0.33"
 
 [workspace]
@@ -17,12 +17,7 @@ resolver = "2"
 members = [
     ".",
     "crates/nodebox-core",
-    "crates/nodebox-ndbx",
-    "crates/nodebox-ops",
-    "crates/nodebox-svg",
-    "crates/nodebox-cli",
-    "crates/nodebox-gui",
-    "crates/nodebox-port",
+    "crates/nodebox-desktop",
     "crates/nodebox-python",
 ]
 
@@ -31,12 +26,7 @@ members = [
 default-members = [
     ".",
     "crates/nodebox-core",
-    "crates/nodebox-ndbx",
-    "crates/nodebox-ops",
-    "crates/nodebox-svg",
-    "crates/nodebox-cli",
-    "crates/nodebox-gui",
-    "crates/nodebox-port",
+    "crates/nodebox-desktop",
 ]
 
 [workspace.package]

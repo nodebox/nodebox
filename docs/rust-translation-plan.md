@@ -28,7 +28,7 @@ nodebox/
 ├── Cargo.toml                    # Rust workspace root
 ├── Cargo.lock
 ├── crates/                       # Rust crates
-│   ├── nodebox-core/             # Core types and traits
+│   ├── nodebox-core/             # Core types, operations, and formats
 │   │   ├── src/
 │   │   │   ├── lib.rs
 │   │   │   ├── geometry/         # Graphics primitives
@@ -45,43 +45,40 @@ nodebox/
 │   │   │   ├── node/             # Node graph model
 │   │   │   │   ├── mod.rs
 │   │   │   │   ├── node.rs
-│   │   │   │   ├── port.rs
+│   │   │   │   ├── port.rs       # Port types (merged from nodebox-port)
 │   │   │   │   ├── connection.rs
 │   │   │   │   ├── library.rs
 │   │   │   │   └── context.rs    # Evaluation context
-│   │   │   └── value.rs          # Runtime value types
+│   │   │   ├── ops/              # Built-in operations (merged from nodebox-ops)
+│   │   │   │   ├── generators.rs # Generator operations
+│   │   │   │   ├── filters.rs   # Filter operations
+│   │   │   │   ├── math.rs      # 41 math operations
+│   │   │   │   ├── list.rs      # 21 list operations
+│   │   │   │   ├── string.rs    # 24 string operations
+│   │   │   │   └── color.rs     # 4 color operations
+│   │   │   ├── ndbx/            # NDBX file format (merged from nodebox-ndbx)
+│   │   │   │   ├── parser.rs    # XML parsing (quick-xml)
+│   │   │   │   ├── writer.rs    # XML serialization
+│   │   │   │   └── upgrade.rs   # Version migration
+│   │   │   ├── svg/             # SVG renderer (merged from nodebox-svg)
+│   │   │   │   └── mod.rs
+│   │   │   ├── port.rs          # Port definitions (merged from nodebox-port)
+│   │   │   └── value.rs         # Runtime value types
 │   │   └── Cargo.toml
 │   │
-│   ├── nodebox-ops/              # Built-in operations (functions)
+│   ├── nodebox-desktop/          # Desktop GUI application (renamed from nodebox-gui)
 │   │   ├── src/
-│   │   │   ├── lib.rs
-│   │   │   ├── corevector.rs     # 58 vector operations
-│   │   │   ├── math.rs           # 41 math operations
-│   │   │   ├── list.rs           # 21 list operations
-│   │   │   ├── string.rs         # 24 string operations
-│   │   │   ├── data.rs           # 5 data operations
-│   │   │   └── color.rs          # 4 color operations
+│   │   │   ├── main.rs
+│   │   │   ├── app.rs
+│   │   │   ├── node_library.rs
+│   │   │   ├── eval.rs
+│   │   │   ├── theme.rs
+│   │   │   └── ...
 │   │   └── Cargo.toml
 │   │
-│   ├── nodebox-ndbx/             # NDBX file format parser/writer
-│   │   ├── src/
-│   │   │   ├── lib.rs
-│   │   │   ├── parser.rs         # XML parsing (quick-xml)
-│   │   │   ├── writer.rs         # XML serialization
-│   │   │   └── upgrade.rs        # Version migration
-│   │   └── Cargo.toml
-│   │
-│   ├── nodebox-render/           # Output renderers
-│   │   ├── src/
-│   │   │   ├── lib.rs
-│   │   │   ├── svg.rs            # SVG renderer
-│   │   │   ├── pdf.rs            # PDF renderer (optional)
-│   │   │   └── csv.rs            # CSV data export
-│   │   └── Cargo.toml
-│   │
-│   └── nodebox-cli/              # Command-line interface
+│   └── nodebox-python/           # Python integration (PyO3)
 │       ├── src/
-│       │   └── main.rs
+│       │   └── lib.rs
 │       └── Cargo.toml
 │
 ├── tests/                        # Rust integration tests
@@ -344,7 +341,7 @@ impl<'a> NodeContext<'a> {
 }
 ```
 
-### 1.4 Operations (`nodebox-ops`)
+### 1.4 Operations (`nodebox-core::ops`)
 
 #### 1.4.1 Function Registry
 
@@ -461,7 +458,7 @@ impl Geometry {
 - `compound` - Boolean ops on path pairs (with careful synchronization)
 - List `map` operations - Via `rayon::par_iter()`
 
-### 1.5 NDBX Parser (`nodebox-ndbx`)
+### 1.5 NDBX Parser (`nodebox-core::ndbx`)
 
 #### 1.5.1 Format Structure
 
@@ -589,7 +586,9 @@ impl SvgRenderer {
 }
 ```
 
-### 1.7 CLI Application (`nodebox-cli`)
+### 1.7 CLI Application (removed)
+
+> **Note:** The `nodebox-cli` crate has been removed. CLI functionality was consolidated into the main application.
 
 ```rust
 use clap::Parser;
@@ -1014,7 +1013,7 @@ For a NodeBox-style application, egui is the best fit because:
 ### 2.3 GUI Architecture
 
 ```
-crates/nodebox-gui/
+crates/nodebox-desktop/
 ├── src/
 │   ├── main.rs
 │   ├── app.rs              # Main application state
@@ -1685,14 +1684,14 @@ Phase 3: Python (1-2 months)
 All three phases have been implemented:
 
 ### Phase 1: Core Library ✅
-- `nodebox-core`: Geometry primitives, node model, value types
-- `nodebox-ops`: 150+ built-in operations (generators, transforms, filters)
-- `nodebox-ndbx`: NDBX file format parser and writer
-- `nodebox-svg`: SVG renderer
-- `nodebox-cli`: Command-line interface
+- `nodebox-core`: Geometry primitives, node model, value types, plus:
+  - `nodebox-core::ops`: 150+ built-in operations (generators, transforms, filters) — merged from `nodebox-ops`
+  - `nodebox-core::ndbx`: NDBX file format parser and writer — merged from `nodebox-ndbx`
+  - `nodebox-core::svg`: SVG renderer — merged from `nodebox-svg`
+  - `nodebox-core::port`: Port definitions — merged from `nodebox-port`
 
 ### Phase 2: GUI ✅
-- `nodebox-gui`: egui-based GUI application with:
+- `nodebox-desktop`: egui-based desktop GUI application (renamed from `nodebox-gui`) with:
   - Canvas viewer with geometry rendering
   - Node graph editor with visual editing
   - Port/parameter editor panel
@@ -1721,4 +1720,4 @@ cargo build -p nodebox-python
 
 The existing `pyvector.py` uses Java-specific APIs (java.awt.geom, etc.) that
 would require a compatibility layer to work with the Rust implementation.
-The core NodeBox functions are available through the Rust nodebox-ops crate.
+The core NodeBox functions are available through the Rust nodebox-core crate (in the ops module).
