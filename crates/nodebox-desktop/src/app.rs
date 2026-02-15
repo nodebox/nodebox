@@ -2,7 +2,7 @@
 
 use eframe::egui::{self, Pos2, Rect};
 use nodebox_core::geometry::Point;
-use nodebox_core::port::{Port, ProjectContext};
+use nodebox_core::platform::{Platform, ProjectContext};
 use std::sync::Arc;
 
 use crate::address_bar::{AddressBar, AddressBarAction};
@@ -24,8 +24,8 @@ use crate::viewer_pane::{HandleResult, ViewerPane};
 
 /// The main NodeBox application.
 pub struct NodeBoxApp {
-    /// Port for platform-abstracted file operations.
-    port: Arc<dyn Port>,
+    /// Platform for platform-abstracted file operations.
+    port: Arc<dyn Platform>,
     /// Project context for the current project (tracks save location).
     project_context: ProjectContext,
     state: AppState,
@@ -64,13 +64,13 @@ pub struct NodeBoxApp {
 }
 
 impl NodeBoxApp {
-    /// Create a new NodeBox application instance with a Port for file operations.
+    /// Create a new NodeBox application instance with a Platform for file operations.
     ///
-    /// This is the primary constructor that accepts an `Arc<dyn Port>` for
+    /// This is the primary constructor that accepts an `Arc<dyn Platform>` for
     /// platform-abstracted file operations.
     pub fn new_with_port(
         cc: &eframe::CreationContext<'_>,
-        port: Arc<dyn Port>,
+        port: Arc<dyn Platform>,
         initial_file: Option<std::path::PathBuf>,
     ) -> Self {
         // Configure the global theme/style
@@ -140,7 +140,7 @@ impl NodeBoxApp {
 
     /// Create a new NodeBox application instance (legacy constructor).
     ///
-    /// This constructor creates a DesktopPort internally for backwards compatibility.
+    /// This constructor creates a DesktopPlatform internally for backwards compatibility.
     /// Prefer using `new_with_port` for new code.
     #[allow(dead_code)]
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
@@ -149,7 +149,7 @@ impl NodeBoxApp {
 
     /// Create a new NodeBox application instance, optionally loading an initial file.
     ///
-    /// This constructor creates a DesktopPort internally for backwards compatibility.
+    /// This constructor creates a DesktopPlatform internally for backwards compatibility.
     /// Prefer using `new_with_port` for new code.
     pub fn new_with_file(
         cc: &eframe::CreationContext<'_>,
@@ -159,11 +159,11 @@ impl NodeBoxApp {
         // Configure the global theme/style
         theme::configure_style(&cc.egui_ctx);
 
-        // Create a default DesktopPort for backwards compatibility
+        // Create a default DesktopPlatform for backwards compatibility
         #[cfg(not(target_arch = "wasm32"))]
-        let port: Arc<dyn Port> = Arc::new(crate::DesktopPort::new());
+        let port: Arc<dyn Platform> = Arc::new(crate::DesktopPlatform::new());
         #[cfg(target_arch = "wasm32")]
-        compile_error!("WASM builds must use new_with_port with a custom Port implementation");
+        compile_error!("WASM builds must use new_with_port with a custom Platform implementation");
 
         let mut state = AppState::new();
 
@@ -235,7 +235,7 @@ impl NodeBoxApp {
         let hash = Self::hash_library(&state.library);
         let prev_library = Arc::clone(&state.library);
         Self {
-            port: Arc::new(crate::DesktopPort::new()),
+            port: Arc::new(crate::DesktopPlatform::new()),
             project_context: ProjectContext::new_unsaved(),
             state,
             address_bar: AddressBar::new(),
@@ -272,7 +272,7 @@ impl NodeBoxApp {
         let hash = Self::hash_library(&state.library);
         let prev_library = Arc::clone(&state.library);
         Self {
-            port: Arc::new(crate::DesktopPort::new()),
+            port: Arc::new(crate::DesktopPlatform::new()),
             project_context: ProjectContext::new_unsaved(),
             state,
             address_bar: AddressBar::new(),
@@ -321,9 +321,9 @@ impl NodeBoxApp {
         &mut self.history
     }
 
-    /// Get a reference to the Port for file operations.
+    /// Get a reference to the Platform for file operations.
     #[allow(dead_code)]
-    pub fn port(&self) -> &Arc<dyn Port> {
+    pub fn port(&self) -> &Arc<dyn Platform> {
         &self.port
     }
 
@@ -1185,7 +1185,7 @@ impl NodeBoxApp {
     }
 
     fn open_file(&mut self) {
-        use nodebox_core::port::FileFilter;
+        use nodebox_core::platform::FileFilter;
 
         match self.port.show_open_project_dialog(&[FileFilter::nodebox()]) {
             Ok(Some(path)) => {
@@ -1248,7 +1248,7 @@ impl NodeBoxApp {
     }
 
     fn save_file_as(&mut self) {
-        use nodebox_core::port::FileFilter;
+        use nodebox_core::platform::FileFilter;
 
         match self.port.show_save_project_dialog(&[FileFilter::nodebox()], Some("untitled.ndbx")) {
             Ok(Some(path)) => {
@@ -1269,7 +1269,7 @@ impl NodeBoxApp {
     }
 
     fn export_svg(&mut self) {
-        use nodebox_core::port::FileFilter;
+        use nodebox_core::platform::FileFilter;
 
         // Export dialogs use save_project_dialog since exports are not sandboxed
         match self.port.show_save_project_dialog(&[FileFilter::svg()], Some("export.svg")) {
@@ -1287,7 +1287,7 @@ impl NodeBoxApp {
     }
 
     fn export_png(&mut self) {
-        use nodebox_core::port::FileFilter;
+        use nodebox_core::platform::FileFilter;
 
         // Export dialogs use save_project_dialog since exports are not sandboxed
         match self.port.show_save_project_dialog(&[FileFilter::png()], Some("export.png")) {

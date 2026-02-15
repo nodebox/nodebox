@@ -7,7 +7,7 @@ use std::thread;
 use std::time::Instant;
 use nodebox_core::geometry::Path as GeoPath;
 use nodebox_core::node::NodeLibrary;
-use nodebox_core::port::{Port, ProjectContext};
+use nodebox_core::platform::{Platform, ProjectContext};
 use crate::eval::{NodeError, NodeOutput};
 
 /// Token for cooperative cancellation of render operations.
@@ -57,7 +57,7 @@ pub enum RenderRequest {
         id: RenderRequestId,
         library: Arc<NodeLibrary>,
         cancel_token: CancellationToken,
-        port: Arc<dyn Port>,
+        port: Arc<dyn Platform>,
         project_context: ProjectContext,
     },
     /// Shut down the worker thread.
@@ -181,7 +181,7 @@ impl RenderWorkerHandle {
         id: RenderRequestId,
         library: Arc<NodeLibrary>,
         cancel_token: CancellationToken,
-        port: Arc<dyn Port>,
+        port: Arc<dyn Platform>,
         project_context: ProjectContext,
     ) {
         if let Some(ref tx) = self.request_tx {
@@ -274,10 +274,10 @@ fn drain_to_latest(
     mut id: RenderRequestId,
     mut library: Arc<NodeLibrary>,
     mut cancel_token: CancellationToken,
-    mut port: Arc<dyn Port>,
+    mut port: Arc<dyn Platform>,
     mut project_context: ProjectContext,
     rx: &mpsc::Receiver<RenderRequest>,
-) -> (RenderRequestId, Arc<NodeLibrary>, CancellationToken, Arc<dyn Port>, ProjectContext) {
+) -> (RenderRequestId, Arc<NodeLibrary>, CancellationToken, Arc<dyn Platform>, ProjectContext) {
     while let Ok(req) = rx.try_recv() {
         match req {
             RenderRequest::Evaluate {

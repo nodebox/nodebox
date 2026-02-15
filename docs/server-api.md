@@ -195,15 +195,15 @@ All errors return JSON:
 
 ---
 
-## WebPort Implementation Notes
+## WebPlatform Implementation Notes
 
-The JavaScript WebPort implementation maps Port trait methods to API calls:
+The JavaScript WebPlatform implementation maps Platform trait methods to API calls:
 
 ```javascript
-const webPort = {
+const webPlatform = {
   async read_file(ctx, path) {
     const resp = await fetch(`/api/v1/projects/${ctx.project_id}/assets/${path}`);
-    if (!resp.ok) throw new PortError(resp.status === 404 ? 'NotFound' : 'IoError');
+    if (!resp.ok) throw new PlatformError(resp.status === 404 ? 'NotFound' : 'IoError');
     return new Uint8Array(await resp.arrayBuffer());
   },
 
@@ -213,18 +213,18 @@ const webPort = {
       headers: { 'Content-Type': 'application/octet-stream' },
       body: data
     });
-    if (!resp.ok) throw new PortError('IoError');
+    if (!resp.ok) throw new PlatformError('IoError');
   },
 
   async list_directory(ctx, path) {
     const resp = await fetch(`/api/v1/projects/${ctx.project_id}/assets/${path}`);
-    if (!resp.ok) throw new PortError(resp.status === 404 ? 'NotFound' : 'IoError');
+    if (!resp.ok) throw new PlatformError(resp.status === 404 ? 'NotFound' : 'IoError');
     return (await resp.json()).entries;
   },
 
   async read_project(ctx) {
     const resp = await fetch(`/api/v1/projects/${ctx.project_id}`);
-    if (!resp.ok) throw new PortError(resp.status === 404 ? 'NotFound' : 'IoError');
+    if (!resp.ok) throw new PlatformError(resp.status === 404 ? 'NotFound' : 'IoError');
     return new Uint8Array(await resp.arrayBuffer());
   },
 
@@ -234,18 +234,18 @@ const webPort = {
       headers: { 'Content-Type': 'application/xml' },
       body: data
     });
-    if (!resp.ok) throw new PortError('IoError');
+    if (!resp.ok) throw new PlatformError('IoError');
   },
 
   async load_library(name) {
     const resp = await fetch(`/api/v1/libraries/${name}`);
-    if (!resp.ok) throw new PortError(resp.status === 404 ? 'LibraryNotFound' : 'IoError');
+    if (!resp.ok) throw new PlatformError(resp.status === 404 ? 'LibraryNotFound' : 'IoError');
     return new Uint8Array(await resp.arrayBuffer());
   },
 
   async http_get(url) {
     const resp = await fetch(url);
-    if (!resp.ok) throw new PortError('NetworkError');
+    if (!resp.ok) throw new PlatformError('NetworkError');
     return new Uint8Array(await resp.arrayBuffer());
   },
 
@@ -360,7 +360,7 @@ const webPort = {
         throw e;
       }
     }
-    throw new PortError('Unsupported');
+    throw new PlatformError('Unsupported');
   },
 
   async show_confirm_dialog(title, message) {
@@ -401,7 +401,7 @@ const webPort = {
 
   get_config_dir() {
     // Web has no config directory; return a virtual path
-    throw new PortError('Unsupported');
+    throw new PlatformError('Unsupported');
   },
 
   platform_info() {
@@ -418,10 +418,10 @@ const webPort = {
 
 ### File System Access API
 
-For browsers that support the File System Access API (Chrome, Edge), the WebPort can provide a more native-like experience:
+For browsers that support the File System Access API (Chrome, Edge), the WebPlatform can provide a more native-like experience:
 
 ```javascript
-class FileSystemAccessPort {
+class FileSystemAccessPlatform {
   constructor(directoryHandle) {
     this.root = directoryHandle;
   }

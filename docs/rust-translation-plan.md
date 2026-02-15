@@ -62,7 +62,7 @@ nodebox/
 │   │   │   │   └── upgrade.rs   # Version migration
 │   │   │   ├── svg/             # SVG renderer (merged from nodebox-svg)
 │   │   │   │   └── mod.rs
-│   │   │   ├── port.rs          # Port definitions (merged from nodebox-port)
+│   │   │   ├── platform.rs      # Platform definitions (merged from nodebox-port)
 │   │   │   └── value.rs         # Runtime value types
 │   │   └── Cargo.toml
 │   │
@@ -1688,7 +1688,7 @@ All three phases have been implemented:
   - `nodebox-core::ops`: 150+ built-in operations (generators, transforms, filters) — merged from `nodebox-ops`
   - `nodebox-core::ndbx`: NDBX file format parser and writer — merged from `nodebox-ndbx`
   - `nodebox-core::svg`: SVG renderer — merged from `nodebox-svg`
-  - `nodebox-core::port`: Port definitions — merged from `nodebox-port`
+  - `nodebox-core::platform`: Platform definitions — merged from `nodebox-port`
 
 ### Phase 2: GUI ✅
 - `nodebox-desktop`: egui-based desktop GUI application (renamed from `nodebox-gui`) with:

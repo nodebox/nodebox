@@ -40,7 +40,7 @@ smol = "2"
 [target.'cfg(target_os = "macos")'.dependencies]
 muda = "0.15"
 
-# DesktopPort dependencies (desktop only)
+# DesktopPlatform dependencies (desktop only)
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rfd = "0.15"
 

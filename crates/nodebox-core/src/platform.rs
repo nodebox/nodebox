@@ -1,13 +1,13 @@
 //! Platform abstraction layer for NodeBox.
 //!
-//! The Port system provides a unified interface for platform-specific I/O operations,
+//! The Platform system provides a unified interface for platform-specific I/O operations,
 //! enabling the same core logic to run across desktop (macOS, Windows, Linux),
 //! web (WASM), and mobile (iOS, Android) platforms.
 //!
 //! # Design Principles
 //!
-//! 1. **Single trait with runtime capability checking** - One `Port` trait;
-//!    unsupported operations return `Err(PortError::Unsupported)`
+//! 1. **Single trait with runtime capability checking** - One `Platform` trait;
+//!    unsupported operations return `Err(PlatformError::Unsupported)`
 //! 2. **Synchronous API** - All operations are blocking
 //! 3. **Explicit context passing** - `ProjectContext` passed to operations; no global state
 //! 4. **Sandboxed file access** - Files accessible only within project directory,
@@ -180,16 +180,16 @@ impl RelativePath {
     ///
     /// # Errors
     ///
-    /// Returns `PortError::SandboxViolation` if:
+    /// Returns `PlatformError::SandboxViolation` if:
     /// - The path contains ".." components
     /// - The path starts with "/" (absolute path)
     /// - The path starts with a Windows drive letter (e.g., "C:")
-    pub fn new(path: impl AsRef<Path>) -> Result<Self, PortError> {
+    pub fn new(path: impl AsRef<Path>) -> Result<Self, PlatformError> {
         let path = path.as_ref();
 
         // Check for absolute paths
         if path.is_absolute() {
-            return Err(PortError::SandboxViolation);
+            return Err(PlatformError::SandboxViolation);
         }
 
         // Check for Windows-style absolute paths (C:\, D:\, etc.)
@@ -197,7 +197,7 @@ impl RelativePath {
             if s.len() >= 2 {
                 let chars: Vec<char> = s.chars().take(2).collect();
                 if chars[0].is_ascii_alphabetic() && chars[1] == ':' {
-                    return Err(PortError::SandboxViolation);
+                    return Err(PlatformError::SandboxViolation);
                 }
             }
         }
@@ -205,7 +205,7 @@ impl RelativePath {
         // Check for ".." components that could escape the sandbox
         for component in path.components() {
             if let std::path::Component::ParentDir = component {
-                return Err(PortError::SandboxViolation);
+                return Err(PlatformError::SandboxViolation);
             }
         }
 
@@ -223,8 +223,8 @@ impl RelativePath {
     ///
     /// # Errors
     ///
-    /// Returns `PortError::SandboxViolation` if the resulting path would escape the sandbox.
-    pub fn join(&self, path: impl AsRef<Path>) -> Result<Self, PortError> {
+    /// Returns `PlatformError::SandboxViolation` if the resulting path would escape the sandbox.
+    pub fn join(&self, path: impl AsRef<Path>) -> Result<Self, PlatformError> {
         let joined = self.path.join(path);
         Self::new(joined)
     }
@@ -331,7 +331,7 @@ impl std::fmt::Display for LogLevel {
 
 /// Errors that can occur during Port operations.
 #[derive(Debug, Error)]
-pub enum PortError {
+pub enum PlatformError {
     /// Operation not supported on this platform
     #[error("operation not supported on this platform")]
     Unsupported,
@@ -365,21 +365,21 @@ pub enum PortError {
     Other(String),
 }
 
-impl From<std::io::Error> for PortError {
+impl From<std::io::Error> for PlatformError {
     fn from(err: std::io::Error) -> Self {
         match err.kind() {
-            std::io::ErrorKind::NotFound => PortError::NotFound,
-            std::io::ErrorKind::PermissionDenied => PortError::PermissionDenied,
-            _ => PortError::IoError(err.to_string()),
+            std::io::ErrorKind::NotFound => PlatformError::NotFound,
+            std::io::ErrorKind::PermissionDenied => PlatformError::PermissionDenied,
+            _ => PlatformError::IoError(err.to_string()),
         }
     }
 }
 
-/// The main Port trait for platform abstraction.
+/// The main Platform trait for platform abstraction.
 ///
 /// Implementations of this trait provide platform-specific behavior for
 /// file I/O, dialogs, clipboard, network, and other operations.
-pub trait Port: Send + Sync {
+pub trait Platform: Send + Sync {
     // === Platform Info ===
 
     /// Get information about the current platform.
@@ -388,7 +388,7 @@ pub trait Port: Send + Sync {
     // === File Operations ===
 
     /// Read a file from the project directory.
-    fn read_file(&self, ctx: &ProjectContext, path: &RelativePath) -> Result<Vec<u8>, PortError>;
+    fn read_file(&self, ctx: &ProjectContext, path: &RelativePath) -> Result<Vec<u8>, PlatformError>;
 
     /// Write a file to the project directory.
     fn write_file(
@@ -396,43 +396,43 @@ pub trait Port: Send + Sync {
         ctx: &ProjectContext,
         path: &RelativePath,
         data: &[u8],
-    ) -> Result<(), PortError>;
+    ) -> Result<(), PlatformError>;
 
     /// List contents of a directory within the project.
     fn list_directory(
         &self,
         ctx: &ProjectContext,
         path: &RelativePath,
-    ) -> Result<Vec<DirectoryEntry>, PortError>;
+    ) -> Result<Vec<DirectoryEntry>, PlatformError>;
 
     // === Convenience File Operations ===
 
     /// Read a text file (UTF-8) from the project directory.
-    fn read_text_file(&self, ctx: &ProjectContext, path: &str) -> Result<String, PortError>;
+    fn read_text_file(&self, ctx: &ProjectContext, path: &str) -> Result<String, PlatformError>;
 
     /// Read a binary file from the project directory.
-    fn read_binary_file(&self, ctx: &ProjectContext, path: &str) -> Result<Vec<u8>, PortError>;
+    fn read_binary_file(&self, ctx: &ProjectContext, path: &str) -> Result<Vec<u8>, PlatformError>;
 
     /// Load an application resource (icons, fonts, etc.)
-    fn load_app_resource(&self, name: &str) -> Result<Vec<u8>, PortError>;
+    fn load_app_resource(&self, name: &str) -> Result<Vec<u8>, PlatformError>;
 
     // === Project File (special handling) ===
 
     /// Read the project file.
-    fn read_project(&self, ctx: &ProjectContext) -> Result<Vec<u8>, PortError>;
+    fn read_project(&self, ctx: &ProjectContext) -> Result<Vec<u8>, PlatformError>;
 
     /// Write the project file.
-    fn write_project(&self, ctx: &ProjectContext, data: &[u8]) -> Result<(), PortError>;
+    fn write_project(&self, ctx: &ProjectContext, data: &[u8]) -> Result<(), PlatformError>;
 
     // === Library Access ===
 
     /// Load a library by name.
-    fn load_library(&self, name: &str) -> Result<Vec<u8>, PortError>;
+    fn load_library(&self, name: &str) -> Result<Vec<u8>, PlatformError>;
 
     // === Network ===
 
     /// Perform an HTTP GET request.
-    fn http_get(&self, url: &str) -> Result<Vec<u8>, PortError>;
+    fn http_get(&self, url: &str) -> Result<Vec<u8>, PlatformError>;
 
     // === Dialogs (Project-level, return absolute paths) ===
 
@@ -440,14 +440,14 @@ pub trait Port: Send + Sync {
     fn show_open_project_dialog(
         &self,
         filters: &[FileFilter],
-    ) -> Result<Option<PathBuf>, PortError>;
+    ) -> Result<Option<PathBuf>, PlatformError>;
 
     /// Show dialog to choose where to save a new project.
     fn show_save_project_dialog(
         &self,
         filters: &[FileFilter],
         default_name: Option<&str>,
-    ) -> Result<Option<PathBuf>, PortError>;
+    ) -> Result<Option<PathBuf>, PlatformError>;
 
     // === Dialogs (Asset-level, sandboxed to project) ===
 
@@ -456,7 +456,7 @@ pub trait Port: Send + Sync {
         &self,
         ctx: &ProjectContext,
         filters: &[FileFilter],
-    ) -> Result<Option<RelativePath>, PortError>;
+    ) -> Result<Option<RelativePath>, PlatformError>;
 
     /// Show "Save File" dialog for exporting assets.
     fn show_save_file_dialog(
@@ -464,16 +464,16 @@ pub trait Port: Send + Sync {
         ctx: &ProjectContext,
         filters: &[FileFilter],
         default_name: Option<&str>,
-    ) -> Result<Option<RelativePath>, PortError>;
+    ) -> Result<Option<RelativePath>, PlatformError>;
 
     /// Show a "Select Folder" dialog for selecting a directory within the project.
     fn show_select_folder_dialog(
         &self,
         ctx: &ProjectContext,
-    ) -> Result<Option<RelativePath>, PortError>;
+    ) -> Result<Option<RelativePath>, PlatformError>;
 
     /// Show a confirmation dialog with OK and Cancel buttons.
-    fn show_confirm_dialog(&self, title: &str, message: &str) -> Result<bool, PortError>;
+    fn show_confirm_dialog(&self, title: &str, message: &str) -> Result<bool, PlatformError>;
 
     /// Show a message dialog with custom buttons.
     fn show_message_dialog(
@@ -481,15 +481,15 @@ pub trait Port: Send + Sync {
         title: &str,
         message: &str,
         buttons: &[&str],
-    ) -> Result<Option<usize>, PortError>;
+    ) -> Result<Option<usize>, PlatformError>;
 
     // === Clipboard ===
 
     /// Read text from the clipboard.
-    fn clipboard_read_text(&self) -> Result<Option<String>, PortError>;
+    fn clipboard_read_text(&self) -> Result<Option<String>, PlatformError>;
 
     /// Write text to the clipboard.
-    fn clipboard_write_text(&self, text: &str) -> Result<(), PortError>;
+    fn clipboard_write_text(&self, text: &str) -> Result<(), PlatformError>;
 
     // === Logging ===
 
@@ -507,32 +507,32 @@ pub trait Port: Send + Sync {
     // === Configuration ===
 
     /// Get the configuration directory for storing app settings.
-    fn get_config_dir(&self) -> Result<PathBuf, PortError>;
+    fn get_config_dir(&self) -> Result<PathBuf, PlatformError>;
 
     /// List available font families on the system.
     fn list_fonts(&self) -> Vec<String>;
 }
 
-/// A minimal Port implementation for testing.
+/// A minimal Platform implementation for testing.
 ///
-/// This port returns `Unsupported` for most operations, making it suitable
+/// Returns `Unsupported` for most operations, making it suitable
 /// for tests that don't need actual file or dialog operations.
-pub struct TestPort;
+pub struct TestPlatform;
 
-impl TestPort {
-    /// Create a new TestPort.
+impl TestPlatform {
+    /// Create a new TestPlatform.
     pub fn new() -> Self {
         Self
     }
 }
 
-impl Default for TestPort {
+impl Default for TestPlatform {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Port for TestPort {
+impl Platform for TestPlatform {
     fn platform_info(&self) -> PlatformInfo {
         PlatformInfo {
             os_name: "test".to_string(),
@@ -543,8 +543,8 @@ impl Port for TestPort {
         }
     }
 
-    fn read_file(&self, _ctx: &ProjectContext, _path: &RelativePath) -> Result<Vec<u8>, PortError> {
-        Err(PortError::Unsupported)
+    fn read_file(&self, _ctx: &ProjectContext, _path: &RelativePath) -> Result<Vec<u8>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
     fn write_file(
@@ -552,67 +552,67 @@ impl Port for TestPort {
         _ctx: &ProjectContext,
         _path: &RelativePath,
         _data: &[u8],
-    ) -> Result<(), PortError> {
-        Err(PortError::Unsupported)
+    ) -> Result<(), PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
     fn list_directory(
         &self,
         _ctx: &ProjectContext,
         _path: &RelativePath,
-    ) -> Result<Vec<DirectoryEntry>, PortError> {
-        Err(PortError::Unsupported)
+    ) -> Result<Vec<DirectoryEntry>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
-    fn read_text_file(&self, _ctx: &ProjectContext, _path: &str) -> Result<String, PortError> {
-        Err(PortError::Unsupported)
+    fn read_text_file(&self, _ctx: &ProjectContext, _path: &str) -> Result<String, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
-    fn read_binary_file(&self, _ctx: &ProjectContext, _path: &str) -> Result<Vec<u8>, PortError> {
-        Err(PortError::Unsupported)
+    fn read_binary_file(&self, _ctx: &ProjectContext, _path: &str) -> Result<Vec<u8>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
-    fn load_app_resource(&self, _name: &str) -> Result<Vec<u8>, PortError> {
-        Err(PortError::Unsupported)
+    fn load_app_resource(&self, _name: &str) -> Result<Vec<u8>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
-    fn read_project(&self, _ctx: &ProjectContext) -> Result<Vec<u8>, PortError> {
-        Err(PortError::Unsupported)
+    fn read_project(&self, _ctx: &ProjectContext) -> Result<Vec<u8>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
-    fn write_project(&self, _ctx: &ProjectContext, _data: &[u8]) -> Result<(), PortError> {
-        Err(PortError::Unsupported)
+    fn write_project(&self, _ctx: &ProjectContext, _data: &[u8]) -> Result<(), PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
-    fn load_library(&self, _name: &str) -> Result<Vec<u8>, PortError> {
-        Err(PortError::Unsupported)
+    fn load_library(&self, _name: &str) -> Result<Vec<u8>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
-    fn http_get(&self, _url: &str) -> Result<Vec<u8>, PortError> {
-        Err(PortError::Unsupported)
+    fn http_get(&self, _url: &str) -> Result<Vec<u8>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
     fn show_open_project_dialog(
         &self,
         _filters: &[FileFilter],
-    ) -> Result<Option<PathBuf>, PortError> {
-        Err(PortError::Unsupported)
+    ) -> Result<Option<PathBuf>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
     fn show_save_project_dialog(
         &self,
         _filters: &[FileFilter],
         _default_name: Option<&str>,
-    ) -> Result<Option<PathBuf>, PortError> {
-        Err(PortError::Unsupported)
+    ) -> Result<Option<PathBuf>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
     fn show_open_file_dialog(
         &self,
         _ctx: &ProjectContext,
         _filters: &[FileFilter],
-    ) -> Result<Option<RelativePath>, PortError> {
-        Err(PortError::Unsupported)
+    ) -> Result<Option<RelativePath>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
     fn show_save_file_dialog(
@@ -620,19 +620,19 @@ impl Port for TestPort {
         _ctx: &ProjectContext,
         _filters: &[FileFilter],
         _default_name: Option<&str>,
-    ) -> Result<Option<RelativePath>, PortError> {
-        Err(PortError::Unsupported)
+    ) -> Result<Option<RelativePath>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
     fn show_select_folder_dialog(
         &self,
         _ctx: &ProjectContext,
-    ) -> Result<Option<RelativePath>, PortError> {
-        Err(PortError::Unsupported)
+    ) -> Result<Option<RelativePath>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
-    fn show_confirm_dialog(&self, _title: &str, _message: &str) -> Result<bool, PortError> {
-        Err(PortError::Unsupported)
+    fn show_confirm_dialog(&self, _title: &str, _message: &str) -> Result<bool, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
     fn show_message_dialog(
@@ -640,16 +640,16 @@ impl Port for TestPort {
         _title: &str,
         _message: &str,
         _buttons: &[&str],
-    ) -> Result<Option<usize>, PortError> {
-        Err(PortError::Unsupported)
+    ) -> Result<Option<usize>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
-    fn clipboard_read_text(&self) -> Result<Option<String>, PortError> {
-        Err(PortError::Unsupported)
+    fn clipboard_read_text(&self) -> Result<Option<String>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
-    fn clipboard_write_text(&self, _text: &str) -> Result<(), PortError> {
-        Err(PortError::Unsupported)
+    fn clipboard_write_text(&self, _text: &str) -> Result<(), PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
     fn log(&self, _level: LogLevel, _message: &str) {}
@@ -658,8 +658,8 @@ impl Port for TestPort {
 
     fn performance_mark_with_details(&self, _name: &str, _details: &str) {}
 
-    fn get_config_dir(&self) -> Result<PathBuf, PortError> {
-        Err(PortError::Unsupported)
+    fn get_config_dir(&self) -> Result<PathBuf, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 
     fn list_fonts(&self) -> Vec<String> {
@@ -681,22 +681,22 @@ mod tests {
 
     #[test]
     fn test_relative_path_rejects_parent_dir() {
-        assert!(matches!(RelativePath::new(".."), Err(PortError::SandboxViolation)));
-        assert!(matches!(RelativePath::new("../file.txt"), Err(PortError::SandboxViolation)));
-        assert!(matches!(RelativePath::new("subdir/../other.txt"), Err(PortError::SandboxViolation)));
-        assert!(matches!(RelativePath::new("a/b/../../c.txt"), Err(PortError::SandboxViolation)));
+        assert!(matches!(RelativePath::new(".."), Err(PlatformError::SandboxViolation)));
+        assert!(matches!(RelativePath::new("../file.txt"), Err(PlatformError::SandboxViolation)));
+        assert!(matches!(RelativePath::new("subdir/../other.txt"), Err(PlatformError::SandboxViolation)));
+        assert!(matches!(RelativePath::new("a/b/../../c.txt"), Err(PlatformError::SandboxViolation)));
     }
 
     #[test]
     fn test_relative_path_rejects_absolute() {
-        assert!(matches!(RelativePath::new("/etc/passwd"), Err(PortError::SandboxViolation)));
-        assert!(matches!(RelativePath::new("/home/user/file.txt"), Err(PortError::SandboxViolation)));
+        assert!(matches!(RelativePath::new("/etc/passwd"), Err(PlatformError::SandboxViolation)));
+        assert!(matches!(RelativePath::new("/home/user/file.txt"), Err(PlatformError::SandboxViolation)));
     }
 
     #[test]
     fn test_relative_path_rejects_windows_absolute() {
-        assert!(matches!(RelativePath::new("C:/Users/file.txt"), Err(PortError::SandboxViolation)));
-        assert!(matches!(RelativePath::new("D:\\Documents\\file.txt"), Err(PortError::SandboxViolation)));
+        assert!(matches!(RelativePath::new("C:/Users/file.txt"), Err(PlatformError::SandboxViolation)));
+        assert!(matches!(RelativePath::new("D:\\Documents\\file.txt"), Err(PlatformError::SandboxViolation)));
     }
 
     #[test]
@@ -704,7 +704,7 @@ mod tests {
         let base = RelativePath::new("subdir").unwrap();
         let joined = base.join("file.txt").unwrap();
         assert_eq!(joined.as_path(), Path::new("subdir/file.txt"));
-        assert!(matches!(base.join("../escape.txt"), Err(PortError::SandboxViolation)));
+        assert!(matches!(base.join("../escape.txt"), Err(PlatformError::SandboxViolation)));
     }
 
     #[test]
@@ -761,21 +761,21 @@ mod tests {
     #[test]
     fn test_port_error_from_io_error() {
         let not_found = std::io::Error::new(std::io::ErrorKind::NotFound, "not found");
-        assert!(matches!(PortError::from(not_found), PortError::NotFound));
+        assert!(matches!(PlatformError::from(not_found), PlatformError::NotFound));
         let permission = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "denied");
-        assert!(matches!(PortError::from(permission), PortError::PermissionDenied));
+        assert!(matches!(PlatformError::from(permission), PlatformError::PermissionDenied));
         let other = std::io::Error::new(std::io::ErrorKind::Other, "something else");
-        assert!(matches!(PortError::from(other), PortError::IoError(_)));
+        assert!(matches!(PlatformError::from(other), PlatformError::IoError(_)));
     }
 
     #[test]
     fn test_port_error_display() {
-        assert_eq!(format!("{}", PortError::Unsupported), "operation not supported on this platform");
-        assert_eq!(format!("{}", PortError::NotFound), "not found");
-        assert_eq!(format!("{}", PortError::PermissionDenied), "permission denied");
-        assert_eq!(format!("{}", PortError::SandboxViolation), "path escapes project sandbox");
-        assert_eq!(format!("{}", PortError::NetworkError("timeout".to_string())), "network error: timeout");
-        assert_eq!(format!("{}", PortError::LibraryNotFound("math".to_string())), "library not found: math");
+        assert_eq!(format!("{}", PlatformError::Unsupported), "operation not supported on this platform");
+        assert_eq!(format!("{}", PlatformError::NotFound), "not found");
+        assert_eq!(format!("{}", PlatformError::PermissionDenied), "permission denied");
+        assert_eq!(format!("{}", PlatformError::SandboxViolation), "path escapes project sandbox");
+        assert_eq!(format!("{}", PlatformError::NetworkError("timeout".to_string())), "network error: timeout");
+        assert_eq!(format!("{}", PlatformError::LibraryNotFound("math".to_string())), "library not found: math");
     }
 
     #[test]
