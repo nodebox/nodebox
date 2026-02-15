@@ -1,6 +1,6 @@
 [package]
 name = "nodebox-core"
-description = "Core types and traits for NodeBox"
+description = "Core types, operations, and platform abstraction for NodeBox"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,6 +12,20 @@ uuid = { workspace = true }
 font-kit = { workspace = true }
 pathfinder_geometry = { workspace = true }
 
+# From nodebox-ops
+rayon = "1.10"
+usvg = "0.42"
+csv = "1"
+
+# From nodebox-ndbx
+quick-xml = { workspace = true }
+
+# From nodebox-ndbx + nodebox-port
+thiserror = { workspace = true }
+
+# From nodebox-port
+log = "0.4"
+
 [[bench]]
 name = "clone_library"
 harness = false
@@ -19,3 +33,4 @@ harness = false
 [dev-dependencies]
 proptest = { workspace = true }
 approx = { workspace = true }
+tempfile = "3"

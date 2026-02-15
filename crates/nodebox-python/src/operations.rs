@@ -2,7 +2,7 @@
 
 use pyo3::prelude::*;
 use nodebox_core::geometry::{Point as CorePoint, Color as CoreColor};
-use nodebox_ops;
+use nodebox_core::ops;
 use crate::types::{PyPoint, PyColor};
 use crate::geometry::PyPath;
 
@@ -20,7 +20,7 @@ pub fn py_ellipse(
     let w = width.unwrap_or(100.0);
     let h = height.unwrap_or(w);
     PyPath {
-        inner: nodebox_ops::ellipse(pos, w, h),
+        inner: ops::ellipse(pos, w, h),
     }
 }
 
@@ -38,7 +38,7 @@ pub fn py_rect(
     let h = height.unwrap_or(w);
     let r = roundness.unwrap_or(0.0);
     PyPath {
-        inner: nodebox_ops::rect(pos, w, h, CorePoint::new(r, r)),
+        inner: ops::rect(pos, w, h, CorePoint::new(r, r)),
     }
 }
 
@@ -54,7 +54,7 @@ pub fn py_line(
     let p2 = point2.map(|p| p.inner).unwrap_or(CorePoint::new(100.0, 100.0));
     let pts = points.unwrap_or(2);
     PyPath {
-        inner: nodebox_ops::line(p1, p2, pts),
+        inner: ops::line(p1, p2, pts),
     }
 }
 
@@ -70,7 +70,7 @@ pub fn py_polygon(
     let r = radius.unwrap_or(50.0);
     let s = sides.unwrap_or(6);
     PyPath {
-        inner: nodebox_ops::polygon(pos, r, s, true),
+        inner: ops::polygon(pos, r, s, true),
     }
 }
 
@@ -88,7 +88,7 @@ pub fn py_star(
     let outer = outer_radius.unwrap_or(50.0);
     let inner = inner_radius.unwrap_or(25.0);
     PyPath {
-        inner: nodebox_ops::star(pos, pts, outer, inner),
+        inner: ops::star(pos, pts, outer, inner),
     }
 }
 
@@ -110,7 +110,7 @@ pub fn py_arc(
     let deg = degrees.unwrap_or(360.0);
     let t = arc_type.unwrap_or("pie");
     PyPath {
-        inner: nodebox_ops::arc(pos, w, h, start, deg, t),
+        inner: ops::arc(pos, w, h, start, deg, t),
     }
 }
 
@@ -130,7 +130,7 @@ pub fn py_grid(
     let h = height.unwrap_or(200.0);
     let pos = position.map(|p| p.inner).unwrap_or(CorePoint::ZERO);
 
-    nodebox_ops::grid(c, r, w, h, pos)
+    ops::grid(c, r, w, h, pos)
         .into_iter()
         .map(PyPoint::from)
         .collect()
@@ -148,7 +148,7 @@ pub fn py_translate(
 ) -> PyPath {
     let offset = CorePoint::new(tx.unwrap_or(0.0), ty.unwrap_or(0.0));
     PyPath {
-        inner: nodebox_ops::translate(&path.inner, offset),
+        inner: ops::translate(&path.inner, offset),
     }
 }
 
@@ -162,7 +162,7 @@ pub fn py_rotate(
 ) -> PyPath {
     let o = origin.map(|p| p.inner).unwrap_or(CorePoint::ZERO);
     PyPath {
-        inner: nodebox_ops::rotate(&path.inner, angle, o),
+        inner: ops::rotate(&path.inner, angle, o),
     }
 }
 
@@ -179,7 +179,7 @@ pub fn py_scale(
     let scale_y = sy.unwrap_or(scale_x);
     let o = origin.map(|p| p.inner).unwrap_or(CorePoint::ZERO);
     PyPath {
-        inner: nodebox_ops::scale(&path.inner, CorePoint::new(scale_x, scale_y), o),
+        inner: ops::scale(&path.inner, CorePoint::new(scale_x, scale_y), o),
     }
 }
 
@@ -196,6 +196,6 @@ pub fn py_colorize(
     let stroke_color = stroke.map(|c| c.inner).unwrap_or(CoreColor::BLACK);
     let sw = stroke_width.unwrap_or(1.0);
     PyPath {
-        inner: nodebox_ops::colorize(&path.inner, fill_color, stroke_color, sw),
+        inner: ops::colorize(&path.inner, fill_color, stroke_color, sw),
     }
 }

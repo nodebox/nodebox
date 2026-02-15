@@ -2,7 +2,7 @@
 
 This document defines the visual language and design principles for the NodeBox GUI. All UI development should follow these guidelines to ensure a consistent, professional, and modern interface.
 
-**Reference Implementation:** `crates/nodebox-gui/src/theme.rs`
+**Reference Implementation:** `crates/nodebox-desktop/src/theme.rs`
 
 ---
 

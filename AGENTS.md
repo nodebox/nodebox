@@ -76,9 +76,9 @@ Node definitions and their implementations are split across multiple locations:
 - **Python** (`pyvector/*`): `src/main/python/` modules
 
 ### Rust Implementations
-- **Node operations**: `crates/nodebox-ops/src/` (generators.rs, filters.rs, etc.)
-- **Node registration**: `crates/nodebox-gui/src/node_library.rs` and `node_selection_dialog.rs`
-- **Node evaluation**: `crates/nodebox-gui/src/eval.rs`
+- **Node operations**: `crates/nodebox-core/src/ops/` (generators.rs, filters.rs, etc.)
+- **Node registration**: `crates/nodebox-desktop/src/node_library.rs` and `node_selection_dialog.rs`
+- **Node evaluation**: `crates/nodebox-desktop/src/eval.rs`
 
 ## Porting Nodes from Java to Rust
 
@@ -114,7 +114,7 @@ The NodeBox GUI follows a **Linear-inspired design philosophy**:
 
 ### Quick Reference
 
-All tokens are in `crates/nodebox-gui/src/theme.rs`. Key patterns:
+All tokens are in `crates/nodebox-desktop/src/theme.rs`. Key patterns:
 
 ```rust
 use crate::theme::{
@@ -297,6 +297,5 @@ cargo test --workspace --exclude nodebox-python
 ### Running the application
 ```bash
 cargo run                         # Run the desktop GUI application
-cargo run -p nodebox-cli          # Run the CLI
 cargo test -p nodebox-core        # Test specific crate
 ```
