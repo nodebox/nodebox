@@ -59,6 +59,8 @@ pub struct NodeBoxApp {
     pending_connection: Option<(String, PortType)>,
     /// Whether any component was dragging in the previous frame (for undo group detection).
     was_dragging: bool,
+    /// Vertical split ratio between Parameters (top) and Network (bottom). Default 0.35.
+    right_panel_split: f32,
 }
 
 impl NodeBoxApp {
@@ -132,6 +134,7 @@ impl NodeBoxApp {
             recent_files,
             pending_connection: None,
             was_dragging: false,
+            right_panel_split: 0.35,
         }
     }
 
@@ -217,6 +220,7 @@ impl NodeBoxApp {
             recent_files,
             pending_connection: None,
             was_dragging: false,
+            right_panel_split: 0.35,
         }
     }
 
@@ -252,6 +256,7 @@ impl NodeBoxApp {
             recent_files: RecentFiles::new(),
             pending_connection: None,
             was_dragging: false,
+            right_panel_split: 0.35,
         }
     }
 
@@ -288,6 +293,7 @@ impl NodeBoxApp {
             recent_files: RecentFiles::new(),
             pending_connection: None,
             was_dragging: false,
+            right_panel_split: 0.35,
         }
     }
 
@@ -815,13 +821,22 @@ impl eframe::App for NodeBoxApp {
                 ui.spacing_mut().item_spacing = egui::vec2(0.0, 0.0);
 
                 let available = ui.available_rect_before_wrap();
-                let split_ratio = 0.35; // 35% parameters, 65% network
-                let split_y = available.height() * split_ratio;
+
+                // Enforce minimum heights: each panel gets at least 80px
+                let min_panel_height = 80.0_f32;
+                let splitter_affordance = theme::SPLITTER_AFFORDANCE;
+                let usable_height = available.height() - splitter_affordance;
+                let min_ratio = min_panel_height / usable_height;
+                let max_ratio = 1.0 - min_ratio;
+                self.right_panel_split = self.right_panel_split.clamp(min_ratio, max_ratio);
+
+                let params_height = usable_height * self.right_panel_split;
+                let splitter_y = available.min.y + params_height;
 
                 // Top: Parameters pane
                 let params_rect = Rect::from_min_size(
                     available.min,
-                    Vec2::new(available.width(), split_y),
+                    Vec2::new(available.width(), params_height),
                 );
 
                 ui.scope_builder(egui::UiBuilder::new().max_rect(params_rect), |ui| {
@@ -830,9 +845,50 @@ impl eframe::App for NodeBoxApp {
                         .show(ui, &mut self.state, self.port.as_ref(), &self.project_context);
                 });
 
-                // Bottom: Network pane (headers have their own borders)
+                // Horizontal splitter between Parameters and Network
+                let splitter_rect = Rect::from_min_size(
+                    Pos2::new(available.min.x, splitter_y),
+                    Vec2::new(available.width(), splitter_affordance),
+                );
+
+                let splitter_id = ui.id().with("params_network_splitter");
+                let splitter_response = ui.interact(splitter_rect, splitter_id, egui::Sense::drag());
+
+                let is_active = splitter_response.dragged();
+                let is_hovered = splitter_response.hovered();
+
+                // Draw splitter line centered within the affordance zone
+                let line_y = splitter_rect.center().y;
+                let stroke_color = if is_active {
+                    theme::ZINC_300
+                } else if is_hovered {
+                    theme::ZINC_700
+                } else {
+                    theme::ZINC_900
+                };
+                ui.painter().line_segment(
+                    [
+                        Pos2::new(splitter_rect.left(), line_y),
+                        Pos2::new(splitter_rect.right(), line_y),
+                    ],
+                    egui::Stroke::new(theme::SPLITTER_THICKNESS, stroke_color),
+                );
+
+                if is_hovered || is_active {
+                    ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeVertical);
+                }
+
+                if splitter_response.dragged() {
+                    if let Some(pointer_pos) = ui.ctx().pointer_latest_pos() {
+                        let new_params_height = pointer_pos.y - available.min.y;
+                        let new_ratio = new_params_height / usable_height;
+                        self.right_panel_split = new_ratio.clamp(min_ratio, max_ratio);
+                    }
+                }
+
+                // Bottom: Network pane
                 let network_rect = Rect::from_min_max(
-                    Pos2::new(available.min.x, available.min.y + split_y),
+                    Pos2::new(available.min.x, splitter_y + splitter_affordance),
                     available.max,
                 );
 

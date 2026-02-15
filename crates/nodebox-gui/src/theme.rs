@@ -241,6 +241,10 @@ pub const BUTTON_ICON_SIZE: f32 = 16.0;
 pub const ICON_SIZE_SMALL: f32 = 16.0;
 /// Scroll bar width
 pub const SCROLL_BAR_WIDTH: f32 = 8.0;
+/// Splitter bar visual thickness (drawn line).
+pub const SPLITTER_THICKNESS: f32 = 2.0;
+/// Splitter interaction zone height (larger than visual for easy grabbing).
+pub const SPLITTER_AFFORDANCE: f32 = 8.0;
 
 // =============================================================================
 // TYPOGRAPHY
