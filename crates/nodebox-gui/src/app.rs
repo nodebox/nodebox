@@ -1,6 +1,6 @@
 //! Main application state and update loop.
 
-use eframe::egui::{self, Pos2, Rect, Vec2};
+use eframe::egui::{self, Pos2, Rect};
 use nodebox_core::geometry::Point;
 use nodebox_port::{Port, ProjectContext};
 use std::sync::Arc;
@@ -824,19 +824,16 @@ impl eframe::App for NodeBoxApp {
 
                 // Enforce minimum heights: each panel gets at least 80px
                 let min_panel_height = 80.0_f32;
-                let splitter_affordance = theme::SPLITTER_AFFORDANCE;
-                let usable_height = available.height() - splitter_affordance;
-                let min_ratio = min_panel_height / usable_height;
+                let min_ratio = min_panel_height / available.height();
                 let max_ratio = 1.0 - min_ratio;
                 self.right_panel_split = self.right_panel_split.clamp(min_ratio, max_ratio);
 
-                let params_height = usable_height * self.right_panel_split;
-                let splitter_y = available.min.y + params_height;
+                let split_y = available.min.y + available.height() * self.right_panel_split;
 
                 // Top: Parameters pane
-                let params_rect = Rect::from_min_size(
+                let params_rect = Rect::from_min_max(
                     available.min,
-                    Vec2::new(available.width(), params_height),
+                    Pos2::new(available.max.x, split_y),
                 );
 
                 ui.scope_builder(egui::UiBuilder::new().max_rect(params_rect), |ui| {
@@ -845,10 +842,12 @@ impl eframe::App for NodeBoxApp {
                         .show(ui, &mut self.state, self.port.as_ref(), &self.project_context);
                 });
 
-                // Horizontal splitter between Parameters and Network
-                let splitter_rect = Rect::from_min_size(
-                    Pos2::new(available.min.x, splitter_y),
-                    Vec2::new(available.width(), splitter_affordance),
+                // Horizontal splitter between Parameters and Network.
+                // The interaction zone overlaps both panels so there is no visible gap.
+                let half = theme::SPLITTER_AFFORDANCE / 2.0;
+                let splitter_rect = Rect::from_min_max(
+                    Pos2::new(available.min.x, split_y - half),
+                    Pos2::new(available.max.x, split_y + half),
                 );
 
                 let splitter_id = ui.id().with("params_network_splitter");
@@ -857,8 +856,7 @@ impl eframe::App for NodeBoxApp {
                 let is_active = splitter_response.dragged();
                 let is_hovered = splitter_response.hovered();
 
-                // Draw splitter line centered within the affordance zone
-                let line_y = splitter_rect.center().y;
+                // Draw splitter line at the boundary
                 let stroke_color = if is_active {
                     theme::ZINC_300
                 } else if is_hovered {
@@ -868,8 +866,8 @@ impl eframe::App for NodeBoxApp {
                 };
                 ui.painter().line_segment(
                     [
-                        Pos2::new(splitter_rect.left(), line_y),
-                        Pos2::new(splitter_rect.right(), line_y),
+                        Pos2::new(available.min.x, split_y),
+                        Pos2::new(available.max.x, split_y),
                     ],
                     egui::Stroke::new(theme::SPLITTER_THICKNESS, stroke_color),
                 );
@@ -880,15 +878,14 @@ impl eframe::App for NodeBoxApp {
 
                 if splitter_response.dragged() {
                     if let Some(pointer_pos) = ui.ctx().pointer_latest_pos() {
-                        let new_params_height = pointer_pos.y - available.min.y;
-                        let new_ratio = new_params_height / usable_height;
+                        let new_ratio = (pointer_pos.y - available.min.y) / available.height();
                         self.right_panel_split = new_ratio.clamp(min_ratio, max_ratio);
                     }
                 }
 
                 // Bottom: Network pane
                 let network_rect = Rect::from_min_max(
-                    Pos2::new(available.min.x, splitter_y + splitter_affordance),
+                    Pos2::new(available.min.x, split_y),
                     available.max,
                 );
 
