@@ -2270,7 +2270,7 @@ fn execute_node(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nodebox_core::node::{Port as NodePort, Connection, PortRange};
+    use nodebox_core::node::{Port, Connection, PortRange};
     use nodebox_core::platform::{TestPlatform, ProjectContext};
 
     /// Create a test platform and project context for evaluation tests.
@@ -2285,9 +2285,9 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::new(100.0, 100.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0))
+                    .with_input(Port::point("position", Point::new(100.0, 100.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
             )
             .with_rendered_child("ellipse1");
 
@@ -2307,17 +2307,17 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::new(100.0, 100.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0))
+                    .with_input(Port::point("position", Point::new(100.0, 100.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
             )
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::color("fill", Color::rgb(1.0, 0.0, 0.0)))
-                    .with_input(NodePort::color("stroke", Color::BLACK))
-                    .with_input(NodePort::float("strokeWidth", 2.0))
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0)))
+                    .with_input(Port::color("stroke", Color::BLACK))
+                    .with_input(Port::float("strokeWidth", 2.0))
             )
             .with_connection(Connection::new("ellipse1", "colorize1", "shape"))
             .with_rendered_child("colorize1");
@@ -2341,21 +2341,21 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0))
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
             )
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(NodePort::point("position", Point::new(100.0, 0.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0))
+                    .with_input(Port::point("position", Point::new(100.0, 0.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
             )
             .with_child(
                 Node::new("merge1")
                     .with_prototype("corevector.merge")
-                    .with_input(NodePort::geometry("shapes"))
+                    .with_input(Port::geometry("shapes"))
             )
             .with_connection(Connection::new("ellipse1", "merge1", "shapes"))
             .with_connection(Connection::new("rect1", "merge1", "shapes"))
@@ -2374,9 +2374,9 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("width", 80.0))
-                    .with_input(NodePort::float("height", 40.0))
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 80.0))
+                    .with_input(Port::float("height", 40.0))
             )
             .with_rendered_child("rect1");
 
@@ -2396,9 +2396,9 @@ mod tests {
             .with_child(
                 Node::new("line1")
                     .with_prototype("corevector.line")
-                    .with_input(NodePort::point("point1", Point::new(0.0, 0.0)))
-                    .with_input(NodePort::point("point2", Point::new(100.0, 50.0)))
-                    .with_input(NodePort::int("points", 2))
+                    .with_input(Port::point("point1", Point::new(0.0, 0.0)))
+                    .with_input(Port::point("point2", Point::new(100.0, 50.0)))
+                    .with_input(Port::int("points", 2))
             )
             .with_rendered_child("line1");
 
@@ -2418,10 +2418,10 @@ mod tests {
             .with_child(
                 Node::new("polygon1")
                     .with_prototype("corevector.polygon")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("radius", 50.0))
-                    .with_input(NodePort::int("sides", 6))
-                    .with_input(NodePort::boolean("align", true))
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("radius", 50.0))
+                    .with_input(Port::int("sides", 6))
+                    .with_input(Port::boolean("align", true))
             )
             .with_rendered_child("polygon1");
 
@@ -2442,10 +2442,10 @@ mod tests {
             .with_child(
                 Node::new("star1")
                     .with_prototype("corevector.star")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::int("points", 5))
-                    .with_input(NodePort::float("outer", 50.0))
-                    .with_input(NodePort::float("inner", 25.0))
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::int("points", 5))
+                    .with_input(Port::float("outer", 50.0))
+                    .with_input(Port::float("inner", 25.0))
             )
             .with_rendered_child("star1");
 
@@ -2465,12 +2465,12 @@ mod tests {
             .with_child(
                 Node::new("arc1")
                     .with_prototype("corevector.arc")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("width", 100.0))
-                    .with_input(NodePort::float("height", 100.0))
-                    .with_input(NodePort::float("start_angle", 0.0))
-                    .with_input(NodePort::float("degrees", 180.0))
-                    .with_input(NodePort::string("type", "pie"))
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+                    .with_input(Port::float("start_angle", 0.0))
+                    .with_input(Port::float("degrees", 180.0))
+                    .with_input(Port::string("type", "pie"))
             )
             .with_rendered_child("arc1");
 
@@ -2486,15 +2486,15 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0))
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
             )
             .with_child(
                 Node::new("translate1")
                     .with_prototype("corevector.translate")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::point("translate", Point::new(100.0, 50.0)))
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::point("translate", Point::new(100.0, 50.0)))
             )
             .with_connection(Connection::new("ellipse1", "translate1", "shape"))
             .with_rendered_child("translate1");
@@ -2519,16 +2519,16 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("width", 100.0))
-                    .with_input(NodePort::float("height", 100.0))
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
             )
             .with_child(
                 Node::new("scale1")
                     .with_prototype("corevector.scale")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::point("scale", Point::new(50.0, 200.0))) // 50% x, 200% y
-                    .with_input(NodePort::point("origin", Point::ZERO))
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::point("scale", Point::new(50.0, 200.0))) // 50% x, 200% y
+                    .with_input(Port::point("origin", Point::ZERO))
             )
             .with_connection(Connection::new("ellipse1", "scale1", "shape"))
             .with_rendered_child("scale1");
@@ -2550,19 +2550,19 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0))
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
             )
             .with_child(
                 Node::new("copy1")
                     .with_prototype("corevector.copy")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::int("copies", 3))
-                    .with_input(NodePort::string("order", "tsr"))
-                    .with_input(NodePort::point("translate", Point::new(60.0, 0.0)))
-                    .with_input(NodePort::float("rotate", 0.0))
-                    .with_input(NodePort::point("scale", Point::new(100.0, 100.0)))
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::int("copies", 3))
+                    .with_input(Port::string("order", "tsr"))
+                    .with_input(Port::point("translate", Point::new(60.0, 0.0)))
+                    .with_input(Port::float("rotate", 0.0))
+                    .with_input(Port::point("scale", Point::new(100.0, 100.0)))
             )
             .with_connection(Connection::new("ellipse1", "copy1", "shape"))
             .with_rendered_child("copy1");
@@ -2588,9 +2588,9 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0))
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
             );
         // No rendered_child set
 
@@ -2606,10 +2606,10 @@ mod tests {
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::color("fill", Color::rgb(1.0, 0.0, 0.0)))
-                    .with_input(NodePort::color("stroke", Color::BLACK))
-                    .with_input(NodePort::float("strokeWidth", 2.0))
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0)))
+                    .with_input(Port::color("stroke", Color::BLACK))
+                    .with_input(Port::float("strokeWidth", 2.0))
             )
             .with_rendered_child("colorize1");
 
@@ -2642,15 +2642,15 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("width", 100.0))
-                    .with_input(NodePort::float("height", 100.0))
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
             )
             .with_child(
                 Node::new("resample1")
                     .with_prototype("corevector.resample")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::int("points", 20))
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::int("points", 20))
             )
             .with_connection(Connection::new("ellipse1", "resample1", "shape"))
             .with_rendered_child("resample1");
@@ -2669,18 +2669,18 @@ mod tests {
             .with_child(
                 Node::new("grid1")
                     .with_prototype("corevector.grid")
-                    .with_input(NodePort::int("columns", 3))
-                    .with_input(NodePort::int("rows", 3))
-                    .with_input(NodePort::float("width", 100.0))
-                    .with_input(NodePort::float("height", 100.0))
-                    .with_input(NodePort::point("position", Point::ZERO))
+                    .with_input(Port::int("columns", 3))
+                    .with_input(Port::int("rows", 3))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+                    .with_input(Port::point("position", Point::ZERO))
             )
             .with_child(
                 Node::new("connect1")
                     .with_prototype("corevector.connect")
                     // points port expects entire list, not individual values
-                    .with_input(NodePort::geometry("points").with_port_range(PortRange::List))
-                    .with_input(NodePort::boolean("closed", false))
+                    .with_input(Port::geometry("points").with_port_range(PortRange::List))
+                    .with_input(Port::boolean("closed", false))
             )
             .with_connection(Connection::new("grid1", "connect1", "points"))
             .with_rendered_child("connect1");
@@ -2703,9 +2703,9 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::new(100.0, 50.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0))
+                    .with_input(Port::point("position", Point::new(100.0, 50.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
             )
             .with_rendered_child("ellipse1");
 
@@ -2730,9 +2730,9 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(NodePort::point("position", Point::new(-50.0, 25.0)))
-                    .with_input(NodePort::float("width", 80.0))
-                    .with_input(NodePort::float("height", 40.0))
+                    .with_input(Port::point("position", Point::new(-50.0, 25.0)))
+                    .with_input(Port::float("width", 80.0))
+                    .with_input(Port::float("height", 40.0))
             )
             .with_rendered_child("rect1");
 
@@ -2755,10 +2755,10 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
-                    .with_input(NodePort::float("width", 100.0))
-                    .with_input(NodePort::float("height", 100.0))
-                    .with_input(NodePort::point("roundness", Point::new(10.0, 10.0)))
+                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+                    .with_input(Port::point("roundness", Point::new(10.0, 10.0)))
             )
             .with_rendered_child("rect1");
 
@@ -2776,10 +2776,10 @@ mod tests {
             .with_child(
                 Node::new("polygon1")
                     .with_prototype("corevector.polygon")
-                    .with_input(NodePort::point("position", Point::new(200.0, -100.0)))
-                    .with_input(NodePort::float("radius", 50.0))
-                    .with_input(NodePort::int("sides", 6))
-                    .with_input(NodePort::boolean("align", true))
+                    .with_input(Port::point("position", Point::new(200.0, -100.0)))
+                    .with_input(Port::float("radius", 50.0))
+                    .with_input(Port::int("sides", 6))
+                    .with_input(Port::boolean("align", true))
             )
             .with_rendered_child("polygon1");
 
@@ -2802,10 +2802,10 @@ mod tests {
             .with_child(
                 Node::new("star1")
                     .with_prototype("corevector.star")
-                    .with_input(NodePort::point("position", Point::new(75.0, 75.0)))
-                    .with_input(NodePort::int("points", 5))
-                    .with_input(NodePort::float("outer", 50.0))
-                    .with_input(NodePort::float("inner", 25.0))
+                    .with_input(Port::point("position", Point::new(75.0, 75.0)))
+                    .with_input(Port::int("points", 5))
+                    .with_input(Port::float("outer", 50.0))
+                    .with_input(Port::float("inner", 25.0))
             )
             .with_rendered_child("star1");
 
@@ -2829,12 +2829,12 @@ mod tests {
             .with_child(
                 Node::new("arc1")
                     .with_prototype("corevector.arc")
-                    .with_input(NodePort::point("position", Point::new(50.0, -50.0)))
-                    .with_input(NodePort::float("width", 100.0))
-                    .with_input(NodePort::float("height", 100.0))
-                    .with_input(NodePort::float("start_angle", 0.0))
-                    .with_input(NodePort::float("degrees", 180.0))
-                    .with_input(NodePort::string("type", "pie"))
+                    .with_input(Port::point("position", Point::new(50.0, -50.0)))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+                    .with_input(Port::float("start_angle", 0.0))
+                    .with_input(Port::float("degrees", 180.0))
+                    .with_input(Port::string("type", "pie"))
             )
             .with_rendered_child("arc1");
 
@@ -2857,19 +2857,19 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0))
+                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
             )
             .with_child(
                 Node::new("copy1")
                     .with_prototype("corevector.copy")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::int("copies", 3))
-                    .with_input(NodePort::string("order", "tsr"))
-                    .with_input(NodePort::point("translate", Point::new(60.0, 0.0)))
-                    .with_input(NodePort::float("rotate", 0.0))
-                    .with_input(NodePort::point("scale", Point::new(100.0, 100.0)))
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::int("copies", 3))
+                    .with_input(Port::string("order", "tsr"))
+                    .with_input(Port::point("translate", Point::new(60.0, 0.0)))
+                    .with_input(Port::float("rotate", 0.0))
+                    .with_input(Port::point("scale", Point::new(100.0, 100.0)))
             )
             .with_connection(Connection::new("ellipse1", "copy1", "shape"))
             .with_rendered_child("copy1");
@@ -2896,18 +2896,18 @@ mod tests {
             .with_child(
                 Node::new("grid1")
                     .with_prototype("corevector.grid")
-                    .with_input(NodePort::int("columns", 3))
-                    .with_input(NodePort::int("rows", 3))
-                    .with_input(NodePort::float("width", 100.0))
-                    .with_input(NodePort::float("height", 100.0))
-                    .with_input(NodePort::point("position", Point::new(50.0, 50.0)))
+                    .with_input(Port::int("columns", 3))
+                    .with_input(Port::int("rows", 3))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+                    .with_input(Port::point("position", Point::new(50.0, 50.0)))
             )
             .with_child(
                 Node::new("connect1")
                     .with_prototype("corevector.connect")
                     // points port expects entire list, not individual values
-                    .with_input(NodePort::geometry("points").with_port_range(PortRange::List))
-                    .with_input(NodePort::boolean("closed", false))
+                    .with_input(Port::geometry("points").with_port_range(PortRange::List))
+                    .with_input(Port::boolean("closed", false))
             )
             .with_connection(Connection::new("grid1", "connect1", "points"))
             .with_rendered_child("connect1");
@@ -2931,17 +2931,17 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
-                    .with_input(NodePort::float("width", 100.0))
-                    .with_input(NodePort::float("height", 100.0))
+                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
             )
             .with_child(
                 Node::new("wiggle1")
                     .with_prototype("corevector.wiggle")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::string("scope", "points"))
-                    .with_input(NodePort::point("offset", Point::new(10.0, 10.0)))
-                    .with_input(NodePort::int("seed", 42))
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::string("scope", "points"))
+                    .with_input(Port::point("offset", Point::new(10.0, 10.0)))
+                    .with_input(Port::int("seed", 42))
             )
             .with_connection(Connection::new("ellipse1", "wiggle1", "shape"))
             .with_rendered_child("wiggle1");
@@ -2960,18 +2960,18 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
-                    .with_input(NodePort::float("width", 200.0))
-                    .with_input(NodePort::float("height", 100.0))
+                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
+                    .with_input(Port::float("width", 200.0))
+                    .with_input(Port::float("height", 100.0))
             )
             .with_child(
                 Node::new("fit1")
                     .with_prototype("corevector.fit")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::point("position", Point::new(100.0, 100.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0))
-                    .with_input(NodePort::boolean("keep_proportions", true))
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::point("position", Point::new(100.0, 100.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
+                    .with_input(Port::boolean("keep_proportions", true))
             )
             .with_connection(Connection::new("ellipse1", "fit1", "shape"))
             .with_rendered_child("fit1");
@@ -3048,31 +3048,31 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(NodePort::point("position", Point::new(-100.0, 0.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0)),
+                    .with_input(Port::point("position", Point::new(-100.0, 0.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0)),
             )
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0)),
+                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0)),
             )
             .with_child(
                 Node::new("polygon1")
                     .with_prototype("corevector.polygon")
-                    .with_input(NodePort::point("position", Point::new(100.0, 0.0)))
-                    .with_input(NodePort::float("radius", 25.0))
-                    .with_input(NodePort::int("sides", 6)),
+                    .with_input(Port::point("position", Point::new(100.0, 0.0)))
+                    .with_input(Port::float("radius", 25.0))
+                    .with_input(Port::int("sides", 6)),
             )
             .with_child(
                 Node::new("combine1")
                     .with_prototype("list.combine")
                     // Note: list.combine ports should accept lists, not iterate over them
-                    .with_input(NodePort::geometry("list1").with_port_range(PortRange::List))
-                    .with_input(NodePort::geometry("list2").with_port_range(PortRange::List))
-                    .with_input(NodePort::geometry("list3").with_port_range(PortRange::List)),
+                    .with_input(Port::geometry("list1").with_port_range(PortRange::List))
+                    .with_input(Port::geometry("list2").with_port_range(PortRange::List))
+                    .with_input(Port::geometry("list3").with_port_range(PortRange::List)),
             )
             .with_connection(Connection::new("rect1", "combine1", "list1"))
             .with_connection(Connection::new("ellipse1", "combine1", "list2"))
@@ -3101,41 +3101,41 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(NodePort::point("position", Point::new(-100.0, 0.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0)),
+                    .with_input(Port::point("position", Point::new(-100.0, 0.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0)),
             )
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0)),
+                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0)),
             )
             .with_child(
                 Node::new("polygon1")
                     .with_prototype("corevector.polygon")
-                    .with_input(NodePort::point("position", Point::new(100.0, 0.0)))
-                    .with_input(NodePort::float("radius", 25.0))
-                    .with_input(NodePort::int("sides", 6)),
+                    .with_input(Port::point("position", Point::new(100.0, 0.0)))
+                    .with_input(Port::float("radius", 25.0))
+                    .with_input(Port::int("sides", 6)),
             )
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::color("fill", Color::rgb(1.0, 0.0, 0.0))),
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0))),
             )
             .with_child(
                 Node::new("colorize2")
                     .with_prototype("corevector.colorize")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::color("fill", Color::rgb(0.0, 1.0, 0.0))),
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::color("fill", Color::rgb(0.0, 1.0, 0.0))),
             )
             .with_child(
                 Node::new("colorize3")
                     .with_prototype("corevector.colorize")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::color("fill", Color::rgb(0.0, 0.0, 1.0))),
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::color("fill", Color::rgb(0.0, 0.0, 1.0))),
             )
             .with_child(
                 Node::new("combine1")
@@ -3175,15 +3175,15 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0)),
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0)),
             )
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
                     // Only fill is defined, NOT shape - mimics ndbx file
-                    .with_input(NodePort::color("fill", Color::rgb(1.0, 0.0, 0.0))),
+                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0))),
             )
             .with_connection(Connection::new("rect1", "colorize1", "shape"))
             .with_rendered_child("colorize1");
@@ -3209,16 +3209,16 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(NodePort::point("position", Point::new(-100.0, 0.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0)),
+                    .with_input(Port::point("position", Point::new(-100.0, 0.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0)),
             )
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::new(0.0, 0.0)))
-                    .with_input(NodePort::float("width", 50.0))
-                    .with_input(NodePort::float("height", 50.0)),
+                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0)),
             )
             .with_child(
                 Node::new("combine1")
@@ -3251,19 +3251,19 @@ mod tests {
             .with_child(
                 Node::new("grid1")
                     .with_prototype("corevector.grid")
-                    .with_input(NodePort::int("columns", 10))
-                    .with_input(NodePort::int("rows", 10))
-                    .with_input(NodePort::float("width", 300.0))
-                    .with_input(NodePort::float("height", 300.0))
-                    .with_input(NodePort::point("position", Point::ZERO)),
+                    .with_input(Port::int("columns", 10))
+                    .with_input(Port::int("rows", 10))
+                    .with_input(Port::float("width", 300.0))
+                    .with_input(Port::float("height", 300.0))
+                    .with_input(Port::point("position", Point::ZERO)),
             )
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("width", 20.0))
-                    .with_input(NodePort::float("height", 20.0))
-                    .with_input(NodePort::point("roundness", Point::ZERO)),
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 20.0))
+                    .with_input(Port::float("height", 20.0))
+                    .with_input(Port::point("roundness", Point::ZERO)),
             )
             .with_connection(Connection::new("grid1", "rect1", "position"))
             .with_rendered_child("rect1");
@@ -3292,8 +3292,8 @@ mod tests {
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::color("fill", Color::rgb(1.0, 0.0, 0.0)))
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0)))
             )
             .with_rendered_child("colorize1");
 
@@ -3321,13 +3321,13 @@ mod tests {
             .with_child(
                 Node::new("colorize1")
                     .with_prototype("corevector.colorize")
-                    .with_input(NodePort::geometry("shape"))
+                    .with_input(Port::geometry("shape"))
             )
             .with_child(
                 Node::new("translate1")
                     .with_prototype("corevector.translate")
-                    .with_input(NodePort::geometry("shape"))
-                    .with_input(NodePort::point("translate", Point::new(10.0, 10.0)))
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::point("translate", Point::new(10.0, 10.0)))
             )
             .with_connection(Connection::new("colorize1", "translate1", "shape"))
             .with_rendered_child("translate1");
@@ -3349,9 +3349,9 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(NodePort::point("position", Point::ZERO))
-                    .with_input(NodePort::float("width", 100.0))
-                    .with_input(NodePort::float("height", 100.0))
+                    .with_input(Port::point("position", Point::ZERO))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
             )
             .with_rendered_child("ellipse1");
 
@@ -3373,7 +3373,7 @@ mod tests {
             .with_child(
                 Node::new("my_colorize_node")
                     .with_prototype("corevector.colorize")
-                    .with_input(NodePort::geometry("shape"))
+                    .with_input(Port::geometry("shape"))
             )
             .with_rendered_child("my_colorize_node");
 
@@ -3396,18 +3396,18 @@ mod tests {
             .with_child(
                 Node::new("sample1")
                     .with_prototype("math.sample")
-                    .with_input(NodePort::int("amount", 5))
-                    .with_input(NodePort::float("start", 0.0))
-                    .with_input(NodePort::float("end", 255.0)),
+                    .with_input(Port::int("amount", 5))
+                    .with_input(Port::float("start", 0.0))
+                    .with_input(Port::float("end", 255.0)),
             )
             .with_child(
                 Node::new("rgb1")
                     .with_prototype("color.rgb_color")
-                    .with_input(NodePort::float("red", 0.0))
-                    .with_input(NodePort::float("green", 0.0))
-                    .with_input(NodePort::float("blue", 0.0))
-                    .with_input(NodePort::float("alpha", 255.0))
-                    .with_input(NodePort::float("range", 255.0)),
+                    .with_input(Port::float("red", 0.0))
+                    .with_input(Port::float("green", 0.0))
+                    .with_input(Port::float("blue", 0.0))
+                    .with_input(Port::float("alpha", 255.0))
+                    .with_input(Port::float("range", 255.0)),
             )
             .with_connection(Connection::new("sample1", "rgb1", "red"))
             .with_rendered_child("rgb1");
@@ -3475,19 +3475,19 @@ mod tests {
             .with_child(
                 Node::new("sample1")
                     .with_prototype("math.sample")
-                    .with_input(NodePort::int("amount", 3))
-                    .with_input(NodePort::float("start", 0.0))
-                    .with_input(NodePort::float("end", 255.0))
+                    .with_input(Port::int("amount", 3))
+                    .with_input(Port::float("start", 0.0))
+                    .with_input(Port::float("end", 255.0))
                     .with_output_range(PortRange::List)
             )
             .with_child(
                 Node::new("rgb_color1")
                     .with_prototype("color.rgb_color")
-                    .with_input(NodePort::float("red", 0.0))
-                    .with_input(NodePort::float("green", 0.0))
-                    .with_input(NodePort::float("blue", 0.0))
-                    .with_input(NodePort::float("alpha", 255.0))
-                    .with_input(NodePort::float("range", 255.0))
+                    .with_input(Port::float("red", 0.0))
+                    .with_input(Port::float("green", 0.0))
+                    .with_input(Port::float("blue", 0.0))
+                    .with_input(Port::float("alpha", 255.0))
+                    .with_input(Port::float("range", 255.0))
                     .with_output_type(nodebox_core::node::PortType::Color)
             )
             .with_connection(Connection::new("sample1", "rgb_color1", "red"))
