@@ -29,7 +29,7 @@ mod animation_bar;
 pub mod app;
 mod canvas;
 mod components;
-pub mod eval;
+pub use nodebox_eval::eval;
 mod export;
 pub mod handles;
 pub mod history;

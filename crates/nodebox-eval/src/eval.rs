@@ -10,7 +10,7 @@ use nodebox_core::Value;
 use nodebox_core::platform::{Platform, ProjectContext};
 use nodebox_core::ops;
 use ops::data::DataValue;
-use crate::render_worker::CancellationToken;
+use crate::cancellation::CancellationToken;
 
 /// Error information for a specific node.
 #[derive(Debug, Clone)]
@@ -1082,7 +1082,9 @@ fn execute_node(
             let font_name = get_string(inputs, "font_name", "Verdana");
             let font_size = get_float(inputs, "font_size", 24.0);
             let position = get_point(inputs, "position", Point::ZERO);
-            let path = font::text_to_path(&text, &font_name, font_size, position)
+            let font_bytes = port.get_font_bytes(&font_name)
+                .map_err(|e| EvalError::ProcessingError(format!("Failed to load font '{}': {}", font_name, e)))?;
+            let path = font::text_to_path_from_bytes(&text, &font_bytes, font_size, position)
                 .map_err(|e| EvalError::ProcessingError(e.to_string()))?;
             Ok(NodeOutput::Path(path))
         }

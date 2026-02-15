@@ -1,0 +1,26 @@
+[package]
+name = "nodebox-electron"
+description = "WASM bindings for the NodeBox Electron app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+nodebox-core = { path = "../nodebox-core", default-features = false, features = ["serde"] }
+nodebox-eval = { path = "../nodebox-eval" }
+
+# Enable the "js" feature on uuid for wasm32 randomness support
+uuid = { workspace = true, features = ["js"] }
+
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde-wasm-bindgen = "0.6"
+console_error_panic_hook = "0.1"
+log = "0.4"

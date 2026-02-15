@@ -10,6 +10,7 @@ use crate::geometry::Color;
 /// NodeLibrary represents a document or a built-in library of nodes.
 /// It has a root network node that contains all other nodes.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct NodeLibrary {
     /// The library name (e.g., "corevector", "math").
     pub name: String,

@@ -18,6 +18,7 @@ use super::Point;
 /// assert_eq!(r.center(), Point::new(60.0, 45.0));
 /// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Rect {
     pub x: f64,
     pub y: f64,

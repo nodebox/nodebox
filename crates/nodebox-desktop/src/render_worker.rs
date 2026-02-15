@@ -1,50 +1,13 @@
 //! Background render worker for non-blocking network evaluation.
 
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::Instant;
 use nodebox_core::geometry::Path as GeoPath;
 use nodebox_core::node::NodeLibrary;
 use nodebox_core::platform::{Platform, ProjectContext};
-use crate::eval::{NodeError, NodeOutput};
-
-/// Token for cooperative cancellation of render operations.
-///
-/// The token is shared between the main thread and the render worker.
-/// When cancelled, the worker should check `is_cancelled()` at appropriate
-/// boundaries (per-node and per-iteration) and return early.
-#[derive(Clone)]
-pub struct CancellationToken {
-    cancelled: Arc<AtomicBool>,
-}
-
-impl CancellationToken {
-    /// Create a new cancellation token in the non-cancelled state.
-    pub fn new() -> Self {
-        Self {
-            cancelled: Arc::new(AtomicBool::new(false)),
-        }
-    }
-
-    /// Request cancellation. This is thread-safe and can be called from any thread.
-    pub fn cancel(&self) {
-        self.cancelled.store(true, Ordering::SeqCst);
-    }
-
-    /// Check if cancellation has been requested.
-    /// Call this at appropriate boundaries (before each node, during iterations).
-    pub fn is_cancelled(&self) -> bool {
-        self.cancelled.load(Ordering::SeqCst)
-    }
-}
-
-impl Default for CancellationToken {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+use nodebox_eval::{CancellationToken, NodeError, NodeOutput};
 
 /// Unique identifier for a render request.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -71,7 +34,7 @@ pub enum RenderResult {
     Success {
         id: RenderRequestId,
         geometry: Vec<GeoPath>,
-        output: crate::eval::NodeOutput,
+        output: NodeOutput,
         errors: Vec<NodeError>,
     },
     /// Evaluation was cancelled before completion.
@@ -240,7 +203,7 @@ fn render_worker_loop(
                 node_cache.clear();
 
                 // Evaluate the network with cancellation support
-                let result = crate::eval::evaluate_network_cancellable(
+                let result = nodebox_eval::eval::evaluate_network_cancellable(
                     &final_library,
                     &final_token,
                     &mut node_cache,
@@ -249,7 +212,7 @@ fn render_worker_loop(
                 );
 
                 match result {
-                    crate::eval::EvalOutcome::Completed { geometry, output, errors } => {
+                    nodebox_eval::eval::EvalOutcome::Completed { geometry, output, errors } => {
                         let _ = result_tx.send(RenderResult::Success {
                             id: final_id,
                             geometry,
@@ -257,7 +220,7 @@ fn render_worker_loop(
                             errors,
                         });
                     }
-                    crate::eval::EvalOutcome::Cancelled => {
+                    nodebox_eval::eval::EvalOutcome::Cancelled => {
                         let _ = result_tx.send(RenderResult::Cancelled {
                             id: final_id,
                         });
