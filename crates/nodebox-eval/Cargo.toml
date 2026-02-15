@@ -1,0 +1,12 @@
+[package]
+name = "nodebox-eval"
+description = "Node graph evaluation and template definitions for NodeBox"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+nodebox-core = { path = "../nodebox-core", default-features = false }
+log = "0.4"

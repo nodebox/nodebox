@@ -5,6 +5,7 @@ use crate::Value;
 
 /// The data type of a port.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum PortType {
     Int,
     Float,
@@ -136,6 +137,7 @@ impl Default for PortType {
 
 /// The UI widget type for a port.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Widget {
     #[default]
     None,
@@ -197,6 +199,7 @@ impl Widget {
 
 /// Whether a port expects a single value or a list.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum PortRange {
     /// Single value.
     #[default]
@@ -216,6 +219,7 @@ impl PortRange {
 
 /// A menu item for menu-based ports.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MenuItem {
     pub key: String,
     pub label: String,
@@ -232,6 +236,7 @@ impl MenuItem {
 
 /// An input or output port on a node.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Port {
     /// The port name (identifier).
     pub name: String,

@@ -17,6 +17,7 @@ use std::str::FromStr;
 /// let gray = Color::gray(0.5);
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Color {
     /// Red component (0.0 to 1.0)
     pub r: f64,

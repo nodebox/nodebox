@@ -13,6 +13,7 @@ path = "src/lib.rs"
 
 [dependencies]
 nodebox-core = { path = "../nodebox-core" }
+nodebox-eval = { path = "../nodebox-eval" }
 
 # GUI
 eframe = "0.33"

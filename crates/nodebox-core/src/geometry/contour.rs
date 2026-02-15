@@ -25,6 +25,7 @@ use super::{PathPoint, Point, PointType, Transform, Rect};
 /// contour.close();
 /// ```
 #[derive(Clone, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Contour {
     /// The points in this contour.
     pub points: Vec<PathPoint>,

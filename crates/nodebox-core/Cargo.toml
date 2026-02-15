@@ -7,6 +7,11 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 
+[features]
+default = ["parallel"]
+parallel = ["dep:rayon"]
+serde = ["dep:serde"]
+
 [dependencies]
 uuid = { workspace = true }
 
@@ -15,7 +20,7 @@ fontdb = "0.18"
 ttf-parser = "0.21"
 
 # From nodebox-ops
-rayon = "1.10"
+rayon = { version = "1.10", optional = true }
 usvg = "0.42"
 csv = "1"
 
@@ -27,6 +32,9 @@ thiserror = { workspace = true }
 
 # From nodebox-port
 log = "0.4"
+
+# Optional serde support
+serde = { version = "1", features = ["derive"], optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 uuid = { workspace = true, features = ["js"] }

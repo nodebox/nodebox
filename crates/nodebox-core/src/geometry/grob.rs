@@ -17,6 +17,7 @@ use super::{Path, Transform, Rect, Color};
 /// geo.add(Path::ellipse(150.0, 50.0, 80.0, 80.0));
 /// ```
 #[derive(Clone, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Geometry {
     /// The paths in this geometry.
     pub paths: Vec<Path>,
@@ -128,6 +129,7 @@ impl FromIterator<Path> for Geometry {
 ///
 /// This enum allows heterogeneous collections of visual elements.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Grob {
     /// A single path.
     Path(Path),

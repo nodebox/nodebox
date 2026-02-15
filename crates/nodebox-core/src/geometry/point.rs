@@ -21,6 +21,7 @@ use std::str::FromStr;
 /// assert_eq!(moved, Point::new(15.0, 15.0));
 /// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Point {
     pub x: f64,
     pub y: f64,
@@ -158,6 +159,7 @@ impl FromStr for Point {
 
 /// The type of a point in a path, indicating how to draw to this point.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum PointType {
     /// Draw a straight line to this point.
     #[default]
@@ -191,6 +193,7 @@ impl PointType {
 /// PathPoint combines a [`Point`] with a [`PointType`] to indicate
 /// how the path should be drawn to this point.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PathPoint {
     pub point: Point,
     pub point_type: PointType,

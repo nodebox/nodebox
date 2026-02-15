@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 use nodebox_core::geometry::Point;
 use nodebox_core::node::{Node, NodeLibrary, Port};
 use nodebox_desktop::eval::{EvalOutcome, NodeOutput, evaluate_network_cancellable};
-use nodebox_desktop::render_worker::CancellationToken;
+use nodebox_eval::CancellationToken;
 use nodebox_core::platform::{Platform, ProjectContext, TestPlatform};
 
 /// Create a test platform and project context for evaluation tests.

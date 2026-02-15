@@ -5,6 +5,7 @@ use super::font::{text_to_path, FontError};
 
 /// Text alignment options.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum TextAlign {
     #[default]
     Left,
@@ -17,6 +18,7 @@ pub enum TextAlign {
 /// Text rendering requires font support which is platform-dependent.
 /// This struct holds the text properties; actual rendering happens elsewhere.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Text {
     /// The text content.
     pub text: String,

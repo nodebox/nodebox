@@ -20,6 +20,7 @@ use super::{Contour, Color, Transform, Rect, Point, PathPoint};
 /// path.fill = Some(Color::rgb(1.0, 0.0, 0.0));
 /// ```
 #[derive(Clone, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Path {
     /// The contours that make up this path.
     pub contours: Vec<Contour>,

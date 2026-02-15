@@ -19,6 +19,7 @@ pub mod math;
 pub mod list;
 pub mod string;
 pub mod data;
+#[cfg(feature = "parallel")]
 pub mod parallel;
 pub mod svg;
 

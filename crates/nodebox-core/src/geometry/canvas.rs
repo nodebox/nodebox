@@ -6,6 +6,7 @@ use super::{Grob, Geometry, Color, Rect, Point};
 ///
 /// Canvases can be nested, and are the top-level container for visual output.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Canvas {
     /// Canvas width.
     pub width: f64,
