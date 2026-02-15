@@ -93,18 +93,14 @@ impl PortType {
             return true;
         }
 
-        // Data <-> List bidirectional (data nodes consume and produce lists of data rows)
-        if matches!(output_type, PortType::Data) && matches!(input_type, PortType::List) {
-            return true;
-        }
-        if matches!(output_type, PortType::List) && matches!(input_type, PortType::Data) {
+        // Data output can connect to any input (runtime type determined by actual data,
+        // e.g. lookup returns Float for numeric columns, String for text, etc.)
+        if matches!(output_type, PortType::Data) {
             return true;
         }
 
-        // Data output can connect to numeric inputs (e.g. lookup returns Float for numeric columns)
-        if matches!(output_type, PortType::Data)
-            && matches!(input_type, PortType::Float | PortType::Int | PortType::Point)
-        {
+        // Data inputs accept any output (data nodes consume lists of data rows)
+        if matches!(input_type, PortType::Data) {
             return true;
         }
 
