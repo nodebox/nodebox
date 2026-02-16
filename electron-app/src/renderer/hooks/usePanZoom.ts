@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface PanZoomState {
   panX: number;
@@ -24,6 +24,7 @@ export interface UsePanZoomResult {
   setPan: (x: number, y: number) => void;
   setZoom: (z: number) => void;
   isPanning: boolean;
+  isSpaceDown: boolean;
 }
 
 const MIN_ZOOM = 0.1;
@@ -43,7 +44,32 @@ export function usePanZoom(
     zoom: initialZoom,
   });
   const [isPanning, setIsPanning] = useState(false);
+  const [isSpaceDown, setIsSpaceDown] = useState(false);
   const lastPos = useRef({ x: 0, y: 0 });
+
+  // Track spacebar for space+drag panning
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !e.repeat) {
+        // Only activate space-pan if no text input is focused
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        e.preventDefault();
+        setIsSpaceDown(true);
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        setIsSpaceDown(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, []);
 
   const { panX, panY, zoom } = pzState;
 
@@ -102,10 +128,13 @@ export function usePanZoom(
     [scrollToZoom, centerOrigin],
   );
 
+  const spaceRef = useRef(isSpaceDown);
+  spaceRef.current = isSpaceDown;
+
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (e.button === 1 || (e.button === 0 && e.altKey)) {
-        // Middle mouse or Alt+click = pan
+      if (e.button === 1 || (e.button === 0 && (e.altKey || spaceRef.current))) {
+        // Middle mouse, Alt+click, or Space+click = pan
         setIsPanning(true);
         lastPos.current = { x: e.clientX, y: e.clientY };
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -191,5 +220,6 @@ export function usePanZoom(
     setPan,
     setZoom,
     isPanning,
+    isSpaceDown,
   };
 }

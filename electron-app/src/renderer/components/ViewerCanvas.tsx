@@ -293,7 +293,7 @@ export function ViewerCanvas() {
     [activeNode, library],
   );
 
-  const panZoom = usePanZoom(undefined, undefined, { scrollToZoom: true, centerOrigin: true });
+  const panZoom = usePanZoom(undefined, undefined, { centerOrigin: true });
   const { state: pz, handlers } = panZoom;
   const { zoomIn, zoomOut, setPan, setZoom } = panZoom;
 
@@ -423,8 +423,8 @@ export function ViewerCanvas() {
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      // Only intercept left click, no Alt (Alt is for pan)
-      if (e.button === 0 && !e.altKey && showHandles && fourPointHandle) {
+      // Only intercept left click, not when Alt or Space is held (those are for pan)
+      if (e.button === 0 && !e.altKey && !panZoom.isSpaceDown && showHandles && fourPointHandle) {
         const { sx, sy, canvasW, canvasH, worldX, worldY } = pointerToWorld(e);
 
         const wts = (wx: number, wy: number) => ({
@@ -487,7 +487,7 @@ export function ViewerCanvas() {
     [handleDragTarget, handlers],
   );
 
-  const cursor = handleDragTarget !== 'none' || panZoom.isPanning ? 'grabbing' : 'default';
+  const cursor = handleDragTarget !== 'none' || panZoom.isPanning ? 'grabbing' : panZoom.isSpaceDown ? 'grab' : 'default';
 
   return (
     <canvas
