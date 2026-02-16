@@ -1,9 +1,9 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../state/store';
 import { usePanZoom } from '../hooks/usePanZoom';
 import { useCanvasRenderer } from '../hooks/useCanvasRenderer';
 import type { PathRenderData, TextRenderData } from '../types/eval-result';
-import type { Contour } from '../types/geometry';
+import type { Contour, Point } from '../types/geometry';
 import {
   ZINC_200,
   VIEWER_CROSSHAIR,
@@ -11,7 +11,15 @@ import {
   POINT_LINE_TO,
   POINT_CURVE_TO,
   POINT_CURVE_DATA,
+  HANDLE_PRIMARY,
 } from '../theme/tokens';
+import {
+  drawFourPointHandle,
+  hitTest,
+  applyDrag,
+  type FourPointDragTarget,
+} from '../viewer/four-point-handle';
+import { resolveFourPointHandle } from '../viewer/handle-resolver';
 
 function colorToCSS(c: { r: number; g: number; b: number; a: number }): string {
   return `rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${c.a})`;
@@ -268,6 +276,17 @@ export function ViewerCanvas() {
   const setViewerZoom = useStore((s) => s.setViewerZoom);
   const viewerZoomAction = useStore((s) => s.viewerZoomAction);
   const clearViewerZoomAction = useStore((s) => s.clearViewerZoomAction);
+  const setPortValue = useStore((s) => s.setPortValue);
+  const pushSnapshot = useStore((s) => s.pushSnapshot);
+
+  const [handleDragTarget, setHandleDragTarget] = useState<FourPointDragTarget>('none');
+  const handleDragStartWorld = useRef<Point>({ x: 0, y: 0 });
+  const handleDragStartValues = useRef({ center: { x: 0, y: 0 }, width: 100, height: 100 });
+
+  const fourPointHandle = useMemo(
+    () => resolveFourPointHandle(library.root.renderedChild, library.root.children),
+    [library],
+  );
 
   const panZoom = usePanZoom(undefined, undefined, { scrollToZoom: true, centerOrigin: true });
   const { state: pz, handlers } = panZoom;
@@ -318,8 +337,8 @@ export function ViewerCanvas() {
         ctx.restore();
       }
 
-      // Draw handles and points
-      if (showHandles || showPoints) {
+      // Draw points
+      if (showPoints) {
         ctx.save();
         ctx.translate(width / 2 + pz.panX, height / 2 + pz.panY);
         ctx.scale(pz.zoom, pz.zoom);
@@ -327,60 +346,27 @@ export function ViewerCanvas() {
         if (renderResult) {
           for (const pathData of renderResult.paths) {
             for (const contour of pathData.contours) {
-              const pts = contour.points;
-
-              if (showHandles && pathData.editable !== false) {
-                // Draw handle lines from curveData to their curveTo
-                ctx.strokeStyle = VIEWER_CROSSHAIR;
-                ctx.lineWidth = 1 / pz.zoom;
-                let j = 0;
-                while (j < pts.length) {
-                  if (pts[j].pointType === 'curveData' && j + 2 < pts.length && pts[j + 2].pointType === 'curveTo') {
-                    const cp1 = pts[j];
-                    const cp2 = pts[j + 1];
-                    const end = pts[j + 2];
-                    // Find the previous point for cp1 line
-                    if (j > 0) {
-                      const prev = pts[j - 1];
-                      ctx.beginPath();
-                      ctx.moveTo(prev.x, prev.y);
-                      ctx.lineTo(cp1.x, cp1.y);
-                      ctx.stroke();
-                    }
-                    // Line from cp2 to curveTo
-                    ctx.beginPath();
-                    ctx.moveTo(cp2.x, cp2.y);
-                    ctx.lineTo(end.x, end.y);
-                    ctx.stroke();
-                    // Small circles at control points
-                    const r = 3 / pz.zoom;
-                    ctx.beginPath();
-                    ctx.arc(cp1.x, cp1.y, r, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.arc(cp2.x, cp2.y, r, 0, Math.PI * 2);
-                    ctx.stroke();
-                    j += 3;
-                  } else {
-                    j++;
-                  }
-                }
-              }
-
-              if (showPoints) {
-                const r = 3 / pz.zoom;
-                for (const pt of pts) {
-                  ctx.fillStyle = pointColor(pt.pointType);
-                  ctx.beginPath();
-                  ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
-                  ctx.fill();
-                }
+              const r = 3 / pz.zoom;
+              for (const pt of contour.points) {
+                ctx.fillStyle = pointColor(pt.pointType);
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+                ctx.fill();
               }
             }
           }
         }
 
         ctx.restore();
+      }
+
+      // Draw four-point handle (in screen space)
+      if (showHandles && fourPointHandle) {
+        const wts = (wx: number, wy: number) => ({
+          x: width / 2 + pz.panX + wx * pz.zoom,
+          y: height / 2 + pz.panY + wy * pz.zoom,
+        });
+        drawFourPointHandle(ctx, fourPointHandle, HANDLE_PRIMARY, wts);
       }
 
       // Draw point numbers (in screen space, after restoring from world transform)
@@ -407,20 +393,109 @@ export function ViewerCanvas() {
         drawOrigin(ctx, width, height, pz.panX, pz.panY);
       }
     },
-    [pz, renderResult, showOrigin, showCanvasBorder, showHandles, showPoints, showPointNumbers, docWidth, docHeight, canvasBg],
+    [pz, renderResult, showOrigin, showCanvasBorder, showHandles, showPoints, showPointNumbers, docWidth, docHeight, canvasBg, fourPointHandle],
   );
 
   const { canvasRef } = useCanvasRenderer(draw);
+
+  // Convert pointer event to world coordinates (center-origin)
+  const pointerToWorld = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      return {
+        sx,
+        sy,
+        canvasW: rect.width,
+        canvasH: rect.height,
+        worldX: (sx - rect.width / 2 - pz.panX) / pz.zoom,
+        worldY: (sy - rect.height / 2 - pz.panY) / pz.zoom,
+      };
+    },
+    [pz],
+  );
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      // Only intercept left click, no Alt (Alt is for pan)
+      if (e.button === 0 && !e.altKey && showHandles && fourPointHandle) {
+        const { sx, sy, canvasW, canvasH, worldX, worldY } = pointerToWorld(e);
+
+        const wts = (wx: number, wy: number) => ({
+          x: canvasW / 2 + pz.panX + wx * pz.zoom,
+          y: canvasH / 2 + pz.panY + wy * pz.zoom,
+        });
+        const target = hitTest(fourPointHandle, sx, sy, wts);
+
+        if (target !== 'none') {
+          pushSnapshot(library);
+          setHandleDragTarget(target);
+          handleDragStartWorld.current = { x: worldX, y: worldY };
+          handleDragStartValues.current = {
+            center: { ...fourPointHandle.center },
+            width: fourPointHandle.width,
+            height: fourPointHandle.height,
+          };
+          e.currentTarget.setPointerCapture(e.pointerId);
+          e.preventDefault();
+          return;
+        }
+      }
+      handlers.onPointerDown(e);
+    },
+    [showHandles, fourPointHandle, pz, handlers, pushSnapshot, library, pointerToWorld],
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (handleDragTarget !== 'none' && fourPointHandle) {
+        const { worldX, worldY } = pointerToWorld(e);
+        const dx = worldX - handleDragStartWorld.current.x;
+        const dy = worldY - handleDragStartWorld.current.y;
+        const result = applyDrag(handleDragTarget, handleDragStartValues.current, dx, dy);
+
+        setPortValue(fourPointHandle.nodeName, 'position', {
+          type: 'point',
+          value: result.center,
+        });
+        setPortValue(fourPointHandle.nodeName, 'width', {
+          type: 'float',
+          value: result.width,
+        });
+        setPortValue(fourPointHandle.nodeName, 'height', {
+          type: 'float',
+          value: result.height,
+        });
+        return;
+      }
+      handlers.onPointerMove(e);
+    },
+    [handleDragTarget, fourPointHandle, handlers, setPortValue, pointerToWorld],
+  );
+
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (handleDragTarget !== 'none') {
+        setHandleDragTarget('none');
+        return;
+      }
+      handlers.onPointerUp(e);
+    },
+    [handleDragTarget, handlers],
+  );
+
+  const cursor = handleDragTarget !== 'none' || panZoom.isPanning ? 'grabbing' : 'default';
 
   return (
     <canvas
       ref={canvasRef}
       className="w-full h-full block"
-      style={{ cursor: panZoom.isPanning ? 'grabbing' : 'default' }}
+      style={{ cursor }}
       onWheel={handlers.onWheel}
-      onPointerDown={handlers.onPointerDown}
-      onPointerMove={handlers.onPointerMove}
-      onPointerUp={handlers.onPointerUp}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
     />
   );
 }
