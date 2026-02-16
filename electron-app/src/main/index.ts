@@ -12,11 +12,13 @@ let mainWindow: BrowserWindow | null = null;
 let currentFilePath: string | null = null;
 
 function createWindow() {
+  const isTest = !!process.env.NODEBOX_E2E;
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 800,
     minHeight: 500,
+    show: !isTest,
     webPreferences: {
       preload: join(appPath, 'dist-electron/preload/index.mjs'),
       contextIsolation: true,
