@@ -1,45 +1,69 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
-- `src/main/java` holds the core Java application (`nodebox.*` packages).
-- `src/main/python` contains bundled Python node libraries and helpers.
-- `src/main/resources` stores runtime assets and `version.properties`.
-- `src/test/java` contains JUnit tests; `src/test/python` and `src/test/clojure` hold language fixtures.
-- `libraries/` and `examples/` ship built-in node libraries and example projects.
-- `res/`, `artwork/`, and `platform/` contain assets and platform-specific launchers.
-- `build/` and `dist/` are generated outputs; avoid manual edits.
-- `build.xml` (Ant) and `pom.xml` (Maven deps) define the build and test pipeline.
+## Overview
+
+NodeBox is being rewritten from Java to **Rust + Electron**. The current active codebase is:
+
+- **`crates/`** — Rust core library (`nodebox-core`) and desktop GUI (`nodebox-desktop`, egui-based)
+- **`electron-app/`** — Electron app (React 19 + TypeScript + Vite) — the primary GUI under active development
+
+The Java/Python code (`src/main/java`, `src/main/python`) is **legacy and read-only**. It exists solely as a reference for verifying behavior when porting nodes and features. **Never modify Java or Python code.**
+
+## Project Structure
+
+### Active code
+- `electron-app/` — Electron GUI (see detailed section below)
+- `crates/nodebox-core/` — Rust core: geometry types, node operations, evaluator
+- `crates/nodebox-desktop/` — Rust desktop GUI (egui)
+- `crates/nodebox-electron/` — WASM bridge for Electron (e.g., text-to-path via wasm-pack)
+
+### Reference / legacy (read-only)
+- `src/main/java/` — Legacy Java application (`nodebox.*` packages)
+- `src/main/python/` — Legacy Python node libraries
+- `libraries/corevector/corevector.ndbx` — Authoritative node definitions (XML) used as source of truth when porting nodes
+- `src/main/java/nodebox/function/CoreVectorFunctions.java` — Java node implementations (reference for porting)
+- `examples/` — Example `.ndbx` project files
+
+### Build artifacts (do not edit)
+- `build/`, `dist/` — Generated outputs
 
 ## Build, Test, and Development Commands
-- `ant run` builds and launches NodeBox.
-- `ant test` compiles and runs JUnit tests; XML reports land in `reports/`.
-- `ant generate-test-reports` renders HTML reports from `reports/TEST-*.xml`.
-- `ant dist-mac` / `ant dist-win` create packaged apps in `dist/`.
-- `ant clean` removes build artifacts.
 
-Prereqs: Java JDK and Apache Ant are required; Maven is used for dependency resolution (see `README.md`).
+### Electron app (primary)
+```bash
+cd electron-app
+npm run dev                              # Start dev server with HMR
+npm run build                            # TypeScript check + Vite production build
+npm run test                             # Run Vitest unit tests
+npx tsc --noEmit                         # Type-check without emitting
+npm run build && npx playwright test     # Build + run all E2E tests
+```
+
+### Rust crates
+```bash
+cargo check --workspace --exclude nodebox-python   # Type-check
+cargo build --workspace --exclude nodebox-python   # Build
+cargo test --workspace --exclude nodebox-python    # Run tests
+cargo test -p nodebox-core                         # Test specific crate
+cargo run                                          # Run Rust desktop GUI
+```
+
+The `nodebox-python` crate has pyo3 dependencies that may cause build issues. Always exclude it unless specifically needed.
 
 ## Coding Style & Naming Conventions
-- Java: 4-space indentation, braces on the same line, and standard Java naming (classes `UpperCamelCase`, methods `lowerCamelCase`, constants `UPPER_SNAKE_CASE`).
-- Python: follow existing API naming (many public helpers are `lowerCamelCase`), keep function signatures consistent with current modules.
-- Keep edits localized and match the surrounding file’s formatting and ordering.
+- **TypeScript:** 2-space indentation, single quotes, trailing commas. Follow existing patterns in `electron-app/src/`.
+- **Rust:** Standard `rustfmt` formatting, `snake_case` for functions/variables, `UPPER_SNAKE_CASE` for constants.
+- Keep edits localized and match the surrounding file's formatting and ordering.
 
 ## Testing Guidelines
-- JUnit is the primary test framework; tests are discovered by `**/*Test.class` in `src/test/java`.
-- Name new Java tests `SomethingTest.java` and keep them close to the package they cover.
-- Run `ant test` before shipping changes that affect core behavior or UI flows.
+- **Electron app:** Playwright E2E tests in `electron-app/tests/e2e/`, Vitest unit tests in `electron-app/tests/unit/`. Run `npm run build && npx playwright test` before shipping changes.
+- **Rust:** `cargo test --workspace --exclude nodebox-python` for all crate tests.
 
 ## Branching Strategy
 - **Use `rewrite-in-rust` as the main branch.** All new development and PRs should target this branch.
 - **NEVER commit or merge directly into `master`.** The `master` branch exists for legacy reasons only and should not be modified.
 - **PRs should ALWAYS use `rewrite-in-rust` as the base branch**, not `master`, unless explicitly specified otherwise.
 - Create feature branches from `rewrite-in-rust` and merge back into it.
-
-## Active Development
-- **Active development happens in two places:**
-  - **Rust desktop app** under `crates/` (egui-based native GUI)
-  - **Electron app** under `electron-app/` (React-based cross-platform GUI)
-- **The Java codebase is legacy and read-only** — it exists only as a reference for porting functionality to Rust/Electron. Never modify Java code.
 
 ## Commit & Pull Request Guidelines
 - Recent history favors short, sentence-style commit messages (e.g., "Use Ctrl key on Windows."). Keep messages concise and specific.
@@ -49,10 +73,6 @@ Prereqs: Java JDK and Apache Ant are required; Maven is used for dependency reso
 ## Code Quality
 - **Rust:** Fix all compiler warnings before handing off code. Run `cargo check --workspace --exclude nodebox-python` and ensure zero warnings before completing a task. Deprecation warnings, unused imports, dead code warnings, and any other diagnostics must be resolved — not suppressed — unless there is a documented reason (see "Rust Dead Code Warnings" for approved suppression patterns).
 - **Electron app:** Run `npx tsc --noEmit` for zero type errors and `npm run build && npx playwright test` for all E2E tests to pass before handing off code.
-
-## Notes for Contributors
-- Versioning lives in `src/main/resources/version.properties`; update it when preparing a release build.
-- **NEVER modify the Java code** (`src/main/java`). The Java codebase is legacy and read-only; use it only as a reference. All new development happens in the Rust crates under `crates/`.
 
 ## Async Node Implementation
 
@@ -64,28 +84,20 @@ For nodes that perform I/O operations or expensive computations, see **[docs/asy
 
 ## Node Definitions and Implementations
 
-Node definitions and their implementations are split across multiple locations:
+Node definitions live in several places. When porting a node, use the legacy `.ndbx` and Java code as the **source of truth** for behavior, then implement in Rust/TypeScript.
 
-### Authoritative Node Definitions (Java `.ndbx` files)
-- `libraries/corevector/corevector.ndbx` — XML definitions for core vector nodes (authoritative source)
-- Each `<node>` element specifies:
-  - `function` — the implementation to call (e.g., `corevector/grid`)
-  - `outputType` — the data type produced (e.g., `point`, `geometry`)
-  - `outputRange` — whether output is `value` (single) or `list` (multiple)
-  - `<port>` elements — input parameters with types, defaults, and widgets
+### Source of truth (legacy, read-only)
+- `libraries/corevector/corevector.ndbx` — XML definitions for core vector nodes (authoritative for port names, types, defaults, output types)
+- `src/main/java/nodebox/function/CoreVectorFunctions.java` — Java implementations (reference for edge-case behavior)
+- `src/main/python/` modules — Python node implementations (reference only)
 
-### Java Function Implementations (reference only)
-- **Java** (`corevector/*`): `src/main/java/nodebox/function/CoreVectorFunctions.java`
-- **Python** (`pyvector/*`): `src/main/python/` modules
+### Current implementations
+- **Rust:** `crates/nodebox-core/src/ops/` (generators.rs, filters.rs, etc.), registered in `crates/nodebox-desktop/src/node_library.rs`
+- **Electron/TypeScript:** `electron-app/src/renderer/eval/generators.ts` (node evaluation), types in `electron-app/src/renderer/types/`
 
-### Rust Implementations
-- **Node operations**: `crates/nodebox-core/src/ops/` (generators.rs, filters.rs, etc.)
-- **Node registration**: `crates/nodebox-desktop/src/node_library.rs` and `node_selection_dialog.rs`
-- **Node evaluation**: `crates/nodebox-desktop/src/eval.rs`
+## Porting Nodes from Java
 
-## Porting Nodes from Java to Rust
-
-When porting node functions from Java to Rust, follow this checklist:
+When porting node functions from Java to Rust or TypeScript, follow this checklist:
 
 1. **Find the authoritative definition**: Look up the node in `libraries/corevector/corevector.ndbx` to see `outputType`, `outputRange`, and all `<port>` elements. This is the source of truth.
 
@@ -288,26 +300,11 @@ lib.root.connections.retain(|c| &c.output_node != name);
 - Read-only: `fn show(&self, library: &Arc<NodeLibrary>)`
 - Mutating: `fn show(&mut self, library: &mut Arc<NodeLibrary>)`
 
-## Build Commands
-
-### Excluding problematic crates
-The `nodebox-python` crate has pyo3 dependencies that may cause build issues. Exclude it when not needed:
-```bash
-cargo build --workspace --exclude nodebox-python
-cargo test --workspace --exclude nodebox-python
-```
-
-### Running the application
-```bash
-cargo run                         # Run the desktop GUI application
-cargo test -p nodebox-core        # Test specific crate
-```
-
 ---
 
 # Electron App (`electron-app/`)
 
-The Electron app is a parallel implementation of the NodeBox GUI using web technologies. It mirrors the Rust desktop app's functionality and design language.
+The Electron app is the **primary GUI** for NodeBox, built with React 19 + TypeScript. It shares design language and node evaluation logic with the Rust desktop app.
 
 ## Tech Stack
 
@@ -346,7 +343,8 @@ electron-app/
 │       ├── hooks/           # Custom React hooks
 │       ├── eval/            # Node evaluator (JS + WASM)
 │       ├── theme/           # Design tokens (JS constants for Canvas2D)
-│       └── types/           # TypeScript type definitions
+│       ├── types/           # TypeScript type definitions
+│       └── viewer/          # Viewer handle logic (FourPointHandle, hit testing)
 ├── wasm/                   # WASM module (built by wasm-pack from crates/)
 ├── tests/
 │   ├── e2e/                # Playwright E2E tests
@@ -445,7 +443,7 @@ Both the network view and viewer use `<canvas>` with Canvas2D (not WebGL/WebGPU)
 - Path geometry (fill + stroke via combined Path2D with nonzero winding)
 - Control points (colored circles by point type: green=lineTo, red=curveTo, blue=curveData)
 - Point numbers (bitmap digit cache, toggled via UI)
-- Handles for editable paths
+- Interactive FourPointHandle for rect/ellipse (drag corners to resize, center to reposition)
 
 ### Network Grid Coordinate System
 
