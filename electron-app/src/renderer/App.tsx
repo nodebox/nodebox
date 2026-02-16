@@ -3,7 +3,8 @@ import { useStore } from './state/store';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { AppLayout } from './components/AppLayout';
 import { evaluate } from './eval/evaluator';
-import { onWasmReady } from './eval/wasm';
+import { isWasmReady, onWasmReady, parseNdbx, serializeNdbx } from './eval/wasm';
+import { createDefaultLibrary } from './types/node';
 import type { MenuAction } from '../shared/ipc-channels';
 
 export function App() {
@@ -19,6 +20,11 @@ export function App() {
   const toggleOrigin = useStore((s) => s.toggleOrigin);
   const toggleCanvasBorder = useStore((s) => s.toggleCanvasBorder);
   const setAboutDialogVisible = useStore((s) => s.setAboutDialogVisible);
+  const setLibrary = useStore((s) => s.setLibrary);
+  const setFilePath = useStore((s) => s.setFilePath);
+  const markClean = useStore((s) => s.markClean);
+  const clearHistory = useStore((s) => s.clearHistory);
+  const clearSelection = useStore((s) => s.clearSelection);
 
   // Run the evaluator whenever the library or frame changes
   useEffect(() => {
@@ -60,9 +66,84 @@ export function App() {
   useEffect(() => {
     if (!window.electronAPI) return;
 
-    window.electronAPI.onMenuAction((action: string) => {
+    window.electronAPI.onMenuAction(async (action: string) => {
       const menuAction = action as MenuAction;
       switch (menuAction) {
+        // File operations
+        case 'file:new':
+          setLibrary(createDefaultLibrary());
+          clearHistory();
+          setFilePath(null);
+          clearSelection();
+          break;
+        case 'file:open': {
+          if (!isWasmReady()) break;
+          const openResult = await window.electronAPI.openFile();
+          if (openResult) {
+            try {
+              const parsed = parseNdbx(openResult.content);
+              setLibrary(parsed);
+              setFilePath(openResult.path);
+              clearHistory();
+              clearSelection();
+            } catch (e) {
+              console.error('Failed to parse .ndbx file:', e);
+            }
+          }
+          break;
+        }
+        case 'file:save': {
+          if (!isWasmReady()) break;
+          try {
+            const state = useStore.getState();
+            const ndbx = serializeNdbx(state.library);
+            const saveResult = await window.electronAPI.saveFile(ndbx);
+            if (saveResult) {
+              setFilePath(saveResult.path);
+              markClean();
+            }
+          } catch (e) {
+            console.error('Failed to serialize .ndbx file:', e);
+          }
+          break;
+        }
+        case 'file:save-as': {
+          if (!isWasmReady()) break;
+          try {
+            const state = useStore.getState();
+            const ndbx = serializeNdbx(state.library);
+            const saveAsResult = await window.electronAPI.saveFileAs(ndbx);
+            if (saveAsResult) {
+              setFilePath(saveAsResult.path);
+              markClean();
+            }
+          } catch (e) {
+            console.error('Failed to serialize .ndbx file:', e);
+          }
+          break;
+        }
+        // Edit operations
+        case 'edit:undo': {
+          const snapshot = useStore.getState().undo();
+          if (snapshot) setLibrary(snapshot);
+          break;
+        }
+        case 'edit:redo': {
+          const snapshot = useStore.getState().redo();
+          if (snapshot) setLibrary(snapshot);
+          break;
+        }
+        case 'edit:delete': {
+          const state = useStore.getState();
+          if (state.selectedNodes.size === 0) break;
+          state.pushSnapshot(state.library);
+          for (const name of state.selectedNodes) {
+            state.removeNode('root', name);
+          }
+          state.clearSelection();
+          break;
+        }
+        // View toggles
         case 'view:toggle-handles':
           toggleHandles();
           break;
@@ -86,6 +167,11 @@ export function App() {
     toggleOrigin,
     toggleCanvasBorder,
     setAboutDialogVisible,
+    setLibrary,
+    setFilePath,
+    markClean,
+    clearHistory,
+    clearSelection,
   ]);
 
   return <AppLayout />;
