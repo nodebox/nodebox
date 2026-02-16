@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useStore } from '../state/store';
 import type { Port } from '../types/node';
 import type { Value } from '../types/value';
-import { DragValue } from './DragValue';
+import { DragValue, type DragValueHandle } from './DragValue';
 import {
   LABEL_WIDTH,
   PARAMETER_ROW_HEIGHT,
@@ -14,10 +14,12 @@ function DraggableLabel({
   label,
   portName,
   onDrag,
+  onClick,
 }: {
   label: string;
   portName: string;
   onDrag: (delta: number) => void;
+  onClick?: () => void;
 }) {
   const dragOriginX = useRef(0);
   const lastX = useRef(0);
@@ -53,8 +55,11 @@ function DraggableLabel({
   const handlePointerUp = useCallback(
     (e: React.PointerEvent) => {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      if (!hasDragged.current && onClick) {
+        onClick();
+      }
     },
-    [],
+    [onClick],
   );
 
   return (
@@ -151,6 +156,7 @@ function PointPortWidget({
       : { x: 0, y: 0 };
 
   const accumulatedLabelPoint = useRef(pointValue);
+  const xRef = useRef<DragValueHandle>(null);
 
   const handleChangeX = useCallback(
     (v: number) => {
@@ -171,6 +177,20 @@ function PointPortWidget({
     },
     [setPortValue, nodeName, port.name, pointValue.x],
   );
+
+  const handleLabelCommitBoth = useCallback(
+    (v: number) => {
+      setPortValue(nodeName, port.name, {
+        type: 'point',
+        value: { x: v, y: v },
+      });
+    },
+    [setPortValue, nodeName, port.name],
+  );
+
+  const handleLabelClick = useCallback(() => {
+    xRef.current?.startEdit();
+  }, []);
 
   const handleLabelDrag = useCallback(
     (delta: number) => {
@@ -201,10 +221,11 @@ function PointPortWidget({
         label={port.label ?? port.name}
         portName={port.name}
         onDrag={handleLabelDrag}
+        onClick={handleLabelClick}
       />
       <div className="flex flex-1 gap-4 pr-2">
         <div className="flex-1" data-testid={`param-value-${port.name}-x`}>
-          <DragValue value={pointValue.x} onChange={handleChangeX} />
+          <DragValue ref={xRef} value={pointValue.x} onChange={handleChangeX} onLabelCommit={handleLabelCommitBoth} />
         </div>
         <div className="flex-1" data-testid={`param-value-${port.name}-y`}>
           <DragValue value={pointValue.y} onChange={handleChangeY} />
