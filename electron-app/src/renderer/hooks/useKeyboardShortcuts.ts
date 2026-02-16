@@ -13,14 +13,6 @@ export function useKeyboardShortcuts() {
         useStore.getState().setAboutDialogVisible(false);
       }
 
-      // Space: toggle playback
-      if (e.key === ' ' && !(e.target instanceof HTMLInputElement)) {
-        e.preventDefault();
-        const { isPlaying, play, stop } = useStore.getState();
-        if (isPlaying) stop();
-        else play();
-      }
-
       // Tab: open node dialog
       if (e.key === 'Tab' && !(e.target instanceof HTMLInputElement)) {
         e.preventDefault();

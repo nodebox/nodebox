@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { launchApp, sendMenuAction, waitForUpdate, type AppContext } from './helpers';
+import { launchApp, sendMenuAction, waitForUpdate, getStoreState, type AppContext } from './helpers';
 
 let ctx: AppContext;
 
@@ -71,6 +71,83 @@ test('toggle points via menu action', async () => {
   await waitForUpdate(ctx.window);
   const title = await ctx.window.title();
   expect(title).toBe('NodeBox');
+});
+
+test('pane headers have different top and bottom border colors', async () => {
+  const header = ctx.window.locator('text=Viewer').locator('..');
+  const styles = await header.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return {
+      borderTop: cs.borderTopColor,
+      borderBottom: cs.borderBottomColor,
+    };
+  });
+  // Top and bottom borders should be different colors
+  expect(styles.borderTop).not.toBe(styles.borderBottom);
+});
+
+test('spacebar does not toggle playback', async () => {
+  await ctx.window.keyboard.press('Space');
+  await waitForUpdate(ctx.window, 100);
+  const state = await getStoreState(ctx.window);
+  expect(state.isPlaying).toBe(false);
+});
+
+test('zoom in changes viewer zoom level', async () => {
+  // Use the zoom-in button to zoom (wheel events don't reliably trigger React handlers in E2E)
+  const zoomIn = ctx.window.locator('[data-testid="zoom-in"]');
+  await zoomIn.click();
+  await waitForUpdate(ctx.window);
+
+  const state = await getStoreState(ctx.window);
+  expect(state.viewerZoom).toBeGreaterThan(1.0);
+});
+
+test('zoom controls are visible in viewer header', async () => {
+  const zoomOut = ctx.window.locator('[data-testid="zoom-out"]');
+  const zoomLevel = ctx.window.locator('[data-testid="zoom-level"]');
+  const zoomIn = ctx.window.locator('[data-testid="zoom-in"]');
+  await expect(zoomOut).toBeVisible();
+  await expect(zoomLevel).toBeVisible();
+  await expect(zoomIn).toBeVisible();
+  await expect(zoomLevel).toContainText('100%');
+});
+
+test('clicking zoom-in increases zoom', async () => {
+  const zoomIn = ctx.window.locator('[data-testid="zoom-in"]');
+  await zoomIn.click();
+  await waitForUpdate(ctx.window);
+  const state = await getStoreState(ctx.window);
+  expect(state.viewerZoom).toBeGreaterThan(1.0);
+});
+
+test('clicking zoom level resets zoom', async () => {
+  // First zoom in
+  const zoomIn = ctx.window.locator('[data-testid="zoom-in"]');
+  await zoomIn.click();
+  await waitForUpdate(ctx.window);
+
+  // Then click the zoom level to reset
+  const zoomLevel = ctx.window.locator('[data-testid="zoom-level"]');
+  await zoomLevel.click();
+  await waitForUpdate(ctx.window);
+
+  const state = await getStoreState(ctx.window);
+  expect(state.viewerZoom).toBeCloseTo(1.0, 1);
+});
+
+test('splitter is visible and has extended hit area', async () => {
+  // The vertical splitter is 2px visually but has an invisible hit area child
+  const splitter = ctx.window.locator('[data-testid="vertical-splitter"]');
+  await expect(splitter).toBeVisible();
+  const box = await splitter.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.width).toBe(2);
+  // The hit area child extends beyond the visual splitter
+  const hitArea = splitter.locator('div');
+  const hitBox = await hitArea.boundingBox();
+  expect(hitBox).not.toBeNull();
+  expect(hitBox!.width).toBeGreaterThanOrEqual(6);
 });
 
 test('View menu has zoom and display options', async () => {

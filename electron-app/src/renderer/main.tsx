@@ -17,6 +17,7 @@ import './App.css';
       inputs: n.inputs.length,
       prototype: n.prototype,
       outputType: n.outputType,
+      category: n.category,
       ports: n.inputs.map((p) => ({
         name: p.name,
         portType: p.portType,
@@ -28,6 +29,9 @@ import './App.css';
       ? { pathCount: s.renderResult.paths.length }
       : null,
     viewerMode: (s as any).viewerMode ?? 'visual',
+    isPlaying: s.isPlaying,
+    frame: s.frame,
+    viewerZoom: s.viewerZoom,
   };
 };
 

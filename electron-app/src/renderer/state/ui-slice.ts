@@ -22,6 +22,9 @@ export interface UISlice {
   setViewerMode: (mode: ViewerMode) => void;
   viewerZoom: number;
   setViewerZoom: (zoom: number) => void;
+  viewerZoomAction: 'in' | 'out' | 'reset' | null;
+  requestViewerZoom: (action: 'in' | 'out' | 'reset') => void;
+  clearViewerZoomAction: () => void;
 }
 
 export const createUISlice = (
@@ -86,5 +89,15 @@ export const createUISlice = (
   setViewerZoom: (zoom) =>
     set((state) => {
       state.viewerZoom = zoom;
+    }),
+
+  viewerZoomAction: null,
+  requestViewerZoom: (action) =>
+    set((state) => {
+      state.viewerZoomAction = action;
+    }),
+  clearViewerZoomAction: () =>
+    set((state) => {
+      state.viewerZoomAction = null;
     }),
 });

@@ -36,11 +36,15 @@ export function usePanZoom(
   options?: { scrollToZoom?: boolean },
 ): UsePanZoomResult {
   const scrollToZoom = options?.scrollToZoom ?? false;
-  const [panX, setPanX] = useState(initialPan.x);
-  const [panY, setPanY] = useState(initialPan.y);
-  const [zoom, setZoomState] = useState(initialZoom);
+  const [pzState, setPzState] = useState<PanZoomState>({
+    panX: initialPan.x,
+    panY: initialPan.y,
+    zoom: initialZoom,
+  });
   const [isPanning, setIsPanning] = useState(false);
   const lastPos = useRef({ x: 0, y: 0 });
+
+  const { panX, panY, zoom } = pzState;
 
   const worldToScreen = useCallback(
     (wx: number, wy: number) => ({
@@ -71,20 +75,26 @@ export function usePanZoom(
         const my = e.clientY - rect.top;
 
         const factor = Math.pow(2, -e.deltaY * 0.005);
-        const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * factor));
 
-        // Zoom centered on mouse position
-        const scale = newZoom / zoom;
-        setPanX(mx - (mx - panX) * scale);
-        setPanY(my - (my - panY) * scale);
-        setZoomState(newZoom);
+        setPzState((prev) => {
+          const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev.zoom * factor));
+          const scale = newZoom / prev.zoom;
+          return {
+            panX: mx - (mx - prev.panX) * scale,
+            panY: my - (my - prev.panY) * scale,
+            zoom: newZoom,
+          };
+        });
       } else {
         // Regular scroll = pan
-        setPanX((p) => p - e.deltaX);
-        setPanY((p) => p - e.deltaY);
+        setPzState((prev) => ({
+          ...prev,
+          panX: prev.panX - e.deltaX,
+          panY: prev.panY - e.deltaY,
+        }));
       }
     },
-    [panX, panY, zoom, scrollToZoom],
+    [scrollToZoom],
   );
 
   const onPointerDown = useCallback(
@@ -106,8 +116,11 @@ export function usePanZoom(
       const dx = e.clientX - lastPos.current.x;
       const dy = e.clientY - lastPos.current.y;
       lastPos.current = { x: e.clientX, y: e.clientY };
-      setPanX((p) => p + dx);
-      setPanY((p) => p + dy);
+      setPzState((prev) => ({
+        ...prev,
+        panX: prev.panX + dx,
+        panY: prev.panY + dy,
+      }));
     },
     [isPanning],
   );
@@ -117,11 +130,17 @@ export function usePanZoom(
   }, []);
 
   const zoomIn = useCallback(() => {
-    setZoomState((z) => Math.min(MAX_ZOOM, z * ZOOM_STEP));
+    setPzState((prev) => ({
+      ...prev,
+      zoom: Math.min(MAX_ZOOM, prev.zoom * ZOOM_STEP),
+    }));
   }, []);
 
   const zoomOut = useCallback(() => {
-    setZoomState((z) => Math.max(MIN_ZOOM, z / ZOOM_STEP));
+    setPzState((prev) => ({
+      ...prev,
+      zoom: Math.max(MIN_ZOOM, prev.zoom / ZOOM_STEP),
+    }));
   }, []);
 
   const fit = useCallback(
@@ -136,24 +155,28 @@ export function usePanZoom(
       const newZoom = Math.min(zx, zy) * 0.9; // 90% to add padding
       const cx = contentRect.x + contentRect.width / 2;
       const cy = contentRect.y + contentRect.height / 2;
-      setPanX(canvasWidth / 2 - cx * newZoom);
-      setPanY(canvasHeight / 2 - cy * newZoom);
-      setZoomState(newZoom);
+      setPzState({
+        panX: canvasWidth / 2 - cx * newZoom,
+        panY: canvasHeight / 2 - cy * newZoom,
+        zoom: newZoom,
+      });
     },
     [],
   );
 
   const setPan = useCallback((x: number, y: number) => {
-    setPanX(x);
-    setPanY(y);
+    setPzState((prev) => ({ ...prev, panX: x, panY: y }));
   }, []);
 
   const setZoom = useCallback((z: number) => {
-    setZoomState(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z)));
+    setPzState((prev) => ({
+      ...prev,
+      zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z)),
+    }));
   }, []);
 
   return {
-    state: { panX, panY, zoom },
+    state: pzState,
     handlers: { onWheel, onPointerDown, onPointerMove, onPointerUp },
     worldToScreen,
     screenToWorld,

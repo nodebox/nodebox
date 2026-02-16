@@ -40,5 +40,13 @@ export function useCanvasRenderer(
     return () => cancelAnimationFrame(rafRef.current);
   }, [requestRender]);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const observer = new ResizeObserver(() => requestRender());
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [requestRender]);
+
   return { canvasRef, requestRender };
 }

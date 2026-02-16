@@ -1,5 +1,6 @@
 import { Play, Pause, SkipBack } from 'lucide-react';
 import { useStore } from '../state/store';
+import { DragValue } from './DragValue';
 import {
   ANIMATION_BAR_BACKGROUND,
   ANIMATION_BAR_HEIGHT,
@@ -26,16 +27,21 @@ export function AnimationBar() {
       }}
     >
       {/* Frame counter */}
-      <span
+      <div
+        data-testid="frame-counter"
         style={{
           minWidth: 50,
-          textAlign: 'center',
-          color: TEXT_DEFAULT,
-          fontSize: FONT_SIZE_SMALL,
+          height: ANIMATION_BAR_HEIGHT - 2,
         }}
       >
-        {frame}
-      </span>
+        <DragValue
+          value={frame}
+          onChange={(v) => setFrame(Math.max(1, Math.round(v)))}
+          min={1}
+          speed={1}
+          format={(v) => String(Math.round(v))}
+        />
+      </div>
 
       {/* Play/Pause button */}
       <button
