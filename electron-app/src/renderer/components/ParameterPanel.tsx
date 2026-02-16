@@ -235,6 +235,108 @@ function PointPortWidget({
   );
 }
 
+function StringPortWidget({
+  port,
+  nodeName,
+}: {
+  port: Port;
+  nodeName: string;
+}) {
+  const setPortValue = useStore((s) => s.setPortValue);
+  const strValue = port.value.type === 'string' ? port.value.value : '';
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPortValue(nodeName, port.name, { type: 'string', value: e.target.value });
+    },
+    [setPortValue, nodeName, port.name],
+  );
+
+  return (
+    <div
+      className="flex"
+      style={{ height: PARAMETER_ROW_HEIGHT }}
+      data-testid={`param-row-${port.name}`}
+    >
+      <div
+        className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px]"
+        style={{ width: LABEL_WIDTH }}
+      >
+        {port.label ?? port.name}
+      </div>
+      <div className="flex-1 flex items-center pr-2">
+        <input
+          type="text"
+          value={strValue}
+          onChange={handleChange}
+          data-testid={`param-value-${port.name}`}
+          className="w-full h-7 bg-transparent hover:bg-field-hover text-zinc-100 border-none outline-none text-[13px] px-2 rounded-sm font-[inherit] focus:bg-field-hover"
+        />
+      </div>
+    </div>
+  );
+}
+
+function ColorPortWidget({
+  port,
+  nodeName,
+}: {
+  port: Port;
+  nodeName: string;
+}) {
+  const setPortValue = useStore((s) => s.setPortValue);
+  const colorValue =
+    port.value.type === 'color'
+      ? port.value.value
+      : { r: 0, g: 0, b: 0, a: 1 };
+
+  const toHex = (c: { r: number; g: number; b: number }) => {
+    const r = Math.round(c.r * 255).toString(16).padStart(2, '0');
+    const g = Math.round(c.g * 255).toString(16).padStart(2, '0');
+    const b = Math.round(c.b * 255).toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`;
+  };
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const hex = e.target.value;
+      const r = parseInt(hex.slice(1, 3), 16) / 255;
+      const g = parseInt(hex.slice(3, 5), 16) / 255;
+      const b = parseInt(hex.slice(5, 7), 16) / 255;
+      setPortValue(nodeName, port.name, {
+        type: 'color',
+        value: { r, g, b, a: colorValue.a },
+      });
+    },
+    [setPortValue, nodeName, port.name, colorValue.a],
+  );
+
+  return (
+    <div
+      className="flex"
+      style={{ height: PARAMETER_ROW_HEIGHT }}
+      data-testid={`param-row-${port.name}`}
+    >
+      <div
+        className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px]"
+        style={{ width: LABEL_WIDTH }}
+      >
+        {port.label ?? port.name}
+      </div>
+      <div className="flex-1 flex items-center gap-2 px-2">
+        <input
+          type="color"
+          value={toHex(colorValue)}
+          onChange={handleChange}
+          className="w-7 h-7 p-0 border-none cursor-pointer bg-transparent"
+          data-testid={`param-color-${port.name}`}
+        />
+        <span className="text-zinc-100 text-[13px]">{toHex(colorValue)}</span>
+      </div>
+    </div>
+  );
+}
+
 function GenericPortWidget({ port }: { port: Port }) {
   const displayValue = formatValue(port.value);
 
@@ -260,12 +362,44 @@ function GenericPortWidget({ port }: { port: Port }) {
   );
 }
 
-function PortWidget({ port, nodeName }: { port: Port; nodeName: string }) {
+function ConnectedPortWidget({ port }: { port: Port }) {
+  return (
+    <div
+      className="flex"
+      style={{ height: PARAMETER_ROW_HEIGHT }}
+      data-testid={`param-row-${port.name}`}
+    >
+      <div
+        className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px]"
+        style={{ width: LABEL_WIDTH }}
+      >
+        {port.label ?? port.name}
+      </div>
+      <div
+        className="flex items-center px-2 flex-1 text-zinc-500 italic text-[13px]"
+        data-testid={`param-value-${port.name}`}
+      >
+        connected
+      </div>
+    </div>
+  );
+}
+
+function PortWidget({ port, nodeName, isConnected }: { port: Port; nodeName: string; isConnected: boolean }) {
+  if (isConnected) {
+    return <ConnectedPortWidget port={port} />;
+  }
   if (port.portType === 'float' || port.portType === 'int') {
     return <FloatPortWidget port={port} nodeName={nodeName} />;
   }
   if (port.portType === 'point') {
     return <PointPortWidget port={port} nodeName={nodeName} />;
+  }
+  if (port.portType === 'string') {
+    return <StringPortWidget port={port} nodeName={nodeName} />;
+  }
+  if (port.portType === 'color') {
+    return <ColorPortWidget port={port} nodeName={nodeName} />;
   }
   return <GenericPortWidget port={port} />;
 }
@@ -346,6 +480,7 @@ function formatValue(value: Value): string {
 export function ParameterPanel() {
   const activeNode = useStore((s) => s.activeNode);
   const children = useStore((s) => s.library.root.children);
+  const connections = useStore((s) => s.library.root.connections);
   const library = useStore((s) => s.library);
   const node = activeNode ? children.find((n) => n.name === activeNode) : null;
 
@@ -373,7 +508,14 @@ export function ParameterPanel() {
           {node ? (
             <>
               {node.inputs.map((port) => (
-                <PortWidget key={port.name} port={port} nodeName={node.name} />
+                <PortWidget
+                  key={port.name}
+                  port={port}
+                  nodeName={node.name}
+                  isConnected={connections.some(
+                    (c) => c.inputNode === node.name && c.inputPort === port.name,
+                  )}
+                />
               ))}
             </>
           ) : (
