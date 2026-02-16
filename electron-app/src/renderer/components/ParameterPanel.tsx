@@ -91,6 +91,7 @@ function FloatPortWidget({
       : 0;
 
   const accumulatedLabelValue = useRef(numValue);
+  const dragRef = useRef<DragValueHandle>(null);
 
   const handleChange = useCallback(
     (v: number) => {
@@ -111,6 +112,10 @@ function FloatPortWidget({
     [handleChange],
   );
 
+  const handleLabelClick = useCallback(() => {
+    dragRef.current?.startEdit();
+  }, []);
+
   const handleLabelPointerDownCapture = useCallback(() => {
     accumulatedLabelValue.current = numValue;
   }, [numValue]);
@@ -126,12 +131,14 @@ function FloatPortWidget({
         label={port.label ?? port.name}
         portName={port.name}
         onDrag={handleLabelDrag}
+        onClick={handleLabelClick}
       />
       <div
         className="flex-1 pr-2"
         data-testid={`param-value-${port.name}`}
       >
         <DragValue
+          ref={dragRef}
           value={numValue}
           onChange={handleChange}
           min={port.min ?? undefined}
@@ -237,6 +244,7 @@ function StringPortWidget({
 }) {
   const setPortValue = useStore((s) => s.setPortValue);
   const strValue = getString(port.value);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -245,6 +253,10 @@ function StringPortWidget({
     [setPortValue, nodeName, port.name],
   );
 
+  const handleLabelClick = useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
+
   return (
     <div
       className="flex"
@@ -252,13 +264,15 @@ function StringPortWidget({
       data-testid={`param-row-${port.name}`}
     >
       <div
-        className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px]"
+        className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px] cursor-default select-none"
         style={{ width: LABEL_WIDTH }}
+        onClick={handleLabelClick}
       >
         {port.label ?? port.name}
       </div>
       <div className="flex-1 flex items-center pr-2">
         <input
+          ref={inputRef}
           type="text"
           value={strValue}
           onChange={handleChange}
