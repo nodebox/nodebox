@@ -349,6 +349,106 @@ fn describe_output(output: &NodeOutput) -> serde_json::Value {
     }
 }
 
+/// Evaluate a NodeLibrary from JSON and return the result as JSON.
+///
+/// Takes a JSON-serialized NodeLibrary and frame number, evaluates the node graph,
+/// and returns JSON matching the TypeScript EvalResult interface:
+/// ```json
+/// {
+///   "paths": [{ "contours": [...], "fill": {...}, "stroke": null, "stroke_width": 1.0 }],
+///   "texts": [],
+///   "output": { "type": "Geometry", "isMultiple": false, "values": ["Path 0", ...] },
+///   "errors": [{ "nodeName": "rect1", "message": "..." }]
+/// }
+/// ```
+#[wasm_bindgen]
+pub fn evaluate_library(library_json: &str, frame: u32) -> String {
+    let library: NodeLibrary = match serde_json::from_str(library_json) {
+        Ok(lib) => lib,
+        Err(e) => {
+            return error_result_json(&format!("Failed to parse library: {}", e));
+        }
+    };
+
+    let platform: Arc<dyn Platform> = Arc::new(WasmPlatform::new());
+    let mut ctx = ProjectContext::new_unsaved();
+    ctx.frame = frame;
+
+    let (paths, output, errors) = evaluate_network(&library, &platform, &ctx);
+
+    serialize_eval_result(&paths, &output, &errors)
+}
+
+/// Build an EvalResult JSON with just an error.
+fn error_result_json(message: &str) -> String {
+    serde_json::json!({
+        "paths": [],
+        "texts": [],
+        "output": { "type": "none", "isMultiple": false, "values": [] },
+        "errors": [{ "nodeName": "root", "message": message }],
+    })
+    .to_string()
+}
+
+/// Serialize evaluation results to JSON matching the TS EvalResult type.
+fn serialize_eval_result(
+    paths: &[nodebox_core::geometry::Path],
+    output: &NodeOutput,
+    errors: &[nodebox_eval::eval::NodeError],
+) -> String {
+    // Paths serialize directly via serde (field names match TS PathRenderData)
+    let paths_json = serde_json::to_value(paths).unwrap_or(serde_json::json!([]));
+
+    // Build output info
+    let (output_type, is_multiple) = match output {
+        NodeOutput::None => ("none", false),
+        NodeOutput::Path(_) => ("Geometry", false),
+        NodeOutput::Paths(_) => ("Geometry", true),
+        NodeOutput::Point(_) => ("Point", false),
+        NodeOutput::Points(_) => ("Point", true),
+        NodeOutput::Float(_) => ("Float", false),
+        NodeOutput::Floats(_) => ("Float", true),
+        NodeOutput::Int(_) => ("Int", false),
+        NodeOutput::Ints(_) => ("Int", true),
+        NodeOutput::String(_) => ("String", false),
+        NodeOutput::Strings(_) => ("String", true),
+        NodeOutput::Color(_) => ("Color", false),
+        NodeOutput::Colors(_) => ("Color", true),
+        NodeOutput::Boolean(_) => ("Boolean", false),
+        NodeOutput::Booleans(_) => ("Boolean", true),
+        NodeOutput::DataRow(_) => ("Data", false),
+        NodeOutput::DataRows(_) => ("Data", true),
+    };
+
+    let values: Vec<String> = (0..paths.len())
+        .map(|i| format!("Path {}", i))
+        .collect();
+
+    let error_list: Vec<serde_json::Value> = errors
+        .iter()
+        .map(|e| {
+            serde_json::json!({
+                "nodeName": e.node_name,
+                "message": e.message,
+            })
+        })
+        .collect();
+
+    let result = serde_json::json!({
+        "paths": paths_json,
+        "texts": [],
+        "output": {
+            "type": output_type,
+            "isMultiple": is_multiple,
+            "values": values,
+        },
+        "errors": error_list,
+    });
+
+    serde_json::to_string(&result)
+        .unwrap_or_else(|_| error_result_json("Failed to serialize result"))
+}
+
 /// Convert text to vector path contours using the bundled font.
 ///
 /// Returns JSON array of contours, each with points and closed flag.

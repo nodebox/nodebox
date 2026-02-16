@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useStore } from '../state/store';
 import { createDefaultNode } from '../types/node';
 import type { Port } from '../types/node';
+import type { Value } from '../types/value';
 import {
   SELECTED_ITEM,
   CATEGORY_GEOMETRY,
@@ -23,26 +24,26 @@ interface NodePrototype {
 
 const mkPort = (
   name: string,
-  portType: Port['portType'],
+  port_type: Port['port_type'],
   widget: Port['widget'],
   value: Port['value'],
   label?: string,
 ): Port => ({
   name,
-  portType,
+  port_type,
   label: label ?? name,
   description: null,
   widget,
-  range: 'value',
+  range: 'Value',
   value,
   min: null,
   max: null,
-  menuItems: [],
+  menu_items: [],
 });
 
-const FLOAT_ZERO = { type: 'float' as const, value: 0 };
-const FLOAT_100 = { type: 'float' as const, value: 100 };
-const POINT_ZERO = { type: 'point' as const, value: { x: 0, y: 0 } };
+const FLOAT_ZERO: Value = { Float: 0 };
+const FLOAT_100: Value = { Float: 100 };
+const POINT_ZERO: Value = { Point: { x: 0, y: 0 } };
 
 const NODE_PROTOTYPES: NodePrototype[] = [
   {
@@ -50,10 +51,10 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'geometry',
     description: 'Create a rectangle',
     defaultInputs: [
-      mkPort('position', 'point', 'point', POINT_ZERO),
-      mkPort('width', 'float', 'float', FLOAT_100),
-      mkPort('height', 'float', 'float', FLOAT_100),
-      mkPort('roundness', 'point', 'point', POINT_ZERO),
+      mkPort('position', 'Point', 'Point', POINT_ZERO),
+      mkPort('width', 'Float', 'Float', FLOAT_100),
+      mkPort('height', 'Float', 'Float', FLOAT_100),
+      mkPort('roundness', 'Point', 'Point', POINT_ZERO),
     ],
   },
   {
@@ -61,9 +62,9 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'geometry',
     description: 'Create an ellipse',
     defaultInputs: [
-      mkPort('position', 'point', 'point', POINT_ZERO),
-      mkPort('width', 'float', 'float', FLOAT_100),
-      mkPort('height', 'float', 'float', FLOAT_100),
+      mkPort('position', 'Point', 'Point', POINT_ZERO),
+      mkPort('width', 'Float', 'Float', FLOAT_100),
+      mkPort('height', 'Float', 'Float', FLOAT_100),
     ],
   },
   {
@@ -71,9 +72,9 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'geometry',
     description: 'Create a line',
     defaultInputs: [
-      mkPort('point1', 'point', 'point', POINT_ZERO),
-      mkPort('point2', 'point', 'point', { type: 'point', value: { x: 100, y: 0 } }),
-      mkPort('points', 'int', 'int', { type: 'int', value: 2 }),
+      mkPort('point1', 'Point', 'Point', POINT_ZERO),
+      mkPort('point2', 'Point', 'Point', { Point: { x: 100, y: 0 } }),
+      mkPort('points', 'Int', 'Int', { Int: 2 }),
     ],
   },
   {
@@ -81,10 +82,10 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'geometry',
     description: 'Create a star',
     defaultInputs: [
-      mkPort('position', 'point', 'point', POINT_ZERO),
-      mkPort('points', 'int', 'int', { type: 'int', value: 5 }),
-      mkPort('outer', 'float', 'float', FLOAT_100),
-      mkPort('inner', 'float', 'float', { type: 'float', value: 50 }),
+      mkPort('position', 'Point', 'Point', POINT_ZERO),
+      mkPort('points', 'Int', 'Int', { Int: 5 }),
+      mkPort('outer', 'Float', 'Float', FLOAT_100),
+      mkPort('inner', 'Float', 'Float', { Float: 50 }),
     ],
   },
   {
@@ -92,9 +93,9 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'geometry',
     description: 'Create a polygon',
     defaultInputs: [
-      mkPort('position', 'point', 'point', POINT_ZERO),
-      mkPort('radius', 'float', 'float', FLOAT_100),
-      mkPort('sides', 'int', 'int', { type: 'int', value: 6 }),
+      mkPort('position', 'Point', 'Point', POINT_ZERO),
+      mkPort('radius', 'Float', 'Float', FLOAT_100),
+      mkPort('sides', 'Int', 'Int', { Int: 6 }),
     ],
   },
   {
@@ -102,11 +103,11 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'geometry',
     description: 'Create an arc',
     defaultInputs: [
-      mkPort('position', 'point', 'point', POINT_ZERO),
-      mkPort('width', 'float', 'float', FLOAT_100),
-      mkPort('height', 'float', 'float', FLOAT_100),
-      mkPort('startAngle', 'float', 'angle', FLOAT_ZERO),
-      mkPort('degrees', 'float', 'angle', { type: 'float', value: 360 }),
+      mkPort('position', 'Point', 'Point', POINT_ZERO),
+      mkPort('width', 'Float', 'Float', FLOAT_100),
+      mkPort('height', 'Float', 'Float', FLOAT_100),
+      mkPort('startAngle', 'Float', 'Angle', FLOAT_ZERO),
+      mkPort('degrees', 'Float', 'Angle', { Float: 360 }),
     ],
   },
   {
@@ -114,10 +115,10 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'geometry',
     description: 'Create a point grid',
     defaultInputs: [
-      mkPort('columns', 'int', 'int', { type: 'int', value: 10 }),
-      mkPort('rows', 'int', 'int', { type: 'int', value: 10 }),
-      mkPort('width', 'float', 'float', { type: 'float', value: 200 }),
-      mkPort('height', 'float', 'float', { type: 'float', value: 200 }),
+      mkPort('columns', 'Int', 'Int', { Int: 10 }),
+      mkPort('rows', 'Int', 'Int', { Int: 10 }),
+      mkPort('width', 'Float', 'Float', { Float: 200 }),
+      mkPort('height', 'Float', 'Float', { Float: 200 }),
     ],
   },
   {
@@ -125,9 +126,9 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'geometry',
     description: 'Create text path',
     defaultInputs: [
-      mkPort('text', 'string', 'string', { type: 'string', value: 'Hello' }),
-      mkPort('position', 'point', 'point', POINT_ZERO),
-      mkPort('fontSize', 'float', 'float', { type: 'float', value: 24 }),
+      mkPort('text', 'String', 'String', { String: 'Hello' }),
+      mkPort('position', 'Point', 'Point', POINT_ZERO),
+      mkPort('fontSize', 'Float', 'Float', { Float: 24 }),
     ],
   },
   {
@@ -135,8 +136,8 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'color',
     description: 'Set fill color',
     defaultInputs: [
-      mkPort('shape', 'geometry', 'none', { type: 'null' }),
-      mkPort('fill', 'color', 'color', { type: 'color', value: { r: 1, g: 1, b: 1, a: 1 } }),
+      mkPort('shape', 'Geometry', 'None', 'Null'),
+      mkPort('fill', 'Color', 'Color', { Color: { r: 1, g: 1, b: 1, a: 1 } }),
     ],
   },
   {
@@ -144,9 +145,9 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'color',
     description: 'Set stroke',
     defaultInputs: [
-      mkPort('shape', 'geometry', 'none', { type: 'null' }),
-      mkPort('color', 'color', 'color', { type: 'color', value: { r: 0, g: 0, b: 0, a: 1 } }),
-      mkPort('width', 'float', 'float', { type: 'float', value: 1 }),
+      mkPort('shape', 'Geometry', 'None', 'Null'),
+      mkPort('color', 'Color', 'Color', { Color: { r: 0, g: 0, b: 0, a: 1 } }),
+      mkPort('width', 'Float', 'Float', { Float: 1 }),
     ],
   },
   {
@@ -154,8 +155,8 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'transform',
     description: 'Move geometry',
     defaultInputs: [
-      mkPort('shape', 'geometry', 'none', { type: 'null' }),
-      mkPort('translate', 'point', 'point', POINT_ZERO),
+      mkPort('shape', 'Geometry', 'None', 'Null'),
+      mkPort('translate', 'Point', 'Point', POINT_ZERO),
     ],
   },
   {
@@ -163,8 +164,8 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'transform',
     description: 'Rotate geometry',
     defaultInputs: [
-      mkPort('shape', 'geometry', 'none', { type: 'null' }),
-      mkPort('angle', 'float', 'angle', FLOAT_ZERO),
+      mkPort('shape', 'Geometry', 'None', 'Null'),
+      mkPort('angle', 'Float', 'Angle', FLOAT_ZERO),
     ],
   },
   {
@@ -172,8 +173,8 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'transform',
     description: 'Scale geometry',
     defaultInputs: [
-      mkPort('shape', 'geometry', 'none', { type: 'null' }),
-      mkPort('scale', 'point', 'point', { type: 'point', value: { x: 1, y: 1 } }),
+      mkPort('shape', 'Geometry', 'None', 'Null'),
+      mkPort('scale', 'Point', 'Point', { Point: { x: 1, y: 1 } }),
     ],
   },
   {
@@ -181,11 +182,11 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'transform',
     description: 'Copy with transform',
     defaultInputs: [
-      mkPort('shape', 'geometry', 'none', { type: 'null' }),
-      mkPort('copies', 'int', 'int', { type: 'int', value: 10 }),
-      mkPort('translate', 'point', 'point', POINT_ZERO),
-      mkPort('rotate', 'float', 'angle', FLOAT_ZERO),
-      mkPort('scale', 'point', 'point', { type: 'point', value: { x: 1, y: 1 } }),
+      mkPort('shape', 'Geometry', 'None', 'Null'),
+      mkPort('copies', 'Int', 'Int', { Int: 10 }),
+      mkPort('translate', 'Point', 'Point', POINT_ZERO),
+      mkPort('rotate', 'Float', 'Angle', FLOAT_ZERO),
+      mkPort('scale', 'Point', 'Point', { Point: { x: 1, y: 1 } }),
     ],
   },
   {
@@ -193,8 +194,8 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'math',
     description: 'Add two numbers',
     defaultInputs: [
-      mkPort('value1', 'float', 'float', FLOAT_ZERO),
-      mkPort('value2', 'float', 'float', FLOAT_ZERO),
+      mkPort('value1', 'Float', 'Float', FLOAT_ZERO),
+      mkPort('value2', 'Float', 'Float', FLOAT_ZERO),
     ],
   },
   {
@@ -202,8 +203,8 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'math',
     description: 'Subtract two numbers',
     defaultInputs: [
-      mkPort('value1', 'float', 'float', FLOAT_ZERO),
-      mkPort('value2', 'float', 'float', FLOAT_ZERO),
+      mkPort('value1', 'Float', 'Float', FLOAT_ZERO),
+      mkPort('value2', 'Float', 'Float', FLOAT_ZERO),
     ],
   },
   {
@@ -211,8 +212,8 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'math',
     description: 'Multiply two numbers',
     defaultInputs: [
-      mkPort('value1', 'float', 'float', FLOAT_ZERO),
-      mkPort('value2', 'float', 'float', FLOAT_ZERO),
+      mkPort('value1', 'Float', 'Float', FLOAT_ZERO),
+      mkPort('value2', 'Float', 'Float', FLOAT_ZERO),
     ],
   },
   {
@@ -220,8 +221,8 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'math',
     description: 'Divide two numbers',
     defaultInputs: [
-      mkPort('value1', 'float', 'float', FLOAT_ZERO),
-      mkPort('value2', 'float', 'float', { type: 'float', value: 1 }),
+      mkPort('value1', 'Float', 'Float', FLOAT_ZERO),
+      mkPort('value2', 'Float', 'Float', { Float: 1 }),
     ],
   },
   {
@@ -229,9 +230,9 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'math',
     description: 'Random number',
     defaultInputs: [
-      mkPort('min', 'float', 'float', FLOAT_ZERO),
-      mkPort('max', 'float', 'float', FLOAT_100),
-      mkPort('seed', 'int', 'seed', { type: 'int', value: 0 }),
+      mkPort('min', 'Float', 'Float', FLOAT_ZERO),
+      mkPort('max', 'Float', 'Float', FLOAT_100),
+      mkPort('seed', 'Int', 'Seed', { Int: 0 }),
     ],
   },
   {
@@ -239,8 +240,8 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'list',
     description: 'Merge paths',
     defaultInputs: [
-      mkPort('shape1', 'geometry', 'none', { type: 'null' }),
-      mkPort('shape2', 'geometry', 'none', { type: 'null' }),
+      mkPort('shape1', 'Geometry', 'None', 'Null'),
+      mkPort('shape2', 'Geometry', 'None', 'Null'),
     ],
   },
   {
@@ -248,9 +249,9 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     category: 'list',
     description: 'Switch between inputs',
     defaultInputs: [
-      mkPort('input1', 'geometry', 'none', { type: 'null' }),
-      mkPort('input2', 'geometry', 'none', { type: 'null' }),
-      mkPort('index', 'int', 'int', { type: 'int', value: 0 }),
+      mkPort('input1', 'Geometry', 'None', 'Null'),
+      mkPort('input2', 'Geometry', 'None', 'Null'),
+      mkPort('index', 'Int', 'Int', { Int: 0 }),
     ],
   },
 ];

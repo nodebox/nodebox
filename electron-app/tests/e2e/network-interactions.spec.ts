@@ -70,7 +70,7 @@ test('double-click on node sets it as rendered child', async () => {
   await waitForUpdate(ctx.window);
 
   const state = await getStoreState(ctx.window);
-  expect(state.renderedChild).toBe('rect1');
+  expect(state.rendered_child).toBe('rect1');
 });
 
 test('double-click on empty space opens node dialog', async () => {

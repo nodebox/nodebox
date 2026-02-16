@@ -55,10 +55,10 @@ export const createLibrarySlice = (
       const root = state.library.root;
       root.children = root.children.filter((n) => n.name !== nodeName);
       root.connections = root.connections.filter(
-        (c) => c.outputNode !== nodeName && c.inputNode !== nodeName,
+        (c) => c.output_node !== nodeName && c.input_node !== nodeName,
       );
-      if (root.renderedChild === nodeName) {
-        root.renderedChild = null;
+      if (root.rendered_child === nodeName) {
+        root.rendered_child = null;
       }
       state.isDirty = true;
     }),
@@ -81,8 +81,8 @@ export const createLibrarySlice = (
       root.connections = root.connections.filter(
         (c) =>
           !(
-            c.inputNode === connection.inputNode &&
-            c.inputPort === connection.inputPort
+            c.input_node === connection.input_node &&
+            c.input_port === connection.input_port
           ),
       );
       root.connections.push(connection);
@@ -93,14 +93,14 @@ export const createLibrarySlice = (
     set((state) => {
       state.library.root.connections =
         state.library.root.connections.filter(
-          (c) => !(c.inputNode === inputNode && c.inputPort === inputPort),
+          (c) => !(c.input_node === inputNode && c.input_port === inputPort),
         );
       state.isDirty = true;
     }),
 
   setRenderedChild: (_parentPath, childName) =>
     set((state) => {
-      state.library.root.renderedChild = childName;
+      state.library.root.rendered_child = childName;
       state.isDirty = true;
     }),
 

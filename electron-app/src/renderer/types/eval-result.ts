@@ -6,9 +6,7 @@ export interface PathRenderData {
   contours: Contour[];
   fill: Color | null;
   stroke: Color | null;
-  strokeWidth: number;
-  /** When false, handles/points are not drawn (e.g. font glyph outlines). */
-  editable?: boolean;
+  stroke_width: number;
 }
 
 export interface TextRenderData {

@@ -50,30 +50,30 @@ const PORT_MARGIN = 6;
 
 function nodeBodyColor(outputType: PortType): string {
   switch (outputType) {
-    case 'geometry': return NODE_BODY_GEOMETRY;
-    case 'int': return NODE_BODY_INT;
-    case 'float': return NODE_BODY_FLOAT;
-    case 'string': return NODE_BODY_STRING;
-    case 'boolean': return NODE_BODY_BOOLEAN;
-    case 'point': return NODE_BODY_POINT;
-    case 'color': return NODE_BODY_COLOR;
-    case 'list': return NODE_BODY_LIST;
-    case 'data': return NODE_BODY_DATA;
+    case 'Geometry': return NODE_BODY_GEOMETRY;
+    case 'Int': return NODE_BODY_INT;
+    case 'Float': return NODE_BODY_FLOAT;
+    case 'String': return NODE_BODY_STRING;
+    case 'Boolean': return NODE_BODY_BOOLEAN;
+    case 'Point': return NODE_BODY_POINT;
+    case 'Color': return NODE_BODY_COLOR;
+    case 'List': return NODE_BODY_LIST;
+    case 'Data': return NODE_BODY_DATA;
     default: return NODE_BODY_DEFAULT;
   }
 }
 
 function portColor(portType: PortType): string {
   switch (portType) {
-    case 'int': return PORT_COLOR_INT;
-    case 'float': return PORT_COLOR_FLOAT;
-    case 'string': return PORT_COLOR_STRING;
-    case 'boolean': return PORT_COLOR_BOOLEAN;
-    case 'point': return PORT_COLOR_POINT;
-    case 'color': return PORT_COLOR_COLOR;
-    case 'geometry': return PORT_COLOR_GEOMETRY;
-    case 'list': return PORT_COLOR_LIST;
-    case 'data': return PORT_COLOR_DATA;
+    case 'Int': return PORT_COLOR_INT;
+    case 'Float': return PORT_COLOR_FLOAT;
+    case 'String': return PORT_COLOR_STRING;
+    case 'Boolean': return PORT_COLOR_BOOLEAN;
+    case 'Point': return PORT_COLOR_POINT;
+    case 'Color': return PORT_COLOR_COLOR;
+    case 'Geometry': return PORT_COLOR_GEOMETRY;
+    case 'List': return PORT_COLOR_LIST;
+    case 'Data': return PORT_COLOR_DATA;
     default: return PORT_COLOR_GEOMETRY;
   }
 }
@@ -182,10 +182,10 @@ function drawNode(
   if (isSelected) {
     ctx.fillStyle = ZINC_50;
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
-    ctx.fillStyle = nodeBodyColor(node.outputType);
+    ctx.fillStyle = nodeBodyColor(node.output_type);
     ctx.fillRect(rect.x + 2 * z, rect.y + 2 * z, rect.width - 4 * z, rect.height - 4 * z);
   } else {
-    ctx.fillStyle = nodeBodyColor(node.outputType);
+    ctx.fillStyle = nodeBodyColor(node.output_type);
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
   }
 
@@ -228,7 +228,7 @@ function drawNode(
     const px = rect.x + (PORT_WIDTH + PORT_SPACING) * z * i;
     const py = rect.y - PORT_HEIGHT * z;
     const isHovered = hoveredPort?.nodeName === node.name && hoveredPort?.portName === node.inputs[i].name;
-    ctx.fillStyle = isHovered ? PORT_HOVER : portColor(node.inputs[i].portType);
+    ctx.fillStyle = isHovered ? PORT_HOVER : portColor(node.inputs[i].port_type);
     ctx.fillRect(px, py, PORT_WIDTH * z, PORT_HEIGHT * z);
   }
 
@@ -236,7 +236,7 @@ function drawNode(
   const opx = rect.x;
   const opy = rect.y + rect.height;
   const isOutputHovered = hoveredPort?.nodeName === node.name && hoveredPort?.portName === 'output';
-  ctx.fillStyle = isOutputHovered ? PORT_HOVER : portColor(node.outputType);
+  ctx.fillStyle = isOutputHovered ? PORT_HOVER : portColor(node.output_type);
   ctx.fillRect(opx, opy, PORT_WIDTH * z, PORT_HEIGHT * z);
 }
 
@@ -247,8 +247,8 @@ function drawConnection(
   worldToScreen: (wx: number, wy: number) => { x: number; y: number },
   zoom: number,
 ) {
-  const outputNode = nodes.find((n) => n.name === conn.outputNode);
-  const inputNode = nodes.find((n) => n.name === conn.inputNode);
+  const outputNode = nodes.find((n) => n.name === conn.output_node);
+  const inputNode = nodes.find((n) => n.name === conn.input_node);
   if (!outputNode || !inputNode) return;
 
   // Output port position (bottom-left of output node)
@@ -258,13 +258,13 @@ function drawConnection(
 
   // Input port position (top of input node, left-aligned)
   const inRect = nodeScreenRect(inputNode, worldToScreen, zoom);
-  const portIdx = inputNode.inputs.findIndex((p) => p.name === conn.inputPort);
+  const portIdx = inputNode.inputs.findIndex((p) => p.name === conn.input_port);
   const x2 = inRect.x + (PORT_WIDTH + PORT_SPACING) * zoom * portIdx + (PORT_WIDTH * zoom) / 2;
   const y2 = inRect.y - PORT_HEIGHT * zoom;
 
   // Bezier curve colored by output type
   const cpOffset = Math.abs(y2 - y1) * 0.4;
-  ctx.strokeStyle = portColor(outputNode.outputType);
+  ctx.strokeStyle = portColor(outputNode.output_type);
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(x1, y1);
@@ -285,7 +285,7 @@ function drawPendingConnection(
   const y1 = outRect.y + outRect.height + PORT_HEIGHT * zoom;
 
   const cpOffset = Math.abs(mouseY - y1) * 0.4;
-  ctx.strokeStyle = portColor(fromNode.outputType);
+  ctx.strokeStyle = portColor(fromNode.output_type);
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(x1, y1);
@@ -330,7 +330,7 @@ interface RubberBand {
 export function NetworkCanvas() {
   const children = useStore((s) => s.library.root.children);
   const connections = useStore((s) => s.library.root.connections);
-  const renderedChild = useStore((s) => s.library.root.renderedChild);
+  const renderedChild = useStore((s) => s.library.root.rendered_child);
   const selectedNodes = useStore((s) => s.selectedNodes);
   const selectNode = useStore((s) => s.selectNode);
   const selectNodes = useStore((s) => s.selectNodes);
@@ -449,7 +449,7 @@ export function NetworkCanvas() {
           sy >= opy - PORT_HIT_TOLERANCE &&
           sy <= opy + oph + PORT_HIT_TOLERANCE
         ) {
-          return { node, portType: node.outputType };
+          return { node, portType: node.output_type };
         }
       }
       return null;
@@ -486,7 +486,7 @@ export function NetworkCanvas() {
             sy >= py - PORT_HIT_TOLERANCE &&
             sy <= py + ph + PORT_HIT_TOLERANCE
           ) {
-            return { node, portName: node.inputs[j].name, portType: node.inputs[j].portType };
+            return { node, portName: node.inputs[j].name, portType: node.inputs[j].port_type };
           }
         }
       }
@@ -635,9 +635,9 @@ export function NetworkCanvas() {
         const inputPort = findInputPortAt(sx, sy, true);
         if (inputPort && inputPort.node.name !== creatingConnection.fromNode) {
           addConnection('root', {
-            outputNode: creatingConnection.fromNode,
-            inputNode: inputPort.node.name,
-            inputPort: inputPort.portName,
+            output_node: creatingConnection.fromNode,
+            input_node: inputPort.node.name,
+            input_port: inputPort.portName,
           });
         }
         setCreatingConnection(null);

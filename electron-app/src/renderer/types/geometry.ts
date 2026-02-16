@@ -1,4 +1,5 @@
 // TypeScript types mirroring crates/nodebox-core/src/geometry/
+// Field names match Rust serde serialization (snake_case).
 
 export interface Point {
   x: number;
@@ -12,12 +13,11 @@ export interface Color {
   a: number;
 }
 
-export type PointType = 'moveTo' | 'lineTo' | 'curveTo' | 'curveData' | 'quadTo' | 'quadData';
+export type PointType = 'LineTo' | 'CurveTo' | 'CurveData' | 'QuadTo' | 'QuadData';
 
 export interface PathPoint {
-  x: number;
-  y: number;
-  pointType: PointType;
+  point: Point;
+  point_type: PointType;
 }
 
 export interface Contour {
@@ -29,8 +29,7 @@ export interface Path {
   contours: Contour[];
   fill: Color | null;
   stroke: Color | null;
-  strokeWidth: number;
-  editable?: boolean;
+  stroke_width: number;
 }
 
 export type TextAlign = 'left' | 'center' | 'right';

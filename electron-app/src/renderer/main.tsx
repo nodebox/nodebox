@@ -10,17 +10,17 @@ import './App.css';
   return {
     selectedNodes: [...s.selectedNodes],
     activeNode: s.activeNode,
-    renderedChild: s.library.root.renderedChild,
+    rendered_child: s.library.root.rendered_child,
     children: s.library.root.children.map((n) => ({
       name: n.name,
       position: n.position,
       inputs: n.inputs.length,
       prototype: n.prototype,
-      outputType: n.outputType,
+      output_type: n.output_type,
       category: n.category,
       ports: n.inputs.map((p) => ({
         name: p.name,
-        portType: p.portType,
+        port_type: p.port_type,
         value: p.value,
       })),
     })),
