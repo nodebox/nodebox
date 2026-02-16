@@ -20,32 +20,24 @@ test('evaluator produces a render result with paths', async () => {
 });
 
 test('viewer canvas draws the rect (has non-white center pixel)', async () => {
-  // Wait for evaluation and rendering
-  await waitForUpdate(ctx.window, 500);
+  // The default rect is at (0,0) with width=100, height=100, black fill.
+  // The origin crosshair paints over the exact center, so sample slightly off-center.
+  // Poll until the evaluator finishes and the canvas paints.
+  const viewerCanvas = ctx.window.locator('canvas').first();
 
-  // The viewer canvas is the first canvas in the left pane
-  const canvases = ctx.window.locator('canvas');
-  const count = await canvases.count();
-  expect(count).toBeGreaterThanOrEqual(1);
-
-  // Viewer canvas renders content — sample a pixel near center
-  // The default rect is at (0,0) with width=100, height=100, black fill
-  // Viewer centers at canvas center, so center pixel should be black (the rect fill)
-  const viewerCanvas = canvases.first();
-  const pixel = await viewerCanvas.evaluate((el: HTMLCanvasElement) => {
-    const c = el.getContext('2d');
-    if (!c) return null;
-    const w = el.width / 2;
-    const h = el.height / 2;
-    const data = c.getImageData(Math.floor(w), Math.floor(h), 1, 1).data;
-    return { r: data[0], g: data[1], b: data[2], a: data[3] };
-  });
-  expect(pixel).not.toBeNull();
-  // The rect has black fill (r=0, g=0, b=0). The background is #e4e4e7 (ZINC_200).
-  // Center pixel should be the black rect, not the background.
-  expect(pixel!.r).toBeLessThan(50);
-  expect(pixel!.g).toBeLessThan(50);
-  expect(pixel!.b).toBeLessThan(50);
+  await expect(async () => {
+    const pixel = await viewerCanvas.evaluate((el: HTMLCanvasElement) => {
+      const c = el.getContext('2d');
+      if (!c) return null;
+      // Offset by 30px to avoid the origin crosshair (arm=20px from center)
+      const data = c.getImageData(Math.floor(el.width / 2) - 30, Math.floor(el.height / 2) - 30, 1, 1).data;
+      return { r: data[0], g: data[1], b: data[2] };
+    });
+    expect(pixel).not.toBeNull();
+    expect(pixel!.r).toBeLessThan(50);
+    expect(pixel!.g).toBeLessThan(50);
+    expect(pixel!.b).toBeLessThan(50);
+  }).toPass({ timeout: 5000 });
 });
 
 test('data tab shows table when clicked', async () => {

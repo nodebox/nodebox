@@ -77,26 +77,16 @@ export function usePanZoom(
 
         const factor = Math.pow(2, -e.deltaY * 0.005);
 
-        const canvasW = rect.width;
-        const canvasH = rect.height;
+        // Zoom anchor: mouse position, adjusted for center-origin coordinate systems
+        const ax = centerOrigin ? mx - rect.width / 2 : mx;
+        const ay = centerOrigin ? my - rect.height / 2 : my;
 
         setPzState((prev) => {
           const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev.zoom * factor));
           const scale = newZoom / prev.zoom;
-          if (centerOrigin) {
-            // When using center-origin coordinate system (e.g. ViewerCanvas),
-            // account for the width/2, height/2 offset in the transform
-            const adjMx = mx - canvasW / 2;
-            const adjMy = my - canvasH / 2;
-            return {
-              panX: adjMx - (adjMx - prev.panX) * scale,
-              panY: adjMy - (adjMy - prev.panY) * scale,
-              zoom: newZoom,
-            };
-          }
           return {
-            panX: mx - (mx - prev.panX) * scale,
-            panY: my - (my - prev.panY) * scale,
+            panX: ax - (ax - prev.panX) * scale,
+            panY: ay - (ay - prev.panY) * scale,
             zoom: newZoom,
           };
         });

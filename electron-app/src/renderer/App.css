@@ -69,6 +69,22 @@
   --font-size-heading: 16px;
 }
 
+/* Electron native-app defaults */
+html {
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  cursor: default;
+}
+
+input, textarea, select {
+  -webkit-user-select: auto;
+  cursor: auto;
+}
+
+img {
+  -webkit-user-drag: none;
+}
+
 html,
 body,
 #root {
