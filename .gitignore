@@ -23,3 +23,6 @@ lib/cachedir
 
 # Secrets
 .env
+
+# Playwright
+.playwright-mcp/
