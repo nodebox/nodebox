@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { useStore } from '../state/store';
 import { usePanZoom } from '../hooks/usePanZoom';
 import { useCanvasRenderer } from '../hooks/useCanvasRenderer';
@@ -96,103 +96,64 @@ function categoryColor(category: string): string {
   }
 }
 
-function drawNodeIcon(
-  ctx: CanvasRenderingContext2D,
-  category: string,
-  cx: number,
-  cy: number,
-  size: number,
-) {
-  const half = size / 2;
-  ctx.fillStyle = 'rgba(255,255,255,0.8)';
-  ctx.strokeStyle = 'rgba(255,255,255,0.8)';
-  ctx.lineWidth = 1.5;
+// Icon cache: loads SVG icons and pre-renders them as white-tinted OffscreenCanvas images
+class NodeIconCache {
+  private entries = new Map<string, {
+    loaded: boolean;
+    failed: boolean;
+    tinted: OffscreenCanvas | null;
+  }>();
+  private listeners: (() => void)[] = [];
 
-  switch (category) {
-    case 'geometry': {
-      // Diamond (4-point polygon)
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - half);
-      ctx.lineTo(cx + half, cy);
-      ctx.lineTo(cx, cy + half);
-      ctx.lineTo(cx - half, cy);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    }
-    case 'transform': {
-      // Right-pointing arrow
-      const aw = half * 0.6;
-      ctx.beginPath();
-      ctx.moveTo(cx - half, cy - aw);
-      ctx.lineTo(cx, cy - aw);
-      ctx.lineTo(cx, cy - half);
-      ctx.lineTo(cx + half, cy);
-      ctx.lineTo(cx, cy + half);
-      ctx.lineTo(cx, cy + aw);
-      ctx.lineTo(cx - half, cy + aw);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    }
-    case 'color': {
-      // Filled circle
-      ctx.beginPath();
-      ctx.arc(cx, cy, half, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    }
-    case 'math': {
-      // Plus sign (two crossed lines)
-      const t = size * 0.12;
-      ctx.beginPath();
-      ctx.moveTo(cx - half, cy - t);
-      ctx.lineTo(cx - half, cy + t);
-      ctx.lineTo(cx - t, cy + t);
-      ctx.lineTo(cx - t, cy + half);
-      ctx.lineTo(cx + t, cy + half);
-      ctx.lineTo(cx + t, cy + t);
-      ctx.lineTo(cx + half, cy + t);
-      ctx.lineTo(cx + half, cy - t);
-      ctx.lineTo(cx + t, cy - t);
-      ctx.lineTo(cx + t, cy - half);
-      ctx.lineTo(cx - t, cy - half);
-      ctx.lineTo(cx - t, cy - t);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    }
-    case 'list': {
-      // Three horizontal lines
-      const lh = size * 0.1;
-      const gap = size * 0.35;
-      for (let i = -1; i <= 1; i++) {
-        ctx.fillRect(cx - half, cy + i * gap - lh, size, lh * 2);
-      }
-      break;
-    }
-    case 'string': {
-      // Letter "A"
-      ctx.font = `bold ${size}px -apple-system, system-ui, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('A', cx, cy);
-      break;
-    }
-    case 'data': {
-      // Small rectangle outline
-      const rw = half * 0.8;
-      const rh = half;
-      ctx.strokeRect(cx - rw, cy - rh, rw * 2, rh * 2);
-      break;
-    }
-    default: {
-      // Filled square
-      ctx.fillRect(cx - half * 0.7, cy - half * 0.7, half * 1.4, half * 1.4);
-      break;
-    }
+  onLoad(cb: () => void) {
+    this.listeners.push(cb);
+  }
+
+  removeOnLoad(cb: () => void) {
+    this.listeners = this.listeners.filter((c) => c !== cb);
+  }
+
+  ensure(name: string): void {
+    if (this.entries.has(name)) return;
+    const entry = { loaded: false, failed: false, tinted: null as OffscreenCanvas | null };
+    this.entries.set(name, entry);
+
+    const img = new Image();
+    img.onload = () => {
+      // Pre-render at 32x32 for crisp drawing at various zoom levels
+      const size = 32;
+      const oc = new OffscreenCanvas(size, size);
+      const octx = oc.getContext('2d')!;
+      octx.drawImage(img, 0, 0, size, size);
+      // Tint black paths to white using source-atop compositing
+      octx.globalCompositeOperation = 'source-atop';
+      octx.fillStyle = 'white';
+      octx.fillRect(0, 0, size, size);
+      entry.loaded = true;
+      entry.tinted = oc;
+      for (const cb of this.listeners) cb();
+    };
+    img.onerror = () => {
+      entry.failed = true;
+    };
+    img.src = `/icons/corevector/${name}.svg`;
+  }
+
+  draw(
+    ctx: CanvasRenderingContext2D,
+    name: string,
+    cx: number,
+    cy: number,
+    size: number,
+  ): boolean {
+    const entry = this.entries.get(name);
+    if (!entry?.tinted) return false;
+    ctx.drawImage(entry.tinted, cx - size / 2, cy - size / 2, size, size);
+    return true;
   }
 }
+
+const nodeIconCache = new NodeIconCache();
 
 function nodeScreenRect(
   node: Node,
@@ -263,16 +224,19 @@ function drawNode(
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
   }
 
-  // Category indicator (colored background with procedural icon)
+  // Category background + node icon (SVG icon on colored background)
   const catColor = categoryColor(node.category);
   ctx.fillStyle = catColor;
   ctx.fillRect(rect.x + 4 * z, rect.y + 4 * z, 20 * z, rect.height - 8 * z);
 
-  // Draw procedural icon centered in the category region
-  const iconSize = 14 * z;
+  const iconSize = 16 * z;
   const iconCx = rect.x + 4 * z + (20 * z) / 2;
   const iconCy = rect.y + rect.height / 2;
-  drawNodeIcon(ctx, node.category, iconCx, iconCy, iconSize);
+  const protoName = node.prototype?.split('.').pop();
+  if (protoName) {
+    nodeIconCache.ensure(protoName);
+    nodeIconCache.draw(ctx, protoName, iconCx, iconCy, iconSize);
+  }
 
   // Rendered child indicator: white triangle at bottom-right
   if (isRendered) {
@@ -486,6 +450,13 @@ export function NetworkCanvas() {
   );
 
   const { canvasRef, requestRender } = useCanvasRenderer(draw);
+
+  // Re-render when SVG icons finish loading
+  useEffect(() => {
+    const handleLoad = () => requestRender();
+    nodeIconCache.onLoad(handleLoad);
+    return () => nodeIconCache.removeOnLoad(handleLoad);
+  }, [requestRender]);
 
   const hitTestNode = useCallback(
     (sx: number, sy: number): Node | null => {
