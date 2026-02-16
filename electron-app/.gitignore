@@ -2,3 +2,5 @@ node_modules/
 dist/
 dist-electron/
 *.log
+test-results/
+.playwright-mcp/
