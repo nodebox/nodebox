@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useStore } from '../state/store';
 import type { Port } from '../types/node';
 import type { Value } from '../types/value';
-import { isFloat, isInt, getFloat, getPoint, getString, getColor } from '../types/value';
+import { isFloat, isInt, getFloat, getPoint, getString, getBoolean, getColor } from '../types/value';
 import { DragValue, type DragValueHandle } from './DragValue';
 import {
   LABEL_WIDTH,
@@ -326,6 +326,88 @@ function ColorPortWidget({
   );
 }
 
+function TogglePortWidget({
+  port,
+  nodeName,
+}: {
+  port: Port;
+  nodeName: string;
+}) {
+  const setPortValue = useStore((s) => s.setPortValue);
+  const boolValue = getBoolean(port.value);
+
+  const handleClick = useCallback(() => {
+    setPortValue(nodeName, port.name, { Boolean: !boolValue });
+  }, [setPortValue, nodeName, port.name, boolValue]);
+
+  return (
+    <div
+      className="flex"
+      style={{ height: PARAMETER_ROW_HEIGHT }}
+      data-testid={`param-row-${port.name}`}
+    >
+      <div
+        className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px]"
+        style={{ width: LABEL_WIDTH }}
+      >
+        {port.label ?? port.name}
+      </div>
+      <div
+        className="flex-1 flex items-center px-2 text-zinc-100 text-[13px] cursor-pointer select-none"
+        data-testid={`param-value-${port.name}`}
+        onClick={handleClick}
+      >
+        {boolValue ? 'true' : 'false'}
+      </div>
+    </div>
+  );
+}
+
+function MenuPortWidget({
+  port,
+  nodeName,
+}: {
+  port: Port;
+  nodeName: string;
+}) {
+  const setPortValue = useStore((s) => s.setPortValue);
+  const strValue = getString(port.value);
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setPortValue(nodeName, port.name, { String: e.target.value });
+    },
+    [setPortValue, nodeName, port.name],
+  );
+
+  return (
+    <div
+      className="flex"
+      style={{ height: PARAMETER_ROW_HEIGHT }}
+      data-testid={`param-row-${port.name}`}
+    >
+      <div
+        className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px]"
+        style={{ width: LABEL_WIDTH }}
+      >
+        {port.label ?? port.name}
+      </div>
+      <div className="flex-1 flex items-center pr-2">
+        <select
+          value={strValue}
+          onChange={handleChange}
+          data-testid={`param-value-${port.name}`}
+          className="w-full h-7 bg-transparent hover:bg-field-hover text-zinc-100 border-none outline-none text-[13px] px-1 rounded-sm font-[inherit] focus:bg-field-hover cursor-pointer"
+        >
+          {port.menu_items.map((item) => (
+            <option key={item.key} value={item.key}>{item.label}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+}
+
 function GenericPortWidget({ port }: { port: Port }) {
   const displayValue = formatValue(port.value);
 
@@ -378,6 +460,16 @@ function PortWidget({ port, nodeName, isConnected }: { port: Port; nodeName: str
   if (isConnected) {
     return <ConnectedPortWidget port={port} />;
   }
+
+  // Dispatch by widget type first (handles Menu, Toggle, etc.)
+  switch (port.widget) {
+    case 'Menu':
+      return <MenuPortWidget port={port} nodeName={nodeName} />;
+    case 'Toggle':
+      return <TogglePortWidget port={port} nodeName={nodeName} />;
+  }
+
+  // Fall back to port_type for standard widgets
   if (port.port_type === 'Float' || port.port_type === 'Int') {
     return <FloatPortWidget port={port} nodeName={nodeName} />;
   }
