@@ -255,6 +255,7 @@ function StringPortWidget({
 
   const handleLabelClick = useCallback(() => {
     inputRef.current?.focus();
+    inputRef.current?.select();
   }, []);
 
   return (
@@ -276,6 +277,7 @@ function StringPortWidget({
           type="text"
           value={strValue}
           onChange={handleChange}
+          onFocus={(e) => e.target.select()}
           data-testid={`param-value-${port.name}`}
           className="w-full h-7 bg-transparent hover:bg-field-hover text-zinc-100 border-none outline-none text-[13px] px-2 rounded-sm font-[inherit] focus:bg-field-hover"
         />
