@@ -278,6 +278,12 @@ function StringPortWidget({
           value={strValue}
           onChange={handleChange}
           onFocus={(e) => e.target.select()}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              inputRef.current?.blur();
+            }
+          }}
           data-testid={`param-value-${port.name}`}
           className="w-full h-7 bg-transparent hover:bg-field-hover text-zinc-100 border-none outline-none text-[13px] px-2 rounded-sm font-[inherit] focus:bg-field-hover"
         />
