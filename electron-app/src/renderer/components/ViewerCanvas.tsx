@@ -342,8 +342,8 @@ export function ViewerCanvas() {
         ctx.restore();
       }
 
-      // Draw points
-      if (showPoints) {
+      // Draw points (always show when output is Point type, like grid)
+      if (showPoints || renderResult?.output.type === 'Point') {
         ctx.save();
         ctx.translate(width / 2 + pz.panX, height / 2 + pz.panY);
         ctx.scale(pz.zoom, pz.zoom);
