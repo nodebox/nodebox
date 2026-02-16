@@ -21,19 +21,19 @@ function DraggableLabel({
   label,
   portName,
   onDrag,
-  onDragEnd,
 }: {
   label: string;
   portName: string;
   onDrag: (delta: number) => void;
-  onDragEnd: () => void;
 }) {
-  const dragStartX = useRef(0);
+  const dragOriginX = useRef(0);
+  const lastX = useRef(0);
   const hasDragged = useRef(false);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
-    dragStartX.current = e.clientX;
+    dragOriginX.current = e.clientX;
+    lastX.current = e.clientX;
     hasDragged.current = false;
     const target = e.currentTarget as HTMLElement;
     target.setPointerCapture(e.pointerId);
@@ -42,15 +42,17 @@ function DraggableLabel({
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!(e.currentTarget as HTMLElement).hasPointerCapture(e.pointerId)) return;
-      const deltaX = e.clientX - dragStartX.current;
-      if (!hasDragged.current && Math.abs(deltaX) < DRAG_THRESHOLD) return;
+      if (!hasDragged.current && Math.abs(e.clientX - dragOriginX.current) < DRAG_THRESHOLD) return;
       hasDragged.current = true;
+
+      const moveDelta = e.clientX - lastX.current;
+      lastX.current = e.clientX;
 
       let speed = 1.0;
       if (e.shiftKey) speed *= 10;
       if (e.altKey) speed *= 0.01;
 
-      onDrag(deltaX * speed);
+      onDrag(moveDelta * speed);
     },
     [onDrag],
   );
@@ -58,21 +60,17 @@ function DraggableLabel({
   const handlePointerUp = useCallback(
     (e: React.PointerEvent) => {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-      if (hasDragged.current) {
-        onDragEnd();
-      }
     },
-    [onDragEnd],
+    [],
   );
 
   return (
     <div
-      className="flex items-center px-2 shrink-0"
+      className="flex items-center justify-end px-2 shrink-0"
       style={{
         width: LABEL_WIDTH,
         color: TEXT_SUBDUED,
         fontSize: FONT_SIZE_SMALL,
-        textAlign: 'right',
         cursor: 'ew-resize',
         userSelect: 'none',
       }}
@@ -99,7 +97,7 @@ function FloatPortWidget({
       ? port.value.value
       : 0;
 
-  const dragStartValue = useRef(numValue);
+  const accumulatedLabelValue = useRef(numValue);
 
   const handleChange = useCallback(
     (v: number) => {
@@ -115,22 +113,14 @@ function FloatPortWidget({
 
   const handleLabelDrag = useCallback(
     (delta: number) => {
-      // On first drag movement, capture current value
-      if (dragStartValue.current !== numValue && delta !== 0) {
-        // Already dragging, use stored start value
-      }
-      handleChange(dragStartValue.current + delta);
+      accumulatedLabelValue.current += delta;
+      handleChange(accumulatedLabelValue.current);
     },
-    [handleChange, numValue],
+    [handleChange],
   );
 
-  const handleLabelDragEnd = useCallback(() => {
-    // no-op; value is already committed during drag
-  }, []);
-
-  // Capture start value on pointer down via the ref
   const handleLabelPointerDownCapture = useCallback(() => {
-    dragStartValue.current = numValue;
+    accumulatedLabelValue.current = numValue;
   }, [numValue]);
 
   return (
@@ -144,7 +134,6 @@ function FloatPortWidget({
         label={port.label ?? port.name}
         portName={port.name}
         onDrag={handleLabelDrag}
-        onDragEnd={handleLabelDragEnd}
       />
       <div
         className="flex-1"
@@ -174,7 +163,7 @@ function PointPortWidget({
       ? port.value.value
       : { x: 0, y: 0 };
 
-  const dragStartPoint = useRef(pointValue);
+  const accumulatedLabelPoint = useRef(pointValue);
 
   const handleChangeX = useCallback(
     (v: number) => {
@@ -198,23 +187,20 @@ function PointPortWidget({
 
   const handleLabelDrag = useCallback(
     (delta: number) => {
+      accumulatedLabelPoint.current = {
+        x: accumulatedLabelPoint.current.x + delta,
+        y: accumulatedLabelPoint.current.y + delta,
+      };
       setPortValue(nodeName, port.name, {
         type: 'point',
-        value: {
-          x: dragStartPoint.current.x + delta,
-          y: dragStartPoint.current.y + delta,
-        },
+        value: accumulatedLabelPoint.current,
       });
     },
     [setPortValue, nodeName, port.name],
   );
 
-  const handleLabelDragEnd = useCallback(() => {
-    // no-op; value is already committed during drag
-  }, []);
-
   const handleLabelPointerDownCapture = useCallback(() => {
-    dragStartPoint.current = pointValue;
+    accumulatedLabelPoint.current = pointValue;
   }, [pointValue]);
 
   return (
@@ -228,7 +214,6 @@ function PointPortWidget({
         label={port.label ?? port.name}
         portName={port.name}
         onDrag={handleLabelDrag}
-        onDragEnd={handleLabelDragEnd}
       />
       <div className="flex flex-1">
         <div className="flex-1" data-testid={`param-value-${port.name}-x`}>
@@ -252,12 +237,11 @@ function GenericPortWidget({ port }: { port: Port }) {
       data-testid={`param-row-${port.name}`}
     >
       <div
-        className="flex items-center px-2 shrink-0"
+        className="flex items-center justify-end px-2 shrink-0"
         style={{
           width: LABEL_WIDTH,
           color: TEXT_SUBDUED,
           fontSize: FONT_SIZE_SMALL,
-          textAlign: 'right',
         }}
       >
         {port.label ?? port.name}
@@ -293,12 +277,11 @@ function DocumentPropertyRow({ label, value }: { label: string; value: string })
       style={{ height: PARAMETER_ROW_HEIGHT }}
     >
       <div
-        className="flex items-center px-2 shrink-0"
+        className="flex items-center justify-end px-2 shrink-0"
         style={{
           width: LABEL_WIDTH,
           color: TEXT_SUBDUED,
           fontSize: FONT_SIZE_SMALL,
-          textAlign: 'right',
         }}
       >
         {label}
@@ -323,12 +306,11 @@ function ColorSwatchRow({ label, color }: { label: string; color: string }) {
       style={{ height: PARAMETER_ROW_HEIGHT }}
     >
       <div
-        className="flex items-center px-2 shrink-0"
+        className="flex items-center justify-end px-2 shrink-0"
         style={{
           width: LABEL_WIDTH,
           color: TEXT_SUBDUED,
           fontSize: FONT_SIZE_SMALL,
-          textAlign: 'right',
         }}
       >
         {label}

@@ -30,8 +30,9 @@ export function DragValue({
   const [hovered, setHovered] = useState(false);
   const [editText, setEditText] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
-  const dragStartX = useRef(0);
-  const dragStartValue = useRef(0);
+  const dragOriginX = useRef(0);
+  const lastDragX = useRef(0);
+  const accumulatedValue = useRef(0);
   const hasDragged = useRef(false);
 
   const clamp = useCallback(
@@ -50,8 +51,9 @@ export function DragValue({
     (e: React.PointerEvent) => {
       if (mode === 'edit') return;
       e.preventDefault();
-      dragStartX.current = e.clientX;
-      dragStartValue.current = value;
+      dragOriginX.current = e.clientX;
+      lastDragX.current = e.clientX;
+      accumulatedValue.current = value;
       hasDragged.current = false;
 
       const target = e.currentTarget as HTMLElement;
@@ -65,9 +67,10 @@ export function DragValue({
       if (mode === 'edit') return;
       if (!(e.currentTarget as HTMLElement).hasPointerCapture(e.pointerId)) return;
 
-      const deltaX = e.clientX - dragStartX.current;
-      if (!hasDragged.current && Math.abs(deltaX) < DRAG_THRESHOLD) return;
+      if (!hasDragged.current && Math.abs(e.clientX - dragOriginX.current) < DRAG_THRESHOLD) return;
 
+      const moveDelta = e.clientX - lastDragX.current;
+      lastDragX.current = e.clientX;
       hasDragged.current = true;
       setMode('drag');
 
@@ -75,8 +78,8 @@ export function DragValue({
       if (e.shiftKey) effectiveSpeed *= 10;
       if (e.altKey) effectiveSpeed *= 0.01;
 
-      const newValue = clamp(dragStartValue.current + deltaX * effectiveSpeed);
-      onChange(newValue);
+      accumulatedValue.current += moveDelta * effectiveSpeed;
+      onChange(clamp(accumulatedValue.current));
     },
     [mode, speed, clamp, onChange],
   );
@@ -178,7 +181,7 @@ export function DragValue({
           display: 'flex',
           alignItems: 'center',
           padding: '0 8px',
-          margin: '2px 0',
+          margin: 2,
           height: 'calc(100% - 4px)',
           borderRadius: hovered ? CORNER_RADIUS_SMALL : 0,
           background: hovered ? FIELD_HOVER_BG : 'transparent',
