@@ -119,7 +119,7 @@ export function createDefaultLibrary(): NodeLibrary {
       {
         name: 'position',
         portType: 'point',
-        label: 'Position',
+        label: 'position',
         description: null,
         widget: 'point',
         range: 'value',
@@ -131,7 +131,7 @@ export function createDefaultLibrary(): NodeLibrary {
       {
         name: 'width',
         portType: 'float',
-        label: 'Width',
+        label: 'width',
         description: null,
         widget: 'float',
         range: 'value',
@@ -143,7 +143,7 @@ export function createDefaultLibrary(): NodeLibrary {
       {
         name: 'height',
         portType: 'float',
-        label: 'Height',
+        label: 'height',
         description: null,
         widget: 'float',
         range: 'value',
@@ -155,7 +155,7 @@ export function createDefaultLibrary(): NodeLibrary {
       {
         name: 'roundness',
         portType: 'point',
-        label: 'Roundness',
+        label: 'roundness',
         description: null,
         widget: 'point',
         range: 'value',
