@@ -9,6 +9,13 @@ import {
   colorizePath,
   strokePath,
   translatePath,
+  rotatePath,
+  scalePath,
+  copyPaths,
+  linePath,
+  polygonPath,
+  starPath,
+  gridPoints,
 } from './generators';
 
 function getPortValue(node: Node, portName: string): Value {
@@ -111,6 +118,98 @@ function evaluateNode(
       if (shape) {
         result = { type: 'path', value: translatePath(shape, offset) };
       }
+      break;
+    }
+    case 'corevector.rotate': {
+      const shape = toPath(resolve('shape'));
+      const angle = toFloat(resolve('angle'));
+      const origin = toPoint(resolve('origin'));
+      if (shape) {
+        result = { type: 'path', value: rotatePath(shape, angle, origin) };
+      }
+      break;
+    }
+    case 'corevector.scale': {
+      const shape = toPath(resolve('shape'));
+      const scaleVal = toPoint(resolve('scale'));
+      const origin = toPoint(resolve('origin'));
+      if (shape) {
+        result = { type: 'path', value: scalePath(shape, scaleVal.x, scaleVal.y, origin) };
+      }
+      break;
+    }
+    case 'corevector.copy': {
+      const shape = toPath(resolve('shape'));
+      const copies = toFloat(resolve('copies'));
+      const translate = toPoint(resolve('translate'));
+      const rotate = toFloat(resolve('rotate'));
+      const scale = toPoint(resolve('scale'));
+      if (shape) {
+        const paths = copyPaths(shape, Math.round(copies), translate, rotate, scale);
+        result = { type: 'list', value: paths.map((p) => ({ type: 'path' as const, value: p })) };
+      }
+      break;
+    }
+    case 'corevector.line': {
+      const point1 = toPoint(resolve('point1'));
+      const point2 = toPoint(resolve('point2'));
+      result = { type: 'path', value: linePath(point1, point2) };
+      break;
+    }
+    case 'corevector.polygon': {
+      const position = toPoint(resolve('position'));
+      const radius = toFloat(resolve('radius'));
+      const sides = toFloat(resolve('sides'));
+      const rotation = toFloat(resolve('align'));
+      result = { type: 'path', value: polygonPath(position, radius, Math.round(sides), rotation) };
+      break;
+    }
+    case 'corevector.star': {
+      const position = toPoint(resolve('position'));
+      const points = toFloat(resolve('points'));
+      const outer = toFloat(resolve('outer'));
+      const inner = toFloat(resolve('inner'));
+      result = { type: 'path', value: starPath(position, Math.round(points), outer, inner) };
+      break;
+    }
+    case 'corevector.grid': {
+      const rows = toFloat(resolve('rows'));
+      const columns = toFloat(resolve('columns'));
+      const width = toFloat(resolve('width'));
+      const height = toFloat(resolve('height'));
+      const position = toPoint(resolve('position'));
+      const pts = gridPoints(rows, columns, width, height, position);
+      result = { type: 'list', value: pts.map((p) => ({ type: 'point' as const, value: p })) };
+      break;
+    }
+    case 'corevector.make_point': {
+      const x = toFloat(resolve('x'));
+      const y = toFloat(resolve('y'));
+      result = { type: 'point', value: { x, y } };
+      break;
+    }
+    case 'math.add': {
+      const v1 = toFloat(resolve('value1'));
+      const v2 = toFloat(resolve('value2'));
+      result = { type: 'float', value: v1 + v2 };
+      break;
+    }
+    case 'math.subtract': {
+      const v1 = toFloat(resolve('value1'));
+      const v2 = toFloat(resolve('value2'));
+      result = { type: 'float', value: v1 - v2 };
+      break;
+    }
+    case 'math.multiply': {
+      const v1 = toFloat(resolve('value1'));
+      const v2 = toFloat(resolve('value2'));
+      result = { type: 'float', value: v1 * v2 };
+      break;
+    }
+    case 'math.divide': {
+      const v1 = toFloat(resolve('value1'));
+      const v2 = toFloat(resolve('value2'));
+      result = { type: 'float', value: v2 !== 0 ? v1 / v2 : 0 };
       break;
     }
     default:

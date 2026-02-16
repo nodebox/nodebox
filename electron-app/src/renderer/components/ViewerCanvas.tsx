@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useStore } from '../state/store';
 import { usePanZoom } from '../hooks/usePanZoom';
 import { useCanvasRenderer } from '../hooks/useCanvasRenderer';
@@ -16,18 +16,36 @@ function colorToCSS(c: { r: number; g: number; b: number; a: number }): string {
 
 function contourToPath2D(contour: Contour): Path2D {
   const path = new Path2D();
-  for (const pt of contour.points) {
+  const pts = contour.points;
+  let i = 0;
+  while (i < pts.length) {
+    const pt = pts[i];
     switch (pt.pointType) {
       case 'moveTo':
         path.moveTo(pt.x, pt.y);
+        i++;
         break;
       case 'lineTo':
         path.lineTo(pt.x, pt.y);
+        i++;
         break;
+      case 'curveData': {
+        // Expect two curveData followed by one curveTo
+        const cp1 = pts[i];
+        const cp2 = pts[i + 1];
+        const end = pts[i + 2];
+        if (cp2 && end && end.pointType === 'curveTo') {
+          path.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
+          i += 3;
+        } else {
+          i++;
+        }
+        break;
+      }
       case 'curveTo':
+        // Should be handled by curveData, but fallback
         path.lineTo(pt.x, pt.y);
-        break;
-      case 'curveData':
+        i++;
         break;
     }
   }
@@ -109,19 +127,25 @@ function drawCanvasBorder(
 
   ctx.strokeStyle = ZINC_500;
   ctx.lineWidth = 1;
-  ctx.setLineDash([4, 4]);
   ctx.strokeRect(cx - halfW, cy - halfH, halfW * 2, halfH * 2);
-  ctx.setLineDash([]);
 }
 
 export function ViewerCanvas() {
   const renderResult = useStore((s) => s.renderResult);
   const showOrigin = useStore((s) => s.showOrigin);
   const showCanvasBorder = useStore((s) => s.showCanvasBorder);
+  const showHandles = useStore((s) => s.showHandles);
+  const showPoints = useStore((s) => s.showPoints);
   const library = useStore((s) => s.library);
+  const setViewerZoom = useStore((s) => s.setViewerZoom);
 
-  const panZoom = usePanZoom();
+  const panZoom = usePanZoom(undefined, undefined, { scrollToZoom: true });
   const { state: pz, handlers } = panZoom;
+
+  // Sync viewer zoom to store for header display
+  useEffect(() => {
+    setViewerZoom(pz.zoom);
+  }, [pz.zoom, setViewerZoom]);
 
   const docWidth = parseFloat(library.properties.canvasWidth ?? '1000');
   const docHeight = parseFloat(library.properties.canvasHeight ?? '1000');
@@ -158,8 +182,74 @@ export function ViewerCanvas() {
 
         ctx.restore();
       }
+
+      // Draw handles and points
+      if (showHandles || showPoints) {
+        ctx.save();
+        ctx.translate(width / 2 + pz.panX, height / 2 + pz.panY);
+        ctx.scale(pz.zoom, pz.zoom);
+
+        if (renderResult) {
+          for (const pathData of renderResult.paths) {
+            for (const contour of pathData.contours) {
+              const pts = contour.points;
+
+              if (showHandles) {
+                // Draw handle lines from curveData to their curveTo
+                ctx.strokeStyle = VIEWER_CROSSHAIR;
+                ctx.lineWidth = 1 / pz.zoom;
+                let j = 0;
+                while (j < pts.length) {
+                  if (pts[j].pointType === 'curveData' && j + 2 < pts.length && pts[j + 2].pointType === 'curveTo') {
+                    const cp1 = pts[j];
+                    const cp2 = pts[j + 1];
+                    const end = pts[j + 2];
+                    // Find the previous point for cp1 line
+                    if (j > 0) {
+                      const prev = pts[j - 1];
+                      ctx.beginPath();
+                      ctx.moveTo(prev.x, prev.y);
+                      ctx.lineTo(cp1.x, cp1.y);
+                      ctx.stroke();
+                    }
+                    // Line from cp2 to curveTo
+                    ctx.beginPath();
+                    ctx.moveTo(cp2.x, cp2.y);
+                    ctx.lineTo(end.x, end.y);
+                    ctx.stroke();
+                    // Small circles at control points
+                    const r = 3 / pz.zoom;
+                    ctx.beginPath();
+                    ctx.arc(cp1.x, cp1.y, r, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(cp2.x, cp2.y, r, 0, Math.PI * 2);
+                    ctx.stroke();
+                    j += 3;
+                  } else {
+                    j++;
+                  }
+                }
+              }
+
+              if (showPoints) {
+                const sz = 4 / pz.zoom;
+                const half = sz / 2;
+                for (const pt of pts) {
+                  if (pt.pointType === 'curveData') continue;
+                  ctx.strokeStyle = VIEWER_CROSSHAIR;
+                  ctx.lineWidth = 1 / pz.zoom;
+                  ctx.strokeRect(pt.x - half, pt.y - half, sz, sz);
+                }
+              }
+            }
+          }
+        }
+
+        ctx.restore();
+      }
     },
-    [pz, renderResult, showOrigin, showCanvasBorder, docWidth, docHeight, canvasBg],
+    [pz, renderResult, showOrigin, showCanvasBorder, showHandles, showPoints, docWidth, docHeight, canvasBg],
   );
 
   const { canvasRef } = useCanvasRenderer(draw);

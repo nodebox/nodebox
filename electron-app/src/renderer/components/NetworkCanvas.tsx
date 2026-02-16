@@ -28,6 +28,17 @@ import {
   PORT_COLOR_GEOMETRY,
   PORT_COLOR_LIST,
   PORT_COLOR_DATA,
+  CATEGORY_GEOMETRY,
+  CATEGORY_TRANSFORM,
+  CATEGORY_COLOR,
+  CATEGORY_MATH,
+  CATEGORY_LIST,
+  CATEGORY_STRING,
+  CATEGORY_DATA,
+  CATEGORY_DEFAULT,
+  TOOLTIP_BG,
+  TOOLTIP_TEXT,
+  PORT_HOVER,
 } from '../theme/tokens';
 
 // Layout constants
@@ -69,6 +80,19 @@ function portColor(portType: PortType): string {
     case 'list': return PORT_COLOR_LIST;
     case 'data': return PORT_COLOR_DATA;
     default: return PORT_COLOR_GEOMETRY;
+  }
+}
+
+function categoryColor(category: string): string {
+  switch (category) {
+    case 'geometry': return CATEGORY_GEOMETRY;
+    case 'transform': return CATEGORY_TRANSFORM;
+    case 'color': return CATEGORY_COLOR;
+    case 'math': return CATEGORY_MATH;
+    case 'list': return CATEGORY_LIST;
+    case 'string': return CATEGORY_STRING;
+    case 'data': return CATEGORY_DATA;
+    default: return CATEGORY_DEFAULT;
   }
 }
 
@@ -125,6 +149,7 @@ function drawNode(
   isRendered: boolean,
   worldToScreen: (wx: number, wy: number) => { x: number; y: number },
   zoom: number,
+  hoveredPort: { nodeName: string; portName: string; portType: string } | null,
 ) {
   const rect = nodeScreenRect(node, worldToScreen, zoom);
   const z = zoom;
@@ -139,6 +164,11 @@ function drawNode(
     ctx.fillStyle = nodeBodyColor(node.outputType);
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
   }
+
+  // Category indicator (small colored square on left side)
+  const catColor = categoryColor(node.category);
+  ctx.fillStyle = catColor;
+  ctx.fillRect(rect.x + 4 * z, rect.y + 4 * z, 20 * z, rect.height - 8 * z);
 
   // Rendered child indicator: white triangle at bottom-right
   if (isRendered) {
@@ -170,7 +200,8 @@ function drawNode(
     for (let i = 0; i < inputCount; i++) {
       const px = rect.x + (PORT_WIDTH + PORT_SPACING) * z * i;
       const py = rect.y - PORT_HEIGHT * z;
-      ctx.fillStyle = portColor(node.inputs[i].portType);
+      const isHovered = hoveredPort?.nodeName === node.name && hoveredPort?.portName === node.inputs[i].name;
+      ctx.fillStyle = isHovered ? PORT_HOVER : portColor(node.inputs[i].portType);
       ctx.fillRect(px, py, PORT_WIDTH * z, PORT_HEIGHT * z);
     }
   }
@@ -178,7 +209,8 @@ function drawNode(
   // Output port (bottom-left)
   const opx = rect.x;
   const opy = rect.y + rect.height;
-  ctx.fillStyle = portColor(node.outputType);
+  const isOutputHovered = hoveredPort?.nodeName === node.name && hoveredPort?.portName === 'output';
+  ctx.fillStyle = isOutputHovered ? PORT_HOVER : portColor(node.outputType);
   ctx.fillRect(opx, opy, PORT_WIDTH * z, PORT_HEIGHT * z);
 }
 
@@ -295,6 +327,13 @@ export function NetworkCanvas() {
 
   const [creatingConnection, setCreatingConnection] = useState<CreatingConnection | null>(null);
   const [rubberBand, setRubberBand] = useState<RubberBand | null>(null);
+  const [hoveredPort, setHoveredPort] = useState<{
+    nodeName: string;
+    portName: string;
+    portType: string;
+    screenX: number;
+    screenY: number;
+  } | null>(null);
 
   const draw = useCallback(
     (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -310,7 +349,7 @@ export function NetworkCanvas() {
       for (const node of children) {
         const isSelected = selectedNodes.has(node.name);
         const isRendered = renderedChild === node.name;
-        drawNode(ctx, node, isSelected, isRendered, worldToScreen, pz.zoom);
+        drawNode(ctx, node, isSelected, isRendered, worldToScreen, pz.zoom, hoveredPort);
       }
 
       // Draw pending connection
@@ -339,7 +378,7 @@ export function NetworkCanvas() {
         );
       }
     },
-    [pz, children, connections, selectedNodes, renderedChild, worldToScreen, creatingConnection, rubberBand],
+    [pz, children, connections, selectedNodes, renderedChild, worldToScreen, creatingConnection, rubberBand, hoveredPort],
   );
 
   const { canvasRef, requestRender } = useCanvasRenderer(draw);
@@ -508,8 +547,42 @@ export function NetworkCanvas() {
         );
         requestRender();
       }
+
+      // Port hover detection
+      if (!dragging && !creatingConnection && !rubberBand) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+
+        const inputPort = findInputPortAt(sx, sy);
+        if (inputPort) {
+          setHoveredPort({
+            nodeName: inputPort.node.name,
+            portName: inputPort.portName,
+            portType: inputPort.portType,
+            screenX: sx,
+            screenY: sy,
+          });
+          requestRender();
+        } else {
+          const outputPort = findOutputPortAt(sx, sy);
+          if (outputPort) {
+            setHoveredPort({
+              nodeName: outputPort.node.name,
+              portName: 'output',
+              portType: outputPort.portType,
+              screenX: sx,
+              screenY: sy,
+            });
+            requestRender();
+          } else if (hoveredPort) {
+            setHoveredPort(null);
+            requestRender();
+          }
+        }
+      }
     },
-    [handlers, dragging, creatingConnection, rubberBand, screenToWorld, setNodePosition, requestRender],
+    [handlers, dragging, creatingConnection, rubberBand, screenToWorld, setNodePosition, requestRender, findInputPortAt, findOutputPortAt, hoveredPort],
   );
 
   const handlePointerUp = useCallback(
@@ -585,15 +658,35 @@ export function NetworkCanvas() {
   );
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="w-full h-full block"
-      style={{ cursor: panZoom.isPanning ? 'grabbing' : dragging ? 'move' : creatingConnection ? 'crosshair' : 'default' }}
-      onWheel={handlers.onWheel}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onDoubleClick={handleDoubleClick}
-    />
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full block"
+        style={{ cursor: panZoom.isPanning ? 'grabbing' : dragging ? 'move' : creatingConnection ? 'crosshair' : 'default' }}
+        onWheel={handlers.onWheel}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onDoubleClick={handleDoubleClick}
+      />
+      {hoveredPort && (
+        <div
+          style={{
+            position: 'absolute',
+            left: hoveredPort.screenX + 12,
+            top: hoveredPort.screenY - 8,
+            background: TOOLTIP_BG,
+            color: TOOLTIP_TEXT,
+            fontSize: FONT_SIZE_SMALL,
+            padding: '2px 6px',
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+            zIndex: 10,
+          }}
+        >
+          {hoveredPort.portName} ({hoveredPort.portType})
+        </div>
+      )}
+    </div>
   );
 }

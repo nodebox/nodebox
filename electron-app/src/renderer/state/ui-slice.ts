@@ -20,6 +20,8 @@ export interface UISlice {
   setNodeDialogVisible: (visible: boolean) => void;
   setAboutDialogVisible: (visible: boolean) => void;
   setViewerMode: (mode: ViewerMode) => void;
+  viewerZoom: number;
+  setViewerZoom: (zoom: number) => void;
 }
 
 export const createUISlice = (
@@ -78,5 +80,11 @@ export const createUISlice = (
   setViewerMode: (mode) =>
     set((state) => {
       state.viewerMode = mode;
+    }),
+
+  viewerZoom: 1.0,
+  setViewerZoom: (zoom) =>
+    set((state) => {
+      state.viewerZoom = zoom;
     }),
 });

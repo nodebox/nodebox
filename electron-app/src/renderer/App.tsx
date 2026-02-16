@@ -9,6 +9,9 @@ export function App() {
   useKeyboardShortcuts();
 
   const library = useStore((s) => s.library);
+  const frame = useStore((s) => s.frame);
+  const isPlaying = useStore((s) => s.isPlaying);
+  const setFrame = useStore((s) => s.setFrame);
   const setRenderResult = useStore((s) => s.setRenderResult);
   const toggleHandles = useStore((s) => s.toggleHandles);
   const togglePoints = useStore((s) => s.togglePoints);
@@ -16,7 +19,7 @@ export function App() {
   const toggleCanvasBorder = useStore((s) => s.toggleCanvasBorder);
   const setAboutDialogVisible = useStore((s) => s.setAboutDialogVisible);
 
-  // Run the evaluator whenever the library changes
+  // Run the evaluator whenever the library or frame changes
   useEffect(() => {
     const result = evaluate(
       library.root.renderedChild,
@@ -24,7 +27,29 @@ export function App() {
       library.root.connections,
     );
     setRenderResult(result);
-  }, [library, setRenderResult]);
+  }, [library, frame, setRenderResult]);
+
+  // Animation playback loop
+  useEffect(() => {
+    if (!isPlaying) return;
+    let lastTime = performance.now();
+    let rafId: number;
+    const fps = 30;
+    const frameDuration = 1000 / fps;
+
+    const tick = (now: number) => {
+      const elapsed = now - lastTime;
+      if (elapsed >= frameDuration) {
+        lastTime = now - (elapsed % frameDuration);
+        const state = useStore.getState();
+        const nextFrame = state.frame >= state.frameEnd ? state.frameStart : state.frame + 1;
+        setFrame(nextFrame);
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [isPlaying, setFrame]);
 
   useEffect(() => {
     if (!window.electronAPI) return;
