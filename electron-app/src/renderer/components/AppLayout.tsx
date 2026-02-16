@@ -4,6 +4,7 @@ import { AddressBar } from './AddressBar';
 import { AnimationBar } from './AnimationBar';
 import { NetworkCanvas } from './NetworkCanvas';
 import { ViewerCanvas } from './ViewerCanvas';
+import { DataViewer } from './DataViewer';
 import { ParameterPanel } from './ParameterPanel';
 import { NodeSelectionDialog } from './NodeSelectionDialog';
 import { AboutDialog } from './AboutDialog';
@@ -43,6 +44,8 @@ const separatorStyle: React.CSSProperties = {
 };
 
 function ViewerHeader() {
+  const viewerMode = useStore((s) => s.viewerMode);
+  const setViewerMode = useStore((s) => s.setViewerMode);
   const showHandles = useStore((s) => s.showHandles);
   const showPoints = useStore((s) => s.showPoints);
   const showOrigin = useStore((s) => s.showOrigin);
@@ -63,8 +66,8 @@ function ViewerHeader() {
       <div style={separatorStyle} />
 
       {/* View mode tabs */}
-      <SegmentButton label="Visual" active />
-      <SegmentButton label="Data" active={false} />
+      <SegmentButton label="Visual" active={viewerMode === 'visual'} onClick={() => setViewerMode('visual')} />
+      <SegmentButton label="Data" active={viewerMode === 'data'} onClick={() => setViewerMode('data')} />
 
       <div style={{ width: 8 }} />
 
@@ -126,15 +129,17 @@ function NetworkHeader() {
   );
 }
 
-function SegmentButton({ label, active }: { label: string; active: boolean }) {
+function SegmentButton({ label, active, onClick }: { label: string; active: boolean; onClick?: () => void }) {
   return (
     <span
+      onClick={onClick}
       style={{
         fontSize: FONT_SIZE_SMALL,
         padding: '1px 6px',
         background: active ? ZINC_600 : 'transparent',
         color: active ? TEXT_STRONG : PANE_HEADER_FOREGROUND_COLOR,
         cursor: 'pointer',
+        userSelect: 'none',
       }}
     >
       {label}
@@ -259,6 +264,14 @@ function VerticalSplitter({
 /*  Main layout                                                        */
 /* ------------------------------------------------------------------ */
 
+function ViewerContent() {
+  const viewerMode = useStore((s) => s.viewerMode);
+  if (viewerMode === 'data') {
+    return <DataViewer />;
+  }
+  return <ViewerCanvas />;
+}
+
 export function AppLayout() {
   const [rightPanelSplit, setRightPanelSplit] = useState(0.35);
   const rightPanelWidth = useStore((s) => s.parameterPanelWidth);
@@ -290,7 +303,7 @@ export function AppLayout() {
         <div className="flex flex-col flex-1" style={{ minWidth: 0 }}>
           <ViewerHeader />
           <div className="flex-1" style={{ minHeight: 0 }}>
-            <ViewerCanvas />
+            <ViewerContent />
           </div>
         </div>
 
