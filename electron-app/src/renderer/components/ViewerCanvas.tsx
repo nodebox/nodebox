@@ -282,14 +282,15 @@ export function ViewerCanvas() {
   const clearViewerZoomAction = useStore((s) => s.clearViewerZoomAction);
   const setPortValue = useStore((s) => s.setPortValue);
   const pushSnapshot = useStore((s) => s.pushSnapshot);
+  const activeNode = useStore((s) => s.activeNode);
 
   const [handleDragTarget, setHandleDragTarget] = useState<FourPointDragTarget>('none');
   const handleDragStartWorld = useRef<Point>({ x: 0, y: 0 });
   const handleDragStartValues = useRef({ center: { x: 0, y: 0 }, width: 100, height: 100 });
 
   const fourPointHandle = useMemo(
-    () => resolveFourPointHandle(library.root.rendered_child, library.root.children),
-    [library],
+    () => resolveFourPointHandle(activeNode, library.root.children),
+    [activeNode, library],
   );
 
   const panZoom = usePanZoom(undefined, undefined, { scrollToZoom: true, centerOrigin: true });
