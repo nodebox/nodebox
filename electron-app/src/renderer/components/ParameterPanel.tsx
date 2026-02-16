@@ -134,7 +134,7 @@ function FloatPortWidget({
         onClick={handleLabelClick}
       />
       <div
-        className="flex-1 pr-2"
+        className="flex-1 flex items-center px-2 py-1"
         data-testid={`param-value-${port.name}`}
       >
         <DragValue
@@ -223,11 +223,11 @@ function PointPortWidget({
         onDrag={handleLabelDrag}
         onClick={handleLabelClick}
       />
-      <div className="flex flex-1 gap-4 pr-2">
-        <div className="flex-1" data-testid={`param-value-${port.name}-x`}>
+      <div className="flex flex-1 gap-4 px-2 py-1">
+        <div className="flex-1 flex items-center" data-testid={`param-value-${port.name}-x`}>
           <DragValue ref={xRef} value={pointValue.x} onChange={handleChangeX} onLabelCommit={handleLabelCommitBoth} />
         </div>
-        <div className="flex-1" data-testid={`param-value-${port.name}-y`}>
+        <div className="flex-1 flex items-center" data-testid={`param-value-${port.name}-y`}>
           <DragValue value={pointValue.y} onChange={handleChangeY} />
         </div>
       </div>
@@ -271,7 +271,7 @@ function StringPortWidget({
       >
         {port.label ?? port.name}
       </div>
-      <div className="flex-1 flex items-center pr-2">
+      <div className="flex-1 flex items-center px-2 py-1">
         <input
           ref={inputRef}
           type="text"
@@ -334,7 +334,7 @@ function ColorPortWidget({
       >
         {port.label ?? port.name}
       </div>
-      <div className="flex-1 flex items-center gap-2 px-2">
+      <div className="flex-1 flex items-center gap-2 px-2 py-1">
         <input
           type="color"
           value={toHex(colorValue)}
@@ -375,7 +375,7 @@ function TogglePortWidget({
         {port.label ?? port.name}
       </div>
       <div
-        className="flex-1 flex items-center px-2 text-zinc-100 text-[13px] cursor-pointer select-none"
+        className="flex-1 flex items-center px-2 py-1 text-zinc-100 text-[13px] cursor-pointer select-none"
         data-testid={`param-value-${port.name}`}
         onClick={handleClick}
       >
@@ -414,7 +414,7 @@ function MenuPortWidget({
       >
         {port.label ?? port.name}
       </div>
-      <div className="flex-1 flex items-center pr-2">
+      <div className="flex-1 flex items-center px-2 py-1">
         <select
           value={strValue}
           onChange={handleChange}
@@ -446,7 +446,7 @@ function GenericPortWidget({ port }: { port: Port }) {
         {port.label ?? port.name}
       </div>
       <div
-        className="flex items-center px-2 flex-1 text-zinc-100 text-[13px]"
+        className="flex items-center px-2 py-1 flex-1 text-zinc-100 text-[13px]"
         data-testid={`param-value-${port.name}`}
       >
         {displayValue}
@@ -469,7 +469,7 @@ function ConnectedPortWidget({ port }: { port: Port }) {
         {port.label ?? port.name}
       </div>
       <div
-        className="flex items-center px-2 flex-1 text-zinc-500 italic text-[13px]"
+        className="flex items-center px-2 py-1 flex-1 text-zinc-500 italic text-[13px]"
         data-testid={`param-value-${port.name}`}
       >
         connected
