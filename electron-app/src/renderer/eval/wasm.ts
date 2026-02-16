@@ -11,6 +11,7 @@ export interface NodeTemplate {
   prototype: string;
   category: string;
   description: string;
+  first_input_type: string | null;
 }
 
 let ready = false;

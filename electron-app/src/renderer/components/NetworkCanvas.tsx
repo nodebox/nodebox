@@ -318,6 +318,7 @@ interface CreatingConnection {
   fromNode: string;
   mouseX: number;
   mouseY: number;
+  isReroute: boolean;
 }
 
 interface RubberBand {
@@ -337,16 +338,21 @@ export function NetworkCanvas() {
   const toggleNode = useStore((s) => s.toggleNode);
   const clearSelection = useStore((s) => s.clearSelection);
   const setNodeDialogVisible = useStore((s) => s.setNodeDialogVisible);
+  const setNodeDialogPosition = useStore((s) => s.setNodeDialogPosition);
+  const setPendingConnection = useStore((s) => s.setPendingConnection);
   const setNodePosition = useStore((s) => s.setNodePosition);
   const setRenderedChild = useStore((s) => s.setRenderedChild);
   const addConnection = useStore((s) => s.addConnection);
+  const removeConnection = useStore((s) => s.removeConnection);
+  const pushSnapshot = useStore((s) => s.pushSnapshot);
+  const library = useStore((s) => s.library);
 
   const panZoom = usePanZoom({ x: 8, y: 8 });
   const { state: pz, handlers, worldToScreen, screenToWorld } = panZoom;
 
-  const [dragging, setDragging] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const dragStartWorld = useRef({ x: 0, y: 0 });
-  const dragOrigPos = useRef({ x: 0, y: 0 });
+  const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
 
   const [creatingConnection, setCreatingConnection] = useState<CreatingConnection | null>(null);
   const [rubberBand, setRubberBand] = useState<RubberBand | null>(null);
@@ -515,9 +521,30 @@ export function NetworkCanvas() {
           fromNode: outputPort.node.name,
           mouseX: sx,
           mouseY: sy,
+          isReroute: false,
         });
         e.currentTarget.setPointerCapture(e.pointerId);
         return;
+      }
+
+      // Check input port hit for disconnect-and-reroute
+      const inputPort = findInputPortAt(sx, sy);
+      if (inputPort) {
+        const conn = connections.find(
+          (c) => c.input_node === inputPort.node.name && c.input_port === inputPort.portName,
+        );
+        if (conn) {
+          pushSnapshot(library);
+          removeConnection('root', conn.input_node, conn.input_port);
+          setCreatingConnection({
+            fromNode: conn.output_node,
+            mouseX: sx,
+            mouseY: sy,
+            isReroute: true,
+          });
+          e.currentTarget.setPointerCapture(e.pointerId);
+          return;
+        }
       }
 
       const node = hitTestNode(sx, sy);
@@ -528,10 +555,25 @@ export function NetworkCanvas() {
         } else if (!selectedNodes.has(node.name)) {
           selectNode(node.name);
         }
+
+        // Record start positions for all selected nodes (multi-drag)
         const world = screenToWorld(sx, sy);
         dragStartWorld.current = world;
-        dragOrigPos.current = { x: node.position.x, y: node.position.y };
-        setDragging(node.name);
+        const positions = new Map<string, { x: number; y: number }>();
+        // Use the current selection, but if the clicked node wasn't in it we just selected it
+        const effectiveSelection = (e.shiftKey || e.metaKey)
+          ? useStore.getState().selectedNodes
+          : selectedNodes.has(node.name) ? selectedNodes : new Set([node.name]);
+        for (const name of effectiveSelection) {
+          const n = children.find((c) => c.name === name);
+          if (n) {
+            positions.set(name, { x: n.position.x, y: n.position.y });
+          }
+        }
+        dragStartPositions.current = positions;
+
+        pushSnapshot(library);
+        setIsDragging(true);
         e.currentTarget.setPointerCapture(e.pointerId);
       } else {
         clearSelection();
@@ -545,7 +587,7 @@ export function NetworkCanvas() {
         e.currentTarget.setPointerCapture(e.pointerId);
       }
     },
-    [handlers, hitTestNode, findOutputPortAt, selectNode, toggleNode, clearSelection, selectedNodes, screenToWorld],
+    [handlers, hitTestNode, findOutputPortAt, findInputPortAt, selectNode, toggleNode, clearSelection, selectedNodes, screenToWorld, connections, pushSnapshot, library, removeConnection, children],
   );
 
   const handlePointerMove = useCallback(
@@ -556,14 +598,16 @@ export function NetworkCanvas() {
       const sx = e.clientX - canvasRect.left;
       const sy = e.clientY - canvasRect.top;
 
-      if (dragging) {
+      if (isDragging) {
         const world = screenToWorld(sx, sy);
         const deltaGridX = Math.round((world.x - dragStartWorld.current.x) / GRID_SIZE);
         const deltaGridY = Math.round((world.y - dragStartWorld.current.y) / GRID_SIZE);
-        setNodePosition(dragging, {
-          x: dragOrigPos.current.x + deltaGridX,
-          y: dragOrigPos.current.y + deltaGridY,
-        });
+        for (const [name, origPos] of dragStartPositions.current) {
+          setNodePosition(name, {
+            x: origPos.x + deltaGridX,
+            y: origPos.y + deltaGridY,
+          });
+        }
         requestRender();
       } else if (creatingConnection) {
         setCreatingConnection((prev) =>
@@ -620,7 +664,7 @@ export function NetworkCanvas() {
         }
       }
     },
-    [handlers, dragging, creatingConnection, rubberBand, screenToWorld, setNodePosition, requestRender, findInputPortAt, findOutputPortAt, hoveredPort],
+    [handlers, isDragging, creatingConnection, rubberBand, screenToWorld, setNodePosition, requestRender, findInputPortAt, findOutputPortAt, hoveredPort],
   );
 
   const handlePointerUp = useCallback(
@@ -634,11 +678,31 @@ export function NetworkCanvas() {
         // Use expanded hit areas for dropping connections
         const inputPort = findInputPortAt(sx, sy, true);
         if (inputPort && inputPort.node.name !== creatingConnection.fromNode) {
+          pushSnapshot(library);
           addConnection('root', {
             output_node: creatingConnection.fromNode,
             input_node: inputPort.node.name,
             input_port: inputPort.portName,
           });
+        } else if (!inputPort && !creatingConnection.isReroute) {
+          // Dropped on empty space — check if we're over any node
+          const node = hitTestNode(sx, sy);
+          if (!node) {
+            // Open filtered node dialog at drop position
+            const world = screenToWorld(sx, sy);
+            const gridX = Math.round(world.x / GRID_SIZE);
+            const gridY = Math.round(world.y / GRID_SIZE);
+            setNodeDialogPosition({ x: gridX, y: gridY });
+
+            const fromNode = children.find((n) => n.name === creatingConnection.fromNode);
+            if (fromNode) {
+              setPendingConnection({
+                fromNode: creatingConnection.fromNode,
+                outputType: fromNode.output_type,
+              });
+            }
+            setNodeDialogVisible(true);
+          }
         }
         setCreatingConnection(null);
         setHoveredPort(null);
@@ -677,9 +741,12 @@ export function NetworkCanvas() {
         requestRender();
       }
 
-      setDragging(null);
+      if (isDragging) {
+        // Snap all dragged nodes to grid (positions are already grid-snapped during drag)
+        setIsDragging(false);
+      }
     },
-    [handlers, creatingConnection, rubberBand, findInputPortAt, addConnection, children, worldToScreen, pz.zoom, selectNodes, requestRender],
+    [handlers, creatingConnection, rubberBand, isDragging, findInputPortAt, addConnection, children, worldToScreen, pz.zoom, selectNodes, requestRender, pushSnapshot, library, hitTestNode, screenToWorld, setNodeDialogPosition, setPendingConnection, setNodeDialogVisible],
   );
 
   const handleDoubleClick = useCallback(
@@ -691,10 +758,14 @@ export function NetworkCanvas() {
       if (node) {
         setRenderedChild('root', node.name);
       } else {
+        const world = screenToWorld(sx, sy);
+        const gridX = Math.round(world.x / GRID_SIZE);
+        const gridY = Math.round(world.y / GRID_SIZE);
+        setNodeDialogPosition({ x: gridX, y: gridY });
         setNodeDialogVisible(true);
       }
     },
-    [hitTestNode, setNodeDialogVisible, setRenderedChild],
+    [hitTestNode, setNodeDialogVisible, setRenderedChild, screenToWorld, setNodeDialogPosition],
   );
 
   return (
@@ -702,7 +773,7 @@ export function NetworkCanvas() {
       <canvas
         ref={canvasRef}
         className="w-full h-full block"
-        style={{ cursor: panZoom.isPanning ? 'grabbing' : dragging ? 'move' : creatingConnection ? 'crosshair' : 'default' }}
+        style={{ cursor: panZoom.isPanning ? 'grabbing' : isDragging ? 'move' : creatingConnection ? 'crosshair' : 'default' }}
         onWheel={handlers.onWheel}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
