@@ -43,6 +43,27 @@ pub fn get_node_templates() -> String {
     serde_json::to_string(&templates).unwrap_or_else(|_| "[]".to_string())
 }
 
+/// Create a node from a template and return it as JSON.
+///
+/// Takes the template name, the current library state as JSON (for unique naming),
+/// and the desired grid position. Returns the full Node as JSON.
+#[wasm_bindgen]
+pub fn create_node(template_name: &str, library_json: &str, x: f64, y: f64) -> Result<String, JsError> {
+    let template = NODE_TEMPLATES
+        .iter()
+        .find(|t| t.name == template_name)
+        .ok_or_else(|| JsError::new(&format!("Unknown template: {}", template_name)))?;
+
+    let library: NodeLibrary = serde_json::from_str(library_json)
+        .map_err(|e| JsError::new(&format!("Failed to parse library: {}", e)))?;
+
+    let position = Point::new(x, y);
+    let node = create_node_from_template(template, &library, position);
+
+    serde_json::to_string(&node)
+        .map_err(|e| JsError::new(&format!("Failed to serialize node: {}", e)))
+}
+
 /// Opaque handle wrapping a `NodeLibrary`.
 ///
 /// JavaScript code interacts with this through the provided methods.
