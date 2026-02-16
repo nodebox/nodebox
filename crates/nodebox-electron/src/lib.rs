@@ -29,14 +29,21 @@ pub fn init() {
 /// Returns JSON: `[{ "name": "ellipse", "prototype": "corevector.ellipse", "category": "geometry", "description": "..." }, ...]`
 #[wasm_bindgen]
 pub fn get_node_templates() -> String {
+    let temp_lib = NodeLibrary::new("_temp");
     let templates: Vec<serde_json::Value> = NODE_TEMPLATES
         .iter()
         .map(|t| {
+            let node = create_node_from_template(t, &temp_lib, Point::ZERO);
+            let first_input_type: Option<serde_json::Value> = node
+                .inputs
+                .first()
+                .and_then(|p| serde_json::to_value(&p.port_type).ok());
             serde_json::json!({
                 "name": t.name,
                 "prototype": t.prototype,
                 "category": t.category,
                 "description": t.description,
+                "first_input_type": first_input_type,
             })
         })
         .collect();

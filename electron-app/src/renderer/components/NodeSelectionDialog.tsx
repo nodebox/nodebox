@@ -6,6 +6,7 @@ import {
   isWasmReady,
 } from '../eval/wasm';
 import type { NodeTemplate } from '../eval/wasm';
+import type { PortType } from '../types/node';
 import {
   SELECTED_ITEM,
   CATEGORY_GEOMETRY,
@@ -29,6 +30,18 @@ function getCategoryColor(category: string): string {
     case 'data': return CATEGORY_DATA;
     default: return CATEGORY_DEFAULT;
   }
+}
+
+function isDirectlyCompatible(outputType: PortType, inputType: string): boolean {
+  if (outputType === inputType) return true;
+  // List input accepts any type
+  if (inputType === 'List') return true;
+  // List output connects to any input
+  if (outputType === 'List') return true;
+  // Int <-> Float
+  if (outputType === 'Int' && inputType === 'Float') return true;
+  if (outputType === 'Float' && inputType === 'Int') return true;
+  return false;
 }
 
 function NodeIcon({ name, category }: { name: string; category: string }) {
@@ -65,7 +78,12 @@ function NodeIcon({ name, category }: { name: string; category: string }) {
 export function NodeSelectionDialog() {
   const visible = useStore((s) => s.nodeDialogVisible);
   const setVisible = useStore((s) => s.setNodeDialogVisible);
+  const nodeDialogPosition = useStore((s) => s.nodeDialogPosition);
+  const pendingConnection = useStore((s) => s.pendingConnection);
+  const setPendingConnection = useStore((s) => s.setPendingConnection);
   const addNode = useStore((s) => s.addNode);
+  const addConnection = useStore((s) => s.addConnection);
+  const pushSnapshot = useStore((s) => s.pushSnapshot);
   const selectNode = useStore((s) => s.selectNode);
   const setRenderedChild = useStore((s) => s.setRenderedChild);
   const library = useStore((s) => s.library);
@@ -79,15 +97,29 @@ export function NodeSelectionDialog() {
     return getNodeTemplates();
   }, [visible]);
 
-  const filtered = useMemo(
-    () =>
-      templates.filter(
+  const filtered = useMemo(() => {
+    let result = templates;
+
+    // Filter by pending connection compatibility
+    if (pendingConnection) {
+      result = result.filter(
+        (t) =>
+          t.first_input_type !== null &&
+          isDirectlyCompatible(pendingConnection.outputType, t.first_input_type),
+      );
+    }
+
+    // Filter by search query
+    if (query) {
+      result = result.filter(
         (t) =>
           t.name.includes(query.toLowerCase()) ||
           t.category.includes(query.toLowerCase()),
-      ),
-    [templates, query],
-  );
+      );
+    }
+
+    return result;
+  }, [templates, query, pendingConnection]);
 
   const groupedItems = useMemo(() => {
     const groups: { category: string; items: { template: NodeTemplate; globalIndex: number }[] }[] = [];
@@ -108,14 +140,32 @@ export function NodeSelectionDialog() {
   const createNode = useCallback(
     (template: NodeTemplate) => {
       const libraryJson = JSON.stringify(library);
-      const y = 1 + children.length * 2;
-      const node = createNodeFromTemplate(template.name, libraryJson, 1, y);
+      let x = nodeDialogPosition?.x ?? 1;
+      let y = nodeDialogPosition?.y ?? (1 + children.length * 2);
+      // Nudge down to avoid placing on top of an existing node
+      while (children.some((c) => c.position.x === x && c.position.y === y)) {
+        y += 2;
+      }
+      const node = createNodeFromTemplate(template.name, libraryJson, x, y);
+
+      pushSnapshot(library);
       addNode('root', node);
       selectNode(node.name);
       setRenderedChild('root', node.name);
+
+      // Auto-connect if we came from a drag-to-empty-space
+      if (pendingConnection) {
+        addConnection('root', {
+          output_node: pendingConnection.fromNode,
+          input_node: node.name,
+          input_port: node.inputs[0]?.name ?? '',
+        });
+        setPendingConnection(null);
+      }
+
       setVisible(false);
     },
-    [library, children, addNode, selectNode, setRenderedChild, setVisible],
+    [library, children, nodeDialogPosition, pendingConnection, addNode, addConnection, pushSnapshot, selectNode, setRenderedChild, setVisible, setPendingConnection],
   );
 
   useEffect(() => {
@@ -167,7 +217,7 @@ export function NodeSelectionDialog() {
         <input
           ref={inputRef}
           type="text"
-          placeholder="Search nodes..."
+          placeholder={pendingConnection ? `Compatible with ${pendingConnection.outputType}...` : 'Search nodes...'}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}

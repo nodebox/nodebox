@@ -1,4 +1,11 @@
+import type { PortType } from '../types/node';
+
 export type ViewerMode = 'visual' | 'data';
+
+export interface PendingConnection {
+  fromNode: string;
+  outputType: PortType;
+}
 
 export interface UISlice {
   networkSplitRatio: number;
@@ -9,6 +16,8 @@ export interface UISlice {
   showCanvasBorder: boolean;
   showPointNumbers: boolean;
   nodeDialogVisible: boolean;
+  nodeDialogPosition: { x: number; y: number } | null;
+  pendingConnection: PendingConnection | null;
   aboutDialogVisible: boolean;
   viewerMode: ViewerMode;
 
@@ -20,6 +29,8 @@ export interface UISlice {
   toggleCanvasBorder: () => void;
   togglePointNumbers: () => void;
   setNodeDialogVisible: (visible: boolean) => void;
+  setNodeDialogPosition: (position: { x: number; y: number } | null) => void;
+  setPendingConnection: (pending: PendingConnection | null) => void;
   setAboutDialogVisible: (visible: boolean) => void;
   setViewerMode: (mode: ViewerMode) => void;
   viewerZoom: number;
@@ -40,6 +51,8 @@ export const createUISlice = (
   showCanvasBorder: true,
   showPointNumbers: false,
   nodeDialogVisible: false,
+  nodeDialogPosition: null,
+  pendingConnection: null,
   aboutDialogVisible: false,
   viewerMode: 'visual',
 
@@ -81,6 +94,19 @@ export const createUISlice = (
   setNodeDialogVisible: (visible) =>
     set((state) => {
       state.nodeDialogVisible = visible;
+      if (!visible) {
+        state.pendingConnection = null;
+      }
+    }),
+
+  setNodeDialogPosition: (position) =>
+    set((state) => {
+      state.nodeDialogPosition = position;
+    }),
+
+  setPendingConnection: (pending) =>
+    set((state) => {
+      state.pendingConnection = pending;
     }),
 
   setAboutDialogVisible: (visible) =>
