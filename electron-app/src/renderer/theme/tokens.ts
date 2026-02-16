@@ -84,7 +84,7 @@ export const ANIMATION_BAR_HEIGHT = 28;
 export const PANE_HEADER_HEIGHT = TITLE_BAR_HEIGHT;
 export const LABEL_WIDTH = 112;
 export const PARAMETER_PANEL_WIDTH = 280;
-export const PARAMETER_ROW_HEIGHT = ROW_HEIGHT;
+export const PARAMETER_ROW_HEIGHT = 36;
 
 // =============================================================================
 // DATA TABLE COLORS
@@ -147,8 +147,8 @@ export const FONT_SIZE_BODY = FONT_SIZE_BASE;
 // LEGACY / SEMANTIC ALIASES
 // =============================================================================
 
-export const VALUE_TEXT = VIOLET_400;
-export const VALUE_TEXT_HOVER = VIOLET_500;
+export const VALUE_TEXT = TEXT_DEFAULT;
+export const VALUE_TEXT_HOVER = TEXT_STRONG;
 export const BACKGROUND_COLOR = ZINC_700;
 export const HEADER_BACKGROUND = ZINC_700;
 export const DARK_BACKGROUND = ZINC_800;

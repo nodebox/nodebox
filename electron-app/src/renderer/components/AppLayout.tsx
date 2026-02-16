@@ -20,6 +20,7 @@ import {
   TEXT_DISABLED,
   ZINC_500,
   ZINC_600,
+  BORDER_COLOR,
 } from '../theme/tokens';
 
 /* ------------------------------------------------------------------ */
@@ -31,6 +32,8 @@ const headerStyle: React.CSSProperties = {
   background: PANE_HEADER_BACKGROUND_COLOR,
   color: PANE_HEADER_FOREGROUND_COLOR,
   fontSize: FONT_SIZE_SMALL,
+  borderTop: `1px solid ${BORDER_COLOR}`,
+  borderBottom: `1px solid ${BORDER_COLOR}`,
 };
 
 const separatorStyle: React.CSSProperties = {
@@ -54,6 +57,7 @@ function ViewerHeader() {
   const togglePoints = useStore((s) => s.togglePoints);
   const toggleOrigin = useStore((s) => s.toggleOrigin);
   const toggleCanvasBorder = useStore((s) => s.toggleCanvasBorder);
+  const viewerZoom = useStore((s) => s.viewerZoom);
 
   return (
     <div className="flex items-center px-2 shrink-0 gap-1" style={headerStyle}>
@@ -76,12 +80,16 @@ function ViewerHeader() {
       <ToggleButton label="Points" active={showPoints} onClick={togglePoints} />
       <ToggleButton label="Origin" active={showOrigin} onClick={toggleOrigin} />
       <ToggleButton label="Canvas" active={showCanvasBorder} onClick={toggleCanvasBorder} />
+      <div className="flex-1" />
+      <span style={{ fontSize: FONT_SIZE_SMALL, color: TEXT_DISABLED }}>{Math.round(viewerZoom * 100)}%</span>
     </div>
   );
 }
 
 function ParametersHeader() {
   const activeNode = useStore((s) => s.activeNode);
+  const children = useStore((s) => s.library.root.children);
+  const node = activeNode ? children.find((n) => n.name === activeNode) : null;
 
   return (
     <div className="flex items-center px-2 shrink-0 gap-1" style={headerStyle}>
@@ -93,8 +101,14 @@ function ParametersHeader() {
       </span>
       <div style={separatorStyle} />
       <span style={{ marginLeft: 4, fontSize: FONT_SIZE_SMALL }}>
-        {activeNode ?? 'Document'}
+        {node ? node.name : 'Document'}
       </span>
+      <div className="flex-1" />
+      {node?.prototype && (
+        <span style={{ fontSize: FONT_SIZE_SMALL, color: TEXT_DISABLED }}>
+          {node.prototype}
+        </span>
+      )}
     </div>
   );
 }

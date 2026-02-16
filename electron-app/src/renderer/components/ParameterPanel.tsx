@@ -53,6 +53,7 @@ function FloatPortWidget({
           background: PORT_LABEL_BACKGROUND,
           color: TEXT_SUBDUED,
           fontSize: FONT_SIZE_SMALL,
+          textAlign: 'right',
         }}
       >
         {port.label ?? port.name}
@@ -119,6 +120,7 @@ function PointPortWidget({
           background: PORT_LABEL_BACKGROUND,
           color: TEXT_SUBDUED,
           fontSize: FONT_SIZE_SMALL,
+          textAlign: 'right',
         }}
       >
         {port.label ?? port.name}
@@ -154,6 +156,7 @@ function GenericPortWidget({ port }: { port: Port }) {
           background: PORT_LABEL_BACKGROUND,
           color: TEXT_SUBDUED,
           fontSize: FONT_SIZE_SMALL,
+          textAlign: 'right',
         }}
       >
         {port.label ?? port.name}
@@ -221,6 +224,7 @@ function DocumentPropertyRow({ label, value }: { label: string; value: string })
           background: PORT_LABEL_BACKGROUND,
           color: TEXT_SUBDUED,
           fontSize: FONT_SIZE_SMALL,
+          textAlign: 'right',
         }}
       >
         {label}
@@ -252,6 +256,7 @@ function ColorSwatchRow({ label, color }: { label: string; color: string }) {
           background: PORT_LABEL_BACKGROUND,
           color: TEXT_SUBDUED,
           fontSize: FONT_SIZE_SMALL,
+          textAlign: 'right',
         }}
       >
         {label}

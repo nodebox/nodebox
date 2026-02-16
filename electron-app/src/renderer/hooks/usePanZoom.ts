@@ -27,13 +27,15 @@ export interface UsePanZoomResult {
 }
 
 const MIN_ZOOM = 0.1;
-const MAX_ZOOM = 8.0;
+const MAX_ZOOM = 10.0;
 const ZOOM_STEP = 1.1;
 
 export function usePanZoom(
   initialPan = { x: 0, y: 0 },
   initialZoom = 1.0,
+  options?: { scrollToZoom?: boolean },
 ): UsePanZoomResult {
+  const scrollToZoom = options?.scrollToZoom ?? false;
   const [panX, setPanX] = useState(initialPan.x);
   const [panY, setPanY] = useState(initialPan.y);
   const [zoom, setZoomState] = useState(initialZoom);
@@ -60,13 +62,15 @@ export function usePanZoom(
     (e: React.WheelEvent<HTMLCanvasElement>) => {
       e.preventDefault();
 
-      if (e.ctrlKey || e.metaKey) {
-        // Pinch-to-zoom or Ctrl+scroll = zoom
+      const shouldZoom = scrollToZoom || e.ctrlKey || e.metaKey;
+
+      if (shouldZoom) {
+        // Pinch-to-zoom, Ctrl+scroll, or scrollToZoom mode
         const rect = e.currentTarget.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
 
-        const factor = e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
+        const factor = Math.pow(2, -e.deltaY * 0.005);
         const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * factor));
 
         // Zoom centered on mouse position
@@ -80,7 +84,7 @@ export function usePanZoom(
         setPanY((p) => p - e.deltaY);
       }
     },
-    [panX, panY, zoom],
+    [panX, panY, zoom, scrollToZoom],
   );
 
   const onPointerDown = useCallback(
