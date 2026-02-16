@@ -7,6 +7,7 @@ export interface UISlice {
   showPoints: boolean;
   showOrigin: boolean;
   showCanvasBorder: boolean;
+  showPointNumbers: boolean;
   nodeDialogVisible: boolean;
   aboutDialogVisible: boolean;
   viewerMode: ViewerMode;
@@ -17,6 +18,7 @@ export interface UISlice {
   togglePoints: () => void;
   toggleOrigin: () => void;
   toggleCanvasBorder: () => void;
+  togglePointNumbers: () => void;
   setNodeDialogVisible: (visible: boolean) => void;
   setAboutDialogVisible: (visible: boolean) => void;
   setViewerMode: (mode: ViewerMode) => void;
@@ -36,6 +38,7 @@ export const createUISlice = (
   showPoints: false,
   showOrigin: true,
   showCanvasBorder: true,
+  showPointNumbers: false,
   nodeDialogVisible: false,
   aboutDialogVisible: false,
   viewerMode: 'visual',
@@ -68,6 +71,11 @@ export const createUISlice = (
   toggleCanvasBorder: () =>
     set((state) => {
       state.showCanvasBorder = !state.showCanvasBorder;
+    }),
+
+  togglePointNumbers: () =>
+    set((state) => {
+      state.showPointNumbers = !state.showPointNumbers;
     }),
 
   setNodeDialogVisible: (visible) =>

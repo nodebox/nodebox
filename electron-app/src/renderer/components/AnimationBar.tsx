@@ -1,13 +1,6 @@
 import { Play, Pause, SkipBack } from 'lucide-react';
 import { useStore } from '../state/store';
 import { DragValue } from './DragValue';
-import {
-  ANIMATION_BAR_BACKGROUND,
-  ANIMATION_BAR_HEIGHT,
-  TEXT_DEFAULT,
-  FONT_SIZE_SMALL,
-  BORDER_COLOR,
-} from '../theme/tokens';
 
 export function AnimationBar() {
   const frame = useStore((s) => s.frame);
@@ -18,21 +11,13 @@ export function AnimationBar() {
 
   return (
     <div
-      className="flex items-center gap-1 px-2"
-      style={{
-        height: ANIMATION_BAR_HEIGHT,
-        background: ANIMATION_BAR_BACKGROUND,
-        borderTop: `1px solid ${BORDER_COLOR}`,
-        fontSize: FONT_SIZE_SMALL,
-      }}
+      className="flex items-center gap-1 px-2 bg-zinc-800 border-t border-zinc-500 text-[11px]"
+      style={{ height: 28 }}
     >
       {/* Frame counter */}
       <div
         data-testid="frame-counter"
-        style={{
-          minWidth: 50,
-          height: ANIMATION_BAR_HEIGHT - 2,
-        }}
+        style={{ minWidth: 50, height: 26 }}
       >
         <DragValue
           value={frame}
@@ -46,15 +31,8 @@ export function AnimationBar() {
       {/* Play/Pause button */}
       <button
         onClick={() => (isPlaying ? stop() : play())}
-        className="flex items-center justify-center"
-        style={{
-          width: 28,
-          height: 28,
-          color: TEXT_DEFAULT,
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-        }}
+        className="flex items-center justify-center text-zinc-100 bg-transparent border-none cursor-pointer"
+        style={{ width: 28, height: 28 }}
       >
         {isPlaying ? <Pause size={14} /> : <Play size={14} />}
       </button>
@@ -62,15 +40,8 @@ export function AnimationBar() {
       {/* Rewind button */}
       <button
         onClick={() => setFrame(1)}
-        className="flex items-center justify-center"
-        style={{
-          width: 28,
-          height: 28,
-          color: TEXT_DEFAULT,
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-        }}
+        className="flex items-center justify-center text-zinc-100 bg-transparent border-none cursor-pointer"
+        style={{ width: 28, height: 28 }}
       >
         <SkipBack size={14} />
       </button>

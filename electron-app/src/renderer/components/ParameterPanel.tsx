@@ -4,15 +4,8 @@ import type { Port } from '../types/node';
 import type { Value } from '../types/value';
 import { DragValue } from './DragValue';
 import {
-  PANEL_BG,
-  FONT_SIZE_SMALL,
-  FONT_SIZE_BASE,
-  PORT_LABEL_BACKGROUND,
-  PORT_VALUE_BACKGROUND,
   LABEL_WIDTH,
   PARAMETER_ROW_HEIGHT,
-  TEXT_SUBDUED,
-  VALUE_TEXT,
 } from '../theme/tokens';
 
 const DRAG_THRESHOLD = 3;
@@ -66,14 +59,8 @@ function DraggableLabel({
 
   return (
     <div
-      className="flex items-center justify-end px-2 shrink-0"
-      style={{
-        width: LABEL_WIDTH,
-        color: TEXT_SUBDUED,
-        fontSize: FONT_SIZE_SMALL,
-        cursor: 'ew-resize',
-        userSelect: 'none',
-      }}
+      className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px] cursor-ew-resize select-none"
+      style={{ width: LABEL_WIDTH }}
       data-testid={`param-label-${portName}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -237,21 +224,13 @@ function GenericPortWidget({ port }: { port: Port }) {
       data-testid={`param-row-${port.name}`}
     >
       <div
-        className="flex items-center justify-end px-2 shrink-0"
-        style={{
-          width: LABEL_WIDTH,
-          color: TEXT_SUBDUED,
-          fontSize: FONT_SIZE_SMALL,
-        }}
+        className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px]"
+        style={{ width: LABEL_WIDTH }}
       >
         {port.label ?? port.name}
       </div>
       <div
-        className="flex items-center px-2 flex-1"
-        style={{
-          color: VALUE_TEXT,
-          fontSize: FONT_SIZE_BASE,
-        }}
+        className="flex items-center px-2 flex-1 text-zinc-100 text-[13px]"
         data-testid={`param-value-${port.name}`}
       >
         {displayValue}
@@ -277,21 +256,13 @@ function DocumentPropertyRow({ label, value }: { label: string; value: string })
       style={{ height: PARAMETER_ROW_HEIGHT }}
     >
       <div
-        className="flex items-center justify-end px-2 shrink-0"
-        style={{
-          width: LABEL_WIDTH,
-          color: TEXT_SUBDUED,
-          fontSize: FONT_SIZE_SMALL,
-        }}
+        className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px]"
+        style={{ width: LABEL_WIDTH }}
       >
         {label}
       </div>
       <div
-        className="flex items-center px-2 flex-1"
-        style={{
-          color: VALUE_TEXT,
-          fontSize: FONT_SIZE_BASE,
-        }}
+        className="flex items-center px-2 flex-1 text-zinc-100 text-[13px]"
       >
         {value}
       </div>
@@ -306,12 +277,8 @@ function ColorSwatchRow({ label, color }: { label: string; color: string }) {
       style={{ height: PARAMETER_ROW_HEIGHT }}
     >
       <div
-        className="flex items-center justify-end px-2 shrink-0"
-        style={{
-          width: LABEL_WIDTH,
-          color: TEXT_SUBDUED,
-          fontSize: FONT_SIZE_SMALL,
-        }}
+        className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px]"
+        style={{ width: LABEL_WIDTH }}
       >
         {label}
       </div>
@@ -366,34 +333,22 @@ export function ParameterPanel() {
   const bgColor = library.properties.canvasBackground ?? '#e4e4e7';
 
   return (
-    <div className="flex flex-col h-full" style={{ background: PANEL_BG }}>
+    <div className="flex flex-col h-full bg-zinc-800">
       {/* Port list / Document properties */}
-      <div className="flex-1 overflow-y-auto" style={{ position: 'relative' }}>
+      <div className="flex-1 overflow-y-auto relative">
         {/* Two-tone background columns */}
         <div
           data-testid="param-bg-left"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: LABEL_WIDTH,
-            background: PORT_LABEL_BACKGROUND,
-          }}
+          className="absolute top-0 left-0 bottom-0 bg-port-label"
+          style={{ width: LABEL_WIDTH }}
         />
         <div
           data-testid="param-bg-right"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: LABEL_WIDTH,
-            right: 0,
-            bottom: 0,
-            background: PORT_VALUE_BACKGROUND,
-          }}
+          className="absolute top-0 right-0 bottom-0 bg-port-value"
+          style={{ left: LABEL_WIDTH }}
         />
         {/* Content on top */}
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        <div className="relative z-[1]">
           {node ? (
             <>
               {node.inputs.map((port) => (

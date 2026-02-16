@@ -1,13 +1,4 @@
 import { useStore } from '../state/store';
-import {
-  DIALOG_BACKGROUND,
-  DIALOG_BORDER,
-  TEXT_DEFAULT,
-  TEXT_SUBDUED,
-  FONT_SIZE_BASE,
-  FONT_SIZE_HEADING,
-  VIOLET_400,
-} from '../theme/tokens';
 
 export function AboutDialog() {
   const visible = useStore((s) => s.aboutDialogVisible);
@@ -22,26 +13,22 @@ export function AboutDialog() {
       onClick={() => setVisible(false)}
     >
       <div
-        className="flex flex-col items-center p-8 gap-4"
-        style={{
-          width: 320,
-          background: DIALOG_BACKGROUND,
-          border: `1px solid ${DIALOG_BORDER}`,
-        }}
+        className="flex flex-col items-center p-8 gap-4 bg-zinc-700 border border-zinc-500"
+        style={{ width: 320 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h1 style={{ color: TEXT_DEFAULT, fontSize: FONT_SIZE_HEADING }}>
+        <h1 className="text-zinc-100 text-[16px]">
           NodeBox
         </h1>
-        <p style={{ color: TEXT_SUBDUED, fontSize: FONT_SIZE_BASE }}>
+        <p className="text-zinc-300 text-[13px]">
           Visual programming environment for generative design
         </p>
-        <p style={{ color: TEXT_SUBDUED, fontSize: FONT_SIZE_BASE }}>
+        <p className="text-zinc-300 text-[13px]">
           Version 0.1.0
         </p>
         <a
           href="#"
-          style={{ color: VIOLET_400, fontSize: FONT_SIZE_BASE }}
+          className="text-violet-400 text-[13px]"
           onClick={(e) => {
             e.preventDefault();
             setVisible(false);

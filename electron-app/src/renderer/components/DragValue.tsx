@@ -1,10 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  VALUE_TEXT,
-  VALUE_TEXT_HOVER,
   FIELD_HOVER_BG,
   CORNER_RADIUS_SMALL,
-  FONT_SIZE_BASE,
 } from '../theme/tokens';
 
 interface DragValueProps {
@@ -141,18 +138,7 @@ export function DragValue({
         onChange={(e) => setEditText(e.target.value)}
         onBlur={commitEdit}
         onKeyDown={handleKeyDown}
-        style={{
-          width: '100%',
-          height: '100%',
-          background: FIELD_HOVER_BG,
-          color: VALUE_TEXT,
-          border: 'none',
-          outline: 'none',
-          fontSize: FONT_SIZE_BASE,
-          padding: '0 8px',
-          borderRadius: CORNER_RADIUS_SMALL,
-          fontFamily: 'inherit',
-        }}
+        className="w-full h-full bg-field-hover text-zinc-100 border-none outline-none text-[13px] px-2 rounded-sm font-[inherit]"
       />
     );
   }
@@ -164,15 +150,7 @@ export function DragValue({
       onPointerUp={handlePointerUp}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        cursor: 'ew-resize',
-        userSelect: 'none',
-        fontSize: FONT_SIZE_BASE,
-      }}
+      className="w-full h-full flex items-center cursor-ew-resize select-none text-[13px]"
     >
       <div
         data-testid="drag-value-inner"
@@ -181,11 +159,11 @@ export function DragValue({
           display: 'flex',
           alignItems: 'center',
           padding: '0 8px',
-          margin: 2,
+          margin: '2px 0',
           height: 'calc(100% - 4px)',
           borderRadius: hovered ? CORNER_RADIUS_SMALL : 0,
           background: hovered ? FIELD_HOVER_BG : 'transparent',
-          color: hovered ? VALUE_TEXT_HOVER : VALUE_TEXT,
+          color: hovered ? '#fafafa' : '#f4f4f5',
         }}
       >
         {displayText}

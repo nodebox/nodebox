@@ -2,14 +2,8 @@ import { useStore } from '../state/store';
 import {
   TABLE_ROW_EVEN,
   TABLE_ROW_ODD,
-  TABLE_HEADER_BG,
-  TABLE_HEADER_TEXT,
-  TABLE_CELL_TEXT,
-  TABLE_INDEX_TEXT,
   TABLE_HEADER_HEIGHT,
   ROW_HEIGHT,
-  FONT_SIZE_SMALL,
-  PANEL_BG,
 } from '../theme/tokens';
 import type { PathRenderData } from '../types/eval-result';
 
@@ -28,18 +22,9 @@ function totalPoints(path: PathRenderData): number {
   return count;
 }
 
-const cellStyle: React.CSSProperties = {
-  padding: '0 8px',
-  fontSize: FONT_SIZE_SMALL,
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-};
+const cellClass = 'px-2 text-[11px] whitespace-nowrap overflow-hidden text-ellipsis';
 
 const headerCellStyle: React.CSSProperties = {
-  ...cellStyle,
-  color: TABLE_HEADER_TEXT,
-  fontWeight: 600,
   height: TABLE_HEADER_HEIGHT,
   lineHeight: `${TABLE_HEADER_HEIGHT}px`,
 };
@@ -51,14 +36,7 @@ export function DataViewer() {
     return (
       <div
         data-testid="data-viewer"
-        style={{
-          width: '100%',
-          height: '100%',
-          background: PANEL_BG,
-          color: TABLE_CELL_TEXT,
-          fontSize: FONT_SIZE_SMALL,
-          padding: 16,
-        }}
+        className="w-full h-full bg-zinc-800 text-zinc-100 text-[11px] p-4"
       >
         No data to display.
       </div>
@@ -68,21 +46,16 @@ export function DataViewer() {
   return (
     <div
       data-testid="data-viewer"
-      style={{
-        width: '100%',
-        height: '100%',
-        overflow: 'auto',
-        background: PANEL_BG,
-      }}
+      className="w-full h-full overflow-auto bg-zinc-800"
     >
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table className="w-full border-collapse">
         <thead>
-          <tr style={{ background: TABLE_HEADER_BG }}>
-            <th style={{ ...headerCellStyle, width: 40, textAlign: 'right' }}>#</th>
-            <th style={{ ...headerCellStyle, textAlign: 'left' }}>Fill</th>
-            <th style={{ ...headerCellStyle, textAlign: 'left' }}>Stroke</th>
-            <th style={{ ...headerCellStyle, textAlign: 'right' }}>Contours</th>
-            <th style={{ ...headerCellStyle, textAlign: 'right' }}>Points</th>
+          <tr className="bg-zinc-700">
+            <th className={`${cellClass} text-zinc-200 font-semibold text-right w-10`} style={headerCellStyle}>#</th>
+            <th className={`${cellClass} text-zinc-200 font-semibold text-left`} style={headerCellStyle}>Fill</th>
+            <th className={`${cellClass} text-zinc-200 font-semibold text-left`} style={headerCellStyle}>Stroke</th>
+            <th className={`${cellClass} text-zinc-200 font-semibold text-right`} style={headerCellStyle}>Contours</th>
+            <th className={`${cellClass} text-zinc-200 font-semibold text-right`} style={headerCellStyle}>Points</th>
           </tr>
         </thead>
         <tbody>
@@ -95,17 +68,15 @@ export function DataViewer() {
                 height: ROW_HEIGHT,
               }}
             >
-              <td style={{ ...cellStyle, color: TABLE_INDEX_TEXT, textAlign: 'right' }}>
+              <td className={`${cellClass} text-zinc-300 text-right`}>
                 {i}
               </td>
-              <td style={{ ...cellStyle, color: TABLE_CELL_TEXT, textAlign: 'left' }}>
+              <td className={`${cellClass} text-zinc-100 text-left`}>
                 {path.fill ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span className="inline-flex items-center gap-1">
                     <span
+                      className="inline-block w-3 h-3"
                       style={{
-                        display: 'inline-block',
-                        width: 12,
-                        height: 12,
                         background: colorToHex(path.fill),
                         border: '1px solid rgba(255,255,255,0.2)',
                       }}
@@ -116,14 +87,12 @@ export function DataViewer() {
                   'none'
                 )}
               </td>
-              <td style={{ ...cellStyle, color: TABLE_CELL_TEXT, textAlign: 'left' }}>
+              <td className={`${cellClass} text-zinc-100 text-left`}>
                 {path.stroke ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span className="inline-flex items-center gap-1">
                     <span
+                      className="inline-block w-3 h-3"
                       style={{
-                        display: 'inline-block',
-                        width: 12,
-                        height: 12,
                         background: colorToHex(path.stroke),
                         border: '1px solid rgba(255,255,255,0.2)',
                       }}
@@ -134,10 +103,10 @@ export function DataViewer() {
                   'none'
                 )}
               </td>
-              <td style={{ ...cellStyle, color: TABLE_CELL_TEXT, textAlign: 'right' }}>
+              <td className={`${cellClass} text-zinc-100 text-right`}>
                 {path.contours.length}
               </td>
-              <td style={{ ...cellStyle, color: TABLE_CELL_TEXT, textAlign: 'right' }}>
+              <td className={`${cellClass} text-zinc-100 text-right`}>
                 {totalPoints(path)}
               </td>
             </tr>

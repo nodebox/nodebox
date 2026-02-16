@@ -8,6 +8,9 @@ import {
   ZINC_200,
   VIEWER_CROSSHAIR,
   ZINC_500,
+  POINT_LINE_TO,
+  POINT_CURVE_TO,
+  POINT_CURVE_DATA,
 } from '../theme/tokens';
 
 function colorToCSS(c: { r: number; g: number; b: number; a: number }): string {
@@ -130,12 +133,116 @@ function drawCanvasBorder(
   ctx.strokeRect(cx - halfW, cy - halfH, halfW * 2, halfH * 2);
 }
 
+function pointColor(pointType: string): string {
+  switch (pointType) {
+    case 'curveTo': return POINT_CURVE_TO;
+    case 'curveData': return POINT_CURVE_DATA;
+    default: return POINT_LINE_TO; // moveTo, lineTo
+  }
+}
+
+// DigitCache: pre-renders digits 0-9 using a 5x7 bitmap font at 2x scale.
+// Each digit is rendered with a white outline and blue fill on OffscreenCanvas.
+const DIGIT_BITMAPS: string[][] = [
+  ['01110','10001','10011','10101','11001','10001','01110'], // 0
+  ['00100','01100','00100','00100','00100','00100','01110'], // 1
+  ['01110','10001','00001','00010','00100','01000','11111'], // 2
+  ['11111','00010','00100','00010','00001','10001','01110'], // 3
+  ['00010','00110','01010','10010','11111','00010','00010'], // 4
+  ['11111','10000','11110','00001','00001','10001','01110'], // 5
+  ['00110','01000','10000','11110','10001','10001','01110'], // 6
+  ['11111','10001','00010','00100','01000','01000','01000'], // 7
+  ['01110','10001','10001','01110','10001','10001','01110'], // 8
+  ['01110','10001','10001','01111','00001','00010','01100'], // 9
+];
+
+const DIGIT_W = 5;
+const DIGIT_H = 7;
+const DIGIT_SCALE = 2;
+const GLYPH_W = DIGIT_W * DIGIT_SCALE;
+const GLYPH_H = DIGIT_H * DIGIT_SCALE;
+const FILL_COLOR = POINT_CURVE_DATA; // #6464c8
+const OUTLINE_COLOR = '#ffffff';
+
+class DigitCache {
+  private glyphs: OffscreenCanvas[] = [];
+
+  constructor() {
+    for (let d = 0; d < 10; d++) {
+      this.glyphs.push(this.renderGlyph(d));
+    }
+  }
+
+  private renderGlyph(digit: number): OffscreenCanvas {
+    // Extra padding for the outline (1 pixel shift in 8 directions)
+    const pad = 2;
+    const w = GLYPH_W + pad * 2;
+    const h = GLYPH_H + pad * 2;
+    const canvas = new OffscreenCanvas(w, h);
+    const ctx = canvas.getContext('2d')!;
+
+    const bitmap = DIGIT_BITMAPS[digit];
+    // Draw white outline: stamp the glyph shifted in 8 directions
+    ctx.fillStyle = OUTLINE_COLOR;
+    const offsets = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+    for (const [dx, dy] of offsets) {
+      for (let row = 0; row < DIGIT_H; row++) {
+        for (let col = 0; col < DIGIT_W; col++) {
+          if (bitmap[row][col] === '1') {
+            ctx.fillRect(
+              pad + col * DIGIT_SCALE + dx,
+              pad + row * DIGIT_SCALE + dy,
+              DIGIT_SCALE,
+              DIGIT_SCALE,
+            );
+          }
+        }
+      }
+    }
+
+    // Draw fill on top
+    ctx.fillStyle = FILL_COLOR;
+    for (let row = 0; row < DIGIT_H; row++) {
+      for (let col = 0; col < DIGIT_W; col++) {
+        if (bitmap[row][col] === '1') {
+          ctx.fillRect(
+            pad + col * DIGIT_SCALE,
+            pad + row * DIGIT_SCALE,
+            DIGIT_SCALE,
+            DIGIT_SCALE,
+          );
+        }
+      }
+    }
+
+    return canvas;
+  }
+
+  drawNumber(ctx: CanvasRenderingContext2D, num: number, x: number, y: number) {
+    const digits = String(num);
+    const spacing = GLYPH_W + 1;
+    for (let i = 0; i < digits.length; i++) {
+      const d = parseInt(digits[i], 10);
+      ctx.drawImage(this.glyphs[d], x + i * spacing, y);
+    }
+  }
+}
+
+let digitCacheInstance: DigitCache | null = null;
+function getDigitCache(): DigitCache {
+  if (!digitCacheInstance) {
+    digitCacheInstance = new DigitCache();
+  }
+  return digitCacheInstance;
+}
+
 export function ViewerCanvas() {
   const renderResult = useStore((s) => s.renderResult);
   const showOrigin = useStore((s) => s.showOrigin);
   const showCanvasBorder = useStore((s) => s.showCanvasBorder);
   const showHandles = useStore((s) => s.showHandles);
   const showPoints = useStore((s) => s.showPoints);
+  const showPointNumbers = useStore((s) => s.showPointNumbers);
   const library = useStore((s) => s.library);
   const setViewerZoom = useStore((s) => s.setViewerZoom);
   const viewerZoomAction = useStore((s) => s.viewerZoomAction);
@@ -172,11 +279,6 @@ export function ViewerCanvas() {
       // Canvas border
       if (showCanvasBorder) {
         drawCanvasBorder(ctx, width, height, docWidth, docHeight, pz.panX, pz.panY, pz.zoom);
-      }
-
-      // Origin crosshair
-      if (showOrigin) {
-        drawOrigin(ctx, width, height, pz.panX, pz.panY);
       }
 
       // Render paths and texts
@@ -245,13 +347,12 @@ export function ViewerCanvas() {
               }
 
               if (showPoints) {
-                const sz = 4 / pz.zoom;
-                const half = sz / 2;
+                const r = 3 / pz.zoom;
                 for (const pt of pts) {
-                  if (pt.pointType === 'curveData') continue;
-                  ctx.strokeStyle = VIEWER_CROSSHAIR;
-                  ctx.lineWidth = 1 / pz.zoom;
-                  ctx.strokeRect(pt.x - half, pt.y - half, sz, sz);
+                  ctx.fillStyle = pointColor(pt.pointType);
+                  ctx.beginPath();
+                  ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+                  ctx.fill();
                 }
               }
             }
@@ -260,8 +361,32 @@ export function ViewerCanvas() {
 
         ctx.restore();
       }
+
+      // Draw point numbers (in screen space, after restoring from world transform)
+      if (showPointNumbers && renderResult) {
+        const cache = getDigitCache();
+        const centerX = width / 2 + pz.panX;
+        const centerY = height / 2 + pz.panY;
+        let pointIndex = 0;
+
+        for (const pathData of renderResult.paths) {
+          for (const contour of pathData.contours) {
+            for (const pt of contour.points) {
+              const screenX = centerX + pt.x * pz.zoom;
+              const screenY = centerY + pt.y * pz.zoom;
+              cache.drawNumber(ctx, pointIndex, screenX + 6, screenY - 12);
+              pointIndex++;
+            }
+          }
+        }
+      }
+
+      // Origin crosshair (drawn last so it's visible above geometry)
+      if (showOrigin) {
+        drawOrigin(ctx, width, height, pz.panX, pz.panY);
+      }
     },
-    [pz, renderResult, showOrigin, showCanvasBorder, showHandles, showPoints, docWidth, docHeight, canvasBg],
+    [pz, renderResult, showOrigin, showCanvasBorder, showHandles, showPoints, showPointNumbers, docWidth, docHeight, canvasBg],
   );
 
   const { canvasRef } = useCanvasRenderer(draw);
