@@ -17,6 +17,11 @@ import './App.css';
       inputs: n.inputs.length,
       prototype: n.prototype,
       outputType: n.outputType,
+      ports: n.inputs.map((p) => ({
+        name: p.name,
+        portType: p.portType,
+        value: p.value,
+      })),
     })),
     connections: s.library.root.connections,
     renderResult: s.renderResult

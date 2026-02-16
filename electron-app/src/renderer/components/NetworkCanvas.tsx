@@ -39,6 +39,9 @@ const PORT_WIDTH = 12;
 const PORT_HEIGHT = 4;
 const PORT_SPACING = 8;
 
+// Hit-test tolerance for ports (in screen pixels)
+const PORT_HIT_TOLERANCE = 6;
+
 function nodeBodyColor(outputType: PortType): string {
   switch (outputType) {
     case 'geometry': return NODE_BODY_GEOMETRY;
@@ -211,21 +214,87 @@ function drawConnection(
   ctx.stroke();
 }
 
+function drawPendingConnection(
+  ctx: CanvasRenderingContext2D,
+  fromNode: Node,
+  mouseX: number,
+  mouseY: number,
+  worldToScreen: (wx: number, wy: number) => { x: number; y: number },
+  zoom: number,
+) {
+  const outRect = nodeScreenRect(fromNode, worldToScreen, zoom);
+  const x1 = outRect.x + (PORT_WIDTH * zoom) / 2;
+  const y1 = outRect.y + outRect.height + PORT_HEIGHT * zoom;
+
+  const cpOffset = Math.abs(mouseY - y1) * 0.4;
+  ctx.strokeStyle = ZINC_200;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.bezierCurveTo(x1, y1 + cpOffset, mouseX, mouseY - cpOffset, mouseX, mouseY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawRubberBand(
+  ctx: CanvasRenderingContext2D,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+) {
+  const left = Math.min(x1, x2);
+  const top = Math.min(y1, y2);
+  const width = Math.abs(x2 - x1);
+  const height = Math.abs(y2 - y1);
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.fillRect(left, top, width, height);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeRect(left + 0.5, top + 0.5, width, height);
+  ctx.setLineDash([]);
+}
+
+interface CreatingConnection {
+  fromNode: string;
+  fromType: PortType;
+  mouseX: number;
+  mouseY: number;
+}
+
+interface RubberBand {
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
+}
+
 export function NetworkCanvas() {
   const children = useStore((s) => s.library.root.children);
   const connections = useStore((s) => s.library.root.connections);
   const renderedChild = useStore((s) => s.library.root.renderedChild);
   const selectedNodes = useStore((s) => s.selectedNodes);
   const selectNode = useStore((s) => s.selectNode);
+  const selectNodes = useStore((s) => s.selectNodes);
   const toggleNode = useStore((s) => s.toggleNode);
   const clearSelection = useStore((s) => s.clearSelection);
   const setNodeDialogVisible = useStore((s) => s.setNodeDialogVisible);
+  const setNodePosition = useStore((s) => s.setNodePosition);
+  const setRenderedChild = useStore((s) => s.setRenderedChild);
+  const addConnection = useStore((s) => s.addConnection);
 
   const panZoom = usePanZoom({ x: 200, y: 100 });
   const { state: pz, handlers, worldToScreen, screenToWorld } = panZoom;
 
   const [dragging, setDragging] = useState<string | null>(null);
   const dragStartWorld = useRef({ x: 0, y: 0 });
+  const dragOrigPos = useRef({ x: 0, y: 0 });
+
+  const [creatingConnection, setCreatingConnection] = useState<CreatingConnection | null>(null);
+  const [rubberBand, setRubberBand] = useState<RubberBand | null>(null);
 
   const draw = useCallback(
     (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -243,8 +312,34 @@ export function NetworkCanvas() {
         const isRendered = renderedChild === node.name;
         drawNode(ctx, node, isSelected, isRendered, worldToScreen, pz.zoom);
       }
+
+      // Draw pending connection
+      if (creatingConnection) {
+        const fromNode = children.find((n) => n.name === creatingConnection.fromNode);
+        if (fromNode) {
+          drawPendingConnection(
+            ctx,
+            fromNode,
+            creatingConnection.mouseX,
+            creatingConnection.mouseY,
+            worldToScreen,
+            pz.zoom,
+          );
+        }
+      }
+
+      // Draw rubber band selection
+      if (rubberBand) {
+        drawRubberBand(
+          ctx,
+          rubberBand.startX,
+          rubberBand.startY,
+          rubberBand.currentX,
+          rubberBand.currentY,
+        );
+      }
     },
-    [pz, children, connections, selectedNodes, renderedChild, worldToScreen],
+    [pz, children, connections, selectedNodes, renderedChild, worldToScreen, creatingConnection, rubberBand],
   );
 
   const { canvasRef, requestRender } = useCanvasRenderer(draw);
@@ -268,6 +363,58 @@ export function NetworkCanvas() {
     [children, worldToScreen, pz.zoom],
   );
 
+  // Hit test for output ports (bottom-left of node)
+  const findOutputPortAt = useCallback(
+    (sx: number, sy: number): { node: Node; portType: PortType } | null => {
+      for (let i = children.length - 1; i >= 0; i--) {
+        const node = children[i];
+        const rect = nodeScreenRect(node, worldToScreen, pz.zoom);
+        const z = pz.zoom;
+        const opx = rect.x;
+        const opy = rect.y + rect.height;
+        const opw = PORT_WIDTH * z;
+        const oph = PORT_HEIGHT * z;
+        if (
+          sx >= opx - PORT_HIT_TOLERANCE &&
+          sx <= opx + opw + PORT_HIT_TOLERANCE &&
+          sy >= opy - PORT_HIT_TOLERANCE &&
+          sy <= opy + oph + PORT_HIT_TOLERANCE
+        ) {
+          return { node, portType: node.outputType };
+        }
+      }
+      return null;
+    },
+    [children, worldToScreen, pz.zoom],
+  );
+
+  // Hit test for input ports (top of node)
+  const findInputPortAt = useCallback(
+    (sx: number, sy: number): { node: Node; portName: string; portType: PortType } | null => {
+      for (let i = children.length - 1; i >= 0; i--) {
+        const node = children[i];
+        const rect = nodeScreenRect(node, worldToScreen, pz.zoom);
+        const z = pz.zoom;
+        for (let j = 0; j < node.inputs.length; j++) {
+          const px = rect.x + (PORT_WIDTH + PORT_SPACING) * z * j;
+          const py = rect.y - PORT_HEIGHT * z;
+          const pw = PORT_WIDTH * z;
+          const ph = PORT_HEIGHT * z;
+          if (
+            sx >= px - PORT_HIT_TOLERANCE &&
+            sx <= px + pw + PORT_HIT_TOLERANCE &&
+            sy >= py - PORT_HIT_TOLERANCE &&
+            sy <= py + ph + PORT_HIT_TOLERANCE
+          ) {
+            return { node, portName: node.inputs[j].name, portType: node.inputs[j].portType };
+          }
+        }
+      }
+      return null;
+    },
+    [children, worldToScreen, pz.zoom],
+  );
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
       if (e.button === 1 || (e.button === 0 && e.altKey)) {
@@ -280,6 +427,20 @@ export function NetworkCanvas() {
       const rect = e.currentTarget.getBoundingClientRect();
       const sx = e.clientX - rect.left;
       const sy = e.clientY - rect.top;
+
+      // Check output port hit first (for connection creation)
+      const outputPort = findOutputPortAt(sx, sy);
+      if (outputPort) {
+        setCreatingConnection({
+          fromNode: outputPort.node.name,
+          fromType: outputPort.portType,
+          mouseX: sx,
+          mouseY: sy,
+        });
+        e.currentTarget.setPointerCapture(e.pointerId);
+        return;
+      }
+
       const node = hitTestNode(sx, sy);
 
       if (node) {
@@ -290,31 +451,122 @@ export function NetworkCanvas() {
         }
         const world = screenToWorld(sx, sy);
         dragStartWorld.current = world;
+        dragOrigPos.current = { x: node.position.x, y: node.position.y };
         setDragging(node.name);
         e.currentTarget.setPointerCapture(e.pointerId);
       } else {
         clearSelection();
+        // Start rubber band selection
+        setRubberBand({
+          startX: sx,
+          startY: sy,
+          currentX: sx,
+          currentY: sy,
+        });
+        e.currentTarget.setPointerCapture(e.pointerId);
       }
     },
-    [handlers, hitTestNode, selectNode, toggleNode, clearSelection, selectedNodes, screenToWorld],
+    [handlers, hitTestNode, findOutputPortAt, selectNode, toggleNode, clearSelection, selectedNodes, screenToWorld],
   );
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
       handlers.onPointerMove(e);
+
       if (dragging) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const world = screenToWorld(sx, sy);
+        const deltaWorldX = world.x - dragStartWorld.current.x;
+        const deltaWorldY = world.y - dragStartWorld.current.y;
+        // Convert world delta to grid cells
+        const deltaGridX = Math.round(deltaWorldX / GRID_SIZE);
+        const deltaGridY = Math.round(deltaWorldY / GRID_SIZE);
+        const newX = dragOrigPos.current.x + deltaGridX;
+        const newY = dragOrigPos.current.y + deltaGridY;
+        setNodePosition(dragging, { x: newX, y: newY });
+        requestRender();
+      }
+
+      if (creatingConnection) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        setCreatingConnection((prev) =>
+          prev ? { ...prev, mouseX: sx, mouseY: sy } : null,
+        );
+        requestRender();
+      }
+
+      if (rubberBand) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        setRubberBand((prev) =>
+          prev ? { ...prev, currentX: sx, currentY: sy } : null,
+        );
         requestRender();
       }
     },
-    [handlers, dragging, requestRender],
+    [handlers, dragging, creatingConnection, rubberBand, screenToWorld, setNodePosition, requestRender],
   );
 
   const handlePointerUp = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
       handlers.onPointerUp(e);
+
+      if (creatingConnection) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const inputPort = findInputPortAt(sx, sy);
+        if (inputPort && inputPort.node.name !== creatingConnection.fromNode) {
+          addConnection('root', {
+            outputNode: creatingConnection.fromNode,
+            inputNode: inputPort.node.name,
+            inputPort: inputPort.portName,
+          });
+        }
+        setCreatingConnection(null);
+        requestRender();
+      }
+
+      if (rubberBand) {
+        // Find all nodes intersecting the rubber band rectangle
+        const left = Math.min(rubberBand.startX, rubberBand.currentX);
+        const top = Math.min(rubberBand.startY, rubberBand.currentY);
+        const right = Math.max(rubberBand.startX, rubberBand.currentX);
+        const bottom = Math.max(rubberBand.startY, rubberBand.currentY);
+        const width = right - left;
+        const height = bottom - top;
+
+        // Only select if the rubber band has meaningful size (not just a click)
+        if (width > 4 || height > 4) {
+          const names: string[] = [];
+          for (const node of children) {
+            const nodeRect = nodeScreenRect(node, worldToScreen, pz.zoom);
+            // Check intersection
+            if (
+              nodeRect.x + nodeRect.width >= left &&
+              nodeRect.x <= right &&
+              nodeRect.y + nodeRect.height >= top &&
+              nodeRect.y <= bottom
+            ) {
+              names.push(node.name);
+            }
+          }
+          if (names.length > 0) {
+            selectNodes(names);
+          }
+        }
+        setRubberBand(null);
+        requestRender();
+      }
+
       setDragging(null);
     },
-    [handlers],
+    [handlers, creatingConnection, rubberBand, findInputPortAt, addConnection, children, worldToScreen, pz.zoom, selectNodes, requestRender],
   );
 
   const handleDoubleClick = useCallback(
@@ -323,18 +575,20 @@ export function NetworkCanvas() {
       const sx = e.clientX - rect.left;
       const sy = e.clientY - rect.top;
       const node = hitTestNode(sx, sy);
-      if (!node) {
+      if (node) {
+        setRenderedChild('root', node.name);
+      } else {
         setNodeDialogVisible(true);
       }
     },
-    [hitTestNode, setNodeDialogVisible],
+    [hitTestNode, setNodeDialogVisible, setRenderedChild],
   );
 
   return (
     <canvas
       ref={canvasRef}
       className="w-full h-full block"
-      style={{ cursor: panZoom.isPanning ? 'grabbing' : 'default' }}
+      style={{ cursor: panZoom.isPanning ? 'grabbing' : dragging ? 'move' : creatingConnection ? 'crosshair' : 'default' }}
       onWheel={handlers.onWheel}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
