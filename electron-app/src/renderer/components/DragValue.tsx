@@ -1,12 +1,17 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   FIELD_HOVER_BG,
   CORNER_RADIUS_SMALL,
 } from '../theme/tokens';
 
+export interface DragValueHandle {
+  startEdit: () => void;
+}
+
 interface DragValueProps {
   value: number;
   onChange: (value: number) => void;
+  onLabelCommit?: (value: number) => void;
   min?: number;
   max?: number;
   speed?: number;
@@ -15,14 +20,15 @@ interface DragValueProps {
 
 const DRAG_THRESHOLD = 3;
 
-export function DragValue({
+export const DragValue = forwardRef<DragValueHandle, DragValueProps>(function DragValue({
   value,
   onChange,
+  onLabelCommit,
   min,
   max,
   speed = 1.0,
   format,
-}: DragValueProps) {
+}, ref) {
   const [mode, setMode] = useState<'display' | 'drag' | 'edit'>('display');
   const [hovered, setHovered] = useState(false);
   const [editText, setEditText] = useState('');
@@ -31,6 +37,15 @@ export function DragValue({
   const lastDragX = useRef(0);
   const accumulatedValue = useRef(0);
   const hasDragged = useRef(false);
+  const labelTriggered = useRef(false);
+
+  useImperativeHandle(ref, () => ({
+    startEdit: () => {
+      labelTriggered.current = true;
+      setEditText(String(value));
+      setMode('edit');
+    },
+  }));
 
   const clamp = useCallback(
     (v: number) => {
@@ -107,10 +122,15 @@ export function DragValue({
   const commitEdit = useCallback(() => {
     const parsed = parseFloat(editText);
     if (!isNaN(parsed)) {
-      onChange(clamp(parsed));
+      if (labelTriggered.current && onLabelCommit) {
+        onLabelCommit(clamp(parsed));
+      } else {
+        onChange(clamp(parsed));
+      }
     }
+    labelTriggered.current = false;
     setMode('display');
-  }, [editText, clamp, onChange]);
+  }, [editText, clamp, onChange, onLabelCommit]);
 
   const cancelEdit = useCallback(() => {
     setMode('display');
@@ -170,4 +190,4 @@ export function DragValue({
       </div>
     </div>
   );
-}
+});
