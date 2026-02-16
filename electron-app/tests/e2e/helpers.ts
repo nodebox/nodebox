@@ -22,6 +22,7 @@ export async function launchApp(): Promise<AppContext> {
   const electronApp = await electron.launch({
     args: ['.'],
     cwd: path.resolve(__dirname, '../..'),
+    env: { ...process.env, NODEBOX_E2E: '1' },
   });
   const window = await electronApp.firstWindow();
   // Wait for the React app to mount
