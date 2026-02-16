@@ -33,9 +33,10 @@ const ZOOM_STEP = 1.1;
 export function usePanZoom(
   initialPan = { x: 0, y: 0 },
   initialZoom = 1.0,
-  options?: { scrollToZoom?: boolean },
+  options?: { scrollToZoom?: boolean; centerOrigin?: boolean },
 ): UsePanZoomResult {
   const scrollToZoom = options?.scrollToZoom ?? false;
+  const centerOrigin = options?.centerOrigin ?? false;
   const [pzState, setPzState] = useState<PanZoomState>({
     panX: initialPan.x,
     panY: initialPan.y,
@@ -76,9 +77,23 @@ export function usePanZoom(
 
         const factor = Math.pow(2, -e.deltaY * 0.005);
 
+        const canvasW = rect.width;
+        const canvasH = rect.height;
+
         setPzState((prev) => {
           const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev.zoom * factor));
           const scale = newZoom / prev.zoom;
+          if (centerOrigin) {
+            // When using center-origin coordinate system (e.g. ViewerCanvas),
+            // account for the width/2, height/2 offset in the transform
+            const adjMx = mx - canvasW / 2;
+            const adjMy = my - canvasH / 2;
+            return {
+              panX: adjMx - (adjMx - prev.panX) * scale,
+              panY: adjMy - (adjMy - prev.panY) * scale,
+              zoom: newZoom,
+            };
+          }
           return {
             panX: mx - (mx - prev.panX) * scale,
             panY: my - (my - prev.panY) * scale,
@@ -94,7 +109,7 @@ export function usePanZoom(
         }));
       }
     },
-    [scrollToZoom],
+    [scrollToZoom, centerOrigin],
   );
 
   const onPointerDown = useCallback(
