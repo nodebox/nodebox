@@ -31,11 +31,37 @@
   --color-surface: #52525c;
   --color-selection: #4c3a76;
 
+  /* Semantic backgrounds */
+  --color-field-hover: #484851;
+  --color-port-label: #27272a;
+  --color-port-value: #3f3f46;
+  --color-dialog: #3f3f46;
+
+  /* Category colors */
+  --color-cat-geometry: #5078c8;
+  --color-cat-transform: #c87850;
+  --color-cat-color: #c85078;
+  --color-cat-math: #78c850;
+  --color-cat-list: #c8c850;
+  --color-cat-string: #b450c8;
+  --color-cat-data: #50c8c8;
+
+  /* Point type colors */
+  --color-point-line: #64c864;
+  --color-point-curve: #c86464;
+  --color-point-data: #6464c8;
+
   /* Spacing */
   --spacing-sm: 4px;
   --spacing-md: 8px;
   --spacing-lg: 12px;
   --spacing-xl: 16px;
+
+  /* Sizing */
+  --spacing-label-w: 112px;
+  --spacing-row-h: 36px;
+  --spacing-header-h: 24px;
+  --spacing-bar-h: 28px;
 
   /* Typography */
   --font-size-body: 13px;

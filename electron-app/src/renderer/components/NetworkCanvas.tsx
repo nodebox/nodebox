@@ -96,6 +96,104 @@ function categoryColor(category: string): string {
   }
 }
 
+function drawNodeIcon(
+  ctx: CanvasRenderingContext2D,
+  category: string,
+  cx: number,
+  cy: number,
+  size: number,
+) {
+  const half = size / 2;
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+  ctx.lineWidth = 1.5;
+
+  switch (category) {
+    case 'geometry': {
+      // Diamond (4-point polygon)
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - half);
+      ctx.lineTo(cx + half, cy);
+      ctx.lineTo(cx, cy + half);
+      ctx.lineTo(cx - half, cy);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    case 'transform': {
+      // Right-pointing arrow
+      const aw = half * 0.6;
+      ctx.beginPath();
+      ctx.moveTo(cx - half, cy - aw);
+      ctx.lineTo(cx, cy - aw);
+      ctx.lineTo(cx, cy - half);
+      ctx.lineTo(cx + half, cy);
+      ctx.lineTo(cx, cy + half);
+      ctx.lineTo(cx, cy + aw);
+      ctx.lineTo(cx - half, cy + aw);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    case 'color': {
+      // Filled circle
+      ctx.beginPath();
+      ctx.arc(cx, cy, half, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case 'math': {
+      // Plus sign (two crossed lines)
+      const t = size * 0.12;
+      ctx.beginPath();
+      ctx.moveTo(cx - half, cy - t);
+      ctx.lineTo(cx - half, cy + t);
+      ctx.lineTo(cx - t, cy + t);
+      ctx.lineTo(cx - t, cy + half);
+      ctx.lineTo(cx + t, cy + half);
+      ctx.lineTo(cx + t, cy + t);
+      ctx.lineTo(cx + half, cy + t);
+      ctx.lineTo(cx + half, cy - t);
+      ctx.lineTo(cx + t, cy - t);
+      ctx.lineTo(cx + t, cy - half);
+      ctx.lineTo(cx - t, cy - half);
+      ctx.lineTo(cx - t, cy - t);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    case 'list': {
+      // Three horizontal lines
+      const lh = size * 0.1;
+      const gap = size * 0.35;
+      for (let i = -1; i <= 1; i++) {
+        ctx.fillRect(cx - half, cy + i * gap - lh, size, lh * 2);
+      }
+      break;
+    }
+    case 'string': {
+      // Letter "A"
+      ctx.font = `bold ${size}px -apple-system, system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('A', cx, cy);
+      break;
+    }
+    case 'data': {
+      // Small rectangle outline
+      const rw = half * 0.8;
+      const rh = half;
+      ctx.strokeRect(cx - rw, cy - rh, rw * 2, rh * 2);
+      break;
+    }
+    default: {
+      // Filled square
+      ctx.fillRect(cx - half * 0.7, cy - half * 0.7, half * 1.4, half * 1.4);
+      break;
+    }
+  }
+}
+
 function nodeScreenRect(
   node: Node,
   worldToScreen: (wx: number, wy: number) => { x: number; y: number },
@@ -165,10 +263,16 @@ function drawNode(
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
   }
 
-  // Category indicator (small colored square on left side)
+  // Category indicator (colored background with procedural icon)
   const catColor = categoryColor(node.category);
   ctx.fillStyle = catColor;
   ctx.fillRect(rect.x + 4 * z, rect.y + 4 * z, 20 * z, rect.height - 8 * z);
+
+  // Draw procedural icon centered in the category region
+  const iconSize = 14 * z;
+  const iconCx = rect.x + 4 * z + (20 * z) / 2;
+  const iconCy = rect.y + rect.height / 2;
+  drawNodeIcon(ctx, node.category, iconCx, iconCy, iconSize);
 
   // Rendered child indicator: white triangle at bottom-right
   if (isRendered) {

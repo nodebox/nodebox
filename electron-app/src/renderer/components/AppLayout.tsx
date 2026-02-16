@@ -54,10 +54,12 @@ function ViewerHeader() {
   const showPoints = useStore((s) => s.showPoints);
   const showOrigin = useStore((s) => s.showOrigin);
   const showCanvasBorder = useStore((s) => s.showCanvasBorder);
+  const showPointNumbers = useStore((s) => s.showPointNumbers);
   const toggleHandles = useStore((s) => s.toggleHandles);
   const togglePoints = useStore((s) => s.togglePoints);
   const toggleOrigin = useStore((s) => s.toggleOrigin);
   const toggleCanvasBorder = useStore((s) => s.toggleCanvasBorder);
+  const togglePointNumbers = useStore((s) => s.togglePointNumbers);
   const viewerZoom = useStore((s) => s.viewerZoom);
   const requestViewerZoom = useStore((s) => s.requestViewerZoom);
 
@@ -82,6 +84,7 @@ function ViewerHeader() {
       <ToggleButton label="Points" active={showPoints} onClick={togglePoints} />
       <ToggleButton label="Origin" active={showOrigin} onClick={toggleOrigin} />
       <ToggleButton label="Canvas" active={showCanvasBorder} onClick={toggleCanvasBorder} />
+      <ToggleButton label="Pt#" active={showPointNumbers} onClick={togglePointNumbers} />
       <div className="flex-1" />
       <button
         data-testid="zoom-out"
@@ -332,10 +335,18 @@ function VerticalSplitter({
 
 function ViewerContent() {
   const viewerMode = useStore((s) => s.viewerMode);
-  if (viewerMode === 'data') {
-    return <DataViewer />;
-  }
-  return <ViewerCanvas />;
+  return (
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        visibility: viewerMode === 'visual' ? 'visible' : 'hidden',
+        pointerEvents: viewerMode === 'visual' ? 'auto' : 'none',
+      }}>
+        <ViewerCanvas />
+      </div>
+      {viewerMode === 'data' && <DataViewer />}
+    </div>
+  );
 }
 
 export function AppLayout() {

@@ -3,14 +3,7 @@ import { useStore } from '../state/store';
 import { createDefaultNode } from '../types/node';
 import type { Port } from '../types/node';
 import {
-  DIALOG_BACKGROUND,
-  DIALOG_BORDER,
   SELECTED_ITEM,
-  TEXT_DEFAULT,
-  TEXT_SUBDUED,
-  ZINC_800,
-  FONT_SIZE_BASE,
-  FONT_SIZE_SMALL,
   CATEGORY_GEOMETRY,
   CATEGORY_TRANSFORM,
   CATEGORY_COLOR,
@@ -300,7 +293,7 @@ function NodeIcon({ name, category }: { name: string; category: string }) {
       src={`/icons/corevector/${name}.svg`}
       width={16}
       height={16}
-      style={{ flexShrink: 0 }}
+      style={{ flexShrink: 0, filter: 'brightness(0) invert(1)' }}
       onError={() => setHasImage(false)}
     />
   );
@@ -409,13 +402,8 @@ export function NodeSelectionDialog() {
       onClick={() => setVisible(false)}
     >
       <div
-        className="flex flex-col"
-        style={{
-          width: 320,
-          maxHeight: 400,
-          background: DIALOG_BACKGROUND,
-          border: `1px solid ${DIALOG_BORDER}`,
-        }}
+        className="flex flex-col bg-zinc-700 border border-zinc-500"
+        style={{ width: 320, maxHeight: 400 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}
@@ -426,13 +414,7 @@ export function NodeSelectionDialog() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="outline-none px-3 py-2"
-          style={{
-            background: ZINC_800,
-            color: TEXT_DEFAULT,
-            fontSize: FONT_SIZE_BASE,
-            border: 'none',
-          }}
+          className="outline-none px-3 py-2 bg-zinc-800 text-zinc-100 text-[13px] border-none"
         />
 
         {/* Results list */}
@@ -441,38 +423,25 @@ export function NodeSelectionDialog() {
             <div key={group.category}>
               <div
                 data-testid={`category-header-${group.category}`}
-                className="px-3 uppercase"
-                style={{
-                  height: 24,
-                  display: 'flex',
-                  alignItems: 'center',
-                  fontSize: 10,
-                  letterSpacing: '0.05em',
-                  color: TEXT_SUBDUED,
-                  position: 'sticky',
-                  top: 0,
-                  background: DIALOG_BACKGROUND,
-                  zIndex: 1,
-                }}
+                className="px-3 uppercase flex items-center text-zinc-300 bg-zinc-700 sticky top-0 z-1"
+                style={{ height: 24, fontSize: 10, letterSpacing: '0.05em' }}
               >
                 {group.category}
               </div>
               {group.protos.map(({ proto, globalIndex }) => (
                 <div
                   key={proto.name}
-                  className="flex items-center px-3 cursor-pointer gap-2"
+                  className="flex items-center px-3 cursor-pointer gap-2 text-zinc-100 text-[11px]"
                   style={{
                     height: 32,
                     background: globalIndex === selectedIndex ? SELECTED_ITEM : 'transparent',
-                    color: TEXT_DEFAULT,
-                    fontSize: FONT_SIZE_SMALL,
                   }}
                   onClick={() => createNode(proto)}
                   onMouseEnter={() => setSelectedIndex(globalIndex)}
                 >
                   <NodeIcon name={proto.name} category={proto.category} />
                   <span className="flex-1">{proto.name}</span>
-                  <span style={{ color: TEXT_SUBDUED, fontSize: FONT_SIZE_SMALL }}>
+                  <span className="text-zinc-300 text-[11px]">
                     {proto.category}
                   </span>
                 </div>
@@ -480,10 +449,7 @@ export function NodeSelectionDialog() {
             </div>
           ))}
           {filtered.length === 0 && (
-            <div
-              className="px-3 py-4 text-center"
-              style={{ color: TEXT_SUBDUED, fontSize: FONT_SIZE_SMALL }}
-            >
+            <div className="px-3 py-4 text-center text-zinc-300 text-[11px]">
               No nodes found
             </div>
           )}
