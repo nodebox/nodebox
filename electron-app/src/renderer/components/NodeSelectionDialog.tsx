@@ -30,7 +30,7 @@ const mkPort = (
 ): Port => ({
   name,
   portType,
-  label: label ?? name.charAt(0).toUpperCase() + name.slice(1),
+  label: label ?? name,
   description: null,
   widget,
   range: 'value',
@@ -105,7 +105,7 @@ const NODE_PROTOTYPES: NodePrototype[] = [
       mkPort('position', 'point', 'point', POINT_ZERO),
       mkPort('width', 'float', 'float', FLOAT_100),
       mkPort('height', 'float', 'float', FLOAT_100),
-      mkPort('startAngle', 'float', 'angle', FLOAT_ZERO, 'Start Angle'),
+      mkPort('startAngle', 'float', 'angle', FLOAT_ZERO),
       mkPort('degrees', 'float', 'angle', { type: 'float', value: 360 }),
     ],
   },
@@ -127,7 +127,7 @@ const NODE_PROTOTYPES: NodePrototype[] = [
     defaultInputs: [
       mkPort('text', 'string', 'string', { type: 'string', value: 'Hello' }),
       mkPort('position', 'point', 'point', POINT_ZERO),
-      mkPort('fontSize', 'float', 'float', { type: 'float', value: 24 }, 'Font Size'),
+      mkPort('fontSize', 'float', 'float', { type: 'float', value: 24 }),
     ],
   },
   {

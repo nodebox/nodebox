@@ -123,7 +123,7 @@ function FloatPortWidget({
         onDrag={handleLabelDrag}
       />
       <div
-        className="flex-1"
+        className="flex-1 pr-2"
         data-testid={`param-value-${port.name}`}
       >
         <DragValue
@@ -202,7 +202,7 @@ function PointPortWidget({
         portName={port.name}
         onDrag={handleLabelDrag}
       />
-      <div className="flex flex-1">
+      <div className="flex flex-1 gap-4 pr-2">
         <div className="flex-1" data-testid={`param-value-${port.name}-x`}>
           <DragValue value={pointValue.x} onChange={handleChangeX} />
         </div>
