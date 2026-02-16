@@ -179,7 +179,7 @@ const DIGIT_BITMAPS: string[][] = [
 
 const DIGIT_W = 5;
 const DIGIT_H = 7;
-const DIGIT_SCALE = 2;
+const DIGIT_SCALE = 1;
 const GLYPH_W = DIGIT_W * DIGIT_SCALE;
 const GLYPH_H = DIGIT_H * DIGIT_SCALE;
 const FILL_COLOR = POINT_CURVE_DATA; // #6464c8
