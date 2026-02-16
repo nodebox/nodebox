@@ -93,8 +93,9 @@ impl WasmNodeLibrary {
     /// Parse a library from NDBX (XML) content.
     #[wasm_bindgen]
     pub fn from_ndbx(ndbx_content: &str) -> Result<WasmNodeLibrary, JsError> {
-        let library = nodebox_core::ndbx::parse(ndbx_content)
+        let mut library = nodebox_core::ndbx::parse(ndbx_content)
             .map_err(|e| JsError::new(&format!("Failed to parse NDBX: {}", e)))?;
+        resolve_prototype_ports(&mut library);
         Ok(Self { library })
     }
 
@@ -477,6 +478,46 @@ fn serialize_eval_result(
         .unwrap_or_else(|_| error_result_json("Failed to serialize result"))
 }
 
+/// Resolve prototype ports for all nodes in the library.
+///
+/// After parsing an .ndbx file, nodes only contain explicitly overridden port values.
+/// Ports inherited from the prototype (e.g., `shape` from `corevector.filter`) are missing.
+/// This function merges each node's ports with the full port list from its template,
+/// preserving any overridden values from the file.
+fn resolve_prototype_ports(library: &mut NodeLibrary) {
+    let temp_lib = NodeLibrary::new("_temp");
+
+    for child in &mut library.root.children {
+        resolve_node_ports(child, &temp_lib);
+    }
+}
+
+/// Recursively resolve prototype ports for a node and its children.
+fn resolve_node_ports(node: &mut nodebox_core::node::Node, temp_lib: &NodeLibrary) {
+    // Resolve this node's ports from its prototype
+    if let Some(prototype) = &node.prototype {
+        if let Some(template) = NODE_TEMPLATES.iter().find(|t| t.prototype == prototype) {
+            let template_node = create_node_from_template(template, temp_lib, Point::ZERO);
+
+            // Merge: template ports as base, overlay parsed values
+            let mut merged_inputs = template_node.inputs;
+            for merged_port in &mut merged_inputs {
+                if let Some(parsed_port) = node.inputs.iter().find(|p| p.name == merged_port.name) {
+                    merged_port.value = parsed_port.value.clone();
+                }
+            }
+            node.inputs = merged_inputs;
+            node.output_type = template_node.output_type;
+            node.output_range = template_node.output_range;
+        }
+    }
+
+    // Recursively resolve children (for subnet networks)
+    for child in &mut node.children {
+        resolve_node_ports(child, temp_lib);
+    }
+}
+
 /// Convert text to vector path contours using the bundled font.
 ///
 /// Returns JSON array of contours, each with points and closed flag.
@@ -510,5 +551,132 @@ pub fn text_to_path(text: &str, font_size: f64, position_x: f64, position_y: f64
             serde_json::to_string(&contours).unwrap_or_else(|_| "[]".to_string())
         }
         Err(_) => "[]".to_string(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nodebox_core::node::PortType;
+
+    #[test]
+    fn test_resolve_prototype_ports_merges_template_ports() {
+        // A copy node in .ndbx only has overridden ports (copies=13).
+        // The template also defines `shape`, `order`, `translate`, `rotate`, `scale`.
+        let ndbx = r#"<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="17" type="file" uuid="test">
+    <node name="root" prototype="core.network" renderedChild="copy1">
+        <node name="rect1" prototype="corevector.rect"/>
+        <node name="copy1" prototype="corevector.copy" position="2.00,0.00">
+            <port name="copies" type="int" value="13"/>
+        </node>
+        <conn input="copy1.shape" output="rect1"/>
+    </node>
+</ndbx>"#;
+
+        let mut library = nodebox_core::ndbx::parse(ndbx).unwrap();
+
+        // Before resolution: copy1 only has the one overridden port
+        let copy_before = library.root.children.iter().find(|n| n.name == "copy1").unwrap();
+        assert_eq!(copy_before.inputs.len(), 1);
+        assert_eq!(copy_before.inputs[0].name, "copies");
+
+        resolve_prototype_ports(&mut library);
+
+        let copy = library.root.children.iter().find(|n| n.name == "copy1").unwrap();
+
+        // After resolution: copy1 has all template ports
+        assert!(copy.inputs.len() > 1, "Expected multiple ports, got {}", copy.inputs.len());
+
+        // The `shape` port should exist (from template)
+        let shape_port = copy.inputs.iter().find(|p| p.name == "shape");
+        assert!(shape_port.is_some(), "Expected 'shape' port from template");
+
+        // The overridden value should be preserved
+        let copies_port = copy.inputs.iter().find(|p| p.name == "copies").unwrap();
+        assert_eq!(copies_port.value, Value::Int(13));
+
+        // Output type should be set from template
+        assert_eq!(copy.output_type, PortType::Geometry);
+    }
+
+    #[test]
+    fn test_resolve_prototype_ports_rect_gets_all_ports() {
+        let ndbx = r#"<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="17" type="file" uuid="test">
+    <node name="root" prototype="core.network" renderedChild="rect1">
+        <node name="rect1" prototype="corevector.rect">
+            <port name="width" type="float" value="200.0"/>
+        </node>
+    </node>
+</ndbx>"#;
+
+        let mut library = nodebox_core::ndbx::parse(ndbx).unwrap();
+        resolve_prototype_ports(&mut library);
+
+        let rect = &library.root.children[0];
+
+        // rect template has: position, width, height, roundness
+        let port_names: Vec<&str> = rect.inputs.iter().map(|p| p.name.as_str()).collect();
+        assert!(port_names.contains(&"position"), "Missing 'position' port");
+        assert!(port_names.contains(&"width"), "Missing 'width' port");
+        assert!(port_names.contains(&"height"), "Missing 'height' port");
+
+        // Overridden width=200 should be preserved
+        let width = rect.inputs.iter().find(|p| p.name == "width").unwrap();
+        assert_eq!(width.value, Value::Float(200.0));
+
+        // Non-overridden height should have template default (100.0)
+        let height = rect.inputs.iter().find(|p| p.name == "height").unwrap();
+        assert_eq!(height.value, Value::Float(100.0));
+    }
+
+    #[test]
+    fn test_resolve_prototype_ports_unknown_prototype_unchanged() {
+        let ndbx = r#"<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="17" type="file" uuid="test">
+    <node name="root" prototype="core.network">
+        <node name="custom1" prototype="some.unknown.node">
+            <port name="x" type="float" value="42.0"/>
+        </node>
+    </node>
+</ndbx>"#;
+
+        let mut library = nodebox_core::ndbx::parse(ndbx).unwrap();
+        resolve_prototype_ports(&mut library);
+
+        // Unknown prototype: ports should remain unchanged
+        let custom = &library.root.children[0];
+        assert_eq!(custom.inputs.len(), 1);
+        assert_eq!(custom.inputs[0].name, "x");
+    }
+
+    #[test]
+    fn test_resolve_prototype_ports_nested_networks() {
+        let ndbx = r#"<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="17" type="file" uuid="test">
+    <node name="root" prototype="core.network">
+        <node name="subnet1" prototype="core.network">
+            <node name="ellipse1" prototype="corevector.ellipse">
+                <port name="width" type="float" value="50.0"/>
+            </node>
+        </node>
+    </node>
+</ndbx>"#;
+
+        let mut library = nodebox_core::ndbx::parse(ndbx).unwrap();
+        resolve_prototype_ports(&mut library);
+
+        // The nested ellipse should also have its ports resolved
+        let subnet = &library.root.children[0];
+        let ellipse = &subnet.children[0];
+        let port_names: Vec<&str> = ellipse.inputs.iter().map(|p| p.name.as_str()).collect();
+        assert!(port_names.contains(&"position"), "Missing 'position' port in nested node");
+        assert!(port_names.contains(&"width"), "Missing 'width' port in nested node");
+        assert!(port_names.contains(&"height"), "Missing 'height' port in nested node");
+
+        // Overridden width should be preserved
+        let width = ellipse.inputs.iter().find(|p| p.name == "width").unwrap();
+        assert_eq!(width.value, Value::Float(50.0));
     }
 }
