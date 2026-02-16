@@ -2,17 +2,14 @@ import { useEffect } from 'react';
 import { useStore } from '../state/store';
 
 export function useKeyboardShortcuts() {
-  const clearSelection = useStore((s) => s.clearSelection);
-
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       // Skip when an input or textarea is focused
       const tag = (e.target as HTMLElement)?.tagName;
       const isEditing = tag === 'INPUT' || tag === 'TEXTAREA';
 
-      // Escape: clear selection / close dialogs
+      // Escape: close dialogs
       if (e.key === 'Escape') {
-        clearSelection();
         useStore.getState().setNodeDialogVisible(false);
         useStore.getState().setAboutDialogVisible(false);
       }
@@ -41,5 +38,5 @@ export function useKeyboardShortcuts() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [clearSelection]);
+  }, []);
 }
