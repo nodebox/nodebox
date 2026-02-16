@@ -484,6 +484,12 @@ pub fn text_to_path_from_bytes(
     Ok(path)
 }
 
+/// Bundled Inter font bytes (always available, works on all platforms).
+///
+/// This is used as a fallback when the platform cannot provide font bytes,
+/// ensuring that textpath nodes always work, even on WASM.
+pub static BUNDLED_FONT_BYTES: &[u8] = include_bytes!("../../resources/Inter.ttf");
+
 #[cfg(test)]
 mod tests {
     use super::*;

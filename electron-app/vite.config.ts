@@ -42,6 +42,7 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src/renderer'),
       '@shared': resolve(__dirname, 'src/shared'),
+      '@wasm': resolve(__dirname, 'wasm'),
     },
   },
   test: {

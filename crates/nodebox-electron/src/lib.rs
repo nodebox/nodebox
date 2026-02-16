@@ -9,6 +9,7 @@ mod platform_bridge;
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 use nodebox_core::geometry::{Color, Point};
+use nodebox_core::geometry::font;
 use nodebox_core::node::{Connection, NodeLibrary, PortType};
 use nodebox_core::platform::{Platform, ProjectContext};
 use nodebox_core::Value;
@@ -345,5 +346,41 @@ fn describe_output(output: &NodeOutput) -> serde_json::Value {
         NodeOutput::Booleans(vs) => serde_json::json!({"type": "Booleans", "count": vs.len()}),
         NodeOutput::DataRow(row) => serde_json::json!({"type": "DataRow", "keys": row.keys().collect::<Vec<_>>()}),
         NodeOutput::DataRows(rows) => serde_json::json!({"type": "DataRows", "count": rows.len()}),
+    }
+}
+
+/// Convert text to vector path contours using the bundled font.
+///
+/// Returns JSON array of contours, each with points and closed flag.
+/// Uses the bundled Inter font (no system font access needed).
+#[wasm_bindgen]
+pub fn text_to_path(text: &str, font_size: f64, position_x: f64, position_y: f64) -> String {
+    let font_bytes = font::BUNDLED_FONT_BYTES;
+    let position = Point::new(position_x, position_y);
+
+    match font::text_to_path_from_bytes(text, font_bytes, font_size, position) {
+        Ok(path) => {
+            let contours: Vec<serde_json::Value> = path.contours.iter().map(|c| {
+                let points: Vec<serde_json::Value> = c.points.iter().map(|p| {
+                    serde_json::json!({
+                        "x": p.x(),
+                        "y": p.y(),
+                        "type": match p.point_type {
+                            nodebox_core::geometry::PointType::LineTo => "lineTo",
+                            nodebox_core::geometry::PointType::CurveTo => "curveTo",
+                            nodebox_core::geometry::PointType::CurveData => "curveData",
+                            nodebox_core::geometry::PointType::QuadTo => "quadTo",
+                            nodebox_core::geometry::PointType::QuadData => "quadData",
+                        },
+                    })
+                }).collect();
+                serde_json::json!({
+                    "points": points,
+                    "closed": c.closed,
+                })
+            }).collect();
+            serde_json::to_string(&contours).unwrap_or_else(|_| "[]".to_string())
+        }
+        Err(_) => "[]".to_string(),
     }
 }

@@ -50,6 +50,26 @@ function contourToPath2D(contour: Contour): Path2D {
         path.lineTo(pt.x, pt.y);
         i++;
         break;
+      case 'quadData': {
+        // One quadData followed by one quadTo
+        const cp = pts[i];
+        const end = pts[i + 1];
+        if (end && end.pointType === 'quadTo') {
+          path.quadraticCurveTo(cp.x, cp.y, end.x, end.y);
+          i += 2;
+        } else {
+          i++;
+        }
+        break;
+      }
+      case 'quadTo':
+        // Should be handled by quadData, but fallback
+        path.lineTo(pt.x, pt.y);
+        i++;
+        break;
+      default:
+        i++;
+        break;
     }
   }
   if (contour.closed) {
@@ -62,18 +82,19 @@ function drawPathData(
   ctx: CanvasRenderingContext2D,
   pathData: PathRenderData,
 ) {
+  const combined = new Path2D();
   for (const contour of pathData.contours) {
-    const path2d = contourToPath2D(contour);
+    combined.addPath(contourToPath2D(contour));
+  }
 
-    if (pathData.fill) {
-      ctx.fillStyle = colorToCSS(pathData.fill);
-      ctx.fill(path2d);
-    }
-    if (pathData.stroke) {
-      ctx.strokeStyle = colorToCSS(pathData.stroke);
-      ctx.lineWidth = pathData.strokeWidth;
-      ctx.stroke(path2d);
-    }
+  if (pathData.fill) {
+    ctx.fillStyle = colorToCSS(pathData.fill);
+    ctx.fill(combined);
+  }
+  if (pathData.stroke) {
+    ctx.strokeStyle = colorToCSS(pathData.stroke);
+    ctx.lineWidth = pathData.strokeWidth;
+    ctx.stroke(combined);
   }
 }
 
@@ -308,7 +329,7 @@ export function ViewerCanvas() {
             for (const contour of pathData.contours) {
               const pts = contour.points;
 
-              if (showHandles) {
+              if (showHandles && pathData.editable !== false) {
                 // Draw handle lines from curveData to their curveTo
                 ctx.strokeStyle = VIEWER_CROSSHAIR;
                 ctx.lineWidth = 1 / pz.zoom;

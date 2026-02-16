@@ -3,6 +3,7 @@ import { useStore } from './state/store';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { AppLayout } from './components/AppLayout';
 import { evaluate } from './eval/evaluator';
+import { onWasmReady } from './eval/wasm';
 import type { MenuAction } from '../shared/ipc-channels';
 
 export function App() {
@@ -28,6 +29,19 @@ export function App() {
     );
     setRenderResult(result);
   }, [library, frame, setRenderResult]);
+
+  // Re-evaluate once WASM is initialized (for textpath nodes)
+  useEffect(() => {
+    onWasmReady(() => {
+      const s = useStore.getState();
+      const result = evaluate(
+        s.library.root.renderedChild,
+        s.library.root.children,
+        s.library.root.connections,
+      );
+      s.setRenderResult(result);
+    });
+  }, []);
 
   // Animation playback loop
   useEffect(() => {

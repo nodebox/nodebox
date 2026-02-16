@@ -1,7 +1,37 @@
-import type { Point, Color, Path, Contour, PathPoint } from '../types/geometry';
+import type { Point, Color, Path, Contour, PathPoint, PointType } from '../types/geometry';
+import { isWasmReady, textToPathSync } from './wasm';
 
 const DEFAULT_FILL: Color = { r: 0, g: 0, b: 0, a: 1 };
 const KAPPA = 0.5522847498;
+
+export function textpathPath(
+  text: string,
+  fontSize: number,
+  position: Point,
+): Path | null {
+  if (!isWasmReady()) return null;
+  const json = textToPathSync(text, fontSize, position.x, position.y);
+  const rawContours: { points: { x: number; y: number; type: string }[]; closed: boolean }[] = JSON.parse(json);
+
+  const contours: Contour[] = rawContours.map((c) => ({
+    points: c.points.map((p, i): PathPoint => {
+      // The Rust contour's first point (from move_to) has type "lineTo";
+      // map it to "moveTo" for the Canvas2D renderer.
+      let pointType: PointType = p.type as PointType;
+      if (i === 0) pointType = 'moveTo';
+      return { x: p.x, y: p.y, pointType };
+    }),
+    closed: c.closed,
+  }));
+
+  return {
+    contours,
+    fill: { ...DEFAULT_FILL },
+    stroke: null,
+    strokeWidth: 1,
+    editable: false,
+  };
+}
 
 export function rectPath(
   position: Point,

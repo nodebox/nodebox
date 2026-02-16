@@ -16,6 +16,7 @@ import {
   polygonPath,
   starPath,
   gridPoints,
+  textpathPath,
 } from './generators';
 
 function getPortValue(node: Node, portName: string): Value {
@@ -37,6 +38,11 @@ function toPoint(v: Value): Point {
 function toColor(v: Value): Color {
   if (v.type === 'color') return v.value;
   return { r: 0, g: 0, b: 0, a: 1 };
+}
+
+function toString(v: Value): string {
+  if (v.type === 'string') return v.value;
+  return '';
 }
 
 function toPath(v: Value): Path | null {
@@ -212,6 +218,16 @@ function evaluateNode(
       result = { type: 'float', value: v2 !== 0 ? v1 / v2 : 0 };
       break;
     }
+    case 'corevector.textpath': {
+      const text = toString(resolve('text'));
+      const fontSize = toFloat(resolve('fontSize'));
+      const position = toPoint(resolve('position'));
+      const path = textpathPath(text, fontSize, position);
+      if (path) {
+        result = { type: 'path', value: path };
+      }
+      break;
+    }
     default:
       break;
   }
@@ -226,6 +242,7 @@ function pathToRenderData(path: Path): PathRenderData {
     fill: path.fill,
     stroke: path.stroke,
     strokeWidth: path.strokeWidth,
+    editable: path.editable,
   };
 }
 
