@@ -60,7 +60,12 @@ ipcMain.handle(IPC.FILE_OPEN, async () => {
 
 ipcMain.handle(IPC.FILE_SAVE, async (_event, data: string) => {
   if (!currentFilePath) {
-    return ipcMain.emit(IPC.FILE_SAVE_AS, _event, data);
+    if (!mainWindow) return null;
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+      filters: [{ name: 'NodeBox Files', extensions: ['ndbx'] }],
+    });
+    if (canceled || !filePath) return null;
+    currentFilePath = filePath;
   }
   await writeFile(currentFilePath, data, 'utf-8');
   return { path: currentFilePath };
