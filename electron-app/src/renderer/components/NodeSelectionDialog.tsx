@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useStore } from '../state/store';
-import { createDefaultNode } from '../types/node';
-import type { Port } from '../types/node';
-import type { Value } from '../types/value';
+import {
+  getNodeTemplates,
+  createNodeFromTemplate,
+  isWasmReady,
+} from '../eval/wasm';
+import type { NodeTemplate } from '../eval/wasm';
 import {
   SELECTED_ITEM,
   CATEGORY_GEOMETRY,
@@ -14,247 +17,6 @@ import {
   CATEGORY_DATA,
   CATEGORY_DEFAULT,
 } from '../theme/tokens';
-
-interface NodePrototype {
-  name: string;
-  category: string;
-  description: string;
-  defaultInputs: Port[];
-}
-
-const mkPort = (
-  name: string,
-  port_type: Port['port_type'],
-  widget: Port['widget'],
-  value: Port['value'],
-  label?: string,
-): Port => ({
-  name,
-  port_type,
-  label: label ?? name,
-  description: null,
-  widget,
-  range: 'Value',
-  value,
-  min: null,
-  max: null,
-  menu_items: [],
-});
-
-const FLOAT_ZERO: Value = { Float: 0 };
-const FLOAT_100: Value = { Float: 100 };
-const POINT_ZERO: Value = { Point: { x: 0, y: 0 } };
-
-const NODE_PROTOTYPES: NodePrototype[] = [
-  {
-    name: 'rect',
-    category: 'geometry',
-    description: 'Create a rectangle',
-    defaultInputs: [
-      mkPort('position', 'Point', 'Point', POINT_ZERO),
-      mkPort('width', 'Float', 'Float', FLOAT_100),
-      mkPort('height', 'Float', 'Float', FLOAT_100),
-      mkPort('roundness', 'Point', 'Point', POINT_ZERO),
-    ],
-  },
-  {
-    name: 'ellipse',
-    category: 'geometry',
-    description: 'Create an ellipse',
-    defaultInputs: [
-      mkPort('position', 'Point', 'Point', POINT_ZERO),
-      mkPort('width', 'Float', 'Float', FLOAT_100),
-      mkPort('height', 'Float', 'Float', FLOAT_100),
-    ],
-  },
-  {
-    name: 'line',
-    category: 'geometry',
-    description: 'Create a line',
-    defaultInputs: [
-      mkPort('point1', 'Point', 'Point', POINT_ZERO),
-      mkPort('point2', 'Point', 'Point', { Point: { x: 100, y: 0 } }),
-      mkPort('points', 'Int', 'Int', { Int: 2 }),
-    ],
-  },
-  {
-    name: 'star',
-    category: 'geometry',
-    description: 'Create a star',
-    defaultInputs: [
-      mkPort('position', 'Point', 'Point', POINT_ZERO),
-      mkPort('points', 'Int', 'Int', { Int: 5 }),
-      mkPort('outer', 'Float', 'Float', FLOAT_100),
-      mkPort('inner', 'Float', 'Float', { Float: 50 }),
-    ],
-  },
-  {
-    name: 'polygon',
-    category: 'geometry',
-    description: 'Create a polygon',
-    defaultInputs: [
-      mkPort('position', 'Point', 'Point', POINT_ZERO),
-      mkPort('radius', 'Float', 'Float', FLOAT_100),
-      mkPort('sides', 'Int', 'Int', { Int: 6 }),
-    ],
-  },
-  {
-    name: 'arc',
-    category: 'geometry',
-    description: 'Create an arc',
-    defaultInputs: [
-      mkPort('position', 'Point', 'Point', POINT_ZERO),
-      mkPort('width', 'Float', 'Float', FLOAT_100),
-      mkPort('height', 'Float', 'Float', FLOAT_100),
-      mkPort('startAngle', 'Float', 'Angle', FLOAT_ZERO),
-      mkPort('degrees', 'Float', 'Angle', { Float: 360 }),
-    ],
-  },
-  {
-    name: 'grid',
-    category: 'geometry',
-    description: 'Create a point grid',
-    defaultInputs: [
-      mkPort('columns', 'Int', 'Int', { Int: 10 }),
-      mkPort('rows', 'Int', 'Int', { Int: 10 }),
-      mkPort('width', 'Float', 'Float', { Float: 200 }),
-      mkPort('height', 'Float', 'Float', { Float: 200 }),
-    ],
-  },
-  {
-    name: 'textpath',
-    category: 'geometry',
-    description: 'Create text path',
-    defaultInputs: [
-      mkPort('text', 'String', 'String', { String: 'Hello' }),
-      mkPort('position', 'Point', 'Point', POINT_ZERO),
-      mkPort('fontSize', 'Float', 'Float', { Float: 24 }),
-    ],
-  },
-  {
-    name: 'colorize',
-    category: 'color',
-    description: 'Set fill color',
-    defaultInputs: [
-      mkPort('shape', 'Geometry', 'None', 'Null'),
-      mkPort('fill', 'Color', 'Color', { Color: { r: 1, g: 1, b: 1, a: 1 } }),
-    ],
-  },
-  {
-    name: 'stroke',
-    category: 'color',
-    description: 'Set stroke',
-    defaultInputs: [
-      mkPort('shape', 'Geometry', 'None', 'Null'),
-      mkPort('color', 'Color', 'Color', { Color: { r: 0, g: 0, b: 0, a: 1 } }),
-      mkPort('width', 'Float', 'Float', { Float: 1 }),
-    ],
-  },
-  {
-    name: 'translate',
-    category: 'transform',
-    description: 'Move geometry',
-    defaultInputs: [
-      mkPort('shape', 'Geometry', 'None', 'Null'),
-      mkPort('translate', 'Point', 'Point', POINT_ZERO),
-    ],
-  },
-  {
-    name: 'rotate',
-    category: 'transform',
-    description: 'Rotate geometry',
-    defaultInputs: [
-      mkPort('shape', 'Geometry', 'None', 'Null'),
-      mkPort('angle', 'Float', 'Angle', FLOAT_ZERO),
-    ],
-  },
-  {
-    name: 'scale',
-    category: 'transform',
-    description: 'Scale geometry',
-    defaultInputs: [
-      mkPort('shape', 'Geometry', 'None', 'Null'),
-      mkPort('scale', 'Point', 'Point', { Point: { x: 1, y: 1 } }),
-    ],
-  },
-  {
-    name: 'copy',
-    category: 'transform',
-    description: 'Copy with transform',
-    defaultInputs: [
-      mkPort('shape', 'Geometry', 'None', 'Null'),
-      mkPort('copies', 'Int', 'Int', { Int: 10 }),
-      mkPort('translate', 'Point', 'Point', POINT_ZERO),
-      mkPort('rotate', 'Float', 'Angle', FLOAT_ZERO),
-      mkPort('scale', 'Point', 'Point', { Point: { x: 1, y: 1 } }),
-    ],
-  },
-  {
-    name: 'add',
-    category: 'math',
-    description: 'Add two numbers',
-    defaultInputs: [
-      mkPort('value1', 'Float', 'Float', FLOAT_ZERO),
-      mkPort('value2', 'Float', 'Float', FLOAT_ZERO),
-    ],
-  },
-  {
-    name: 'subtract',
-    category: 'math',
-    description: 'Subtract two numbers',
-    defaultInputs: [
-      mkPort('value1', 'Float', 'Float', FLOAT_ZERO),
-      mkPort('value2', 'Float', 'Float', FLOAT_ZERO),
-    ],
-  },
-  {
-    name: 'multiply',
-    category: 'math',
-    description: 'Multiply two numbers',
-    defaultInputs: [
-      mkPort('value1', 'Float', 'Float', FLOAT_ZERO),
-      mkPort('value2', 'Float', 'Float', FLOAT_ZERO),
-    ],
-  },
-  {
-    name: 'divide',
-    category: 'math',
-    description: 'Divide two numbers',
-    defaultInputs: [
-      mkPort('value1', 'Float', 'Float', FLOAT_ZERO),
-      mkPort('value2', 'Float', 'Float', { Float: 1 }),
-    ],
-  },
-  {
-    name: 'random',
-    category: 'math',
-    description: 'Random number',
-    defaultInputs: [
-      mkPort('min', 'Float', 'Float', FLOAT_ZERO),
-      mkPort('max', 'Float', 'Float', FLOAT_100),
-      mkPort('seed', 'Int', 'Seed', { Int: 0 }),
-    ],
-  },
-  {
-    name: 'merge',
-    category: 'list',
-    description: 'Merge paths',
-    defaultInputs: [
-      mkPort('shape1', 'Geometry', 'None', 'Null'),
-      mkPort('shape2', 'Geometry', 'None', 'Null'),
-    ],
-  },
-  {
-    name: 'switch',
-    category: 'list',
-    description: 'Switch between inputs',
-    defaultInputs: [
-      mkPort('input1', 'Geometry', 'None', 'Null'),
-      mkPort('input2', 'Geometry', 'None', 'Null'),
-      mkPort('index', 'Int', 'Int', { Int: 0 }),
-    ],
-  },
-];
 
 function getCategoryColor(category: string): string {
   switch (category) {
@@ -300,66 +62,60 @@ function NodeIcon({ name, category }: { name: string; category: string }) {
   );
 }
 
-function generateUniqueName(baseName: string, existingNames: string[]): string {
-  let counter = 1;
-  let name = `${baseName}${counter}`;
-  while (existingNames.includes(name)) {
-    counter++;
-    name = `${baseName}${counter}`;
-  }
-  return name;
-}
-
 export function NodeSelectionDialog() {
   const visible = useStore((s) => s.nodeDialogVisible);
   const setVisible = useStore((s) => s.setNodeDialogVisible);
   const addNode = useStore((s) => s.addNode);
   const selectNode = useStore((s) => s.selectNode);
   const setRenderedChild = useStore((s) => s.setRenderedChild);
-  const children = useStore((s) => s.library.root.children);
+  const library = useStore((s) => s.library);
+  const children = library.root.children;
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const filtered = NODE_PROTOTYPES.filter(
-    (n) =>
-      n.name.includes(query.toLowerCase()) ||
-      n.category.includes(query.toLowerCase()),
+  const templates = useMemo(() => {
+    if (!isWasmReady()) return [];
+    return getNodeTemplates();
+  }, [visible]);
+
+  const filtered = useMemo(
+    () =>
+      templates.filter(
+        (t) =>
+          t.name.includes(query.toLowerCase()) ||
+          t.category.includes(query.toLowerCase()),
+      ),
+    [templates, query],
   );
 
   const groupedItems = useMemo(() => {
-    const groups: { category: string; protos: { proto: NodePrototype; globalIndex: number }[] }[] = [];
+    const groups: { category: string; items: { template: NodeTemplate; globalIndex: number }[] }[] = [];
     let globalIndex = 0;
 
-    filtered.forEach((proto) => {
-      let group = groups.find((g) => g.category === proto.category);
+    filtered.forEach((template) => {
+      let group = groups.find((g) => g.category === template.category);
       if (!group) {
-        group = { category: proto.category, protos: [] };
+        group = { category: template.category, items: [] };
         groups.push(group);
       }
-      group.protos.push({ proto, globalIndex: globalIndex++ });
+      group.items.push({ template, globalIndex: globalIndex++ });
     });
 
     return groups;
   }, [filtered]);
 
   const createNode = useCallback(
-    (proto: NodePrototype) => {
-      const existingNames = children.map((n) => n.name);
-      const name = generateUniqueName(proto.name, existingNames);
-      const node = {
-        ...createDefaultNode(name),
-        prototype: `corevector.${proto.name}`,
-        category: proto.category,
-        position: { x: 1, y: 1 + children.length * 2 },
-        inputs: proto.defaultInputs.map((p) => ({ ...p })),
-      };
+    (template: NodeTemplate) => {
+      const libraryJson = JSON.stringify(library);
+      const y = 1 + children.length * 2;
+      const node = createNodeFromTemplate(template.name, libraryJson, 1, y);
       addNode('root', node);
-      selectNode(name);
-      setRenderedChild('root', name);
+      selectNode(node.name);
+      setRenderedChild('root', node.name);
       setVisible(false);
     },
-    [children, addNode, selectNode, setRenderedChild, setVisible],
+    [library, children, addNode, selectNode, setRenderedChild, setVisible],
   );
 
   useEffect(() => {
@@ -429,21 +185,21 @@ export function NodeSelectionDialog() {
               >
                 {group.category}
               </div>
-              {group.protos.map(({ proto, globalIndex }) => (
+              {group.items.map(({ template, globalIndex }) => (
                 <div
-                  key={proto.name}
+                  key={template.name}
                   className="flex items-center px-3 cursor-pointer gap-2 text-zinc-100 text-[11px]"
                   style={{
                     height: 32,
                     background: globalIndex === selectedIndex ? SELECTED_ITEM : 'transparent',
                   }}
-                  onClick={() => createNode(proto)}
+                  onClick={() => createNode(template)}
                   onMouseEnter={() => setSelectedIndex(globalIndex)}
                 >
-                  <NodeIcon name={proto.name} category={proto.category} />
-                  <span className="flex-1">{proto.name}</span>
+                  <NodeIcon name={template.name} category={template.category} />
+                  <span className="flex-1">{template.name}</span>
                   <span className="text-zinc-300 text-[11px]">
-                    {proto.category}
+                    {template.category}
                   </span>
                 </div>
               ))}
