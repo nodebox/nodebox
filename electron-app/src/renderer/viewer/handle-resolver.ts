@@ -5,12 +5,12 @@ import type { FourPointHandleState } from './four-point-handle';
 const HANDLE_PROTOTYPES = new Set(['corevector.rect', 'corevector.ellipse']);
 
 export function resolveFourPointHandle(
-  renderedChild: string | null,
+  nodeName: string | null,
   children: Node[],
 ): FourPointHandleState | null {
-  if (!renderedChild) return null;
+  if (!nodeName) return null;
 
-  const node = children.find((n) => n.name === renderedChild);
+  const node = children.find((n) => n.name === nodeName);
   if (!node || !node.prototype || !HANDLE_PROTOTYPES.has(node.prototype)) {
     return null;
   }
