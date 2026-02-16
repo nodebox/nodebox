@@ -503,7 +503,7 @@ export function NetworkCanvas() {
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (e.button === 1 || (e.button === 0 && e.altKey)) {
+      if (e.button === 1 || (e.button === 0 && (e.altKey || panZoom.isSpaceDown))) {
         handlers.onPointerDown(e);
         return;
       }
@@ -587,7 +587,7 @@ export function NetworkCanvas() {
         e.currentTarget.setPointerCapture(e.pointerId);
       }
     },
-    [handlers, hitTestNode, findOutputPortAt, findInputPortAt, selectNode, toggleNode, clearSelection, selectedNodes, screenToWorld, connections, pushSnapshot, library, removeConnection, children],
+    [handlers, hitTestNode, findOutputPortAt, findInputPortAt, selectNode, toggleNode, clearSelection, selectedNodes, screenToWorld, connections, pushSnapshot, library, removeConnection, children, panZoom.isSpaceDown],
   );
 
   const handlePointerMove = useCallback(
@@ -773,7 +773,7 @@ export function NetworkCanvas() {
       <canvas
         ref={canvasRef}
         className="w-full h-full block"
-        style={{ cursor: panZoom.isPanning ? 'grabbing' : isDragging ? 'move' : creatingConnection ? 'crosshair' : 'default' }}
+        style={{ cursor: panZoom.isPanning ? 'grabbing' : panZoom.isSpaceDown ? 'grab' : isDragging ? 'move' : creatingConnection ? 'crosshair' : 'default' }}
         onWheel={handlers.onWheel}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
