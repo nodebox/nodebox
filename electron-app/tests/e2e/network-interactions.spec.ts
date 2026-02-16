@@ -18,9 +18,9 @@ test('click on node selects it', async () => {
   expect(box).not.toBeNull();
 
   // rect1 is at grid position {x:1, y:1}
-  // screen position within canvas = pan(200,100) + (1*48+8, 1*48+8) = (256, 156)
-  // Click on the center of rect1: (256 + 64, 156 + 16) = (320, 172)
-  await canvas.click({ position: { x: 320, y: 172 } });
+  // screen position within canvas = pan(8,8) + (1*48+8, 1*48+8) = (64, 64)
+  // Click on the center of rect1: (64 + 64, 64 + 16) = (128, 80)
+  await canvas.click({ position: { x: 128, y: 80 } });
   await waitForUpdate(ctx.window);
 
   const state = await getStoreState(ctx.window);
@@ -40,9 +40,9 @@ test('drag node changes its position', async () => {
   const origX = rect1Before.position.x;
   const origY = rect1Before.position.y;
 
-  // rect1 center within canvas: (320, 172)
-  const startX = box!.x + 320;
-  const startY = box!.y + 172;
+  // rect1 center within canvas: (128, 80)
+  const startX = box!.x + 128;
+  const startY = box!.y + 80;
 
   // Drag by 96px (2 grid cells) to the right
   await ctx.window.mouse.move(startX, startY);
@@ -66,7 +66,7 @@ test('double-click on node sets it as rendered child', async () => {
   // that double-clicking sets it. First clear by clicking empty space.
   // Actually, rect1 is already rendered. Let's verify double-click behavior
   // by confirming it stays rendered.
-  await canvas.dblclick({ position: { x: 320, y: 172 } });
+  await canvas.dblclick({ position: { x: 128, y: 80 } });
   await waitForUpdate(ctx.window);
 
   const state = await getStoreState(ctx.window);
@@ -99,12 +99,12 @@ test('rubber band selection selects nodes within rectangle', async () => {
   expect(box).not.toBeNull();
 
   // Start rubber band from empty space above-left of rect1
-  // rect1 screen rect starts at (256, 156) with size 128x32
-  // Start rubber band at (200, 100) to (400, 250) to encompass rect1
-  const startX = box!.x + 200;
-  const startY = box!.y + 100;
-  const endX = box!.x + 400;
-  const endY = box!.y + 250;
+  // rect1 screen rect starts at (64, 64) with size 128x32
+  // Start rubber band at (30, 30) to (250, 150) to encompass rect1
+  const startX = box!.x + 30;
+  const startY = box!.y + 30;
+  const endX = box!.x + 250;
+  const endY = box!.y + 150;
 
   await ctx.window.mouse.move(startX, startY);
   await ctx.window.mouse.down();
@@ -121,7 +121,7 @@ test('click on empty space clears selection', async () => {
   const canvas = ctx.window.locator('canvas').last();
 
   // First select rect1
-  await canvas.click({ position: { x: 320, y: 172 } });
+  await canvas.click({ position: { x: 128, y: 80 } });
   await waitForUpdate(ctx.window);
 
   let state = await getStoreState(ctx.window);

@@ -341,7 +341,7 @@ export function NetworkCanvas() {
   const setRenderedChild = useStore((s) => s.setRenderedChild);
   const addConnection = useStore((s) => s.addConnection);
 
-  const panZoom = usePanZoom({ x: 200, y: 100 });
+  const panZoom = usePanZoom({ x: 8, y: 8 });
   const { state: pz, handlers, worldToScreen, screenToWorld } = panZoom;
 
   const [dragging, setDragging] = useState<string | null>(null);

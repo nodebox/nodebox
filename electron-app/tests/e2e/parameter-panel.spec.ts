@@ -14,7 +14,7 @@ test.afterEach(async () => {
 async function selectRect1(ctx: AppContext) {
   // rect1 is at grid position (1,1). Click on its center in the network canvas.
   const networkCanvas = ctx.window.locator('canvas').last();
-  await networkCanvas.click({ position: { x: 320, y: 172 } });
+  await networkCanvas.click({ position: { x: 128, y: 80 } });
   await waitForUpdate(ctx.window);
 }
 

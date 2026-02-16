@@ -38,18 +38,18 @@ test('create connection by dragging from output port to input port', async () =>
 
   // rect1 output port is at bottom-left of rect1
   // rect1 is at grid position {x:1, y:1}
-  // rect1 screen rect within canvas: x = 200 + 1*48 + 8 = 256, y = 100 + 1*48 + 8 = 156
-  // Output port: x=256, y=156+32=188, w=12, h=4
-  // Port center: (256+6, 188+2) = (262, 190)
-  const outPortX = 262;
-  const outPortY = 190;
+  // rect1 screen rect within canvas: x = 8 + 1*48 + 8 = 64, y = 8 + 1*48 + 8 = 64
+  // Output port: x=64, y=64+32=96, w=12, h=4
+  // Port center: (64+6, 96+2) = (70, 98)
+  const outPortX = 70;
+  const outPortY = 98;
 
   // colorize1 is placed at grid position {x:1, y:3} (children.length was 1 when added, so y = 1 + 1*2 = 3)
-  // colorize1 screen rect: x = 200 + 1*48 + 8 = 256, y = 100 + 3*48 + 8 = 252
-  // Input port (first port "shape"): x=256+6=262, y=252-2=250
+  // colorize1 screen rect: x = 8 + 1*48 + 8 = 64, y = 8 + 3*48 + 8 = 160
+  // Input port (first port "shape"): x=64+6=70, y=160-2=158
   const colorize1Pos = colorize1!.position;
-  const inputPortX = 200 + colorize1Pos.x * 48 + 8 + 6;
-  const inputPortY = 100 + colorize1Pos.y * 48 + 8 - 2;
+  const inputPortX = 8 + colorize1Pos.x * 48 + 8 + 6;
+  const inputPortY = 8 + colorize1Pos.y * 48 + 8 - 2;
 
   // Drag from output port to input port (using canvas-relative positions)
   await canvas.click({ position: { x: outPortX, y: outPortY } }); // ensure canvas is focused
