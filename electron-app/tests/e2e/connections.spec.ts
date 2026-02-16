@@ -64,7 +64,7 @@ test('create connection by dragging from output port to input port', async () =>
 
   const stateAfterConnect = await getStoreState(ctx.window);
   const conn = stateAfterConnect.connections.find(
-    (c: any) => c.outputNode === 'rect1' && c.inputNode === 'colorize1',
+    (c: any) => c.output_node === 'rect1' && c.input_node === 'colorize1',
   );
   expect(conn).toBeDefined();
 });

@@ -22,11 +22,7 @@ export function App() {
 
   // Run the evaluator whenever the library or frame changes
   useEffect(() => {
-    const result = evaluate(
-      library.root.renderedChild,
-      library.root.children,
-      library.root.connections,
-    );
+    const result = evaluate(library, frame);
     setRenderResult(result);
   }, [library, frame, setRenderResult]);
 
@@ -34,11 +30,7 @@ export function App() {
   useEffect(() => {
     onWasmReady(() => {
       const s = useStore.getState();
-      const result = evaluate(
-        s.library.root.renderedChild,
-        s.library.root.children,
-        s.library.root.connections,
-      );
+      const result = evaluate(s.library, s.frame);
       s.setRenderResult(result);
     });
   }, []);

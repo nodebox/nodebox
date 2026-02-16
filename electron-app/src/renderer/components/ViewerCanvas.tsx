@@ -31,48 +31,50 @@ function contourToPath2D(contour: Contour): Path2D {
   let i = 0;
   while (i < pts.length) {
     const pt = pts[i];
-    switch (pt.pointType) {
-      case 'moveTo':
-        path.moveTo(pt.x, pt.y);
+    if (i === 0) {
+      // First point of each contour is always an implicit moveTo
+      path.moveTo(pt.point.x, pt.point.y);
+      i++;
+      continue;
+    }
+    switch (pt.point_type) {
+      case 'LineTo':
+        path.lineTo(pt.point.x, pt.point.y);
         i++;
         break;
-      case 'lineTo':
-        path.lineTo(pt.x, pt.y);
-        i++;
-        break;
-      case 'curveData': {
-        // Expect two curveData followed by one curveTo
+      case 'CurveData': {
+        // Expect two CurveData followed by one CurveTo
         const cp1 = pts[i];
         const cp2 = pts[i + 1];
         const end = pts[i + 2];
-        if (cp2 && end && end.pointType === 'curveTo') {
-          path.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
+        if (cp2 && end && end.point_type === 'CurveTo') {
+          path.bezierCurveTo(cp1.point.x, cp1.point.y, cp2.point.x, cp2.point.y, end.point.x, end.point.y);
           i += 3;
         } else {
           i++;
         }
         break;
       }
-      case 'curveTo':
-        // Should be handled by curveData, but fallback
-        path.lineTo(pt.x, pt.y);
+      case 'CurveTo':
+        // Should be handled by CurveData, but fallback
+        path.lineTo(pt.point.x, pt.point.y);
         i++;
         break;
-      case 'quadData': {
-        // One quadData followed by one quadTo
+      case 'QuadData': {
+        // One QuadData followed by one QuadTo
         const cp = pts[i];
         const end = pts[i + 1];
-        if (end && end.pointType === 'quadTo') {
-          path.quadraticCurveTo(cp.x, cp.y, end.x, end.y);
+        if (end && end.point_type === 'QuadTo') {
+          path.quadraticCurveTo(cp.point.x, cp.point.y, end.point.x, end.point.y);
           i += 2;
         } else {
           i++;
         }
         break;
       }
-      case 'quadTo':
-        // Should be handled by quadData, but fallback
-        path.lineTo(pt.x, pt.y);
+      case 'QuadTo':
+        // Should be handled by QuadData, but fallback
+        path.lineTo(pt.point.x, pt.point.y);
         i++;
         break;
       default:
@@ -101,7 +103,7 @@ function drawPathData(
   }
   if (pathData.stroke) {
     ctx.strokeStyle = colorToCSS(pathData.stroke);
-    ctx.lineWidth = pathData.strokeWidth;
+    ctx.lineWidth = pathData.stroke_width;
     ctx.stroke(combined);
   }
 }
@@ -164,9 +166,11 @@ function drawCanvasBorder(
 
 function pointColor(pointType: string): string {
   switch (pointType) {
-    case 'curveTo': return POINT_CURVE_TO;
-    case 'curveData': return POINT_CURVE_DATA;
-    default: return POINT_LINE_TO; // moveTo, lineTo
+    case 'CurveTo': return POINT_CURVE_TO;
+    case 'CurveData': return POINT_CURVE_DATA;
+    case 'QuadTo': return POINT_CURVE_TO;
+    case 'QuadData': return POINT_CURVE_DATA;
+    default: return POINT_LINE_TO; // LineTo
   }
 }
 
@@ -284,7 +288,7 @@ export function ViewerCanvas() {
   const handleDragStartValues = useRef({ center: { x: 0, y: 0 }, width: 100, height: 100 });
 
   const fourPointHandle = useMemo(
-    () => resolveFourPointHandle(library.root.renderedChild, library.root.children),
+    () => resolveFourPointHandle(library.root.rendered_child, library.root.children),
     [library],
   );
 
@@ -348,9 +352,9 @@ export function ViewerCanvas() {
             for (const contour of pathData.contours) {
               const r = 3 / pz.zoom;
               for (const pt of contour.points) {
-                ctx.fillStyle = pointColor(pt.pointType);
+                ctx.fillStyle = pointColor(pt.point_type);
                 ctx.beginPath();
-                ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+                ctx.arc(pt.point.x, pt.point.y, r, 0, Math.PI * 2);
                 ctx.fill();
               }
             }
@@ -379,8 +383,8 @@ export function ViewerCanvas() {
         for (const pathData of renderResult.paths) {
           for (const contour of pathData.contours) {
             for (const pt of contour.points) {
-              const screenX = centerX + pt.x * pz.zoom;
-              const screenY = centerY + pt.y * pz.zoom;
+              const screenX = centerX + pt.point.x * pz.zoom;
+              const screenY = centerY + pt.point.y * pz.zoom;
               cache.drawNumber(ctx, pointIndex, screenX + 6, screenY - 12);
               pointIndex++;
             }
@@ -456,16 +460,13 @@ export function ViewerCanvas() {
         const result = applyDrag(handleDragTarget, handleDragStartValues.current, dx, dy);
 
         setPortValue(fourPointHandle.nodeName, 'position', {
-          type: 'point',
-          value: result.center,
+          Point: result.center,
         });
         setPortValue(fourPointHandle.nodeName, 'width', {
-          type: 'float',
-          value: result.width,
+          Float: result.width,
         });
         setPortValue(fourPointHandle.nodeName, 'height', {
-          type: 'float',
-          value: result.height,
+          Float: result.height,
         });
         return;
       }

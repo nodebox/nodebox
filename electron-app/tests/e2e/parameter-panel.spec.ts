@@ -63,7 +63,7 @@ test('DragValue editing: click, type, enter commits value', async () => {
   expect(rect1).toBeDefined();
   const widthPort = rect1.ports.find((p: any) => p.name === 'width');
   expect(widthPort).toBeDefined();
-  expect(widthPort.value.value).toBe(200);
+  expect(widthPort.value.Float).toBe(200);
 });
 
 test('DragValue dragging changes value', async () => {
@@ -88,7 +88,7 @@ test('DragValue dragging changes value', async () => {
   const state = await getStoreState(ctx.window);
   const rect1 = state.children.find((c: any) => c.name === 'rect1');
   const widthPort = rect1.ports.find((p: any) => p.name === 'width');
-  expect(widthPort.value.value).toBeGreaterThan(100);
+  expect(widthPort.value.Float).toBeGreaterThan(100);
 });
 
 test('document properties shown when no node selected', async () => {
@@ -137,5 +137,5 @@ test('dragging label changes value', async () => {
   const state = await getStoreState(ctx.window);
   const rect1 = state.children.find((c: any) => c.name === 'rect1');
   const widthPort = rect1.ports.find((p: any) => p.name === 'width');
-  expect(widthPort.value.value).toBeGreaterThan(100);
+  expect(widthPort.value.Float).toBeGreaterThan(100);
 });

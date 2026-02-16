@@ -1,41 +1,42 @@
 // TypeScript types mirroring crates/nodebox-core/src/node/
+// Field names match Rust serde serialization (snake_case).
 
 import type { Point } from './geometry';
 import type { Value } from './value';
 
 export type PortType =
-  | 'int'
-  | 'float'
-  | 'string'
-  | 'boolean'
-  | 'point'
-  | 'color'
-  | 'geometry'
-  | 'data'
-  | 'list'
-  | 'context'
-  | 'state';
+  | 'Int'
+  | 'Float'
+  | 'String'
+  | 'Boolean'
+  | 'Point'
+  | 'Color'
+  | 'Geometry'
+  | 'Data'
+  | 'List'
+  | 'Context'
+  | 'State';
 
 export type Widget =
-  | 'none'
-  | 'int'
-  | 'float'
-  | 'angle'
-  | 'string'
-  | 'text'
-  | 'password'
-  | 'toggle'
-  | 'color'
-  | 'point'
-  | 'menu'
-  | 'file'
-  | 'font'
-  | 'image'
-  | 'data'
-  | 'seed'
-  | 'gradient';
+  | 'None'
+  | 'Int'
+  | 'Float'
+  | 'Angle'
+  | 'String'
+  | 'Text'
+  | 'Password'
+  | 'Toggle'
+  | 'Color'
+  | 'Point'
+  | 'Menu'
+  | 'File'
+  | 'Font'
+  | 'Image'
+  | 'Data'
+  | 'Seed'
+  | 'Gradient';
 
-export type PortRange = 'value' | 'list';
+export type PortRange = 'Value' | 'List';
 
 export interface MenuItem {
   key: string;
@@ -44,7 +45,7 @@ export interface MenuItem {
 
 export interface Port {
   name: string;
-  portType: PortType;
+  port_type: PortType;
   label: string | null;
   description: string | null;
   widget: Widget;
@@ -52,13 +53,13 @@ export interface Port {
   value: Value;
   min: number | null;
   max: number | null;
-  menuItems: MenuItem[];
+  menu_items: MenuItem[];
 }
 
 export interface Connection {
-  outputNode: string;
-  inputNode: string;
-  inputPort: string;
+  output_node: string;
+  input_node: string;
+  input_port: string;
 }
 
 export interface Node {
@@ -70,14 +71,14 @@ export interface Node {
   comment: string | null;
   position: Point;
   inputs: Port[];
-  outputType: PortType;
-  outputRange: PortRange;
-  isNetwork: boolean;
+  output_type: PortType;
+  output_range: PortRange;
+  is_network: boolean;
   children: Node[];
-  renderedChild: string | null;
+  rendered_child: string | null;
   connections: Connection[];
   handle: string | null;
-  alwaysRendered: boolean;
+  always_rendered: boolean;
 }
 
 export interface NodeLibrary {
@@ -85,7 +86,7 @@ export interface NodeLibrary {
   root: Node;
   properties: Record<string, string>;
   uuid: string | null;
-  formatVersion: number;
+  format_version: number;
 }
 
 export function createDefaultNode(name: string): Node {
@@ -98,14 +99,14 @@ export function createDefaultNode(name: string): Node {
     comment: null,
     position: { x: 0, y: 0 },
     inputs: [],
-    outputType: 'geometry',
-    outputRange: 'value',
-    isNetwork: false,
+    output_type: 'Geometry',
+    output_range: 'Value',
+    is_network: false,
     children: [],
-    renderedChild: null,
+    rendered_child: null,
     connections: [],
     handle: null,
-    alwaysRendered: false,
+    always_rendered: false,
   };
 }
 
@@ -118,70 +119,70 @@ export function createDefaultLibrary(): NodeLibrary {
     inputs: [
       {
         name: 'position',
-        portType: 'point',
+        port_type: 'Point',
         label: 'position',
         description: null,
-        widget: 'point',
-        range: 'value',
-        value: { type: 'point', value: { x: 0, y: 0 } },
+        widget: 'Point',
+        range: 'Value',
+        value: { Point: { x: 0, y: 0 } },
         min: null,
         max: null,
-        menuItems: [],
+        menu_items: [],
       },
       {
         name: 'width',
-        portType: 'float',
+        port_type: 'Float',
         label: 'width',
         description: null,
-        widget: 'float',
-        range: 'value',
-        value: { type: 'float', value: 100 },
+        widget: 'Float',
+        range: 'Value',
+        value: { Float: 100 },
         min: null,
         max: null,
-        menuItems: [],
+        menu_items: [],
       },
       {
         name: 'height',
-        portType: 'float',
+        port_type: 'Float',
         label: 'height',
         description: null,
-        widget: 'float',
-        range: 'value',
-        value: { type: 'float', value: 100 },
+        widget: 'Float',
+        range: 'Value',
+        value: { Float: 100 },
         min: null,
         max: null,
-        menuItems: [],
+        menu_items: [],
       },
       {
         name: 'roundness',
-        portType: 'point',
+        port_type: 'Point',
         label: 'roundness',
         description: null,
-        widget: 'point',
-        range: 'value',
-        value: { type: 'point', value: { x: 0, y: 0 } },
+        widget: 'Point',
+        range: 'Value',
+        value: { Point: { x: 0, y: 0 } },
         min: null,
         max: null,
-        menuItems: [],
+        menu_items: [],
       },
     ],
-    outputType: 'geometry',
+    output_type: 'Geometry',
   };
 
   return {
     name: '',
     root: {
       ...createDefaultNode('root'),
-      isNetwork: true,
-      outputRange: 'list',
+      is_network: true,
+      output_range: 'List',
       children: [rect1],
-      renderedChild: 'rect1',
+      rendered_child: 'rect1',
     },
     properties: {
       canvasWidth: '1000',
       canvasHeight: '1000',
     },
     uuid: null,
-    formatVersion: 21,
+    format_version: 21,
   };
 }

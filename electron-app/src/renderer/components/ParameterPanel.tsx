@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useStore } from '../state/store';
 import type { Port } from '../types/node';
 import type { Value } from '../types/value';
+import { isFloat, isInt, getFloat, getPoint, getString, getColor } from '../types/value';
 import { DragValue, type DragValueHandle } from './DragValue';
 import {
   LABEL_WIDTH,
@@ -85,22 +86,21 @@ function FloatPortWidget({
 }) {
   const setPortValue = useStore((s) => s.setPortValue);
   const numValue =
-    port.value.type === 'float' || port.value.type === 'int'
-      ? port.value.value
+    isFloat(port.value) || isInt(port.value)
+      ? getFloat(port.value)
       : 0;
 
   const accumulatedLabelValue = useRef(numValue);
 
   const handleChange = useCallback(
     (v: number) => {
-      const valueType = port.portType === 'int' ? 'int' : 'float';
-      const newValue = valueType === 'int' ? Math.round(v) : v;
-      setPortValue(nodeName, port.name, {
-        type: valueType,
-        value: newValue,
-      } as Value);
+      const isIntType = port.port_type === 'Int';
+      const newValue = isIntType ? Math.round(v) : v;
+      setPortValue(nodeName, port.name,
+        isIntType ? { Int: newValue } : { Float: newValue },
+      );
     },
-    [setPortValue, nodeName, port.name, port.portType],
+    [setPortValue, nodeName, port.name, port.port_type],
   );
 
   const handleLabelDrag = useCallback(
@@ -150,10 +150,7 @@ function PointPortWidget({
   nodeName: string;
 }) {
   const setPortValue = useStore((s) => s.setPortValue);
-  const pointValue =
-    port.value.type === 'point'
-      ? port.value.value
-      : { x: 0, y: 0 };
+  const pointValue = getPoint(port.value);
 
   const accumulatedLabelPoint = useRef(pointValue);
   const xRef = useRef<DragValueHandle>(null);
@@ -161,8 +158,7 @@ function PointPortWidget({
   const handleChangeX = useCallback(
     (v: number) => {
       setPortValue(nodeName, port.name, {
-        type: 'point',
-        value: { x: v, y: pointValue.y },
+        Point: { x: v, y: pointValue.y },
       });
     },
     [setPortValue, nodeName, port.name, pointValue.y],
@@ -171,8 +167,7 @@ function PointPortWidget({
   const handleChangeY = useCallback(
     (v: number) => {
       setPortValue(nodeName, port.name, {
-        type: 'point',
-        value: { x: pointValue.x, y: v },
+        Point: { x: pointValue.x, y: v },
       });
     },
     [setPortValue, nodeName, port.name, pointValue.x],
@@ -181,8 +176,7 @@ function PointPortWidget({
   const handleLabelCommitBoth = useCallback(
     (v: number) => {
       setPortValue(nodeName, port.name, {
-        type: 'point',
-        value: { x: v, y: v },
+        Point: { x: v, y: v },
       });
     },
     [setPortValue, nodeName, port.name],
@@ -199,8 +193,7 @@ function PointPortWidget({
         y: accumulatedLabelPoint.current.y + delta,
       };
       setPortValue(nodeName, port.name, {
-        type: 'point',
-        value: accumulatedLabelPoint.current,
+        Point: accumulatedLabelPoint.current,
       });
     },
     [setPortValue, nodeName, port.name],
@@ -243,11 +236,11 @@ function StringPortWidget({
   nodeName: string;
 }) {
   const setPortValue = useStore((s) => s.setPortValue);
-  const strValue = port.value.type === 'string' ? port.value.value : '';
+  const strValue = getString(port.value);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setPortValue(nodeName, port.name, { type: 'string', value: e.target.value });
+      setPortValue(nodeName, port.name, { String: e.target.value });
     },
     [setPortValue, nodeName, port.name],
   );
@@ -285,10 +278,7 @@ function ColorPortWidget({
   nodeName: string;
 }) {
   const setPortValue = useStore((s) => s.setPortValue);
-  const colorValue =
-    port.value.type === 'color'
-      ? port.value.value
-      : { r: 0, g: 0, b: 0, a: 1 };
+  const colorValue = getColor(port.value);
 
   const toHex = (c: { r: number; g: number; b: number }) => {
     const r = Math.round(c.r * 255).toString(16).padStart(2, '0');
@@ -304,8 +294,7 @@ function ColorPortWidget({
       const g = parseInt(hex.slice(3, 5), 16) / 255;
       const b = parseInt(hex.slice(5, 7), 16) / 255;
       setPortValue(nodeName, port.name, {
-        type: 'color',
-        value: { r, g, b, a: colorValue.a },
+        Color: { r, g, b, a: colorValue.a },
       });
     },
     [setPortValue, nodeName, port.name, colorValue.a],
@@ -389,16 +378,16 @@ function PortWidget({ port, nodeName, isConnected }: { port: Port; nodeName: str
   if (isConnected) {
     return <ConnectedPortWidget port={port} />;
   }
-  if (port.portType === 'float' || port.portType === 'int') {
+  if (port.port_type === 'Float' || port.port_type === 'Int') {
     return <FloatPortWidget port={port} nodeName={nodeName} />;
   }
-  if (port.portType === 'point') {
+  if (port.port_type === 'Point') {
     return <PointPortWidget port={port} nodeName={nodeName} />;
   }
-  if (port.portType === 'string') {
+  if (port.port_type === 'String') {
     return <StringPortWidget port={port} nodeName={nodeName} />;
   }
-  if (port.portType === 'color') {
+  if (port.port_type === 'Color') {
     return <ColorPortWidget port={port} nodeName={nodeName} />;
   }
   return <GenericPortWidget port={port} />;
@@ -453,28 +442,20 @@ function ColorSwatchRow({ label, color }: { label: string; color: string }) {
   );
 }
 
-function formatValue(value: Value): string {
-  switch (value.type) {
-    case 'null':
-      return '';
-    case 'int':
-    case 'float':
-      return String(value.value);
-    case 'string':
-      return value.value;
-    case 'boolean':
-      return value.value ? 'true' : 'false';
-    case 'point':
-      return `${value.value.x}, ${value.value.y}`;
-    case 'color':
-      return `rgba(${Math.round(value.value.r * 255)}, ${Math.round(value.value.g * 255)}, ${Math.round(value.value.b * 255)}, ${value.value.a.toFixed(2)})`;
-    case 'path':
-      return '[Path]';
-    case 'list':
-      return `[${value.value.length} items]`;
-    case 'map':
-      return `[${Object.keys(value.value).length} keys]`;
+function formatValue(v: Value): string {
+  if (v === 'Null') return '';
+  if (typeof v === 'object') {
+    if ('Int' in v) return String(v.Int);
+    if ('Float' in v) return String(v.Float);
+    if ('String' in v) return v.String;
+    if ('Boolean' in v) return String(v.Boolean);
+    if ('Point' in v) return `${v.Point.x}, ${v.Point.y}`;
+    if ('Color' in v) return `rgba(${Math.round(v.Color.r * 255)}, ${Math.round(v.Color.g * 255)}, ${Math.round(v.Color.b * 255)}, ${v.Color.a.toFixed(2)})`;
+    if ('Path' in v) return '[Path]';
+    if ('List' in v) return `[${v.List.length} items]`;
+    if ('Map' in v) return `[${Object.keys(v.Map).length} keys]`;
   }
+  return '';
 }
 
 export function ParameterPanel() {
@@ -513,7 +494,7 @@ export function ParameterPanel() {
                   port={port}
                   nodeName={node.name}
                   isConnected={connections.some(
-                    (c) => c.inputNode === node.name && c.inputPort === port.name,
+                    (c) => c.input_node === node.name && c.input_port === port.name,
                   )}
                 />
               ))}
