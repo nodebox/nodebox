@@ -7,7 +7,6 @@ import {
   NETWORK_BACKGROUND,
   NETWORK_GRID,
   ZINC_50,
-  ZINC_200,
   FONT_SIZE_SMALL,
   NODE_BODY_GEOMETRY,
   NODE_BODY_INT,
@@ -81,11 +80,7 @@ function portColor(portType: PortType): string {
 
 // Icon cache: loads SVG icons and pre-renders them as white-tinted OffscreenCanvas images
 class NodeIconCache {
-  private entries = new Map<string, {
-    loaded: boolean;
-    failed: boolean;
-    tinted: OffscreenCanvas | null;
-  }>();
+  private entries = new Map<string, OffscreenCanvas | null>();
   private listeners: (() => void)[] = [];
 
   onLoad(cb: () => void) {
@@ -98,12 +93,10 @@ class NodeIconCache {
 
   ensure(name: string): void {
     if (this.entries.has(name)) return;
-    const entry = { loaded: false, failed: false, tinted: null as OffscreenCanvas | null };
-    this.entries.set(name, entry);
+    this.entries.set(name, null);
 
     const img = new Image();
     img.onload = () => {
-      // Pre-render at 32x32 for crisp drawing at various zoom levels
       const size = 32;
       const oc = new OffscreenCanvas(size, size);
       const octx = oc.getContext('2d')!;
@@ -112,27 +105,16 @@ class NodeIconCache {
       octx.globalCompositeOperation = 'source-atop';
       octx.fillStyle = 'white';
       octx.fillRect(0, 0, size, size);
-      entry.loaded = true;
-      entry.tinted = oc;
+      this.entries.set(name, oc);
       for (const cb of this.listeners) cb();
-    };
-    img.onerror = () => {
-      entry.failed = true;
     };
     img.src = `/icons/corevector/${name}.svg`;
   }
 
-  draw(
-    ctx: CanvasRenderingContext2D,
-    name: string,
-    cx: number,
-    cy: number,
-    size: number,
-  ): boolean {
-    const entry = this.entries.get(name);
-    if (!entry?.tinted) return false;
-    ctx.drawImage(entry.tinted, cx - size / 2, cy - size / 2, size, size);
-    return true;
+  draw(ctx: CanvasRenderingContext2D, name: string, cx: number, cy: number, size: number): void {
+    const tinted = this.entries.get(name);
+    if (!tinted) return;
+    ctx.drawImage(tinted, cx - size / 2, cy - size / 2, size, size);
   }
 }
 
@@ -242,15 +224,12 @@ function drawNode(
   );
 
   // Input ports (left-aligned from node left edge)
-  const inputCount = node.inputs.length;
-  if (inputCount > 0) {
-    for (let i = 0; i < inputCount; i++) {
-      const px = rect.x + (PORT_WIDTH + PORT_SPACING) * z * i;
-      const py = rect.y - PORT_HEIGHT * z;
-      const isHovered = hoveredPort?.nodeName === node.name && hoveredPort?.portName === node.inputs[i].name;
-      ctx.fillStyle = isHovered ? PORT_HOVER : portColor(node.inputs[i].portType);
-      ctx.fillRect(px, py, PORT_WIDTH * z, PORT_HEIGHT * z);
-    }
+  for (let i = 0; i < node.inputs.length; i++) {
+    const px = rect.x + (PORT_WIDTH + PORT_SPACING) * z * i;
+    const py = rect.y - PORT_HEIGHT * z;
+    const isHovered = hoveredPort?.nodeName === node.name && hoveredPort?.portName === node.inputs[i].name;
+    ctx.fillStyle = isHovered ? PORT_HOVER : portColor(node.inputs[i].portType);
+    ctx.fillRect(px, py, PORT_WIDTH * z, PORT_HEIGHT * z);
   }
 
   // Output port (bottom-left)
@@ -283,9 +262,9 @@ function drawConnection(
   const x2 = inRect.x + (PORT_WIDTH + PORT_SPACING) * zoom * portIdx + (PORT_WIDTH * zoom) / 2;
   const y2 = inRect.y - PORT_HEIGHT * zoom;
 
-  // Bezier curve
+  // Bezier curve colored by output type
   const cpOffset = Math.abs(y2 - y1) * 0.4;
-  ctx.strokeStyle = ZINC_200;
+  ctx.strokeStyle = portColor(outputNode.outputType);
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(x1, y1);
@@ -306,14 +285,12 @@ function drawPendingConnection(
   const y1 = outRect.y + outRect.height + PORT_HEIGHT * zoom;
 
   const cpOffset = Math.abs(mouseY - y1) * 0.4;
-  ctx.strokeStyle = ZINC_200;
+  ctx.strokeStyle = portColor(fromNode.outputType);
   ctx.lineWidth = 1.5;
-  ctx.setLineDash([4, 4]);
   ctx.beginPath();
   ctx.moveTo(x1, y1);
   ctx.bezierCurveTo(x1, y1 + cpOffset, mouseX, mouseY - cpOffset, mouseX, mouseY);
   ctx.stroke();
-  ctx.setLineDash([]);
 }
 
 function drawRubberBand(
@@ -339,7 +316,6 @@ function drawRubberBand(
 
 interface CreatingConnection {
   fromNode: string;
-  fromType: PortType;
   mouseX: number;
   mouseY: number;
 }
@@ -537,7 +513,6 @@ export function NetworkCanvas() {
       if (outputPort) {
         setCreatingConnection({
           fromNode: outputPort.node.name,
-          fromType: outputPort.portType,
           mouseX: sx,
           mouseY: sy,
         });
@@ -577,26 +552,20 @@ export function NetworkCanvas() {
     (e: React.PointerEvent<HTMLCanvasElement>) => {
       handlers.onPointerMove(e);
 
-      if (dragging) {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const sx = e.clientX - rect.left;
-        const sy = e.clientY - rect.top;
-        const world = screenToWorld(sx, sy);
-        const deltaWorldX = world.x - dragStartWorld.current.x;
-        const deltaWorldY = world.y - dragStartWorld.current.y;
-        // Convert world delta to grid cells
-        const deltaGridX = Math.round(deltaWorldX / GRID_SIZE);
-        const deltaGridY = Math.round(deltaWorldY / GRID_SIZE);
-        const newX = dragOrigPos.current.x + deltaGridX;
-        const newY = dragOrigPos.current.y + deltaGridY;
-        setNodePosition(dragging, { x: newX, y: newY });
-        requestRender();
-      }
+      const canvasRect = e.currentTarget.getBoundingClientRect();
+      const sx = e.clientX - canvasRect.left;
+      const sy = e.clientY - canvasRect.top;
 
-      if (creatingConnection) {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const sx = e.clientX - rect.left;
-        const sy = e.clientY - rect.top;
+      if (dragging) {
+        const world = screenToWorld(sx, sy);
+        const deltaGridX = Math.round((world.x - dragStartWorld.current.x) / GRID_SIZE);
+        const deltaGridY = Math.round((world.y - dragStartWorld.current.y) / GRID_SIZE);
+        setNodePosition(dragging, {
+          x: dragOrigPos.current.x + deltaGridX,
+          y: dragOrigPos.current.y + deltaGridY,
+        });
+        requestRender();
+      } else if (creatingConnection) {
         setCreatingConnection((prev) =>
           prev ? { ...prev, mouseX: sx, mouseY: sy } : null,
         );
@@ -616,24 +585,13 @@ export function NetworkCanvas() {
         }
 
         requestRender();
-      }
-
-      if (rubberBand) {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const sx = e.clientX - rect.left;
-        const sy = e.clientY - rect.top;
+      } else if (rubberBand) {
         setRubberBand((prev) =>
           prev ? { ...prev, currentX: sx, currentY: sy } : null,
         );
         requestRender();
-      }
-
-      // Port hover detection
-      if (!dragging && !creatingConnection && !rubberBand) {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const sx = e.clientX - rect.left;
-        const sy = e.clientY - rect.top;
-
+      } else {
+        // Port hover detection (idle)
         const inputPort = findInputPortAt(sx, sy);
         if (inputPort) {
           setHoveredPort({
