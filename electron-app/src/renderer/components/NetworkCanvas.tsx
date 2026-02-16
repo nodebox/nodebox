@@ -28,14 +28,6 @@ import {
   PORT_COLOR_GEOMETRY,
   PORT_COLOR_LIST,
   PORT_COLOR_DATA,
-  CATEGORY_GEOMETRY,
-  CATEGORY_TRANSFORM,
-  CATEGORY_COLOR,
-  CATEGORY_MATH,
-  CATEGORY_LIST,
-  CATEGORY_STRING,
-  CATEGORY_DATA,
-  CATEGORY_DEFAULT,
   TOOLTIP_BG,
   TOOLTIP_TEXT,
   PORT_HOVER,
@@ -50,8 +42,12 @@ const PORT_WIDTH = 12;
 const PORT_HEIGHT = 4;
 const PORT_SPACING = 8;
 
+const NODE_ICON_SIZE = 24;
+const NODE_PADDING = 4;
 // Hit-test tolerance for ports (in screen pixels)
 const PORT_HIT_TOLERANCE = 6;
+// Margin between ports for expanded hit-area calculations during connection drag
+const PORT_MARGIN = 6;
 
 function nodeBodyColor(outputType: PortType): string {
   switch (outputType) {
@@ -80,19 +76,6 @@ function portColor(portType: PortType): string {
     case 'list': return PORT_COLOR_LIST;
     case 'data': return PORT_COLOR_DATA;
     default: return PORT_COLOR_GEOMETRY;
-  }
-}
-
-function categoryColor(category: string): string {
-  switch (category) {
-    case 'geometry': return CATEGORY_GEOMETRY;
-    case 'transform': return CATEGORY_TRANSFORM;
-    case 'color': return CATEGORY_COLOR;
-    case 'math': return CATEGORY_MATH;
-    case 'list': return CATEGORY_LIST;
-    case 'string': return CATEGORY_STRING;
-    case 'data': return CATEGORY_DATA;
-    default: return CATEGORY_DEFAULT;
   }
 }
 
@@ -224,13 +207,9 @@ function drawNode(
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
   }
 
-  // Category background + node icon (SVG icon on colored background)
-  const catColor = categoryColor(node.category);
-  ctx.fillStyle = catColor;
-  ctx.fillRect(rect.x + 4 * z, rect.y + 4 * z, 20 * z, rect.height - 8 * z);
-
-  const iconSize = 16 * z;
-  const iconCx = rect.x + 4 * z + (20 * z) / 2;
+  // Node icon (SVG, no category background)
+  const iconSize = NODE_ICON_SIZE * z;
+  const iconCx = rect.x + (NODE_PADDING + NODE_ICON_SIZE / 2) * z;
   const iconCy = rect.y + rect.height / 2;
   const protoName = node.prototype?.split('.').pop();
   if (protoName) {
@@ -503,17 +482,28 @@ export function NetworkCanvas() {
   );
 
   // Hit test for input ports (top of node)
+  // When isConnecting=true, expand hit areas to span the entire node height
   const findInputPortAt = useCallback(
-    (sx: number, sy: number): { node: Node; portName: string; portType: PortType } | null => {
+    (sx: number, sy: number, isConnecting = false): { node: Node; portName: string; portType: PortType } | null => {
       for (let i = children.length - 1; i >= 0; i--) {
         const node = children[i];
         const rect = nodeScreenRect(node, worldToScreen, pz.zoom);
         const z = pz.zoom;
         for (let j = 0; j < node.inputs.length; j++) {
-          const px = rect.x + (PORT_WIDTH + PORT_SPACING) * z * j;
-          const py = rect.y - PORT_HEIGHT * z;
-          const pw = PORT_WIDTH * z;
-          const ph = PORT_HEIGHT * z;
+          let px: number, py: number, pw: number, ph: number;
+          if (isConnecting) {
+            // Expanded hit area: width includes margin, height spans port + entire node body
+            px = rect.x + (PORT_WIDTH + PORT_SPACING) * z * j - (PORT_MARGIN / 2) * z;
+            py = rect.y - PORT_HEIGHT * z;
+            pw = (PORT_WIDTH + PORT_MARGIN) * z;
+            ph = (PORT_HEIGHT + NODE_HEIGHT) * z;
+          } else {
+            // Normal hit area with basic affordance
+            px = rect.x + (PORT_WIDTH + PORT_SPACING) * z * j;
+            py = rect.y - PORT_HEIGHT * z;
+            pw = PORT_WIDTH * z;
+            ph = PORT_HEIGHT * z;
+          }
           if (
             sx >= px - PORT_HIT_TOLERANCE &&
             sx <= px + pw + PORT_HIT_TOLERANCE &&
@@ -610,6 +600,21 @@ export function NetworkCanvas() {
         setCreatingConnection((prev) =>
           prev ? { ...prev, mouseX: sx, mouseY: sy } : null,
         );
+
+        // Port hover detection during connection drag (with expanded hit areas)
+        const inputPort = findInputPortAt(sx, sy, true);
+        if (inputPort) {
+          setHoveredPort({
+            nodeName: inputPort.node.name,
+            portName: inputPort.portName,
+            portType: inputPort.portType,
+            screenX: sx,
+            screenY: sy,
+          });
+        } else if (hoveredPort) {
+          setHoveredPort(null);
+        }
+
         requestRender();
       }
 
@@ -668,7 +673,8 @@ export function NetworkCanvas() {
         const rect = e.currentTarget.getBoundingClientRect();
         const sx = e.clientX - rect.left;
         const sy = e.clientY - rect.top;
-        const inputPort = findInputPortAt(sx, sy);
+        // Use expanded hit areas for dropping connections
+        const inputPort = findInputPortAt(sx, sy, true);
         if (inputPort && inputPort.node.name !== creatingConnection.fromNode) {
           addConnection('root', {
             outputNode: creatingConnection.fromNode,
@@ -677,6 +683,7 @@ export function NetworkCanvas() {
           });
         }
         setCreatingConnection(null);
+        setHoveredPort(null);
         requestRender();
       }
 

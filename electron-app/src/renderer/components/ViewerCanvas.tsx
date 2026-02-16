@@ -248,7 +248,7 @@ export function ViewerCanvas() {
   const viewerZoomAction = useStore((s) => s.viewerZoomAction);
   const clearViewerZoomAction = useStore((s) => s.clearViewerZoomAction);
 
-  const panZoom = usePanZoom(undefined, undefined, { scrollToZoom: true });
+  const panZoom = usePanZoom(undefined, undefined, { scrollToZoom: true, centerOrigin: true });
   const { state: pz, handlers } = panZoom;
   const { zoomIn, zoomOut, setPan, setZoom } = panZoom;
 
