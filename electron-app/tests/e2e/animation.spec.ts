@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { launchApp, waitForUpdate, type AppContext } from './helpers';
+import { launchApp, waitForUpdate, getStoreState, type AppContext } from './helpers';
 
 let ctx: AppContext;
 
@@ -12,15 +12,34 @@ test.afterEach(async () => {
 });
 
 test('animation bar shows default frame counter', async () => {
-  // Default frame is 1
-  const frameCounter = ctx.window.locator('span:has-text("1")').first();
+  const frameCounter = ctx.window.locator('[data-testid="frame-counter"]');
   await expect(frameCounter).toBeVisible();
+  await expect(frameCounter).toContainText('1');
 });
 
 test('animation bar shows frame counter', async () => {
-  // The animation bar displays the current frame number
-  const frameCounter = ctx.window.locator('span:has-text("1")').first();
+  const frameCounter = ctx.window.locator('[data-testid="frame-counter"]');
   await expect(frameCounter).toBeVisible();
+});
+
+test('frame counter is interactive', async () => {
+  const frameCounter = ctx.window.locator('[data-testid="frame-counter"]');
+  await expect(frameCounter).toBeVisible();
+
+  // Click should enter edit mode
+  await frameCounter.click();
+  await waitForUpdate(ctx.window);
+  const input = frameCounter.locator('input');
+  await expect(input).toBeVisible();
+
+  // Type a new frame value
+  await input.fill('10');
+  await input.press('Enter');
+  await waitForUpdate(ctx.window);
+
+  // Verify frame changed
+  const state = await getStoreState(ctx.window);
+  expect(state.frame).toBe(10);
 });
 
 test('play button is visible', async () => {
@@ -29,19 +48,12 @@ test('play button is visible', async () => {
   await expect(playButton).toBeVisible();
 });
 
-test('space bar toggles playback', async () => {
-  // Press space to start playing
+test('space bar does not toggle playback', async () => {
   await ctx.window.keyboard.press('Space');
   await waitForUpdate(ctx.window, 100);
-
-  // The button icon should change (Play -> Square for stop)
-  // We verify the app is still functional
-  const title = await ctx.window.title();
-  expect(title).toBe('NodeBox');
-
-  // Press space again to stop
-  await ctx.window.keyboard.press('Space');
-  await waitForUpdate(ctx.window, 100);
+  // Spacebar should NOT start playback anymore
+  const state = await getStoreState(ctx.window);
+  expect(state.isPlaying).toBe(false);
 });
 
 test('clicking the play/stop button toggles playback', async () => {

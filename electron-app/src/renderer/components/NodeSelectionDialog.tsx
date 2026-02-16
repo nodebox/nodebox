@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useStore } from '../state/store';
 import { createDefaultNode } from '../types/node';
 import type { Port } from '../types/node';
@@ -11,6 +11,14 @@ import {
   ZINC_800,
   FONT_SIZE_BASE,
   FONT_SIZE_SMALL,
+  CATEGORY_GEOMETRY,
+  CATEGORY_TRANSFORM,
+  CATEGORY_COLOR,
+  CATEGORY_MATH,
+  CATEGORY_LIST,
+  CATEGORY_STRING,
+  CATEGORY_DATA,
+  CATEGORY_DEFAULT,
 } from '../theme/tokens';
 
 interface NodePrototype {
@@ -254,6 +262,50 @@ const NODE_PROTOTYPES: NodePrototype[] = [
   },
 ];
 
+function getCategoryColor(category: string): string {
+  switch (category) {
+    case 'geometry': return CATEGORY_GEOMETRY;
+    case 'transform': return CATEGORY_TRANSFORM;
+    case 'color': return CATEGORY_COLOR;
+    case 'math': return CATEGORY_MATH;
+    case 'list': return CATEGORY_LIST;
+    case 'string': return CATEGORY_STRING;
+    case 'data': return CATEGORY_DATA;
+    default: return CATEGORY_DEFAULT;
+  }
+}
+
+function NodeIcon({ name, category }: { name: string; category: string }) {
+  const [hasImage, setHasImage] = useState(true);
+  const catColor = getCategoryColor(category);
+
+  if (!hasImage) {
+    return (
+      <div
+        data-testid={`node-icon-${name}`}
+        style={{
+          width: 16,
+          height: 16,
+          background: catColor,
+          borderRadius: 2,
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+
+  return (
+    <img
+      data-testid={`node-icon-${name}`}
+      src={`/icons/corevector/${name}.svg`}
+      width={16}
+      height={16}
+      style={{ flexShrink: 0 }}
+      onError={() => setHasImage(false)}
+    />
+  );
+}
+
 function generateUniqueName(baseName: string, existingNames: string[]): string {
   let counter = 1;
   let name = `${baseName}${counter}`;
@@ -280,6 +332,22 @@ export function NodeSelectionDialog() {
       n.name.includes(query.toLowerCase()) ||
       n.category.includes(query.toLowerCase()),
   );
+
+  const groupedItems = useMemo(() => {
+    const groups: { category: string; protos: { proto: NodePrototype; globalIndex: number }[] }[] = [];
+    let globalIndex = 0;
+
+    filtered.forEach((proto) => {
+      let group = groups.find((g) => g.category === proto.category);
+      if (!group) {
+        group = { category: proto.category, protos: [] };
+        groups.push(group);
+      }
+      group.protos.push({ proto, globalIndex: globalIndex++ });
+    });
+
+    return groups;
+  }, [filtered]);
 
   const createNode = useCallback(
     (proto: NodePrototype) => {
@@ -369,23 +437,46 @@ export function NodeSelectionDialog() {
 
         {/* Results list */}
         <div className="overflow-y-auto flex-1">
-          {filtered.map((proto, i) => (
-            <div
-              key={proto.name}
-              className="flex items-center px-3 cursor-pointer"
-              style={{
-                height: 32,
-                background: i === selectedIndex ? SELECTED_ITEM : 'transparent',
-                color: TEXT_DEFAULT,
-                fontSize: FONT_SIZE_SMALL,
-              }}
-              onClick={() => createNode(proto)}
-              onMouseEnter={() => setSelectedIndex(i)}
-            >
-              <span className="flex-1">{proto.name}</span>
-              <span style={{ color: TEXT_SUBDUED, fontSize: FONT_SIZE_SMALL }}>
-                {proto.category}
-              </span>
+          {groupedItems.map((group) => (
+            <div key={group.category}>
+              <div
+                data-testid={`category-header-${group.category}`}
+                className="px-3 uppercase"
+                style={{
+                  height: 24,
+                  display: 'flex',
+                  alignItems: 'center',
+                  fontSize: 10,
+                  letterSpacing: '0.05em',
+                  color: TEXT_SUBDUED,
+                  position: 'sticky',
+                  top: 0,
+                  background: DIALOG_BACKGROUND,
+                  zIndex: 1,
+                }}
+              >
+                {group.category}
+              </div>
+              {group.protos.map(({ proto, globalIndex }) => (
+                <div
+                  key={proto.name}
+                  className="flex items-center px-3 cursor-pointer gap-2"
+                  style={{
+                    height: 32,
+                    background: globalIndex === selectedIndex ? SELECTED_ITEM : 'transparent',
+                    color: TEXT_DEFAULT,
+                    fontSize: FONT_SIZE_SMALL,
+                  }}
+                  onClick={() => createNode(proto)}
+                  onMouseEnter={() => setSelectedIndex(globalIndex)}
+                >
+                  <NodeIcon name={proto.name} category={proto.category} />
+                  <span className="flex-1">{proto.name}</span>
+                  <span style={{ color: TEXT_SUBDUED, fontSize: FONT_SIZE_SMALL }}>
+                    {proto.category}
+                  </span>
+                </div>
+              ))}
             </div>
           ))}
           {filtered.length === 0 && (

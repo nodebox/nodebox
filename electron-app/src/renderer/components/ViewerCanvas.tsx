@@ -138,14 +138,26 @@ export function ViewerCanvas() {
   const showPoints = useStore((s) => s.showPoints);
   const library = useStore((s) => s.library);
   const setViewerZoom = useStore((s) => s.setViewerZoom);
+  const viewerZoomAction = useStore((s) => s.viewerZoomAction);
+  const clearViewerZoomAction = useStore((s) => s.clearViewerZoomAction);
 
   const panZoom = usePanZoom(undefined, undefined, { scrollToZoom: true });
   const { state: pz, handlers } = panZoom;
+  const { zoomIn, zoomOut, setPan, setZoom } = panZoom;
 
   // Sync viewer zoom to store for header display
   useEffect(() => {
     setViewerZoom(pz.zoom);
   }, [pz.zoom, setViewerZoom]);
+
+  // Handle zoom actions from header controls
+  useEffect(() => {
+    if (!viewerZoomAction) return;
+    if (viewerZoomAction === 'in') zoomIn();
+    else if (viewerZoomAction === 'out') zoomOut();
+    else if (viewerZoomAction === 'reset') { setPan(0, 0); setZoom(1); }
+    clearViewerZoomAction();
+  }, [viewerZoomAction, clearViewerZoomAction, zoomIn, zoomOut, setPan, setZoom]);
 
   const docWidth = parseFloat(library.properties.canvasWidth ?? '1000');
   const docHeight = parseFloat(library.properties.canvasHeight ?? '1000');

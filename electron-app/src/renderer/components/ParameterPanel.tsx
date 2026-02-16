@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useStore } from '../state/store';
 import type { Port } from '../types/node';
 import type { Value } from '../types/value';
@@ -15,6 +15,77 @@ import {
   VALUE_TEXT,
 } from '../theme/tokens';
 
+const DRAG_THRESHOLD = 3;
+
+function DraggableLabel({
+  label,
+  portName,
+  onDrag,
+  onDragEnd,
+}: {
+  label: string;
+  portName: string;
+  onDrag: (delta: number) => void;
+  onDragEnd: () => void;
+}) {
+  const dragStartX = useRef(0);
+  const hasDragged = useRef(false);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    dragStartX.current = e.clientX;
+    hasDragged.current = false;
+    const target = e.currentTarget as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+  }, []);
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!(e.currentTarget as HTMLElement).hasPointerCapture(e.pointerId)) return;
+      const deltaX = e.clientX - dragStartX.current;
+      if (!hasDragged.current && Math.abs(deltaX) < DRAG_THRESHOLD) return;
+      hasDragged.current = true;
+
+      let speed = 1.0;
+      if (e.shiftKey) speed *= 10;
+      if (e.altKey) speed *= 0.01;
+
+      onDrag(deltaX * speed);
+    },
+    [onDrag],
+  );
+
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      if (hasDragged.current) {
+        onDragEnd();
+      }
+    },
+    [onDragEnd],
+  );
+
+  return (
+    <div
+      className="flex items-center px-2 shrink-0"
+      style={{
+        width: LABEL_WIDTH,
+        color: TEXT_SUBDUED,
+        fontSize: FONT_SIZE_SMALL,
+        textAlign: 'right',
+        cursor: 'ew-resize',
+        userSelect: 'none',
+      }}
+      data-testid={`param-label-${portName}`}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+    >
+      {label}
+    </div>
+  );
+}
+
 function FloatPortWidget({
   port,
   nodeName,
@@ -28,6 +99,8 @@ function FloatPortWidget({
       ? port.value.value
       : 0;
 
+  const dragStartValue = useRef(numValue);
+
   const handleChange = useCallback(
     (v: number) => {
       const valueType = port.portType === 'int' ? 'int' : 'float';
@@ -40,27 +113,41 @@ function FloatPortWidget({
     [setPortValue, nodeName, port.name, port.portType],
   );
 
+  const handleLabelDrag = useCallback(
+    (delta: number) => {
+      // On first drag movement, capture current value
+      if (dragStartValue.current !== numValue && delta !== 0) {
+        // Already dragging, use stored start value
+      }
+      handleChange(dragStartValue.current + delta);
+    },
+    [handleChange, numValue],
+  );
+
+  const handleLabelDragEnd = useCallback(() => {
+    // no-op; value is already committed during drag
+  }, []);
+
+  // Capture start value on pointer down via the ref
+  const handleLabelPointerDownCapture = useCallback(() => {
+    dragStartValue.current = numValue;
+  }, [numValue]);
+
   return (
     <div
       className="flex"
       style={{ height: PARAMETER_ROW_HEIGHT }}
       data-testid={`param-row-${port.name}`}
+      onPointerDownCapture={handleLabelPointerDownCapture}
     >
-      <div
-        className="flex items-center px-2 shrink-0"
-        style={{
-          width: LABEL_WIDTH,
-          background: PORT_LABEL_BACKGROUND,
-          color: TEXT_SUBDUED,
-          fontSize: FONT_SIZE_SMALL,
-          textAlign: 'right',
-        }}
-      >
-        {port.label ?? port.name}
-      </div>
+      <DraggableLabel
+        label={port.label ?? port.name}
+        portName={port.name}
+        onDrag={handleLabelDrag}
+        onDragEnd={handleLabelDragEnd}
+      />
       <div
         className="flex-1"
-        style={{ background: PORT_VALUE_BACKGROUND }}
         data-testid={`param-value-${port.name}`}
       >
         <DragValue
@@ -87,6 +174,8 @@ function PointPortWidget({
       ? port.value.value
       : { x: 0, y: 0 };
 
+  const dragStartPoint = useRef(pointValue);
+
   const handleChangeX = useCallback(
     (v: number) => {
       setPortValue(nodeName, port.name, {
@@ -107,28 +196,41 @@ function PointPortWidget({
     [setPortValue, nodeName, port.name, pointValue.x],
   );
 
+  const handleLabelDrag = useCallback(
+    (delta: number) => {
+      setPortValue(nodeName, port.name, {
+        type: 'point',
+        value: {
+          x: dragStartPoint.current.x + delta,
+          y: dragStartPoint.current.y + delta,
+        },
+      });
+    },
+    [setPortValue, nodeName, port.name],
+  );
+
+  const handleLabelDragEnd = useCallback(() => {
+    // no-op; value is already committed during drag
+  }, []);
+
+  const handleLabelPointerDownCapture = useCallback(() => {
+    dragStartPoint.current = pointValue;
+  }, [pointValue]);
+
   return (
     <div
       className="flex"
       style={{ height: PARAMETER_ROW_HEIGHT }}
       data-testid={`param-row-${port.name}`}
+      onPointerDownCapture={handleLabelPointerDownCapture}
     >
-      <div
-        className="flex items-center px-2 shrink-0"
-        style={{
-          width: LABEL_WIDTH,
-          background: PORT_LABEL_BACKGROUND,
-          color: TEXT_SUBDUED,
-          fontSize: FONT_SIZE_SMALL,
-          textAlign: 'right',
-        }}
-      >
-        {port.label ?? port.name}
-      </div>
-      <div
-        className="flex flex-1"
-        style={{ background: PORT_VALUE_BACKGROUND }}
-      >
+      <DraggableLabel
+        label={port.label ?? port.name}
+        portName={port.name}
+        onDrag={handleLabelDrag}
+        onDragEnd={handleLabelDragEnd}
+      />
+      <div className="flex flex-1">
         <div className="flex-1" data-testid={`param-value-${port.name}-x`}>
           <DragValue value={pointValue.x} onChange={handleChangeX} />
         </div>
@@ -153,7 +255,6 @@ function GenericPortWidget({ port }: { port: Port }) {
         className="flex items-center px-2 shrink-0"
         style={{
           width: LABEL_WIDTH,
-          background: PORT_LABEL_BACKGROUND,
           color: TEXT_SUBDUED,
           fontSize: FONT_SIZE_SMALL,
           textAlign: 'right',
@@ -164,7 +265,6 @@ function GenericPortWidget({ port }: { port: Port }) {
       <div
         className="flex items-center px-2 flex-1"
         style={{
-          background: PORT_VALUE_BACKGROUND,
           color: VALUE_TEXT,
           fontSize: FONT_SIZE_BASE,
         }}
@@ -186,31 +286,6 @@ function PortWidget({ port, nodeName }: { port: Port; nodeName: string }) {
   return <GenericPortWidget port={port} />;
 }
 
-function NodeHeader({
-  nodeName,
-  prototype,
-}: {
-  nodeName: string;
-  prototype: string | null;
-}) {
-  return (
-    <div
-      className="flex items-center justify-between px-2 shrink-0"
-      style={{
-        height: PARAMETER_ROW_HEIGHT,
-        background: PORT_LABEL_BACKGROUND,
-        fontSize: FONT_SIZE_SMALL,
-      }}
-      data-testid="param-header"
-    >
-      <span style={{ color: TEXT_SUBDUED }}>{nodeName}</span>
-      {prototype && (
-        <span style={{ color: TEXT_SUBDUED, opacity: 0.6 }}>{prototype}</span>
-      )}
-    </div>
-  );
-}
-
 function DocumentPropertyRow({ label, value }: { label: string; value: string }) {
   return (
     <div
@@ -221,7 +296,6 @@ function DocumentPropertyRow({ label, value }: { label: string; value: string })
         className="flex items-center px-2 shrink-0"
         style={{
           width: LABEL_WIDTH,
-          background: PORT_LABEL_BACKGROUND,
           color: TEXT_SUBDUED,
           fontSize: FONT_SIZE_SMALL,
           textAlign: 'right',
@@ -232,7 +306,6 @@ function DocumentPropertyRow({ label, value }: { label: string; value: string })
       <div
         className="flex items-center px-2 flex-1"
         style={{
-          background: PORT_VALUE_BACKGROUND,
           color: VALUE_TEXT,
           fontSize: FONT_SIZE_BASE,
         }}
@@ -253,7 +326,6 @@ function ColorSwatchRow({ label, color }: { label: string; color: string }) {
         className="flex items-center px-2 shrink-0"
         style={{
           width: LABEL_WIDTH,
-          background: PORT_LABEL_BACKGROUND,
           color: TEXT_SUBDUED,
           fontSize: FONT_SIZE_SMALL,
           textAlign: 'right',
@@ -263,9 +335,6 @@ function ColorSwatchRow({ label, color }: { label: string; color: string }) {
       </div>
       <div
         className="flex items-center px-2 flex-1"
-        style={{
-          background: PORT_VALUE_BACKGROUND,
-        }}
       >
         <div
           style={{
@@ -317,24 +386,46 @@ export function ParameterPanel() {
   return (
     <div className="flex flex-col h-full" style={{ background: PANEL_BG }}>
       {/* Port list / Document properties */}
-      <div className="flex-1 overflow-y-auto">
-        {node ? (
-          <>
-            <NodeHeader
-              nodeName={node.name}
-              prototype={node.prototype}
-            />
-            {node.inputs.map((port) => (
-              <PortWidget key={port.name} port={port} nodeName={node.name} />
-            ))}
-          </>
-        ) : (
-          <>
-            <DocumentPropertyRow label="width" value={parseFloat(docWidth).toFixed(2)} />
-            <DocumentPropertyRow label="height" value={parseFloat(docHeight).toFixed(2)} />
-            <ColorSwatchRow label="background" color={bgColor} />
-          </>
-        )}
+      <div className="flex-1 overflow-y-auto" style={{ position: 'relative' }}>
+        {/* Two-tone background columns */}
+        <div
+          data-testid="param-bg-left"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            bottom: 0,
+            width: LABEL_WIDTH,
+            background: PORT_LABEL_BACKGROUND,
+          }}
+        />
+        <div
+          data-testid="param-bg-right"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: LABEL_WIDTH,
+            right: 0,
+            bottom: 0,
+            background: PORT_VALUE_BACKGROUND,
+          }}
+        />
+        {/* Content on top */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {node ? (
+            <>
+              {node.inputs.map((port) => (
+                <PortWidget key={port.name} port={port} nodeName={node.name} />
+              ))}
+            </>
+          ) : (
+            <>
+              <DocumentPropertyRow label="width" value={parseFloat(docWidth).toFixed(2)} />
+              <DocumentPropertyRow label="height" value={parseFloat(docHeight).toFixed(2)} />
+              <ColorSwatchRow label="background" color={bgColor} />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

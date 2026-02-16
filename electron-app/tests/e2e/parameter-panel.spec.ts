@@ -33,10 +33,8 @@ test('parameter rows visible after selecting rect1', async () => {
 
 test('header shows node info when node selected', async () => {
   await selectRect1(ctx);
-
-  // Header should show node name and prototype
-  const header = ctx.window.locator('[data-testid="param-header"]');
-  await expect(header).toBeVisible();
+  // ParametersHeader (pane header) shows node name and prototype
+  const header = ctx.window.locator('text=Parameters').locator('..');
   await expect(header).toContainText('rect1');
   await expect(header).toContainText('corevector.rect');
 });
@@ -99,4 +97,45 @@ test('document properties shown when no node selected', async () => {
   await expect(widthLabel).toBeVisible();
   const heightLabel = ctx.window.locator('text=height').first();
   await expect(heightLabel).toBeVisible();
+});
+
+test('parameter panel has two-tone background columns', async () => {
+  await selectRect1(ctx);
+  const bgLeft = ctx.window.locator('[data-testid="param-bg-left"]');
+  const bgRight = ctx.window.locator('[data-testid="param-bg-right"]');
+  await expect(bgLeft).toBeVisible();
+  await expect(bgRight).toBeVisible();
+});
+
+test('DragValue hover shows inset highlight', async () => {
+  await selectRect1(ctx);
+  const widthValue = ctx.window.locator('[data-testid="param-value-width"]');
+  await widthValue.hover();
+  await waitForUpdate(ctx.window);
+  // The inner hover element should have margins creating visual inset
+  const innerDiv = widthValue.locator('[data-testid="drag-value-inner"]');
+  await expect(innerDiv).toBeVisible();
+});
+
+test('dragging label changes value', async () => {
+  await selectRect1(ctx);
+  const label = ctx.window.locator('[data-testid="param-label-width"]');
+  await expect(label).toBeVisible();
+  const box = await label.boundingBox();
+  expect(box).not.toBeNull();
+
+  // Drag right by 50px
+  const startX = box!.x + box!.width / 2;
+  const startY = box!.y + box!.height / 2;
+  await ctx.window.mouse.move(startX, startY);
+  await ctx.window.mouse.down();
+  await ctx.window.mouse.move(startX + 50, startY, { steps: 5 });
+  await ctx.window.mouse.up();
+  await waitForUpdate(ctx.window);
+
+  // Width should have increased from 100
+  const state = await getStoreState(ctx.window);
+  const rect1 = state.children.find((c: any) => c.name === 'rect1');
+  const widthPort = rect1.ports.find((p: any) => p.name === 'width');
+  expect(widthPort.value.value).toBeGreaterThan(100);
 });

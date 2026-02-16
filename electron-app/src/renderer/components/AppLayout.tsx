@@ -15,12 +15,13 @@ import {
   PANE_HEADER_HEIGHT,
   FONT_SIZE_SMALL,
   SPLITTER_THICKNESS,
+  SPLITTER_AFFORDANCE,
   LABEL_WIDTH,
   TEXT_STRONG,
   TEXT_DISABLED,
   ZINC_500,
   ZINC_600,
-  BORDER_COLOR,
+  ZINC_900,
 } from '../theme/tokens';
 
 /* ------------------------------------------------------------------ */
@@ -32,8 +33,8 @@ const headerStyle: React.CSSProperties = {
   background: PANE_HEADER_BACKGROUND_COLOR,
   color: PANE_HEADER_FOREGROUND_COLOR,
   fontSize: FONT_SIZE_SMALL,
-  borderTop: `1px solid ${BORDER_COLOR}`,
-  borderBottom: `1px solid ${BORDER_COLOR}`,
+  borderTop: `1px solid ${ZINC_600}`,
+  borderBottom: `1px solid ${ZINC_900}`,
 };
 
 const separatorStyle: React.CSSProperties = {
@@ -58,6 +59,7 @@ function ViewerHeader() {
   const toggleOrigin = useStore((s) => s.toggleOrigin);
   const toggleCanvasBorder = useStore((s) => s.toggleCanvasBorder);
   const viewerZoom = useStore((s) => s.viewerZoom);
+  const requestViewerZoom = useStore((s) => s.requestViewerZoom);
 
   return (
     <div className="flex items-center px-2 shrink-0 gap-1" style={headerStyle}>
@@ -81,7 +83,27 @@ function ViewerHeader() {
       <ToggleButton label="Origin" active={showOrigin} onClick={toggleOrigin} />
       <ToggleButton label="Canvas" active={showCanvasBorder} onClick={toggleCanvasBorder} />
       <div className="flex-1" />
-      <span style={{ fontSize: FONT_SIZE_SMALL, color: TEXT_DISABLED }}>{Math.round(viewerZoom * 100)}%</span>
+      <button
+        data-testid="zoom-out"
+        onClick={() => requestViewerZoom('out')}
+        style={{ background: 'transparent', border: 'none', color: TEXT_DISABLED, cursor: 'pointer', fontSize: FONT_SIZE_SMALL, padding: '0 2px' }}
+      >
+        -
+      </button>
+      <span
+        data-testid="zoom-level"
+        onClick={() => requestViewerZoom('reset')}
+        style={{ fontSize: FONT_SIZE_SMALL, color: TEXT_DISABLED, cursor: 'pointer', padding: '0 2px' }}
+      >
+        {Math.round(viewerZoom * 100)}%
+      </span>
+      <button
+        data-testid="zoom-in"
+        onClick={() => requestViewerZoom('in')}
+        style={{ background: 'transparent', border: 'none', color: TEXT_DISABLED, cursor: 'pointer', fontSize: FONT_SIZE_SMALL, padding: '0 2px' }}
+      >
+        +
+      </button>
     </div>
   );
 }
@@ -223,12 +245,27 @@ function HorizontalSplitter({
 
   return (
     <div
+      data-testid="horizontal-splitter"
       className="cursor-row-resize shrink-0"
-      style={{ height: SPLITTER_THICKNESS, background: PANEL_BG }}
+      style={{
+        height: SPLITTER_THICKNESS,
+        background: PANEL_BG,
+        position: 'relative',
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-    />
+    >
+      {/* Invisible hit area extending above and below the 2px line */}
+      <div style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: -(SPLITTER_AFFORDANCE - SPLITTER_THICKNESS) / 2,
+        bottom: -(SPLITTER_AFFORDANCE - SPLITTER_THICKNESS) / 2,
+        cursor: 'row-resize',
+      }} />
+    </div>
   );
 }
 
@@ -265,12 +302,27 @@ function VerticalSplitter({
 
   return (
     <div
+      data-testid="vertical-splitter"
       className="cursor-col-resize shrink-0"
-      style={{ width: SPLITTER_THICKNESS, background: PANEL_BG }}
+      style={{
+        width: SPLITTER_THICKNESS,
+        background: PANEL_BG,
+        position: 'relative',
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-    />
+    >
+      {/* Invisible hit area extending left and right of the 2px line */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: -(SPLITTER_AFFORDANCE - SPLITTER_THICKNESS) / 2,
+        right: -(SPLITTER_AFFORDANCE - SPLITTER_THICKNESS) / 2,
+        cursor: 'col-resize',
+      }} />
+    </div>
   );
 }
 

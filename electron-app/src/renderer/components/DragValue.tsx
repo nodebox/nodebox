@@ -5,7 +5,6 @@ import {
   FIELD_HOVER_BG,
   CORNER_RADIUS_SMALL,
   FONT_SIZE_BASE,
-  PORT_VALUE_BACKGROUND,
 } from '../theme/tokens';
 
 interface DragValueProps {
@@ -167,17 +166,27 @@ export function DragValue({
         height: '100%',
         display: 'flex',
         alignItems: 'center',
-        paddingLeft: 8,
-        paddingRight: 8,
         cursor: 'ew-resize',
         userSelect: 'none',
-        color: hovered ? VALUE_TEXT_HOVER : VALUE_TEXT,
-        background: hovered ? FIELD_HOVER_BG : PORT_VALUE_BACKGROUND,
-        borderRadius: hovered ? CORNER_RADIUS_SMALL : 0,
         fontSize: FONT_SIZE_BASE,
       }}
     >
-      {displayText}
+      <div
+        data-testid="drag-value-inner"
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 8px',
+          margin: '2px 0',
+          height: 'calc(100% - 4px)',
+          borderRadius: hovered ? CORNER_RADIUS_SMALL : 0,
+          background: hovered ? FIELD_HOVER_BG : 'transparent',
+          color: hovered ? VALUE_TEXT_HOVER : VALUE_TEXT,
+        }}
+      >
+        {displayText}
+      </div>
     </div>
   );
 }
