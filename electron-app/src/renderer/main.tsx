@@ -26,7 +26,13 @@ import './App.css';
     })),
     connections: s.library.root.connections,
     renderResult: s.renderResult
-      ? { pathCount: s.renderResult.paths.length }
+      ? {
+          pathCount: s.renderResult.paths.length,
+          totalPoints: s.renderResult.paths.reduce(
+            (sum, p) => sum + p.contours.reduce((cs, c) => cs + c.points.length, 0),
+            0,
+          ),
+        }
       : null,
     viewerMode: (s as any).viewerMode ?? 'visual',
     isPlaying: s.isPlaying,

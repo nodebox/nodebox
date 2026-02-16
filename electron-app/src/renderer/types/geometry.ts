@@ -12,7 +12,7 @@ export interface Color {
   a: number;
 }
 
-export type PointType = 'moveTo' | 'lineTo' | 'curveTo' | 'curveData';
+export type PointType = 'moveTo' | 'lineTo' | 'curveTo' | 'curveData' | 'quadTo' | 'quadData';
 
 export interface PathPoint {
   x: number;
@@ -30,6 +30,7 @@ export interface Path {
   fill: Color | null;
   stroke: Color | null;
   strokeWidth: number;
+  editable?: boolean;
 }
 
 export type TextAlign = 'left' | 'center' | 'right';

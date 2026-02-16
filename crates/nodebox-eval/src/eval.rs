@@ -1083,7 +1083,7 @@ fn execute_node(
             let font_size = get_float(inputs, "font_size", 24.0);
             let position = get_point(inputs, "position", Point::ZERO);
             let font_bytes = port.get_font_bytes(&font_name)
-                .map_err(|e| EvalError::ProcessingError(format!("Failed to load font '{}': {}", font_name, e)))?;
+                .unwrap_or_else(|_| font::BUNDLED_FONT_BYTES.to_vec());
             let path = font::text_to_path_from_bytes(&text, &font_bytes, font_size, position)
                 .map_err(|e| EvalError::ProcessingError(e.to_string()))?;
             Ok(NodeOutput::Path(path))

@@ -7,6 +7,8 @@ export interface PathRenderData {
   fill: Color | null;
   stroke: Color | null;
   strokeWidth: number;
+  /** When false, handles/points are not drawn (e.g. font glyph outlines). */
+  editable?: boolean;
 }
 
 export interface TextRenderData {
