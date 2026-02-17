@@ -1,5 +1,5 @@
 # Build Windows installer for NodeBox
-# Usage: .\scripts\build-windows-installer.ps1 [-Debug]
+# Usage: .\scripts\build-windows-installer-rust.ps1 [-Debug]
 #
 # Prerequisites:
 #   - Install WiX Toolset v3: https://wixtoolset.org/

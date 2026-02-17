@@ -6,7 +6,7 @@
 #   APPLE_ID_PASSWORD - App-specific password for notarization
 #   APPLE_TEAM_ID     - Apple Developer Team ID
 #
-# Usage: ./scripts/notarize-mac-bundle.sh [--release|--debug]
+# Usage: ./scripts/notarize-mac-app-rust.sh [--release|--debug]
 
 set -e
 
@@ -39,7 +39,7 @@ ZIP_PATH="$PROJECT_ROOT/target/$BUILD_TYPE/NodeBox.zip"
 
 if [ ! -d "$BUNDLE_DIR" ]; then
     echo "Error: Bundle not found at $BUNDLE_DIR"
-    echo "Run build-mac-bundle.sh and sign-mac-bundle.sh first"
+    echo "Run build-mac-app-rust.sh and sign-mac-app-rust.sh first"
     exit 1
 fi
 
@@ -47,7 +47,7 @@ fi
 echo "Verifying signature..."
 if ! codesign --verify "$BUNDLE_DIR" 2>/dev/null; then
     echo "Error: Bundle is not properly signed"
-    echo "Run sign-mac-bundle.sh first"
+    echo "Run sign-mac-app-rust.sh first"
     exit 1
 fi
 

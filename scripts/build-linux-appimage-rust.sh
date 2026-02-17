@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build AppImage for NodeBox
-# Usage: ./scripts/build-linux-appimage.sh [--release|--debug]
+# Usage: ./scripts/build-linux-appimage-rust.sh [--release|--debug]
 #
 # Prerequisites:
 #   - appimagetool: https://github.com/AppImage/AppImageKit/releases

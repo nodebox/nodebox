@@ -1,7 +1,7 @@
 #!/bin/bash
 # Create a DMG installer for NodeBox
 #
-# Usage: ./scripts/create-mac-dmg.sh [--release|--debug]
+# Usage: ./scripts/create-mac-dmg-rust.sh [--release|--debug]
 
 set -e
 
@@ -21,7 +21,7 @@ DMG_TEMP="$PROJECT_ROOT/target/$BUILD_TYPE/dmg-temp"
 
 if [ ! -d "$BUNDLE_DIR" ]; then
     echo "Error: Bundle not found at $BUNDLE_DIR"
-    echo "Run build-mac-bundle.sh first"
+    echo "Run build-mac-app-rust.sh first"
     exit 1
 fi
 

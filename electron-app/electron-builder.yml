@@ -1,0 +1,52 @@
+appId: be.emrg.nodebox
+productName: NodeBox
+
+directories:
+  output: release
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - wasm/**/*
+  - package.json
+
+asar: true
+asarUnpack:
+  - "wasm/*.wasm"
+
+fileAssociations:
+  - ext: ndbx
+    name: NodeBox Document
+    role: Editor
+
+mac:
+  category: public.app-category.graphics-design
+  icon: ../platform/mac/res/Resources/nodebox.icns
+  target:
+    - dmg
+    - zip
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: ../platform/mac/NodeBox.entitlements
+  entitlementsInherit: ../platform/mac/NodeBox.entitlements
+  notarize: true
+
+dmg:
+  sign: false
+
+win:
+  icon: ../platform/windows/installer/nodebox.ico
+  target: nsis
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+linux:
+  icon: ../platform/mac/res/Resources/nodebox.icns
+  category: Graphics
+  target:
+    - AppImage
+    - deb
+  mimeTypes:
+    - application/x-nodebox

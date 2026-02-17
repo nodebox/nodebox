@@ -8,7 +8,7 @@
 # Optional environment variables:
 #   KEYCHAIN_PROFILE - Notarization keychain profile name (default: "nodebox-notarize")
 #
-# Usage: ./scripts/sign-mac-bundle.sh [--release|--debug]
+# Usage: ./scripts/sign-mac-app-rust.sh [--release|--debug]
 
 set -e
 
@@ -45,7 +45,7 @@ ENTITLEMENTS="$PROJECT_ROOT/platform/mac/NodeBox.entitlements"
 
 if [ ! -d "$BUNDLE_DIR" ]; then
     echo "Error: Bundle not found at $BUNDLE_DIR"
-    echo "Run build-mac-bundle.sh first"
+    echo "Run build-mac-app-rust.sh first"
     exit 1
 fi
 
@@ -82,4 +82,4 @@ spctl --assess --verbose=2 "$BUNDLE_DIR" 2>&1 || true
 
 echo ""
 echo "Bundle signed successfully!"
-echo "To notarize: ./scripts/notarize-mac-bundle.sh"
+echo "To notarize: ./scripts/notarize-mac-app-rust.sh"

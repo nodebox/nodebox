@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "NodeBox — visual programming environment",
+  "author": "NodeBox Contributors",
   "type": "module",
   "main": "dist-electron/main/index.mjs",
   "scripts": {
@@ -11,7 +12,11 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux"
   },
   "dependencies": {
     "immer": "^10.1.1",
@@ -21,6 +26,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@electron/notarize": "^3.1.1",
     "@playwright/test": "^1.49.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/react": "^16.1.0",
@@ -30,6 +36,7 @@
     "@vitest/ui": "^2.1.0",
     "autoprefixer": "^10.4.20",
     "electron": "^33.0.0",
+    "electron-builder": "^26.7.0",
     "jsdom": "^25.0.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^4.0.0",

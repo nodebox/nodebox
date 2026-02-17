@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build Debian package for NodeBox
-# Usage: ./scripts/build-linux-deb.sh [--release|--debug]
+# Usage: ./scripts/build-linux-deb-rust.sh [--release|--debug]
 #
 # Prerequisites:
 #   - dpkg-deb (usually pre-installed on Debian/Ubuntu)

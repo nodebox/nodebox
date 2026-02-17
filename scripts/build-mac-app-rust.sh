@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build macOS application bundle for NodeBox
-# Usage: ./scripts/build-mac-bundle.sh [--release]
+# Usage: ./scripts/build-mac-app-rust.sh [--release]
 
 set -e
 
@@ -110,4 +110,4 @@ echo -n "APPL????" > "$CONTENTS_DIR/PkgInfo"
 echo "Bundle created at: $BUNDLE_DIR"
 echo ""
 echo "To run: open '$BUNDLE_DIR'"
-echo "To sign: ./scripts/sign-mac-bundle.sh"
+echo "To sign: ./scripts/sign-mac-app-rust.sh"
