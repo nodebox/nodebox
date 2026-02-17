@@ -1,0 +1,167 @@
+name: Release Electron App
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: electron-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: electron-app
+
+      - name: Build WASM module
+        run: wasm-pack build nodebox-electron --target web --out-dir "${{ github.workspace }}/electron-app/wasm"
+        working-directory: crates
+
+      - name: Build Electron app
+        run: npm run build
+        working-directory: electron-app
+
+      - name: Package macOS app
+        env:
+          CSC_NAME: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_NAME }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: npx electron-builder --mac
+        working-directory: electron-app
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-mac
+          path: |
+            electron-app/release/*.dmg
+            electron-app/release/*.zip
+          if-no-files-found: error
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: electron-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: electron-app
+
+      - name: Build WASM module
+        run: wasm-pack build nodebox-electron --target web --out-dir "${{ github.workspace }}/electron-app/wasm"
+        working-directory: crates
+
+      - name: Build Electron app
+        run: npm run build
+        working-directory: electron-app
+
+      - name: Package Linux app
+        run: npx electron-builder --linux
+        working-directory: electron-app
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: |
+            electron-app/release/*.AppImage
+            electron-app/release/*.deb
+          if-no-files-found: error
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: electron-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: electron-app
+
+      - name: Build WASM module
+        run: wasm-pack build nodebox-electron --target web --out-dir "${{ github.workspace }}/electron-app/wasm"
+        working-directory: crates
+
+      - name: Build Electron app
+        run: npm run build
+        working-directory: electron-app
+
+      - name: Package Windows app
+        run: npx electron-builder --win
+        working-directory: electron-app
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: electron-app/release/*.exe
+          if-no-files-found: error
+
+  release:
+    needs: [build-mac, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: artifacts/*
