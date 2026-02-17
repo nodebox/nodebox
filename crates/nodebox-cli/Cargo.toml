@@ -1,0 +1,16 @@
+[package]
+name = "nodebox-cli"
+description = "Command-line renderer for NodeBox .ndbx files"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "nodebox-render"
+path = "src/main.rs"
+
+[dependencies]
+nodebox-core = { path = "../nodebox-core" }
+nodebox-eval = { path = "../nodebox-eval" }

@@ -4,8 +4,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use nodebox_core::geometry::{Path, Point, Color, Contour, PathPoint, PointType};
 use nodebox_core::geometry::font;
-use nodebox_core::node::{Node, NodeLibrary, EvalError};
-use nodebox_core::node::PortRange;
+use nodebox_core::node::{Node, NodeLibrary, EvalError, Port};
+use nodebox_core::node::{PortRange, PortType};
 use nodebox_core::Value;
 use nodebox_core::platform::{Platform, ProjectContext};
 use nodebox_core::ops;
@@ -83,6 +83,14 @@ pub enum NodeOutput {
     DataRow(HashMap<String, DataValue>),
     /// A list of data rows.
     DataRows(Vec<HashMap<String, DataValue>>),
+    /// A compound geometry (multiple paths treated as a single value for list broadcasting).
+    /// Unlike `Paths`, this has `list_len() = 1` — downstream nodes receive the entire
+    /// Geometry as one value, matching Java's Geometry behavior.
+    Geometry(Vec<Path>),
+    /// A list of compound geometries (each group is a Geometry).
+    /// `list_len()` = number of groups, matching Java's `List<Geometry>`.
+    /// Each group preserves its compound identity during list broadcasting.
+    Geometries(Vec<Vec<Path>>),
 }
 
 impl NodeOutput {
@@ -91,6 +99,8 @@ impl NodeOutput {
         match self {
             NodeOutput::Path(p) => vec![p.clone()],
             NodeOutput::Paths(ps) => ps.clone(),
+            NodeOutput::Geometry(ps) => ps.clone(),
+            NodeOutput::Geometries(groups) => groups.iter().flat_map(|g| g.clone()).collect(),
             NodeOutput::Point(pt) => {
                 // Convert a single point to a path with one point
                 let mut path = Path::new();
@@ -183,6 +193,8 @@ impl NodeOutput {
             NodeOutput::Points(pts) => pts.iter().map(|p| format!("{:.2}, {:.2}", p.x, p.y)).collect(),
             NodeOutput::Path(_) => vec!["[Path]".to_string()],
             NodeOutput::Paths(ps) => (0..ps.len()).map(|i| format!("[Path {}]", i)).collect(),
+            NodeOutput::Geometry(ps) => (0..ps.len()).map(|i| format!("[Geo Path {}]", i)).collect(),
+            NodeOutput::Geometries(gs) => gs.iter().enumerate().map(|(i, g)| format!("[Geo {} ({} paths)]", i, g.len())).collect(),
             NodeOutput::DataRow(row) => {
                 let mut pairs: Vec<String> = row.iter()
                     .map(|(k, v)| format!("{}: {}", k, v.as_string()))
@@ -212,7 +224,7 @@ impl NodeOutput {
             NodeOutput::Boolean(_) | NodeOutput::Booleans(_) => "boolean",
             NodeOutput::Color(_) | NodeOutput::Colors(_) => "color",
             NodeOutput::Point(_) | NodeOutput::Points(_) => "point",
-            NodeOutput::Path(_) | NodeOutput::Paths(_) => "path",
+            NodeOutput::Path(_) | NodeOutput::Paths(_) | NodeOutput::Geometry(_) | NodeOutput::Geometries(_) => "path",
             NodeOutput::DataRow(_) | NodeOutput::DataRows(_) => "data",
         }
     }
@@ -229,6 +241,7 @@ impl NodeOutput {
             NodeOutput::Booleans(bs) => bs.len(),
             NodeOutput::Colors(cs) => cs.len(),
             NodeOutput::DataRows(rs) => rs.len(),
+            NodeOutput::Geometries(gs) => gs.len(),
             _ => 1,
         }
     }
@@ -261,6 +274,10 @@ impl NodeOutput {
             NodeOutput::Booleans(bs) => bs.iter().map(|b| NodeOutput::Boolean(*b)).collect(),
             NodeOutput::Colors(cs) => cs.iter().map(|c| NodeOutput::Color(*c)).collect(),
             NodeOutput::DataRows(rs) => rs.iter().map(|r| NodeOutput::DataRow(r.clone())).collect(),
+            // Geometry is a single compound value — not expanded for list matching
+            NodeOutput::Geometry(_) => vec![self.clone()],
+            // Geometries: each group becomes a separate Geometry item
+            NodeOutput::Geometries(groups) => groups.iter().map(|g| NodeOutput::Geometry(g.clone())).collect(),
             v => vec![v.clone()], // Single values remain single
         }
     }
@@ -277,6 +294,10 @@ impl NodeOutput {
             NodeOutput::Colors(cs) => cs.len(),
             NodeOutput::DataRows(rs) => rs.len(),
             NodeOutput::None => 0,
+            // Geometry is a single compound value (list_len = 1)
+            NodeOutput::Geometry(_) => 1,
+            // Geometries: list_len = number of groups
+            NodeOutput::Geometries(groups) => groups.len(),
             _ => 1,
         }
     }
@@ -450,6 +471,167 @@ pub fn evaluate_network_cancellable(
     }
 }
 
+/// Look up the expected port type from prototype definitions for nodes
+/// loaded from .ndbx files that don't have explicit port definitions.
+fn get_prototype_port_type(node: &Node, port_name: &str) -> Option<PortType> {
+    // First check if the node has an explicit port definition
+    if let Some(port) = node.inputs.iter().find(|p| p.name == port_name) {
+        return Some(port.port_type.clone());
+    }
+    // Fall back to prototype-based lookup
+    let proto = node.prototype.as_ref()?.as_str();
+    match (proto, port_name) {
+        // Point-type ports
+        ("corevector.point", "value") => Some(PortType::Point),
+        ("corevector.translate", "translate") => Some(PortType::Point),
+        ("corevector.translate", "position") => Some(PortType::Point),
+        ("corevector.copy", "translate") => Some(PortType::Point),
+        ("corevector.copy", "scale") => Some(PortType::Point),
+        ("corevector.scale", "scale") => Some(PortType::Point),
+        ("corevector.scale", "origin") => Some(PortType::Point),
+        ("corevector.rotate", "origin") => Some(PortType::Point),
+        ("corevector.align", "position") => Some(PortType::Point),
+        ("corevector.snap", "position") => Some(PortType::Point),
+        ("corevector.reflect", "position") => Some(PortType::Point),
+        ("corevector.make_point" | "corevector.makePoint", "x" | "y") => Some(PortType::Float),
+        // Float-type ports
+        ("corevector.copy", "rotate") => Some(PortType::Float),
+        ("corevector.rotate", "angle") => Some(PortType::Float),
+        ("corevector.colorize", "strokeWidth") => Some(PortType::Float),
+        ("corevector.resample", "length") => Some(PortType::Float),
+        // Geometry-type ports (filter prototype)
+        (_, "shape") if proto.starts_with("corevector.") => Some(PortType::Geometry),
+        _ => None,
+    }
+}
+
+/// Convert upstream outputs to match the expected port types.
+/// This matches Java's TypeConversions.convert() and convertResultsForPort().
+/// The most critical conversion is Path/Geometry → Points, which enables
+/// list broadcasting when a geometry output is connected to a point-type port.
+fn convert_input_types(inputs: &mut HashMap<String, NodeOutput>, node: &Node) {
+    // First, try explicit port definitions
+    for port in &node.inputs {
+        if let Some(output) = inputs.get(&port.name) {
+            let converted = convert_output_for_port(output, port);
+            if let Some(new_output) = converted {
+                inputs.insert(port.name.clone(), new_output);
+            }
+        }
+    }
+    // Then, check prototype-based port types for inputs not covered by explicit ports
+    let input_names: Vec<String> = inputs.keys().cloned().collect();
+    for name in input_names {
+        // Skip if already handled by explicit port definition
+        if node.inputs.iter().any(|p| p.name == name) {
+            continue;
+        }
+        if let Some(port_type) = get_prototype_port_type(node, &name) {
+            if let Some(output) = inputs.get(&name) {
+                let temp_port = Port::new(&name, port_type);
+                if let Some(new_output) = convert_output_for_port(output, &temp_port) {
+                    inputs.insert(name, new_output);
+                }
+            }
+        }
+    }
+}
+
+/// Convert a NodeOutput to match the expected port type.
+/// Returns None if no conversion is needed.
+fn convert_output_for_port(output: &NodeOutput, port: &Port) -> Option<NodeOutput> {
+    match (output, &port.port_type) {
+        // Path/Geometry → Point: extract all points from contours
+        (NodeOutput::Path(path), PortType::Point) => {
+            let points: Vec<Point> = path.contours.iter()
+                .flat_map(|c| c.points.iter().map(|p| Point::new(p.x(), p.y())))
+                .collect();
+            if points.len() == 1 {
+                Some(NodeOutput::Point(points[0]))
+            } else {
+                Some(NodeOutput::Points(points))
+            }
+        }
+        (NodeOutput::Paths(paths), PortType::Point) => {
+            let points: Vec<Point> = paths.iter()
+                .flat_map(|path| path.contours.iter()
+                    .flat_map(|c| c.points.iter().map(|p| Point::new(p.x(), p.y()))))
+                .collect();
+            if points.len() == 1 {
+                Some(NodeOutput::Point(points[0]))
+            } else {
+                Some(NodeOutput::Points(points))
+            }
+        }
+        // Float → Point: (v, v)
+        (NodeOutput::Float(v), PortType::Point) => {
+            Some(NodeOutput::Point(Point::new(*v, *v)))
+        }
+        (NodeOutput::Floats(fs), PortType::Point) => {
+            let points: Vec<Point> = fs.iter().map(|v| Point::new(*v, *v)).collect();
+            Some(NodeOutput::Points(points))
+        }
+        // Int → Float
+        (NodeOutput::Int(v), PortType::Float) => {
+            Some(NodeOutput::Float(*v as f64))
+        }
+        (NodeOutput::Ints(vs), PortType::Float) => {
+            Some(NodeOutput::Floats(vs.iter().map(|v| *v as f64).collect()))
+        }
+        // Float → Int
+        (NodeOutput::Float(v), PortType::Int) => {
+            Some(NodeOutput::Int(v.round() as i64))
+        }
+        (NodeOutput::Floats(vs), PortType::Int) => {
+            Some(NodeOutput::Ints(vs.iter().map(|v| v.round() as i64).collect()))
+        }
+        _ => None,
+    }
+}
+
+/// Check if a port should be treated as LIST-range based on the node's prototype.
+/// This resolves port ranges from the system library definitions (corevector.ndbx, math.ndbx, list.ndbx)
+/// for nodes loaded from .ndbx files that don't have explicit port definitions.
+fn is_list_range_port(node: &Node, port_name: &str) -> bool {
+    // First check if the node has an explicit port definition
+    if let Some(port) = node.inputs.iter().find(|p| p.name == port_name) {
+        return port.range == PortRange::List;
+    }
+    // Fall back to prototype-based lookup
+    let proto = match &node.prototype {
+        Some(p) => p.as_str(),
+        None => return false,
+    };
+    match proto {
+        // corevector nodes with LIST-range ports
+        "corevector.connect" => port_name == "points",
+        "corevector.distribute" => port_name == "shapes",
+        "corevector.group" => port_name == "shapes",
+        "corevector.shape_on_path" => port_name == "shape",
+        "corevector.sort" => port_name == "shapes",
+        "corevector.stack" => port_name == "shapes",
+        // math nodes with LIST-range ports
+        "math.average" => port_name == "values",
+        "math.max" => port_name == "values",
+        "math.min" => port_name == "values",
+        "math.running_total" => port_name == "values",
+        "math.sum" => port_name == "values",
+        // list nodes with LIST-range ports
+        "list.combine" => matches!(port_name, "list1" | "list2" | "list3" | "list4" | "list5" | "list6" | "list7"),
+        "list.count" | "list.distinct" | "list.first" | "list.last"
+        | "list.rest" | "list.second" | "list.reverse" | "list.shuffle"
+        | "list.sort" | "list.take_every" => port_name == "list",
+        "list.cull" => matches!(port_name, "list" | "booleans"),
+        "list.pick" => port_name == "list",
+        "list.repeat" => port_name == "list",
+        "list.shift" => port_name == "list",
+        "list.slice" => port_name == "list",
+        "list.switch" | "list.doSwitch" => matches!(port_name, "input1" | "input2" | "input3" | "input4" | "input5" | "input6"),
+        "list.zip_map" => matches!(port_name, "keys" | "values"),
+        _ => false,
+    }
+}
+
 /// Determine how many times to execute the node for list matching.
 /// Returns None if any VALUE-range input is empty.
 fn compute_iteration_count(
@@ -458,30 +640,14 @@ fn compute_iteration_count(
 ) -> Option<usize> {
     let mut max_size = 1usize;
 
-    // Check inputs that have corresponding port definitions with range info
-    for port in &node.inputs {
-        if port.range == PortRange::List {
-            continue; // LIST-range ports don't contribute to iteration count
-        }
-        if let Some(output) = inputs.get(&port.name) {
-            let size = output.list_len();
-            if size == 0 {
-                return None; // Empty list → no output
-            }
-            max_size = max_size.max(size);
-        }
-    }
-
-    // Also check inputs that don't have port definitions (from connections)
-    // These are treated as VALUE-range by default
     for (name, output) in inputs {
-        // Skip if we already processed this port above
-        if node.inputs.iter().any(|p| &p.name == name) {
+        // LIST-range ports don't contribute to iteration count
+        if is_list_range_port(node, name) {
             continue;
         }
         let size = output.list_len();
         if size == 0 {
-            return None;
+            return None; // Empty list → no output
         }
         max_size = max_size.max(size);
     }
@@ -498,9 +664,7 @@ fn build_iteration_inputs(
     let mut result = HashMap::new();
 
     for (name, output) in inputs {
-        // Check if there's a port definition for this input
-        let port = node.inputs.iter().find(|p| &p.name == name);
-        let is_list_range = port.map_or(false, |p| p.range == PortRange::List);
+        let is_list_range = is_list_range_port(node, name);
 
         let value = if is_list_range {
             output.clone() // Pass entire list for LIST-range ports
@@ -581,14 +745,48 @@ fn collect_results(results: Vec<NodeOutput>) -> NodeOutput {
             NodeOutput::DataRows(rows)
         }
         _ => {
-            // Default: collect as Paths (geometry operations)
-            let paths: Vec<Path> = results.into_iter()
-                .flat_map(|r| r.to_paths())
-                .collect();
-            if paths.is_empty() {
-                NodeOutput::None
+            // Check if any result contains Geometry grouping — if so, preserve it
+            let has_geometry = results.iter().any(|r| matches!(r, NodeOutput::Geometry(_) | NodeOutput::Geometries(_)));
+            if has_geometry {
+                // Collect as Geometries: each item becomes one or more groups
+                let mut groups: Vec<Vec<Path>> = Vec::new();
+                for r in results {
+                    match r {
+                        NodeOutput::Geometry(ps) => groups.push(ps),
+                        NodeOutput::Geometries(gs) => groups.extend(gs),
+                        NodeOutput::Path(p) => groups.push(vec![p]),
+                        NodeOutput::Paths(ps) if !ps.is_empty() => {
+                            // Paths is a flat list — each path becomes its own group
+                            for p in ps {
+                                groups.push(vec![p]);
+                            }
+                        }
+                        NodeOutput::None | NodeOutput::Paths(_) => {}
+                        other => {
+                            let ps = other.to_paths();
+                            if !ps.is_empty() {
+                                for p in ps {
+                                    groups.push(vec![p]);
+                                }
+                            }
+                        }
+                    }
+                }
+                if groups.is_empty() {
+                    NodeOutput::None
+                } else {
+                    NodeOutput::Geometries(groups)
+                }
             } else {
-                NodeOutput::Paths(paths)
+                // Default: collect as Paths (geometry operations)
+                let paths: Vec<Path> = results.into_iter()
+                    .flat_map(|r| r.to_paths())
+                    .collect();
+                if paths.is_empty() {
+                    NodeOutput::None
+                } else {
+                    NodeOutput::Paths(paths)
+                }
             }
         }
     }
@@ -710,15 +908,27 @@ fn evaluate_node_cancellable(
         }
     }
 
+    // Convert input types to match port expectations (e.g., Path → Points)
+    convert_input_types(&mut inputs, node);
+
     // Determine iteration count for list matching
     let iteration_count = compute_iteration_count(&inputs, node);
 
-    let result = match iteration_count {
-        None => {
-            // Empty list input: still call execute_node to detect missing required inputs
-            execute_node(node, &inputs, port, project_context)
+    // Choose dispatch: subnetworks use evaluate_subnetwork, regular nodes use execute_node
+    let dispatch = |inputs: &HashMap<String, NodeOutput>| -> EvalResult {
+        if node.is_network {
+            evaluate_subnetwork(node, inputs, port, project_context)
+        } else {
+            execute_node(node, inputs, port, project_context)
         }
-        Some(1) => execute_node(node, &inputs, port, project_context), // Single iteration (optimization)
+    };
+
+    let result = match iteration_count {
+        None => dispatch(&inputs),
+        Some(1) => {
+            let iter_inputs = build_iteration_inputs(&inputs, node, 0);
+            dispatch(&iter_inputs)
+        }
         Some(count) => {
             // Multiple iterations: list matching with cancellation checks
             let mut results = Vec::with_capacity(count);
@@ -729,7 +939,7 @@ fn evaluate_node_cancellable(
                 }
 
                 let iter_inputs = build_iteration_inputs(&inputs, node, i);
-                let result = execute_node(node, &iter_inputs, port, project_context)?;
+                let result = dispatch(&iter_inputs)?;
                 results.push(result);
             }
             Ok(collect_results(results))
@@ -737,6 +947,165 @@ fn evaluate_node_cancellable(
     };
 
     // Cache and return
+    cache.insert(node_name.to_string(), result.clone());
+    result
+}
+
+/// Evaluate a subnetwork node by recursively evaluating its internal rendered child.
+///
+/// Published ports with `child_reference` (e.g., "translate1.translate") map external
+/// inputs to internal child ports. The subnetwork's own children and connections form
+/// the evaluation context.
+fn evaluate_subnetwork(
+    subnet: &Node,
+    inputs: &HashMap<String, NodeOutput>,
+    port: &Arc<dyn Platform>,
+    project_context: &ProjectContext,
+) -> EvalResult {
+    let rendered_name = match &subnet.rendered_child {
+        Some(name) => name.clone(),
+        None => return Ok(NodeOutput::None),
+    };
+
+    // Build override map: (child_node_name, child_port_name) → NodeOutput
+    // from published ports with childReference attributes
+    let mut overrides: HashMap<(String, String), NodeOutput> = HashMap::new();
+    for published_port in &subnet.inputs {
+        if let Some(child_ref) = &published_port.child_reference {
+            if let Some(input_value) = inputs.get(&published_port.name) {
+                if let Some(dot_pos) = child_ref.find('.') {
+                    let child_name = child_ref[..dot_pos].to_string();
+                    let child_port_name = child_ref[dot_pos + 1..].to_string();
+                    overrides.insert((child_name, child_port_name), input_value.clone());
+                }
+            }
+        }
+    }
+
+    // Evaluate the rendered child within the subnetwork context
+    let mut cache: HashMap<String, EvalResult> = HashMap::new();
+    evaluate_node_in_subnet(subnet, &rendered_name, &mut cache, &overrides, port, project_context)
+}
+
+/// Evaluate a node within a subnetwork context, with port overrides from published ports.
+fn evaluate_node_in_subnet(
+    network: &Node,
+    node_name: &str,
+    cache: &mut HashMap<String, EvalResult>,
+    overrides: &HashMap<(String, String), NodeOutput>,
+    port: &Arc<dyn Platform>,
+    project_context: &ProjectContext,
+) -> EvalResult {
+    // Check cache first
+    if let Some(result) = cache.get(node_name) {
+        return result.clone();
+    }
+
+    // Find the node
+    let node = match network.child(node_name) {
+        Some(n) => n,
+        None => return Err(EvalError::NodeNotFound(node_name.to_string())),
+    };
+
+    // Collect input values for this node
+    let mut inputs: HashMap<String, NodeOutput> = HashMap::new();
+
+    // For each input port, check connections, then overrides, then defaults
+    for node_port in &node.inputs {
+        let connections: Vec<_> = network.connections
+            .iter()
+            .filter(|c| c.input_node == node_name && c.input_port == node_port.name)
+            .collect();
+
+        if !connections.is_empty() {
+            // Connected — evaluate upstream within the subnetwork
+            if connections.len() == 1 {
+                let upstream_output = evaluate_node_in_subnet(
+                    network, &connections[0].output_node, cache, overrides, port, project_context
+                )?;
+                inputs.insert(node_port.name.clone(), upstream_output);
+            } else {
+                let mut all_paths: Vec<Path> = Vec::new();
+                for conn in connections {
+                    let upstream_output = evaluate_node_in_subnet(
+                        network, &conn.output_node, cache, overrides, port, project_context
+                    )?;
+                    all_paths.extend(upstream_output.to_paths());
+                }
+                inputs.insert(node_port.name.clone(), NodeOutput::Paths(all_paths));
+            }
+        } else if let Some(override_value) = overrides.get(&(node_name.to_string(), node_port.name.clone())) {
+            // Override from published port
+            inputs.insert(node_port.name.clone(), override_value.clone());
+        } else {
+            // Default value
+            inputs.insert(node_port.name.clone(), value_to_output(&node_port.value));
+        }
+    }
+
+    // Also check connections for ports not in the node's inputs list
+    for conn in &network.connections {
+        if conn.input_node == node_name && !inputs.contains_key(&conn.input_port) {
+            let all_conns: Vec<_> = network.connections
+                .iter()
+                .filter(|c| c.input_node == node_name && c.input_port == conn.input_port)
+                .collect();
+
+            if all_conns.len() == 1 {
+                let upstream_output = evaluate_node_in_subnet(
+                    network, &conn.output_node, cache, overrides, port, project_context
+                )?;
+                inputs.insert(conn.input_port.clone(), upstream_output);
+            } else {
+                let mut all_paths: Vec<Path> = Vec::new();
+                for c in all_conns {
+                    let upstream_output = evaluate_node_in_subnet(
+                        network, &c.output_node, cache, overrides, port, project_context
+                    )?;
+                    all_paths.extend(upstream_output.to_paths());
+                }
+                inputs.insert(conn.input_port.clone(), NodeOutput::Paths(all_paths));
+            }
+        }
+    }
+
+    // Also apply overrides for ports not yet in inputs (no connection and no port def)
+    for ((child_name, child_port_name), override_value) in overrides {
+        if child_name == node_name && !inputs.contains_key(child_port_name) {
+            inputs.insert(child_port_name.clone(), override_value.clone());
+        }
+    }
+
+    // Convert upstream outputs to match port types
+    convert_input_types(&mut inputs, node);
+
+    // If this node is itself a network, recurse
+    if node.is_network {
+        let result = evaluate_subnetwork(node, &inputs, port, project_context);
+        cache.insert(node_name.to_string(), result.clone());
+        return result;
+    }
+
+    // Determine iteration count for list matching
+    let iteration_count = compute_iteration_count(&inputs, node);
+
+    let result = match iteration_count {
+        None => execute_node(node, &inputs, port, project_context),
+        Some(1) => {
+            let iter_inputs = build_iteration_inputs(&inputs, node, 0);
+            execute_node(node, &iter_inputs, port, project_context)
+        }
+        Some(count) => {
+            let mut results = Vec::with_capacity(count);
+            for i in 0..count {
+                let iter_inputs = build_iteration_inputs(&inputs, node, i);
+                let result = execute_node(node, &iter_inputs, port, project_context)?;
+                results.push(result);
+            }
+            Ok(collect_results(results))
+        }
+    };
+
     cache.insert(node_name.to_string(), result.clone());
     result
 }
@@ -814,22 +1183,33 @@ fn evaluate_node(
         }
     }
 
+    // Convert upstream outputs to match port types (e.g. Path → Points for point ports)
+    convert_input_types(&mut inputs, node);
+
     // Determine iteration count for list matching
     let iteration_count = compute_iteration_count(&inputs, node);
 
-    let result = match iteration_count {
-        None => {
-            // Empty list input: still call execute_node to detect missing required inputs
-            // This ensures nodes that require inputs produce proper errors
-            execute_node(node, &inputs, port, project_context)
+    // Choose dispatch: subnetworks use evaluate_subnetwork, regular nodes use execute_node
+    let dispatch = |inputs: &HashMap<String, NodeOutput>| -> EvalResult {
+        if node.is_network {
+            evaluate_subnetwork(node, inputs, port, project_context)
+        } else {
+            execute_node(node, inputs, port, project_context)
         }
-        Some(1) => execute_node(node, &inputs, port, project_context), // Single iteration (optimization)
+    };
+
+    let result = match iteration_count {
+        None => dispatch(&inputs),
+        Some(1) => {
+            let iter_inputs = build_iteration_inputs(&inputs, node, 0);
+            dispatch(&iter_inputs)
+        }
         Some(count) => {
             // Multiple iterations: list matching
             let mut results = Vec::with_capacity(count);
             for i in 0..count {
                 let iter_inputs = build_iteration_inputs(&inputs, node, i);
-                let result = execute_node(node, &iter_inputs, port, project_context)?;
+                let result = dispatch(&iter_inputs)?;
                 results.push(result);
             }
             Ok(collect_results(results))
@@ -908,6 +1288,8 @@ fn get_path(inputs: &HashMap<String, NodeOutput>, name: &str) -> Option<Path> {
     match inputs.get(name) {
         Some(NodeOutput::Path(p)) => Some(p.clone()),
         Some(NodeOutput::Paths(ps)) if !ps.is_empty() => Some(ps[0].clone()),
+        Some(NodeOutput::Geometry(ps)) if !ps.is_empty() => Some(ps[0].clone()),
+        Some(NodeOutput::Geometries(gs)) if !gs.is_empty() && !gs[0].is_empty() => Some(gs[0][0].clone()),
         _ => None,
     }
 }
@@ -917,6 +1299,8 @@ fn get_paths(inputs: &HashMap<String, NodeOutput>, name: &str) -> Vec<Path> {
     match inputs.get(name) {
         Some(NodeOutput::Path(p)) => vec![p.clone()],
         Some(NodeOutput::Paths(ps)) => ps.clone(),
+        Some(NodeOutput::Geometry(ps)) => ps.clone(),
+        Some(NodeOutput::Geometries(groups)) => groups.iter().flat_map(|g| g.clone()).collect(),
         _ => Vec::new(),
     }
 }
@@ -990,6 +1374,8 @@ fn require_path(inputs: &HashMap<String, NodeOutput>, node_name: &str, port_name
     match inputs.get(port_name) {
         Some(NodeOutput::Path(p)) => Ok(p.clone()),
         Some(NodeOutput::Paths(ps)) if !ps.is_empty() => Ok(ps[0].clone()),
+        Some(NodeOutput::Geometry(ps)) if !ps.is_empty() => Ok(ps[0].clone()),
+        Some(NodeOutput::Geometries(gs)) if !gs.is_empty() && !gs[0].is_empty() => Ok(gs[0][0].clone()),
         _ => Err(EvalError::PortNotFound {
             node: node_name.to_string(),
             port: port_name.to_string(),
@@ -1002,6 +1388,8 @@ fn require_paths(inputs: &HashMap<String, NodeOutput>, node_name: &str, port_nam
     match inputs.get(port_name) {
         Some(NodeOutput::Path(p)) => Ok(vec![p.clone()]),
         Some(NodeOutput::Paths(ps)) if !ps.is_empty() => Ok(ps.clone()),
+        Some(NodeOutput::Geometry(ps)) if !ps.is_empty() => Ok(ps.clone()),
+        Some(NodeOutput::Geometries(gs)) if !gs.is_empty() => Ok(gs.iter().flat_map(|g| g.clone()).collect()),
         _ => Err(EvalError::PortNotFound {
             node: node_name.to_string(),
             port: port_name.to_string(),
@@ -1052,17 +1440,19 @@ fn execute_node(
         }
         "corevector.polygon" => {
             let position = get_point(inputs, "position", Point::ZERO);
-            let radius = get_float(inputs, "radius", 50.0);
-            let sides = get_int(inputs, "sides", 6).max(0) as u32;
-            let align = get_bool(inputs, "align", true);
+            // Defaults from corevector.ndbx: radius=100.0, sides=3, align=false
+            let radius = get_float(inputs, "radius", 100.0);
+            let sides = get_int(inputs, "sides", 3).max(0) as u32;
+            let align = get_bool(inputs, "align", false);
             let path = ops::polygon(position, radius, sides, align);
             Ok(NodeOutput::Path(path))
         }
         "corevector.star" => {
             let position = get_point(inputs, "position", Point::ZERO);
-            let points = get_int(inputs, "points", 5).max(0) as u32;
-            let outer = get_float(inputs, "outer", 50.0);
-            let inner = get_float(inputs, "inner", 25.0);
+            // Defaults from corevector.ndbx: points=20, outer=200, inner=100
+            let points = get_int(inputs, "points", 20).max(0) as u32;
+            let outer = get_float(inputs, "outer", 200.0);
+            let inner = get_float(inputs, "inner", 100.0);
             let path = ops::star(position, points, outer, inner);
             Ok(NodeOutput::Path(path))
         }
@@ -1072,7 +1462,8 @@ fn execute_node(
             let height = get_float(inputs, "height", 100.0);
             // Note: corevector.ndbx uses "start_angle" (underscore), not "startAngle"
             let start_angle = get_float(inputs, "start_angle", 0.0);
-            let degrees = get_float(inputs, "degrees", 90.0);
+            // Default from corevector.ndbx: degrees=45.0
+            let degrees = get_float(inputs, "degrees", 45.0);
             let arc_type = get_string(inputs, "type", "pie");
             let path = ops::arc(position, width, height, start_angle, degrees, &arc_type);
             Ok(NodeOutput::Path(path))
@@ -1089,63 +1480,167 @@ fn execute_node(
             Ok(NodeOutput::Path(path))
         }
 
+        "corevector.text_on_path" => {
+            let text = get_string(inputs, "text", "text following a path");
+            let font_name = get_string(inputs, "font_name", "Verdana");
+            let font_size = get_float(inputs, "font_size", 24.0);
+            let alignment = get_string(inputs, "alignment", "leading");
+            let margin = get_float(inputs, "margin", 0.0);
+            let baseline_offset = get_float(inputs, "baseline_offset", 0.0);
+            let font_bytes = port
+                .get_font_bytes(&font_name)
+                .unwrap_or_else(|_| font::BUNDLED_FONT_BYTES.to_vec());
+            if let Some(shape) = get_path(inputs, "path") {
+                let path = font::text_on_path(
+                    &text,
+                    &shape,
+                    &font_bytes,
+                    font_size,
+                    &alignment,
+                    margin,
+                    baseline_offset,
+                )
+                .map_err(|e| EvalError::ProcessingError(e.to_string()))?;
+                Ok(NodeOutput::Path(path))
+            } else {
+                Ok(NodeOutput::None)
+            }
+        }
+
+        "corevector.compound" => {
+            let function = get_string(inputs, "function", "united");
+            let invert = get_bool(inputs, "invert_difference", false);
+            let op = ops::CompoundOp::from_str(&function);
+            // Merge Geometry inputs into a single compound path (all contours)
+            // to match Java's Area behavior which considers all paths in a Geometry.
+            let s1 = match inputs.get("shape1") {
+                Some(NodeOutput::Geometry(ps)) if !ps.is_empty() => {
+                    let mut merged = ps[0].clone();
+                    for p in &ps[1..] {
+                        merged.contours.extend(p.contours.iter().cloned());
+                    }
+                    Some(merged)
+                }
+                _ => get_path(inputs, "shape1"),
+            };
+            let s2 = match inputs.get("shape2") {
+                Some(NodeOutput::Geometry(ps)) if !ps.is_empty() => {
+                    let mut merged = ps[0].clone();
+                    for p in &ps[1..] {
+                        merged.contours.extend(p.contours.iter().cloned());
+                    }
+                    Some(merged)
+                }
+                _ => get_path(inputs, "shape2"),
+            };
+            if let (Some(s1), Some(s2)) = (s1, s2) {
+                Ok(NodeOutput::Path(ops::compound(&s1, &s2, op, invert)))
+            } else if let Some(s1) = get_path(inputs, "shape1") {
+                Ok(NodeOutput::Path(s1))
+            } else {
+                Ok(NodeOutput::None)
+            }
+        }
+
         // Filters/transforms
         "corevector.colorize" => {
-            let shape = require_path(inputs, node_name, "shape")?;
-            let fill = get_color(inputs, "fill", Color::WHITE);
+            // Defaults from corevector.ndbx: fill=#000000ff, stroke=#000000ff, strokeWidth=0.0
+            let fill = get_color(inputs, "fill", Color::BLACK);
             let stroke = get_color(inputs, "stroke", Color::BLACK);
-            let stroke_width = get_float(inputs, "strokeWidth", 1.0);
-            let path = ops::colorize(&shape, fill, stroke, stroke_width);
-            Ok(NodeOutput::Path(path))
+            let stroke_width = get_float(inputs, "strokeWidth", 0.0);
+            // Handle Geometry: colorize all paths, preserve compound semantics
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let colored: Vec<Path> = ps.iter().map(|p| ops::colorize(p, fill, stroke, stroke_width)).collect();
+                Ok(NodeOutput::Geometry(colored))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                let path = ops::colorize(&shape, fill, stroke, stroke_width);
+                Ok(NodeOutput::Path(path))
+            }
         }
         "corevector.translate" => {
-            let shape = require_path(inputs, node_name, "shape")?;
             let offset = get_point(inputs, "translate", Point::ZERO);
-            let path = ops::translate(&shape, offset);
-            Ok(NodeOutput::Path(path))
+            // Handle Geometry: translate all paths, preserve compound semantics
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let translated: Vec<Path> = ps.iter().map(|p| ops::translate(p, offset)).collect();
+                Ok(NodeOutput::Geometry(translated))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                let path = ops::translate(&shape, offset);
+                Ok(NodeOutput::Path(path))
+            }
         }
         "corevector.rotate" => {
-            let shape = require_path(inputs, node_name, "shape")?;
             let angle = get_float(inputs, "angle", 0.0);
             let origin = get_point(inputs, "origin", Point::ZERO);
-            let path = ops::rotate(&shape, angle, origin);
-            Ok(NodeOutput::Path(path))
+            // Handle Geometry: rotate all paths, preserve compound semantics
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let rotated: Vec<Path> = ps.iter().map(|p| ops::rotate(p, angle, origin)).collect();
+                Ok(NodeOutput::Geometry(rotated))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                let path = ops::rotate(&shape, angle, origin);
+                Ok(NodeOutput::Path(path))
+            }
         }
         "corevector.scale" => {
-            let shape = require_path(inputs, node_name, "shape")?;
             let scale = get_point(inputs, "scale", Point::new(100.0, 100.0));
             let origin = get_point(inputs, "origin", Point::ZERO);
-            let path = ops::scale(&shape, scale, origin);
-            Ok(NodeOutput::Path(path))
+            // Handle Geometry: scale all paths, preserve compound semantics
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let scaled: Vec<Path> = ps.iter().map(|p| ops::scale(p, scale, origin)).collect();
+                Ok(NodeOutput::Geometry(scaled))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                let path = ops::scale(&shape, scale, origin);
+                Ok(NodeOutput::Path(path))
+            }
         }
         "corevector.align" => {
-            let shape = require_path(inputs, node_name, "shape")?;
             let position = get_point(inputs, "position", Point::ZERO);
             let halign = get_string(inputs, "halign", "center");
             let valign = get_string(inputs, "valign", "middle");
-            let path = ops::align_str(&shape, position, &halign, &valign);
-            Ok(NodeOutput::Path(path))
+            // Handle Geometry: align all paths, preserve compound semantics
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let aligned: Vec<Path> = ps.iter().map(|p| ops::align_str(p, position, &halign, &valign)).collect();
+                Ok(NodeOutput::Geometry(aligned))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                let path = ops::align_str(&shape, position, &halign, &valign);
+                Ok(NodeOutput::Path(path))
+            }
         }
         "corevector.fit" => {
-            let shape = require_path(inputs, node_name, "shape")?;
-            // Note: corevector.ndbx uses "position" (Point) and "keep_proportions" (underscore)
             let position = get_point(inputs, "position", Point::ZERO);
-            let width = get_float(inputs, "width", 100.0);
-            let height = get_float(inputs, "height", 100.0);
+            let width = get_float(inputs, "width", 300.0);
+            let height = get_float(inputs, "height", 300.0);
             let keep_proportions = get_bool(inputs, "keep_proportions", true);
-            let path = ops::fit(&shape, position, width, height, keep_proportions);
-            Ok(NodeOutput::Path(path))
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let fitted: Vec<Path> = ps.iter().map(|p| ops::fit(p, position, width, height, keep_proportions)).collect();
+                Ok(NodeOutput::Geometry(fitted))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                Ok(NodeOutput::Path(ops::fit(&shape, position, width, height, keep_proportions)))
+            }
         }
         "corevector.copy" => {
-            let shape = require_path(inputs, node_name, "shape")?;
             let copies = get_int(inputs, "copies", 1).max(0) as u32;
             let order = ops::CopyOrder::from_str(&get_string(inputs, "order", "tsr"));
             // Note: corevector.ndbx uses "translate" (Point) and "scale" (Point)
             let translate = get_point(inputs, "translate", Point::ZERO);
             let rotate = get_float(inputs, "rotate", 0.0);
             let scale = get_point(inputs, "scale", Point::new(100.0, 100.0));
-            let paths = ops::copy(&shape, copies, order, translate, rotate, scale);
-            Ok(NodeOutput::Paths(paths))
+            // Handle Geometry input: copy ALL paths in the compound shape
+            let input_paths = get_paths(inputs, "shape");
+            if input_paths.is_empty() {
+                return Ok(NodeOutput::None);
+            }
+            let mut all_paths = Vec::new();
+            for path in &input_paths {
+                all_paths.extend(ops::copy(path, copies, order, translate, rotate, scale));
+            }
+            // Return as Geometry to preserve compound semantics
+            Ok(NodeOutput::Geometry(all_paths))
         }
 
         // Combine operations
@@ -1165,42 +1660,60 @@ fn execute_node(
 
         // List combine - combines multiple lists into one
         "list.combine" => {
-            let mut all_paths: Vec<Path> = Vec::new();
-            // Collect from list1 through list5
+            // Generic combine: collect all inputs as individual values
+            let mut all_values: Vec<NodeOutput> = Vec::new();
             for port_name in ["list1", "list2", "list3", "list4", "list5"] {
-                let paths = get_paths(inputs, port_name);
-                all_paths.extend(paths);
+                if let Some(output) = inputs.get(port_name) {
+                    if !matches!(output, NodeOutput::None) {
+                        let vals = output.to_value_list();
+                        all_values.extend(vals);
+                    }
+                }
             }
-            if all_paths.is_empty() {
+            if all_values.is_empty() {
                 Ok(NodeOutput::None)
             } else {
-                Ok(NodeOutput::Paths(all_paths))
+                let result = collect_results(all_values);
+                Ok(result)
             }
         }
 
         // Resample
         "corevector.resample" => {
-            let shape = require_path(inputs, node_name, "shape")?;
             let method = get_string(inputs, "method", "length");
-            let path = if method == "length" {
-                let length = get_float(inputs, "length", 10.0).max(1.0);
-                ops::resample_by_length(&shape, length)
-            } else {
-                let points = get_int(inputs, "points", 20).max(0) as usize;
-                ops::resample(&shape, points)
+            let resample_one = |shape: &Path| -> Path {
+                if method == "length" {
+                    let length = get_float(inputs, "length", 10.0).max(1.0);
+                    ops::resample_by_length(shape, length)
+                } else {
+                    let points = get_int(inputs, "points", 20).max(0) as usize;
+                    ops::resample(shape, points)
+                }
             };
-            Ok(NodeOutput::Path(path))
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let resampled: Vec<Path> = ps.iter().map(|p| resample_one(p)).collect();
+                Ok(NodeOutput::Geometry(resampled))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                Ok(NodeOutput::Path(resample_one(&shape)))
+            }
         }
 
         // Wiggle
         "corevector.wiggle" => {
-            let shape = require_path(inputs, node_name, "shape")?;
             let scope = ops::WiggleScope::from_str(&get_string(inputs, "scope", "points"));
-            // Note: corevector.ndbx uses "offset" (Point), not offsetX/offsetY
             let offset = get_point(inputs, "offset", Point::new(10.0, 10.0));
             let seed = get_int(inputs, "seed", 0) as u64;
-            let path = ops::wiggle(&shape, scope, offset, seed);
-            Ok(NodeOutput::Path(path))
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let wiggled: Vec<Path> = ps.iter().enumerate().map(|(i, p)| {
+                    ops::wiggle(p, scope, offset, seed.wrapping_add(i as u64))
+                }).collect();
+                Ok(NodeOutput::Geometry(wiggled))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                let path = ops::wiggle(&shape, scope, offset, seed);
+                Ok(NodeOutput::Path(path))
+            }
         }
 
         // Connect points
@@ -1218,10 +1731,11 @@ fn execute_node(
 
         // Grid of points
         "corevector.grid" => {
-            let columns = get_int(inputs, "columns", 3).max(0) as u32;
-            let rows = get_int(inputs, "rows", 3).max(0) as u32;
-            let width = get_float(inputs, "width", 100.0);
-            let height = get_float(inputs, "height", 100.0);
+            // Defaults from corevector.ndbx: columns=10, rows=10, width=300, height=300
+            let columns = get_int(inputs, "columns", 10).max(0) as u32;
+            let rows = get_int(inputs, "rows", 10).max(0) as u32;
+            let width = get_float(inputs, "width", 300.0);
+            let height = get_float(inputs, "height", 300.0);
             // Note: corevector.ndbx uses "position" (Point), not x/y
             let position = get_point(inputs, "position", Point::ZERO);
             let points = ops::grid(columns, rows, width, height, position);
@@ -1229,42 +1743,64 @@ fn execute_node(
         }
 
         // Make point
-        "corevector.point" | "corevector.makePoint" | "corevector.make_point" => {
+        "corevector.makePoint" | "corevector.make_point" => {
             let x = get_float(inputs, "x", 0.0);
             let y = get_float(inputs, "y", 0.0);
             Ok(NodeOutput::Point(Point::new(x, y)))
         }
 
+        // Point pass-through (outputs the input Point value)
+        "corevector.point" => {
+            let value = get_point(inputs, "value", Point::ZERO);
+            Ok(NodeOutput::Point(value))
+        }
+
         // Reflect
         "corevector.reflect" => {
-            let shape = require_path(inputs, node_name, "shape")?;
-            // Note: corevector.ndbx uses "position" (Point), "angle", "keep_original"
             let position = get_point(inputs, "position", Point::ZERO);
-            let angle = get_float(inputs, "angle", 0.0);
+            let angle = get_float(inputs, "angle", 120.0);
             let keep_original = get_bool(inputs, "keep_original", true);
-            let geometry = ops::reflect(&shape, position, angle, keep_original);
-            Ok(NodeOutput::Paths(ops::ungroup(&geometry)))
+            // Handle Geometry: reflect all paths, preserve compound semantics
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let mut all_paths: Vec<Path> = Vec::new();
+                for p in ps {
+                    let geometry = ops::reflect(p, position, angle, keep_original);
+                    all_paths.extend(ops::ungroup(&geometry));
+                }
+                Ok(NodeOutput::Geometry(all_paths))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                let geometry = ops::reflect(&shape, position, angle, keep_original);
+                let ungrouped = ops::ungroup(&geometry);
+                Ok(NodeOutput::Geometry(ungrouped))
+            }
         }
 
         // Skew
         "corevector.skew" => {
-            let shape = require_path(inputs, node_name, "shape")?;
-            // Note: corevector.ndbx uses "skew" (Point), "origin" (Point)
             let skew = get_point(inputs, "skew", Point::ZERO);
             let origin = get_point(inputs, "origin", Point::ZERO);
-            let path = ops::skew(&shape, skew, origin);
-            Ok(NodeOutput::Path(path))
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let skewed: Vec<Path> = ps.iter().map(|p| ops::skew(p, skew, origin)).collect();
+                Ok(NodeOutput::Geometry(skewed))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                Ok(NodeOutput::Path(ops::skew(&shape, skew, origin)))
+            }
         }
 
         // Snap to grid
         "corevector.snap" => {
-            let shape = require_path(inputs, node_name, "shape")?;
-            // Note: corevector.ndbx uses "distance" (float), "strength" (float), "position" (Point)
             let distance = get_float(inputs, "distance", 10.0);
-            let strength = get_float(inputs, "strength", 1.0);
+            let strength = get_float(inputs, "strength", 100.0);
             let position = get_point(inputs, "position", Point::ZERO);
-            let path = ops::snap(&shape, distance, strength, position);
-            Ok(NodeOutput::Path(path))
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let snapped: Vec<Path> = ps.iter().map(|p| ops::snap(p, distance, strength, position)).collect();
+                Ok(NodeOutput::Geometry(snapped))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                Ok(NodeOutput::Path(ops::snap(&shape, distance, strength, position)))
+            }
         }
 
         // Point on path
@@ -1297,8 +1833,9 @@ fn execute_node(
         // Quad curve
         "corevector.quad_curve" => {
             let point1 = get_point(inputs, "point1", Point::ZERO);
-            let point2 = get_point(inputs, "point2", Point::new(100.0, 100.0));
-            let t = get_float(inputs, "t", 0.5);
+            // Defaults from corevector.ndbx: point2=(100,0), t=50.0, distance=50.0
+            let point2 = get_point(inputs, "point2", Point::new(100.0, 0.0));
+            let t = get_float(inputs, "t", 50.0);
             let distance = get_float(inputs, "distance", 50.0);
             let path = ops::quad_curve(point1, point2, t, distance);
             Ok(NodeOutput::Path(path))
@@ -1306,11 +1843,20 @@ fn execute_node(
 
         // Scatter points
         "corevector.scatter" => {
-            let shape = require_path(inputs, node_name, "shape")?;
             let amount = get_int(inputs, "amount", 10) as usize;
             let seed = get_int(inputs, "seed", 0) as u64;
-            let points = ops::scatter(&shape, amount, seed);
-            Ok(NodeOutput::Points(points))
+            // For Geometry input, scatter across all paths combined
+            if let Some(NodeOutput::Geometry(ps)) = inputs.get("shape") {
+                let mut all_points = Vec::new();
+                for (i, p) in ps.iter().enumerate() {
+                    all_points.extend(ops::scatter(p, amount, seed.wrapping_add(i as u64)));
+                }
+                Ok(NodeOutput::Points(all_points))
+            } else {
+                let shape = require_path(inputs, node_name, "shape")?;
+                let points = ops::scatter(&shape, amount, seed);
+                Ok(NodeOutput::Points(points))
+            }
         }
 
         // Stack
@@ -1359,8 +1905,7 @@ fn execute_node(
         // Group
         "corevector.group" => {
             let shapes = get_paths(inputs, "shapes");
-            let geometry = ops::group(&shapes);
-            Ok(NodeOutput::Paths(ops::ungroup(&geometry)))
+            Ok(NodeOutput::Geometry(shapes))
         }
 
         // Ungroup
@@ -1385,10 +1930,17 @@ fn execute_node(
 
         // Delete
         "corevector.delete" => {
-            let shape = require_path(inputs, node_name, "shape")?;
             let bounding = match get_path(inputs, "bounding") {
                 Some(p) => p,
-                None => return Ok(NodeOutput::Path(shape)),
+                None => {
+                    // No bounding shape — pass through
+                    let shapes = get_paths(inputs, "shape");
+                    return if shapes.len() == 1 {
+                        Ok(NodeOutput::Path(shapes.into_iter().next().unwrap()))
+                    } else {
+                        Ok(NodeOutput::Paths(shapes))
+                    };
+                }
             };
             let scope = get_string(inputs, "scope", "points");
             let delete_scope = match scope.as_str() {
@@ -1397,13 +1949,29 @@ fn execute_node(
             };
             let operation = get_string(inputs, "operation", "selected");
             let delete_inside = operation == "selected";
-            let path = ops::delete(&shape, &bounding, delete_scope, delete_inside);
-            Ok(NodeOutput::Path(path))
+
+            // Handle both single path and list of paths
+            let shapes = get_paths(inputs, "shape");
+            if shapes.is_empty() {
+                return Ok(NodeOutput::None);
+            }
+            let mut result_paths: Vec<Path> = Vec::new();
+            for shape in &shapes {
+                let deleted = ops::delete(shape, &bounding, delete_scope, delete_inside);
+                // Only keep non-empty paths
+                if !deleted.contours.is_empty() {
+                    result_paths.push(deleted);
+                }
+            }
+            if result_paths.len() == 1 {
+                Ok(NodeOutput::Path(result_paths.into_iter().next().unwrap()))
+            } else {
+                Ok(NodeOutput::Paths(result_paths))
+            }
         }
 
         // Sort
         "corevector.sort" => {
-            let shapes = require_paths(inputs, node_name, "shapes")?;
             let order_by = get_string(inputs, "order_by", "x");
             let sort_by = match order_by.as_str() {
                 "y" => ops::SortBy::Y,
@@ -1412,8 +1980,23 @@ fn execute_node(
                 _ => ops::SortBy::X,
             };
             let position = get_point(inputs, "position", Point::ZERO);
-            let paths = ops::sort_paths(&shapes, sort_by, position);
-            Ok(NodeOutput::Paths(paths))
+            // Handle both Paths and Points inputs
+            match inputs.get("shapes") {
+                Some(NodeOutput::Paths(_)) | Some(NodeOutput::Path(_)) => {
+                    let shapes = get_paths(inputs, "shapes");
+                    let paths = ops::sort_paths(&shapes, sort_by, position);
+                    Ok(NodeOutput::Paths(paths))
+                }
+                Some(NodeOutput::Points(points)) => {
+                    let mut sorted = points.clone();
+                    ops::sort_points(&mut sorted, sort_by, position);
+                    Ok(NodeOutput::Points(sorted))
+                }
+                Some(NodeOutput::Point(pt)) => {
+                    Ok(NodeOutput::Points(vec![*pt]))
+                }
+                _ => Err(EvalError::PortNotFound { node: node_name.to_string(), port: "shapes".to_string() }),
+            }
         }
 
         // Import SVG
@@ -1465,10 +2048,10 @@ fn execute_node(
             Ok(NodeOutput::Paths(paths))
         }
 
-        // Geometry: null / doNothing
+        // Geometry: null / doNothing — pass through any input type
         "corevector.null" => {
-            if let Some(path) = get_path(inputs, "shape") {
-                Ok(NodeOutput::Path(path))
+            if let Some(output) = inputs.get("shape") {
+                Ok(output.clone())
             } else {
                 Ok(NodeOutput::None)
             }
@@ -1828,6 +2411,7 @@ fn execute_node(
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Int(v.len() as i64)),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Int(v.len() as i64)),
                 Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Int(v.len() as i64)),
+                Some(NodeOutput::Geometries(v)) => Ok(NodeOutput::Int(v.len() as i64)),
                 _ => Ok(NodeOutput::Int(0)),
             }
         }
@@ -1909,6 +2493,7 @@ fn execute_node(
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(ops::list::slice(v, start_index, size, invert))),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(ops::list::slice(v, start_index, size, invert))),
                 Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Colors(ops::list::slice(v, start_index, size, invert))),
+                Some(NodeOutput::Geometries(v)) => Ok(NodeOutput::Geometries(ops::list::slice(v, start_index, size, invert))),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -1977,6 +2562,7 @@ fn execute_node(
                 Some(NodeOutput::Strings(v)) => Ok(NodeOutput::Strings(ops::list::pick(v, amount, seed))),
                 Some(NodeOutput::Booleans(v)) => Ok(NodeOutput::Booleans(ops::list::pick(v, amount, seed))),
                 Some(NodeOutput::Colors(v)) => Ok(NodeOutput::Colors(ops::list::pick(v, amount, seed))),
+                Some(NodeOutput::Geometries(v)) => Ok(NodeOutput::Geometries(ops::list::pick(v, amount, seed))),
                 _ => Ok(NodeOutput::None),
             }
         }
@@ -2236,6 +2822,21 @@ fn execute_node(
                         None => Ok(NodeOutput::String(String::new())),
                     }
                 }
+                // Support looking up x/y properties on Point objects (Java uses reflection)
+                Some(NodeOutput::Point(p)) => {
+                    match key.as_str() {
+                        "x" => Ok(NodeOutput::Float(p.x)),
+                        "y" => Ok(NodeOutput::Float(p.y)),
+                        _ => Ok(NodeOutput::String(String::new())),
+                    }
+                }
+                Some(NodeOutput::Points(pts)) if !pts.is_empty() => {
+                    match key.as_str() {
+                        "x" => Ok(NodeOutput::Float(pts[0].x)),
+                        "y" => Ok(NodeOutput::Float(pts[0].y)),
+                        _ => Ok(NodeOutput::String(String::new())),
+                    }
+                }
                 _ => Ok(NodeOutput::String(String::new())),
             }
         }
@@ -2455,9 +3056,9 @@ mod tests {
         let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
         assert_eq!(paths.len(), 1);
 
-        // Star with outer radius 50 should have bounds approximately 100x100
+        // Star with outer=50 (diameter). Actual radius = 25, so bounds ~50x50
         let bounds = paths[0].bounds().unwrap();
-        assert!(bounds.width > 80.0 && bounds.width < 110.0);
+        assert!(bounds.width > 40.0 && bounds.width < 55.0);
     }
 
     #[test]
@@ -3535,5 +4136,99 @@ mod tests {
         let c2 = output.color_at(2).unwrap();
         assert!((c2.b - 1.0).abs() < 0.01);
         assert!(output.color_at(3).is_none());
+    }
+
+    #[test]
+    fn test_subnetwork_evaluation() {
+        // Build a simple subnetwork: a network node containing a rect + colorize,
+        // with published ports mapping external size → rect.width/height
+        let mut subnet = Node::network("mynet");
+        subnet.prototype = Some("core.network".to_string());
+        subnet.rendered_child = Some("colorize1".to_string());
+        subnet.children = vec![
+            Node::new("rect1")
+                .with_prototype("corevector.rect")
+                .with_input(Port::float("width", 50.0))
+                .with_input(Port::float("height", 50.0)),
+            Node::new("colorize1")
+                .with_prototype("corevector.colorize")
+                .with_input(Port::geometry("shape"))
+                .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0))),
+        ];
+        subnet.connections = vec![
+            Connection::new("rect1", "colorize1", "shape"),
+        ];
+        // Published port: "size" → rect1.width
+        let mut size_port = Port::float("size", 100.0);
+        size_port.child_reference = Some("rect1.width".to_string());
+        subnet.inputs = vec![size_port];
+
+        // Build the outer network
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("number1")
+                    .with_prototype("math.number")
+                    .with_input(Port::float("value", 200.0))
+            )
+            .with_child(subnet)
+            .with_connection(Connection::new("number1", "mynet", "size"))
+            .with_rendered_child("mynet");
+
+        let (port, ctx) = test_platform_and_context();
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
+        assert_eq!(paths.len(), 1);
+
+        // The rect width should be 200 (from the number node), not 50 (default)
+        let bounds = paths[0].bounds().unwrap();
+        assert!((bounds.width - 200.0).abs() < 0.1,
+            "Expected width=200, got {}", bounds.width);
+    }
+
+    #[test]
+    fn test_subnetwork_with_list_broadcasting() {
+        // Subnetwork that takes a position and draws a rect at that position.
+        // When called with a list of positions, should produce one rect per position.
+        let mut subnet = Node::network("placer");
+        subnet.prototype = Some("core.network".to_string());
+        subnet.rendered_child = Some("translate1".to_string());
+        subnet.children = vec![
+            Node::new("rect1")
+                .with_prototype("corevector.rect")
+                .with_input(Port::float("width", 20.0))
+                .with_input(Port::float("height", 20.0)),
+            Node::new("translate1")
+                .with_prototype("corevector.translate")
+                .with_input(Port::geometry("shape"))
+                .with_input(Port::point("translate", Point::ZERO)),
+        ];
+        subnet.connections = vec![
+            Connection::new("rect1", "translate1", "shape"),
+        ];
+        // Published port: "position" → translate1.translate (VALUE-range)
+        let mut pos_port = Port::point("position", Point::ZERO);
+        pos_port.child_reference = Some("translate1.translate".to_string());
+        subnet.inputs = vec![pos_port];
+
+        // Build outer network with a grid that produces points
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("grid1")
+                    .with_prototype("corevector.grid")
+                    .with_input(Port::int("rows", 3))
+                    .with_input(Port::int("columns", 3))
+                    .with_output_type(PortType::Point)
+                    .with_output_range(PortRange::List)
+            )
+            .with_child(subnet)
+            .with_connection(Connection::new("grid1", "placer", "position"))
+            .with_rendered_child("placer");
+
+        let (port, ctx) = test_platform_and_context();
+        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
+        // 3x3 grid = 9 points → 9 rects
+        assert_eq!(paths.len(), 9,
+            "Expected 9 paths for 3x3 grid, got {}", paths.len());
     }
 }

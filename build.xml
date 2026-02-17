@@ -255,6 +255,24 @@
         </exec>
     </target>
 
+    <target name="compile-dev" depends="compile">
+        <javac srcdir="${dev}" destdir="${build.dev}" release="11" includeantruntime="false" deprecation="yes">
+            <classpath refid="runtime.classpath"/>
+            <compilerarg value="-Xlint:unchecked"/>
+        </javac>
+    </target>
+
+    <target name="batch-render" depends="compile-dev" description="Render all examples to SVG">
+        <java classname="nodebox.BatchRenderer" fork="true">
+            <classpath>
+                <path refid="runtime.classpath"/>
+                <pathelement location="${build.dev}"/>
+            </classpath>
+            <arg value="--all"/>
+            <arg value="golden-master/java"/>
+        </java>
+    </target>
+
     <target name="sign-mac" depends="init">
         <javac srcdir="${dev}" destdir="${build.dev}" deprecation="yes" includeantruntime="false"/>
         <java classname="nodebox.PackageSigner" fork="true" classpath="${build.dev}"/>

@@ -5,6 +5,8 @@
 
 use std::collections::{HashMap, HashSet};
 
+use super::math::JavaRandom;
+
 /// Count the number of items in a list.
 pub fn count<T>(items: &[T]) -> usize {
     items.len()
@@ -155,12 +157,13 @@ pub fn shuffle<T: Clone>(items: &[T], seed: u64) -> Vec<T> {
     }
 
     let mut result: Vec<T> = items.to_vec();
-    let mut state = seed.wrapping_mul(1000000000);
+    // Match Java's Collections.shuffle(list, new Random(seed * 1000000000))
+    let mut rng = JavaRandom::new((seed as i64).wrapping_mul(1000000000));
 
-    // Fisher-Yates shuffle
-    for i in (1..result.len()).rev() {
-        state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let j = ((state >> 16) & 0x7FFFFFFF) as usize % (i + 1);
+    // Java's Collections.shuffle: for (int i = size; i > 1; i--) swap(i-1, rnd.nextInt(i))
+    let size = result.len();
+    for i in (1..size).rev() {
+        let j = rng.next_int((i + 1) as i32) as usize;
         result.swap(i, j);
     }
 

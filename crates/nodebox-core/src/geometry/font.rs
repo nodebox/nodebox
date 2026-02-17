@@ -484,6 +484,119 @@ pub fn text_to_path_from_bytes(
     Ok(path)
 }
 
+/// Place text along a path, following the path's curvature.
+///
+/// Each character is individually positioned and rotated to follow the path.
+/// This replicates the algorithm from NodeBox Java's `pyvector/text_on_path`.
+///
+/// # Arguments
+/// * `text` - The text string to place along the path
+/// * `shape` - The path to follow
+/// * `font_bytes` - Raw font file bytes (TTF or OTF)
+/// * `font_size` - Font size in points
+/// * `alignment` - `"leading"` (left-to-right) or `"trailing"` (right-to-left)
+/// * `margin` - Starting position on the path as a percentage (0–100)
+/// * `baseline_offset` - Vertical offset from the path baseline
+pub fn text_on_path(
+    text: &str,
+    shape: &Path,
+    font_bytes: &[u8],
+    font_size: f64,
+    alignment: &str,
+    margin: f64,
+    baseline_offset: f64,
+) -> Result<Path, FontError> {
+    use super::Transform;
+
+    if text.is_empty() || shape.length() <= 0.0 {
+        return Ok(Path::new());
+    }
+
+    let face = ttf_parser::Face::parse(font_bytes, 0)
+        .map_err(|e| FontError::LoadError(format!("Failed to parse font: {}", e)))?;
+
+    let units_per_em = face.units_per_em() as f64;
+    let scale = font_size / units_per_em;
+
+    // Calculate per-character advance widths
+    let char_data: Vec<(char, f64)> = text
+        .chars()
+        .map(|ch| {
+            let advance = face
+                .glyph_index(ch)
+                .and_then(|gid| face.glyph_hor_advance(gid))
+                .unwrap_or(0) as f64
+                * scale;
+            (ch, advance)
+        })
+        .collect();
+
+    let string_width: f64 = char_data.iter().map(|(_, w)| w).sum();
+    if string_width <= 0.0 {
+        return Ok(Path::new());
+    }
+
+    let shape_length = shape.length();
+    let dw = string_width / shape_length;
+
+    // Handle trailing alignment: walk backwards to find start position
+    let effective_margin = if alignment == "trailing" {
+        let mut t = (99.9 - margin) / 100.0;
+        let mut first = true;
+        for &(_, char_width) in &char_data {
+            if first {
+                first = false;
+            } else {
+                t -= char_width / string_width * dw;
+            }
+            t = t.rem_euclid(1.0);
+        }
+        t * 100.0
+    } else {
+        margin
+    };
+
+    let mut result = Path::new();
+    let mut t = 0.0_f64;
+    let mut first = true;
+
+    for &(ch, char_width) in &char_data {
+        if first {
+            t = effective_margin / 100.0;
+            first = false;
+        } else {
+            t += char_width / string_width * dw;
+        }
+
+        // Wrap around (matches Python: t = t % 1.0)
+        t = t.rem_euclid(1.0);
+
+        // Get point and tangent direction on the path
+        let pt1 = shape.point_at(t);
+        let pt2 = shape.point_at((t + 0.0000001).min(1.0));
+
+        // Angle from pt2 to pt1 (matching Python: angle(pt2.x, pt2.y, pt1.x, pt1.y))
+        let angle_deg = (pt1.y - pt2.y).atan2(pt1.x - pt2.x).to_degrees();
+
+        // Render single character at (-char_width, -baseline_offset)
+        let mut builder = TtfOutlineBuilder::new(scale, -char_width, -baseline_offset);
+        if let Some(glyph_id) = face.glyph_index(ch) {
+            let _ = face.outline_glyph(glyph_id, &mut builder);
+        }
+        let contours = builder.finish();
+
+        // Transform: rotate to follow path tangent, then translate to path point
+        let transform =
+            Transform::rotate(angle_deg - 180.0).then(&Transform::translate(pt1.x, pt1.y));
+
+        for contour in contours {
+            result.add_contour(contour.transform(&transform));
+        }
+    }
+
+    Ok(result)
+}
+
 /// Bundled Inter font bytes (always available, works on all platforms).
 ///
 /// This is used as a fallback when the platform cannot provide font bytes,

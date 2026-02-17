@@ -326,6 +326,7 @@ fn parse_port_attributes(e: &BytesStart) -> Result<Port> {
     let mut max = None;
     let mut label = None;
     let mut description = None;
+    let mut child_reference = None;
 
     for attr in e.attributes().flatten() {
         let key = std::str::from_utf8(attr.key.as_ref())?;
@@ -341,6 +342,7 @@ fn parse_port_attributes(e: &BytesStart) -> Result<Port> {
             "max" => max = val.parse().ok(),
             "label" => label = Some(val.to_string()),
             "description" => description = Some(val.to_string()),
+            "childReference" => child_reference = Some(val.to_string()),
             _ => {}
         }
     }
@@ -359,6 +361,7 @@ fn parse_port_attributes(e: &BytesStart) -> Result<Port> {
         label,
         description,
         menu_items: Vec::new(),
+        child_reference,
     };
 
     // If widget wasn't specified, infer from type

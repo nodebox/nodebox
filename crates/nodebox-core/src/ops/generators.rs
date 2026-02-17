@@ -286,23 +286,31 @@ fn arc_bezier_segment(contour: &mut Contour, center: Point, rx: f64, ry: f64, a1
 /// use nodebox_core::ops::polygon;
 ///
 /// let path = polygon(Point::ZERO, 50.0, 6, false);
-/// // Hexagon has 7 points (6 + 1 to close)
-/// assert_eq!(path.contours[0].points.len(), 7);
+/// // Hexagon has 6 points (one per side)
+/// assert_eq!(path.contours[0].points.len(), 6);
 /// ```
 pub fn polygon(position: Point, radius: f64, sides: u32, align: bool) -> Path {
     let sides = sides.max(3);
     let angle_step = 2.0 * PI / sides as f64;
 
-    // Start angle: -90 degrees (top) or adjusted for alignment
+    // Match Java pyvector.polygon:
+    // align=false: start at angle 0 (right)
+    // align=true: rotate so one edge is horizontal
     let start_angle = if align {
-        -PI / 2.0 + angle_step / 2.0
+        // Java: x0, y0 = coordinates(x, y, r, 0)
+        //       x1, y1 = coordinates(x, y, r, a)
+        //       da = -angle(x1, y1, x0, y0)
+        let sin_a = angle_step.sin();
+        let cos_a = angle_step.cos();
+        // -atan2(y0-y1, x0-x1) = -atan2(-r*sin(a), r*(1-cos(a)))
+        -(-sin_a).atan2(1.0 - cos_a)
     } else {
-        -PI / 2.0
+        0.0
     };
 
     let mut contour = Contour::new();
 
-    for i in 0..=sides {
+    for i in 0..sides {
         let angle = start_angle + (i as f64) * angle_step;
         let x = position.x + radius * angle.cos();
         let y = position.y + radius * angle.sin();
@@ -332,27 +340,30 @@ pub fn polygon(position: Point, radius: f64, sides: u32, align: bool) -> Path {
 /// use nodebox_core::ops::star;
 ///
 /// let path = star(Point::ZERO, 5, 50.0, 25.0);
-/// // 5-pointed star has 11 points (2*5 + 1 to close)
-/// assert_eq!(path.contours[0].points.len(), 11);
+/// // 5-pointed star has 10 points (2*5, matching Java)
+/// assert_eq!(path.contours[0].points.len(), 10);
 /// ```
 pub fn star(position: Point, points: u32, outer: f64, inner: f64) -> Path {
+    // Match Java pyvector.star:
+    // - Uses outer/2 and inner/2 as radii (parameters represent diameters)
+    // - Uses sin for x and cos for y (90° rotated from standard)
+    // - Starts at bottom (y + outer/2)
     let points = points.max(2);
-    let angle_step = PI / points as f64;
-    let start_angle = -PI / 2.0;
+    let outer_r = outer / 2.0;
+    let inner_r = inner / 2.0;
 
     let mut contour = Contour::new();
 
-    for i in 0..=(points * 2) {
-        let angle = start_angle + (i as f64) * angle_step;
-        let radius = if i % 2 == 0 { outer } else { inner };
-        let x = position.x + radius * angle.cos();
-        let y = position.y + radius * angle.sin();
+    // First point: moveto at (x, y + outer_r)
+    contour.move_to(position.x, position.y + outer_r);
 
-        if i == 0 {
-            contour.move_to(x, y);
-        } else {
-            contour.line_to(x, y);
-        }
+    // Remaining points
+    for i in 1..(points * 2) {
+        let angle = (i as f64) * PI / points as f64;
+        let radius = if i % 2 != 0 { inner_r } else { outer_r };
+        let x = position.x + radius * angle.sin();
+        let y = position.y + radius * angle.cos();
+        contour.line_to(x, y);
     }
     contour.close();
 
@@ -557,23 +568,23 @@ mod tests {
     #[test]
     fn test_polygon_triangle() {
         let path = polygon(Point::ZERO, 50.0, 3, false);
-        // Triangle: 3 points + 1 close
-        assert_eq!(path.contours[0].points.len(), 4);
+        // Triangle: 3 points (matching Java: no extra close point)
+        assert_eq!(path.contours[0].points.len(), 3);
         assert!(path.contours[0].closed);
     }
 
     #[test]
     fn test_polygon_hexagon() {
         let path = polygon(Point::ZERO, 50.0, 6, false);
-        // Hexagon: 6 points + 1 close
-        assert_eq!(path.contours[0].points.len(), 7);
+        // Hexagon: 6 points (matching Java: no extra close point)
+        assert_eq!(path.contours[0].points.len(), 6);
     }
 
     #[test]
     fn test_star() {
         let path = star(Point::ZERO, 5, 50.0, 25.0);
-        // 5-pointed star: 10 points + 1 close
-        assert_eq!(path.contours[0].points.len(), 11);
+        // 5-pointed star: 10 points (matching Java: no extra close point)
+        assert_eq!(path.contours[0].points.len(), 10);
     }
 
     #[test]

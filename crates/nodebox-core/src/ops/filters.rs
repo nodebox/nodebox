@@ -1,6 +1,7 @@
 //! Geometry filters - functions that transform existing shapes.
 
 use crate::geometry::{Point, Path, Geometry, Color, Transform, Rect};
+use super::math::JavaRandom;
 
 /// Horizontal alignment options.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -708,13 +709,11 @@ impl WiggleScope {
 /// * `offset` - Maximum random offset in x and y
 /// * `seed` - Random seed for reproducibility
 pub fn wiggle(path: &Path, scope: WiggleScope, offset: Point, seed: u64) -> Path {
-    let mut state = seed.wrapping_mul(1000000000);
+    let mut rng = JavaRandom::new((seed as i64).wrapping_mul(1000000000));
 
-    let random_offset = |state: &mut u64| -> (f64, f64) {
-        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let rx = ((*state >> 16) & 0x7FFF) as f64 / 32767.0 - 0.5;
-        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let ry = ((*state >> 16) & 0x7FFF) as f64 / 32767.0 - 0.5;
+    let random_offset = |rng: &mut JavaRandom| -> (f64, f64) {
+        let rx = rng.next_double() - 0.5;
+        let ry = rng.next_double() - 0.5;
         (rx * offset.x * 2.0, ry * offset.y * 2.0)
     };
 
@@ -723,7 +722,7 @@ pub fn wiggle(path: &Path, scope: WiggleScope, offset: Point, seed: u64) -> Path
             let mut result = path.clone();
             for contour in &mut result.contours {
                 for point in &mut contour.points {
-                    let (dx, dy) = random_offset(&mut state);
+                    let (dx, dy) = random_offset(&mut rng);
                     point.point.x += dx;
                     point.point.y += dy;
                 }
@@ -733,7 +732,7 @@ pub fn wiggle(path: &Path, scope: WiggleScope, offset: Point, seed: u64) -> Path
         WiggleScope::Contours => {
             let mut result = path.clone();
             for contour in &mut result.contours {
-                let (dx, dy) = random_offset(&mut state);
+                let (dx, dy) = random_offset(&mut rng);
                 for point in &mut contour.points {
                     point.point.x += dx;
                     point.point.y += dy;
@@ -742,7 +741,7 @@ pub fn wiggle(path: &Path, scope: WiggleScope, offset: Point, seed: u64) -> Path
             result
         }
         WiggleScope::Paths => {
-            let (dx, dy) = random_offset(&mut state);
+            let (dx, dy) = random_offset(&mut rng);
             translate(path, Point::new(dx, dy))
         }
     }
@@ -762,22 +761,26 @@ pub fn scatter(path: &Path, amount: usize, seed: u64) -> Vec<Point> {
         None => return Vec::new(),
     };
 
-    let mut state = seed.wrapping_mul(1000000000);
+    // Match Python's random.seed(seed) + random.uniform(0, 1)
+    // Python uses Mersenne Twister; we approximate with JavaRandom for consistency
+    // with other random operations. The exact scatter points won't match Java
+    // (which uses Python's RNG via Jython), but the count will be correct.
+    let mut rng = JavaRandom::new(seed as i64);
     let mut points = Vec::with_capacity(amount);
 
-    let random_point = |state: &mut u64| -> Point {
-        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let rx = ((*state >> 16) & 0x7FFF) as f64 / 32768.0;
-        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let ry = ((*state >> 16) & 0x7FFF) as f64 / 32768.0;
-        Point::new(bounds.x + rx * bounds.width, bounds.y + ry * bounds.height)
-    };
-
-    // For simplicity, we generate points in the bounding box
-    // A full implementation would check if points are inside the actual path
     for _ in 0..amount {
-        let pt = random_point(&mut state);
-        points.push(pt);
+        // Try up to 100 times to find a point inside the shape (matching Python's scatter)
+        let mut tries = 100;
+        while tries > 0 {
+            let rx = rng.next_double();
+            let ry = rng.next_double();
+            let pt = Point::new(bounds.x + rx * bounds.width, bounds.y + ry * bounds.height);
+            if path.contains(pt) {
+                points.push(pt);
+                break;
+            }
+            tries -= 1;
+        }
     }
 
     points
@@ -807,17 +810,16 @@ impl DeleteScope {
 /// * `scope` - Delete points or paths
 /// * `delete_inside` - If true, delete elements inside bounds; if false, delete outside
 pub fn delete(path: &Path, bounds: &Path, scope: DeleteScope, delete_inside: bool) -> Path {
-    let bounding_rect = match bounds.bounds() {
-        Some(b) => b,
-        None => return path.clone(),
-    };
+    if bounds.contours.is_empty() {
+        return path.clone();
+    }
 
     match scope {
         DeleteScope::Points => {
             let mut result = path.clone();
             for contour in &mut result.contours {
                 contour.points.retain(|pp| {
-                    let inside = bounding_rect.contains_point(pp.point);
+                    let inside = bounds.contains(pp.point);
                     if delete_inside { !inside } else { inside }
                 });
             }
@@ -828,7 +830,7 @@ pub fn delete(path: &Path, bounds: &Path, scope: DeleteScope, delete_inside: boo
         DeleteScope::Paths => {
             // For a single path, check if any point is inside the bounds
             let has_point_inside = path.contours.iter().any(|c| {
-                c.points.iter().any(|pp| bounding_rect.contains_point(pp.point))
+                c.points.iter().any(|pp| bounds.contains(pp.point))
             });
             if (delete_inside && has_point_inside) || (!delete_inside && !has_point_inside) {
                 Path::new()
@@ -929,6 +931,25 @@ pub fn sort_paths(paths: &[Path], order_by: SortBy, reference: Point) -> Vec<Pat
 
     sorted.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
     sorted.into_iter().map(|(_, p)| p).collect()
+}
+
+/// Sort a list of points by a given criterion.
+pub fn sort_points(points: &mut [Point], order_by: SortBy, reference: Point) {
+    points.sort_by(|a, b| {
+        let key_a = match order_by {
+            SortBy::X => a.x,
+            SortBy::Y => a.y,
+            SortBy::Angle => (a.y - reference.y).atan2(a.x - reference.x),
+            SortBy::Distance => ((a.x - reference.x).powi(2) + (a.y - reference.y).powi(2)).sqrt(),
+        };
+        let key_b = match order_by {
+            SortBy::X => b.x,
+            SortBy::Y => b.y,
+            SortBy::Angle => (b.y - reference.y).atan2(b.x - reference.x),
+            SortBy::Distance => ((b.x - reference.x).powi(2) + (b.y - reference.y).powi(2)).sqrt(),
+        };
+        key_a.partial_cmp(&key_b).unwrap_or(std::cmp::Ordering::Equal)
+    });
 }
 
 /// Stack direction.
@@ -1342,6 +1363,101 @@ pub fn quad_curve(p1: Point, p2: Point, t: f64, distance: f64) -> Path {
     path.stroke = Some(Color::BLACK);
     path.stroke_width = 1.0;
     path
+}
+
+/// Boolean compound operations for combining two paths.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CompoundOp {
+    United,
+    Subtracted,
+    Intersected,
+}
+
+impl CompoundOp {
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "subtracted" | "difference" => CompoundOp::Subtracted,
+            "intersected" | "intersection" => CompoundOp::Intersected,
+            _ => CompoundOp::United,
+        }
+    }
+}
+
+/// Flatten a path's bezier contours into polygon contours for boolean operations.
+fn path_to_polygons(path: &Path) -> Vec<Vec<[f64; 2]>> {
+    let mut polygons = Vec::new();
+    for contour in &path.contours {
+        let segments = contour.to_line_segments();
+        if segments.len() < 3 {
+            continue;
+        }
+        let polygon: Vec<[f64; 2]> = segments.iter().map(|&(x, y)| [x, y]).collect();
+        polygons.push(polygon);
+    }
+    polygons
+}
+
+/// Convert f32 i_overlay result shapes back to a Path.
+fn shapes_to_path_f32(shapes: Vec<Vec<Vec<[f32; 2]>>>, fill: Option<Color>, stroke: Option<Color>, stroke_width: f64) -> Path {
+    use crate::geometry::Contour;
+
+    let mut result = Path::new();
+    result.fill = fill;
+    result.stroke = stroke;
+    result.stroke_width = stroke_width;
+
+    for shape in shapes {
+        for ring in shape {
+            if ring.len() < 3 {
+                continue;
+            }
+            let mut contour = Contour::new();
+            contour.move_to(ring[0][0] as f64, ring[0][1] as f64);
+            for pt in &ring[1..] {
+                contour.line_to(pt[0] as f64, pt[1] as f64);
+            }
+            contour.close();
+            result.add_contour(contour);
+        }
+    }
+    result
+}
+
+/// Perform boolean compound operations (union, difference, intersection) on two paths.
+///
+/// Matches Java's `Path.united()`, `Path.subtracted()`, `Path.intersected()` which use
+/// `java.awt.geom.Area` internally.
+pub fn compound(shape1: &Path, shape2: &Path, op: CompoundOp, invert: bool) -> Path {
+    use i_overlay::core::fill_rule::FillRule;
+    use i_overlay::core::overlay_rule::OverlayRule;
+    use i_overlay::float::single::SingleFloatOverlay;
+
+    let (s1, s2) = if invert { (shape2, shape1) } else { (shape1, shape2) };
+
+    let subject_polys = path_to_polygons(s1);
+    let clip_polys = path_to_polygons(s2);
+
+    if subject_polys.is_empty() {
+        return Path::new();
+    }
+    if clip_polys.is_empty() {
+        return s1.clone();
+    }
+
+    let rule = match op {
+        CompoundOp::United => OverlayRule::Union,
+        CompoundOp::Subtracted => OverlayRule::Difference,
+        CompoundOp::Intersected => OverlayRule::Intersect,
+    };
+
+    // Use f32 overlay (more widely supported in i_overlay)
+    let subject_f32: Vec<Vec<[f32; 2]>> = subject_polys.iter().map(|p| p.iter().map(|pt| [pt[0] as f32, pt[1] as f32]).collect()).collect();
+    let clip_f32: Vec<Vec<[f32; 2]>> = clip_polys.iter().map(|p| p.iter().map(|pt| [pt[0] as f32, pt[1] as f32]).collect()).collect();
+
+    let shapes = subject_f32.overlay(&clip_f32, rule, FillRule::NonZero);
+
+    // Preserve fill/stroke from shape1
+    shapes_to_path_f32(shapes, s1.fill, s1.stroke, s1.stroke_width)
 }
 
 #[cfg(test)]

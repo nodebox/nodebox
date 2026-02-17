@@ -160,6 +160,37 @@ impl Path {
         self.bounds().map(|b| b.center())
     }
 
+    /// Returns true if the given point is inside this path.
+    /// Uses the even-odd (ray casting) rule: casts a horizontal ray to the right
+    /// and counts crossings with path edges. Odd crossings = inside.
+    /// Bezier curves are flattened to line segments for the test.
+    pub fn contains(&self, point: Point) -> bool {
+        let mut crossings = 0i32;
+        for contour in &self.contours {
+            let segments = contour.to_line_segments();
+            for i in 0..segments.len() {
+                let (x1, y1) = segments[i];
+                let next = if i + 1 < segments.len() {
+                    segments[i + 1]
+                } else if contour.closed {
+                    segments[0]
+                } else {
+                    continue;
+                };
+                let (x2, y2) = next;
+                // Check if horizontal ray from point crosses this segment
+                if (y1 <= point.y && y2 > point.y) || (y2 <= point.y && y1 > point.y) {
+                    let t = (point.y - y1) / (y2 - y1);
+                    let x_cross = x1 + t * (x2 - x1);
+                    if point.x < x_cross {
+                        crossings += 1;
+                    }
+                }
+            }
+        }
+        crossings % 2 != 0
+    }
+
     /// Creates a copy of this path with different styling.
     pub fn with_fill(mut self, fill: Option<Color>) -> Self {
         self.fill = fill;

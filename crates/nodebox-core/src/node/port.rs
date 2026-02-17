@@ -258,6 +258,9 @@ pub struct Port {
     pub max: Option<f64>,
     /// Menu items for menu-based ports.
     pub menu_items: Vec<MenuItem>,
+    /// Published port child reference (e.g., "translate1.translate").
+    /// Used in subnetwork ports to map external inputs to internal child ports.
+    pub child_reference: Option<String>,
 }
 
 impl Port {
@@ -277,6 +280,7 @@ impl Port {
             min: None,
             max: None,
             menu_items: Vec::new(),
+            child_reference: None,
         }
     }
 

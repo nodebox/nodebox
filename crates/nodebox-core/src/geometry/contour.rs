@@ -123,6 +123,84 @@ impl Contour {
         self.points.iter().filter(|p| p.point_type.is_on_curve()).count()
     }
 
+    /// Flatten the contour to line segments (x, y) for point-in-path testing.
+    /// Cubic and quadratic bezier curves are subdivided into line segments.
+    pub fn to_line_segments(&self) -> Vec<(f64, f64)> {
+        use super::point::PointType;
+        let mut segments: Vec<(f64, f64)> = Vec::new();
+        let mut i = 0;
+        while i < self.points.len() {
+            let pp = &self.points[i];
+            match pp.point_type {
+                PointType::LineTo => {
+                    segments.push((pp.point.x, pp.point.y));
+                    i += 1;
+                }
+                PointType::CurveData => {
+                    // Cubic bezier: CurveData, CurveData, CurveTo
+                    if i + 2 < self.points.len() {
+                        let prev = if segments.is_empty() {
+                            (0.0, 0.0)
+                        } else {
+                            segments[segments.len() - 1]
+                        };
+                        let cp1 = &self.points[i];
+                        let cp2 = &self.points[i + 1];
+                        let end = &self.points[i + 2];
+                        // Subdivide cubic bezier into ~16 line segments
+                        for step in 1..=16 {
+                            let t = step as f64 / 16.0;
+                            let mt = 1.0 - t;
+                            let x = mt * mt * mt * prev.0
+                                + 3.0 * mt * mt * t * cp1.point.x
+                                + 3.0 * mt * t * t * cp2.point.x
+                                + t * t * t * end.point.x;
+                            let y = mt * mt * mt * prev.1
+                                + 3.0 * mt * mt * t * cp1.point.y
+                                + 3.0 * mt * t * t * cp2.point.y
+                                + t * t * t * end.point.y;
+                            segments.push((x, y));
+                        }
+                        i += 3;
+                    } else {
+                        i += 1;
+                    }
+                }
+                PointType::CurveTo => {
+                    segments.push((pp.point.x, pp.point.y));
+                    i += 1;
+                }
+                PointType::QuadData => {
+                    // Quadratic bezier: QuadData, QuadTo
+                    if i + 1 < self.points.len() {
+                        let prev = if segments.is_empty() {
+                            (0.0, 0.0)
+                        } else {
+                            segments[segments.len() - 1]
+                        };
+                        let cp = &self.points[i];
+                        let end = &self.points[i + 1];
+                        for step in 1..=16 {
+                            let t = step as f64 / 16.0;
+                            let mt = 1.0 - t;
+                            let x = mt * mt * prev.0 + 2.0 * mt * t * cp.point.x + t * t * end.point.x;
+                            let y = mt * mt * prev.1 + 2.0 * mt * t * cp.point.y + t * t * end.point.y;
+                            segments.push((x, y));
+                        }
+                        i += 2;
+                    } else {
+                        i += 1;
+                    }
+                }
+                PointType::QuadTo => {
+                    segments.push((pp.point.x, pp.point.y));
+                    i += 1;
+                }
+            }
+        }
+        segments
+    }
+
     /// Returns just the on-curve points as simple Points.
     pub fn on_curve_points(&self) -> Vec<Point> {
         self.points

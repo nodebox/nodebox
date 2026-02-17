@@ -375,6 +375,8 @@ fn describe_output(output: &NodeOutput) -> serde_json::Value {
         NodeOutput::Booleans(vs) => serde_json::json!({"type": "Booleans", "count": vs.len()}),
         NodeOutput::DataRow(row) => serde_json::json!({"type": "DataRow", "keys": row.keys().collect::<Vec<_>>()}),
         NodeOutput::DataRows(rows) => serde_json::json!({"type": "DataRows", "count": rows.len()}),
+        NodeOutput::Geometry(ps) => serde_json::json!({"type": "Geometry", "count": ps.len()}),
+        NodeOutput::Geometries(gs) => serde_json::json!({"type": "Geometries", "groups": gs.len(), "total_paths": gs.iter().map(|g| g.len()).sum::<usize>()}),
     }
 }
 
@@ -447,6 +449,8 @@ fn serialize_eval_result(
         NodeOutput::Booleans(_) => ("Boolean", true),
         NodeOutput::DataRow(_) => ("Data", false),
         NodeOutput::DataRows(_) => ("Data", true),
+        NodeOutput::Geometry(_) => ("Geometry", true),
+        NodeOutput::Geometries(_) => ("Geometries", true),
     };
 
     let values: Vec<String> = (0..paths.len())

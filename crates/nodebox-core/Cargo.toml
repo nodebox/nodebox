@@ -26,6 +26,9 @@ csv = "1"
 # For WASM-compatible text-to-path
 ttf-parser = "0.24"
 
+# For boolean path operations (compound node)
+i_overlay = "1"
+
 # From nodebox-ndbx
 quick-xml = { workspace = true }
 

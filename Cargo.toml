@@ -21,6 +21,7 @@ members = [
     "crates/nodebox-desktop",
     "crates/nodebox-electron",
     "crates/nodebox-python",
+    "crates/nodebox-cli",
 ]
 
 # Default members exclude nodebox-python (requires Python development libraries)
@@ -31,6 +32,7 @@ default-members = [
     "crates/nodebox-core",
     "crates/nodebox-eval",
     "crates/nodebox-desktop",
+    "crates/nodebox-cli",
 ]
 
 [workspace.package]

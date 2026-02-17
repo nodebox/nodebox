@@ -94,15 +94,41 @@ pub fn render_to_svg_with_options(paths: &[Path], options: &SvgOptions) -> Strin
 
     // XML declaration
     if options.xml_declaration {
-        writeln!(svg, r#"<?xml version="1.0" encoding="UTF-8"?>"#).unwrap();
+        svg.push_str("<?xml version=\"1.0\"?>\n");
     }
 
     // SVG opening tag
     write!(svg, r#"<svg xmlns="http://www.w3.org/2000/svg""#).unwrap();
-    write!(svg, r#" width="{}" height="{}""#, options.width, options.height).unwrap();
+    write!(
+        svg,
+        r#" width="{}" height="{}""#,
+        smart_float(options.width),
+        smart_float(options.height)
+    )
+    .unwrap();
 
     if options.include_viewbox {
-        write!(svg, r#" viewBox="0 0 {} {}""#, options.width, options.height).unwrap();
+        if options.centered {
+            // Centered viewBox: origin at center of canvas (matches Java SVGRenderer)
+            let half_w = options.width / 2.0;
+            let half_h = options.height / 2.0;
+            write!(
+                svg,
+                r#" viewBox="{} {} {} {}""#,
+                smart_float(-half_w),
+                smart_float(-half_h),
+                smart_float(options.width),
+                smart_float(options.height)
+            )
+            .unwrap();
+        } else {
+            write!(
+                svg,
+                r#" viewBox="0 0 {} {}""#,
+                options.width, options.height
+            )
+            .unwrap();
+        }
     }
 
     writeln!(svg, ">").unwrap();
@@ -113,26 +139,16 @@ pub fn render_to_svg_with_options(paths: &[Path], options: &SvgOptions) -> Strin
             svg,
             r#"  <rect width="{}" height="{}" fill="{}"/>"#,
             options.width, options.height, color_to_svg(&bg)
-        ).unwrap();
-    }
-
-    // When centered, wrap geometry in a translate group so (0,0) maps to canvas center
-    if options.centered {
-        let half_w = options.width / 2.0;
-        let half_h = options.height / 2.0;
-        writeln!(svg, r#"  <g transform="translate({half_w},{half_h})">"#).unwrap();
+        )
+        .unwrap();
     }
 
     // Render paths
     for path in paths {
-        render_path(&mut svg, path, options.precision);
+        render_path_java(&mut svg, path, options.precision);
     }
 
-    if options.centered {
-        writeln!(svg, "  </g>").unwrap();
-    }
-
-    writeln!(svg, "</svg>").unwrap();
+    svg.push_str("</svg>");
 
     svg
 }
@@ -233,6 +249,66 @@ fn render_path(svg: &mut String, path: &Path, precision: usize) {
             write!(svg, r#" stroke-width="{}""#, path.stroke_width).unwrap();
             if color.a < 1.0 {
                 write!(svg, r#" stroke-opacity="{:.2}""#, color.a).unwrap();
+            }
+        }
+    }
+
+    writeln!(svg, "/>").unwrap();
+}
+
+/// Renders a path element matching Java SVGRenderer format.
+///
+/// Differences from standard render_path:
+/// - Uses smartFloat formatting (integers without decimals)
+/// - Fill: omitted when black (SVG default), writes "none" when no fill
+/// - Stroke: only written when explicitly set and visible
+/// - Stroke-width: only written when != 1 (SVG default)
+fn render_path_java(svg: &mut String, path: &Path, _precision: usize) {
+    if path.contours.is_empty() {
+        return;
+    }
+
+    let path_data = path_to_svg_data_java(path);
+    if path_data.is_empty() {
+        return;
+    }
+
+    write!(svg, "    <path d=\"{}\"", path_data).unwrap();
+
+    // Match Java HashMap iteration order: d, stroke-width, fill, stroke
+    let has_stroke = path.stroke.as_ref().map_or(false, |c| c.a > 0.0 && path.stroke_width > 0.0);
+
+    // stroke-width (before fill in Java's HashMap ordering)
+    if has_stroke {
+        if path.stroke_width != 1.0 {
+            write!(svg, " stroke-width=\"{}\"", smart_float(path.stroke_width)).unwrap();
+        }
+    }
+
+    // Fill: match Java conventions
+    // - Omit fill entirely when it's black (SVG default fill is black)
+    // - Write fill="none" when no fill
+    // - Write fill="<color>" for other colors
+    match &path.fill {
+        Some(color) if color.a > 0.0 => {
+            if !is_black(color) {
+                write!(svg, " fill=\"{}\"", color_to_svg(color)).unwrap();
+            }
+            if color.a < 1.0 {
+                write!(svg, " fill-opacity=\"{:.2}\"", color.a).unwrap();
+            }
+        }
+        _ => {
+            write!(svg, " fill=\"none\"").unwrap();
+        }
+    }
+
+    // stroke color (after fill in Java's HashMap ordering)
+    if let Some(color) = &path.stroke {
+        if color.a > 0.0 && path.stroke_width > 0.0 {
+            write!(svg, " stroke=\"{}\"", color_to_svg(color)).unwrap();
+            if color.a < 1.0 {
+                write!(svg, " stroke-opacity=\"{:.2}\"", color.a).unwrap();
             }
         }
     }
@@ -356,6 +432,143 @@ fn contour_to_svg_data(data: &mut String, contour: &Contour, precision: usize) {
 
     if contour.closed {
         data.push_str(" Z");
+    }
+}
+
+/// Formats a float like Java's smartFloat: integers without decimals, others with 2 decimals.
+fn smart_float(v: f64) -> String {
+    // Match Java's smartFloat: integer check then 2-decimal format.
+    // Note: values like 70.0000000001 (from trig) will format as "70.00",
+    // matching Java's behavior where the same imprecision occurs.
+    let i = v as i64;
+    if i as f64 == v {
+        // Handle negative zero: -0 should be rendered as 0
+        if i == 0 { "0".to_string() } else { i.to_string() }
+    } else {
+        format!("{:.2}", v)
+    }
+}
+
+/// Returns true if the color is black (r=0, g=0, b=0).
+fn is_black(color: &Color) -> bool {
+    color.r == 0.0 && color.g == 0.0 && color.b == 0.0
+}
+
+/// Generates SVG path data matching Java SVGRenderer format.
+///
+/// Differences from standard path_to_svg_data:
+/// - Uses smartFloat formatting
+/// - No space before L/C/Z commands (except between C control points)
+fn path_to_svg_data_java(path: &Path) -> String {
+    let mut data = String::new();
+
+    for contour in &path.contours {
+        contour_to_svg_data_java(&mut data, contour);
+    }
+
+    data
+}
+
+fn contour_to_svg_data_java(data: &mut String, contour: &Contour) {
+    if contour.points.is_empty() {
+        return;
+    }
+
+    let points = &contour.points;
+
+    // First point is always a move
+    write!(
+        data,
+        "M{},{}",
+        smart_float(points[0].point.x),
+        smart_float(points[0].point.y)
+    )
+    .unwrap();
+    let mut i = 1;
+
+    while i < points.len() {
+        let pt = &points[i];
+
+        match pt.point_type {
+            PointType::LineTo => {
+                write!(
+                    data,
+                    "L{},{}",
+                    smart_float(pt.point.x),
+                    smart_float(pt.point.y)
+                )
+                .unwrap();
+                i += 1;
+            }
+            PointType::CurveData => {
+                // Cubic bezier: ctrl1, ctrl2, end
+                if i + 2 < points.len() {
+                    let ctrl1 = &points[i];
+                    let ctrl2 = &points[i + 1];
+                    let end = &points[i + 2];
+
+                    write!(
+                        data,
+                        "C{},{} {},{} {},{}",
+                        smart_float(ctrl1.point.x),
+                        smart_float(ctrl1.point.y),
+                        smart_float(ctrl2.point.x),
+                        smart_float(ctrl2.point.y),
+                        smart_float(end.point.x),
+                        smart_float(end.point.y),
+                    )
+                    .unwrap();
+
+                    i += 3;
+                } else {
+                    i += 1;
+                }
+            }
+            PointType::CurveTo => {
+                write!(
+                    data,
+                    "L{},{}",
+                    smart_float(pt.point.x),
+                    smart_float(pt.point.y)
+                )
+                .unwrap();
+                i += 1;
+            }
+            PointType::QuadData => {
+                if i + 1 < points.len() {
+                    let ctrl = &points[i];
+                    let end = &points[i + 1];
+
+                    write!(
+                        data,
+                        "Q{},{} {},{}",
+                        smart_float(ctrl.point.x),
+                        smart_float(ctrl.point.y),
+                        smart_float(end.point.x),
+                        smart_float(end.point.y),
+                    )
+                    .unwrap();
+
+                    i += 2;
+                } else {
+                    i += 1;
+                }
+            }
+            PointType::QuadTo => {
+                write!(
+                    data,
+                    "L{},{}",
+                    smart_float(pt.point.x),
+                    smart_float(pt.point.y)
+                )
+                .unwrap();
+                i += 1;
+            }
+        }
+    }
+
+    if contour.closed {
+        data.push('Z');
     }
 }
 
@@ -493,11 +706,12 @@ mod tests {
         let options = SvgOptions::new(200.0, 100.0).with_centered(true);
         let svg = render_to_svg_with_options(&[], &options);
 
-        // Centered mode uses 0-based viewBox with a translate group for compatibility
-        assert!(svg.contains(r#"viewBox="0 0 200 100""#),
-            "Centered viewBox should use 0-based origin. SVG: {}", svg);
-        assert!(svg.contains(r#"translate(100,50)"#),
-            "Centered mode should have translate group. SVG: {}", svg);
+        // Centered mode uses centered viewBox (matching Java SVGRenderer)
+        assert!(svg.contains(r#"viewBox="-100 -50 200 100""#),
+            "Centered viewBox should use centered origin. SVG: {}", svg);
+        // No translate group needed with centered viewBox
+        assert!(!svg.contains("translate"),
+            "Centered mode should not have translate group. SVG: {}", svg);
     }
 
     #[test]
@@ -507,11 +721,8 @@ mod tests {
         let options = SvgOptions::new(100.0, 100.0).with_centered(true);
         let svg = render_to_svg_with_options(&[rect], &options);
 
-        // The viewBox should be 0-based
-        assert!(svg.contains(r#"viewBox="0 0 100 100""#));
-
-        // Geometry is wrapped in a translate group
-        assert!(svg.contains(r#"translate(50,50)"#));
+        // The viewBox should be centered
+        assert!(svg.contains(r#"viewBox="-50 -50 100 100""#));
 
         // The path should be at the original coordinates (centered at origin)
         assert!(svg.contains("M-25"));

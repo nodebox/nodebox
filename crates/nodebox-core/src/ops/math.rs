@@ -170,15 +170,64 @@ pub fn make_numbers(s: &str, separator: &str) -> Vec<f64> {
     }
 }
 
-/// Generate random numbers.
+/// A Java-compatible Random implementation matching `java.util.Random`.
+/// Uses the same LCG parameters so that seeded sequences are identical.
+pub struct JavaRandom {
+    seed: i64,
+}
+
+impl JavaRandom {
+    const MULTIPLIER: i64 = 0x5DEECE66D; // 25214903917
+    const ADDEND: i64 = 0xB; // 11
+    const MASK: i64 = (1 << 48) - 1;
+
+    pub fn new(seed: i64) -> Self {
+        JavaRandom {
+            seed: (seed ^ Self::MULTIPLIER) & Self::MASK,
+        }
+    }
+
+    /// Generate `bits` random bits (like Java's `Random.next(int bits)`).
+    fn next(&mut self, bits: u32) -> i32 {
+        self.seed = (self.seed.wrapping_mul(Self::MULTIPLIER).wrapping_add(Self::ADDEND)) & Self::MASK;
+        (self.seed >> (48 - bits)) as i32
+    }
+
+    /// Generate a random double in [0.0, 1.0) matching `java.util.Random.nextDouble()`.
+    pub fn next_double(&mut self) -> f64 {
+        let hi = (self.next(26) as i64) << 27;
+        let lo = self.next(27) as i64;
+        (hi + lo) as f64 / ((1i64 << 53) as f64)
+    }
+
+    /// Generate a random int in [0, bound) matching `java.util.Random.nextInt(int bound)`.
+    pub fn next_int(&mut self, bound: i32) -> i32 {
+        if bound <= 0 {
+            return 0;
+        }
+        // Same algorithm as Java's Random.nextInt(int)
+        if (bound & (bound - 1)) == 0 {
+            // Power of two
+            return ((bound as i64 * self.next(31) as i64) >> 31) as i32;
+        }
+        loop {
+            let bits = self.next(31);
+            let val = bits % bound;
+            if bits - val + (bound - 1) >= 0 {
+                return val;
+            }
+        }
+    }
+}
+
+/// Generate random numbers matching Java's `MathFunctions.randomNumbers()`.
 pub fn random_numbers(amount: usize, start: f64, end: f64, seed: u64) -> Vec<f64> {
-    // Simple LCG random number generator for reproducibility
-    let mut state = seed.wrapping_mul(1000000000);
+    // Java: new Random(seed * 1000000000)
+    let mut rng = JavaRandom::new((seed as i64).wrapping_mul(1000000000));
     let mut result = Vec::with_capacity(amount);
     for _ in 0..amount {
-        state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let normalized = ((state >> 16) & 0x7FFF) as f64 / 32767.0;
-        result.push(start + normalized * (end - start));
+        let v = start + rng.next_double() * (end - start);
+        result.push(v);
     }
     result
 }
