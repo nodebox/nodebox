@@ -26,3 +26,6 @@ lib/cachedir
 
 # Playwright
 .playwright-mcp/
+
+# Golden master rendered SVGs
+golden-master/
