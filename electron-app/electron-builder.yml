@@ -29,7 +29,8 @@ mac:
   gatekeeperAssess: false
   entitlements: ../platform/mac/NodeBox.entitlements
   entitlementsInherit: ../platform/mac/NodeBox.entitlements
-  notarize: true
+  # Notarization is enabled via APPLE_APP_SPECIFIC_PASSWORD, APPLE_ID, and
+  # APPLE_TEAM_ID env vars. When they are absent, electron-builder skips it.
 
 dmg:
   sign: false

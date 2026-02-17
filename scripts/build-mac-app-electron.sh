@@ -2,11 +2,13 @@
 # Build macOS Electron app with signing and notarization.
 # Usage: ./scripts/build-mac-app-electron.sh [--skip-wasm]
 #
-# Requires .env with:
+# Optional .env variables for code signing + notarization:
 #   APPLE_DEVELOPER_CERTIFICATE_NAME  (maps to CSC_NAME)
 #   APPLE_ID                          (Apple ID email)
-#   APPLE_ID_PASSWORD                 (app-specific password, maps to APPLE_PASSWORD)
+#   APPLE_ID_PASSWORD                 (app-specific password)
 #   APPLE_TEAM_ID                     (10-char team ID)
+#
+# Without these, the app is built unsigned (ad-hoc).
 
 set -euo pipefail
 
@@ -29,9 +31,29 @@ if [ -f "$ROOT_DIR/.env" ]; then
     set +a
 fi
 
-# Map signing variables to electron-builder conventions
-export CSC_NAME="${APPLE_DEVELOPER_CERTIFICATE_NAME:-}"
-export APPLE_PASSWORD="${APPLE_ID_PASSWORD:-}"
+# Check if a valid signing certificate is available in the keychain.
+CAN_SIGN=false
+CSC_RAW="${APPLE_DEVELOPER_CERTIFICATE_NAME:-}"
+if [ -n "$CSC_RAW" ] && security find-identity -v -p codesigning 2>/dev/null | grep -q "Developer ID Application"; then
+    # electron-builder expects just the name/team, not the "Developer ID Application:" prefix.
+    export CSC_NAME="${CSC_RAW#Developer ID Application: }"
+    CAN_SIGN=true
+    echo "==> Code signing enabled (CSC_NAME=$CSC_NAME)"
+else
+    export CSC_IDENTITY_AUTO_DISCOVERY=false
+    echo "==> No signing certificate — building unsigned"
+fi
+
+# Map notarization variables (electron-builder 25+ convention).
+# Only notarize when the app is properly signed.
+if [ "$CAN_SIGN" = true ] && [ -n "${APPLE_ID:-}" ] && [ -n "${APPLE_ID_PASSWORD:-}" ] && [ -n "${APPLE_TEAM_ID:-}" ]; then
+    export APPLE_APP_SPECIFIC_PASSWORD="${APPLE_ID_PASSWORD}"
+    echo "==> Notarization enabled"
+else
+    # Unset Apple env vars so electron-builder doesn't attempt notarization.
+    unset APPLE_ID APPLE_TEAM_ID APPLE_ID_PASSWORD APPLE_APP_SPECIFIC_PASSWORD 2>/dev/null || true
+    echo "==> Notarization skipped (unsigned or missing credentials)"
+fi
 
 # Build WASM module
 if [ "$SKIP_WASM" = false ]; then
