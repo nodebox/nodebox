@@ -9,6 +9,19 @@ import {
   PARAMETER_ROW_HEIGHT,
 } from '../theme/tokens';
 
+function getFileFilters(prototype: string | null): { name: string; extensions: string[] }[] {
+  switch (prototype) {
+    case 'data.import_csv':
+      return [{ name: 'CSV Files', extensions: ['csv', 'tsv'] }];
+    case 'data.import_text':
+      return [{ name: 'Text Files', extensions: ['txt', 'text', 'csv', 'tsv', 'log'] }];
+    case 'corevector.import_svg':
+      return [{ name: 'SVG Files', extensions: ['svg'] }];
+    default:
+      return [];
+  }
+}
+
 const DRAG_THRESHOLD = 3;
 
 function DraggableLabel({
@@ -292,6 +305,72 @@ function StringPortWidget({
   );
 }
 
+function FilePortWidget({
+  port,
+  nodeName,
+  nodePrototype,
+}: {
+  port: Port;
+  nodeName: string;
+  nodePrototype: string | null;
+}) {
+  const setPortValue = useStore((s) => s.setPortValue);
+  const filePath = useStore((s) => s.filePath);
+  const strValue = getString(port.value);
+
+  // Extract just the filename for display
+  const displayText = strValue
+    ? strValue.split('/').pop() || strValue
+    : '(none)';
+
+  const handleClick = useCallback(async () => {
+    if (!window.electronAPI) return;
+    if (!filePath) {
+      alert('Please save your project before importing files.');
+      return;
+    }
+    const projectDir = filePath.replace(/[/\\][^/\\]*$/, '');
+    const filters = getFileFilters(nodePrototype);
+    const result = await window.electronAPI.openAssetFile(filters, projectDir);
+    if (!result) return; // User cancelled
+    if ('error' in result) {
+      alert('Please copy the file to your project folder first.');
+      return;
+    }
+    setPortValue(nodeName, port.name, { String: result.path });
+  }, [filePath, nodePrototype, setPortValue, nodeName, port.name]);
+
+  return (
+    <div
+      className="flex"
+      style={{ height: PARAMETER_ROW_HEIGHT }}
+      data-testid={`param-row-${port.name}`}
+    >
+      <div
+        className="flex items-center justify-end px-2 shrink-0 text-zinc-300 text-[11px] cursor-default select-none"
+        style={{ width: LABEL_WIDTH }}
+      >
+        {port.label ?? port.name}
+      </div>
+      <div className="flex-1 flex items-center px-2 py-1">
+        <button
+          type="button"
+          onClick={handleClick}
+          className="w-full h-7 flex items-center hover:bg-field-hover rounded-sm cursor-pointer text-left"
+          data-testid={`param-value-${port.name}`}
+        >
+          <span
+            className={`flex-1 text-[13px] px-2 truncate ${strValue ? 'text-zinc-100' : 'text-zinc-500'}`}
+          >
+            {displayText}
+          </span>
+          <span className="text-zinc-500 text-[13px] px-1 shrink-0">...</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ColorPortWidget({
   port,
   nodeName,
@@ -478,7 +557,7 @@ function ConnectedPortWidget({ port }: { port: Port }) {
   );
 }
 
-function PortWidget({ port, nodeName, isConnected }: { port: Port; nodeName: string; isConnected: boolean }) {
+function PortWidget({ port, nodeName, nodePrototype, isConnected }: { port: Port; nodeName: string; nodePrototype: string | null; isConnected: boolean }) {
   if (isConnected) {
     return <ConnectedPortWidget port={port} />;
   }
@@ -489,6 +568,8 @@ function PortWidget({ port, nodeName, isConnected }: { port: Port; nodeName: str
       return <MenuPortWidget port={port} nodeName={nodeName} />;
     case 'Toggle':
       return <TogglePortWidget port={port} nodeName={nodeName} />;
+    case 'File':
+      return <FilePortWidget port={port} nodeName={nodeName} nodePrototype={nodePrototype} />;
   }
 
   // Fall back to port_type for standard widgets
@@ -607,6 +688,7 @@ export function ParameterPanel() {
                   key={port.name}
                   port={port}
                   nodeName={node.name}
+                  nodePrototype={node.prototype}
                   isConnected={connections.some(
                     (c) => c.input_node === node.name && c.input_port === port.name,
                   )}
