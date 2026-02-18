@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron';
 import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { join, relative, isAbsolute } from 'path';
 import { IPC } from '../shared/ipc-channels';
 import { createMenu } from './menu';
 import { listFonts, getFontBytes } from './fonts';
@@ -108,6 +108,23 @@ ipcMain.handle(IPC.FONT_LIST, async () => {
 
 ipcMain.handle(IPC.FONT_BYTES, async (_event, name: string) => {
   return getFontBytes(name);
+});
+
+ipcMain.handle(IPC.ASSET_OPEN, async (_event, { filters, projectDir }: { filters: { name: string; extensions: string[] }[]; projectDir: string }) => {
+  if (!mainWindow) return null;
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+    defaultPath: projectDir,
+    filters: filters.length > 0 ? filters : undefined,
+    properties: ['openFile'],
+  });
+  if (canceled || filePaths.length === 0) return null;
+  const absolutePath = filePaths[0];
+  const relativePath = relative(projectDir, absolutePath);
+  // Reject files outside the project directory (sandbox)
+  if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+    return { error: 'sandbox' };
+  }
+  return { path: relativePath };
 });
 
 app.whenReady().then(createWindow);
