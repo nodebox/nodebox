@@ -22,6 +22,10 @@ interface ElectronAPI {
   saveFileAs(data: string): Promise<SaveResult | null>;
   exportSvg(data: string): Promise<SaveResult | null>;
   exportPng(data: Uint8Array): Promise<SaveResult | null>;
+  openAssetFile(
+    filters: { name: string; extensions: string[] }[],
+    projectDir: string,
+  ): Promise<{ path: string } | { error: string } | null>;
   getFontList(): Promise<FontInfo[]>;
   getFontBytes(name: string): Promise<Uint8Array | null>;
   onMenuAction(callback: (action: string) => void): void;
