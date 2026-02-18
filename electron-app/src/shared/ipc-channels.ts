@@ -9,6 +9,7 @@ export const IPC = {
   EXPORT_PNG: 'export:png',
   FONT_LIST: 'font:list',
   FONT_BYTES: 'font:bytes',
+  ASSET_OPEN: 'asset:open',
   MENU_ACTION: 'menu:action',
 } as const;
 
