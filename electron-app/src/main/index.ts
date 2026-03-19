@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron';
 import { readFile, writeFile } from 'fs/promises';
-import { join, relative, isAbsolute } from 'path';
+import { join, resolve, relative, isAbsolute } from 'path';
 import { IPC } from '../shared/ipc-channels';
 import { createMenu } from './menu';
 import { listFonts, getFontBytes } from './fonts';
@@ -111,14 +111,15 @@ ipcMain.handle(IPC.FONT_BYTES, async (_event, name: string) => {
 });
 
 ipcMain.handle(IPC.ASSET_READ, async (_event, { relativePath, projectDir }: { relativePath: string; projectDir: string }) => {
-  // Reject paths that escape the project directory (sandbox)
-  if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+  // Reject absolute paths outright — only relative paths are allowed
+  if (isAbsolute(relativePath)) {
     return { error: 'sandbox' };
   }
-  const absolutePath = join(projectDir, relativePath);
-  // Double-check the resolved path is within the project directory
-  const resolved = relative(projectDir, absolutePath);
-  if (resolved.startsWith('..') || isAbsolute(resolved)) {
+  // Resolve the full path, collapsing any '..' segments, then verify it
+  // stays within the project directory
+  const resolvedDir = resolve(projectDir);
+  const absolutePath = resolve(resolvedDir, relativePath);
+  if (!absolutePath.startsWith(resolvedDir + '/')) {
     return { error: 'sandbox' };
   }
   try {
