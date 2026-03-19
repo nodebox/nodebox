@@ -6,6 +6,7 @@
 
 mod platform_bridge;
 
+use std::collections::HashMap;
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 use nodebox_core::geometry::{Color, Point};
@@ -250,8 +251,9 @@ impl WasmNodeLibrary {
     /// }
     /// ```
     #[wasm_bindgen]
-    pub fn evaluate(&self, frame: u32) -> String {
-        let platform: Arc<dyn Platform> = Arc::new(WasmPlatform::new());
+    pub fn evaluate(&self, files_json: &str, frame: u32) -> String {
+        let files: HashMap<String, String> = serde_json::from_str(files_json).unwrap_or_default();
+        let platform: Arc<dyn Platform> = Arc::new(WasmPlatform::new(files));
         let mut ctx = ProjectContext::new_unsaved();
         ctx.frame = frame;
 
@@ -391,7 +393,7 @@ fn describe_output(output: &NodeOutput) -> serde_json::Value {
 /// }
 /// ```
 #[wasm_bindgen]
-pub fn evaluate_library(library_json: &str, frame: u32) -> String {
+pub fn evaluate_library(library_json: &str, files_json: &str, frame: u32) -> String {
     let library: NodeLibrary = match serde_json::from_str(library_json) {
         Ok(lib) => lib,
         Err(e) => {
@@ -399,7 +401,8 @@ pub fn evaluate_library(library_json: &str, frame: u32) -> String {
         }
     };
 
-    let platform: Arc<dyn Platform> = Arc::new(WasmPlatform::new());
+    let files: HashMap<String, String> = serde_json::from_str(files_json).unwrap_or_default();
+    let platform: Arc<dyn Platform> = Arc::new(WasmPlatform::new(files));
     let mut ctx = ProjectContext::new_unsaved();
     ctx.frame = frame;
 

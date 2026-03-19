@@ -41,8 +41,8 @@ export function textToPathSync(
   return text_to_path(text, fontSize, positionX, positionY);
 }
 
-export function evaluateLibrary(libraryJson: string, frame: number): string {
-  return evaluate_library(libraryJson, frame);
+export function evaluateLibrary(libraryJson: string, filesJson: string, frame: number): string {
+  return evaluate_library(libraryJson, filesJson, frame);
 }
 
 let cachedTemplates: NodeTemplate[] | null = null;

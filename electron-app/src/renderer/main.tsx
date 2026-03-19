@@ -4,6 +4,9 @@ import { App } from './App';
 import { useStore } from './state/store';
 import './App.css';
 
+// Expose store for E2E test actions (create nodes, set port values, etc.)
+(window as any).__store__ = useStore;
+
 // Expose store state for E2E test assertions on canvas-based features
 (window as any).__storeState__ = () => {
   const s = useStore.getState();
