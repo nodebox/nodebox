@@ -4,6 +4,7 @@
 //! `Unsupported` for most operations. The Electron app handles
 //! file I/O and dialogs on the JavaScript side.
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 use nodebox_core::platform::{
     DirectoryEntry, FileFilter, FontInfo, LogLevel, Platform, PlatformError, PlatformInfo,
@@ -15,11 +16,16 @@ use nodebox_core::platform::{
 /// Most operations return `Unsupported` since the Electron app
 /// handles file I/O, dialogs, and clipboard on the JavaScript side.
 /// The WASM module is primarily used for evaluation.
-pub struct WasmPlatform;
+///
+/// File contents can be pre-loaded from the JS side and served via
+/// `read_text_file`. This avoids WASM→JS callbacks during evaluation.
+pub struct WasmPlatform {
+    files: HashMap<String, String>,
+}
 
 impl WasmPlatform {
-    pub fn new() -> Self {
-        Self
+    pub fn new(files: HashMap<String, String>) -> Self {
+        Self { files }
     }
 }
 
@@ -46,8 +52,11 @@ impl Platform for WasmPlatform {
         Err(PlatformError::Unsupported)
     }
 
-    fn read_text_file(&self, _ctx: &ProjectContext, _path: &str) -> Result<String, PlatformError> {
-        Err(PlatformError::Unsupported)
+    fn read_text_file(&self, _ctx: &ProjectContext, path: &str) -> Result<String, PlatformError> {
+        self.files
+            .get(path)
+            .cloned()
+            .ok_or(PlatformError::Unsupported)
     }
 
     fn read_binary_file(&self, _ctx: &ProjectContext, _path: &str) -> Result<Vec<u8>, PlatformError> {

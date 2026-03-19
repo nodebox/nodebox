@@ -11,6 +11,8 @@ const electronAPI = {
   exportPng: (data: Uint8Array) => ipcRenderer.invoke(IPC.EXPORT_PNG, data),
   openAssetFile: (filters: { name: string; extensions: string[] }[], projectDir: string) =>
     ipcRenderer.invoke(IPC.ASSET_OPEN, { filters, projectDir }),
+  readAssetFile: (relativePath: string, projectDir: string) =>
+    ipcRenderer.invoke(IPC.ASSET_READ, { relativePath, projectDir }),
 
   // Fonts
   getFontList: () => ipcRenderer.invoke(IPC.FONT_LIST),

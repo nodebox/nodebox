@@ -110,6 +110,25 @@ ipcMain.handle(IPC.FONT_BYTES, async (_event, name: string) => {
   return getFontBytes(name);
 });
 
+ipcMain.handle(IPC.ASSET_READ, async (_event, { relativePath, projectDir }: { relativePath: string; projectDir: string }) => {
+  // Reject paths that escape the project directory (sandbox)
+  if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+    return { error: 'sandbox' };
+  }
+  const absolutePath = join(projectDir, relativePath);
+  // Double-check the resolved path is within the project directory
+  const resolved = relative(projectDir, absolutePath);
+  if (resolved.startsWith('..') || isAbsolute(resolved)) {
+    return { error: 'sandbox' };
+  }
+  try {
+    const content = await readFile(absolutePath, 'utf-8');
+    return { content };
+  } catch {
+    return { error: 'not_found' };
+  }
+});
+
 ipcMain.handle(IPC.ASSET_OPEN, async (_event, { filters, projectDir }: { filters: { name: string; extensions: string[] }[]; projectDir: string }) => {
   if (!mainWindow) return null;
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {

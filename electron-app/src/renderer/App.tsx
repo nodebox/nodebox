@@ -7,10 +7,19 @@ import { isWasmReady, onWasmReady, parseNdbx, serializeNdbx } from './eval/wasm'
 import { createDefaultLibrary } from './types/node';
 import type { MenuAction } from '../shared/ipc-channels';
 
+/** Extract directory from a file path (e.g., '/a/b/file.ndbx' -> '/a/b'). */
+function dirname(filePath: string): string {
+  const sep = filePath.lastIndexOf('/');
+  const backSep = filePath.lastIndexOf('\\');
+  const lastSep = Math.max(sep, backSep);
+  return lastSep >= 0 ? filePath.substring(0, lastSep) : '.';
+}
+
 export function App() {
   useKeyboardShortcuts();
 
   const library = useStore((s) => s.library);
+  const filePath = useStore((s) => s.filePath);
   const frame = useStore((s) => s.frame);
   const isPlaying = useStore((s) => s.isPlaying);
   const setFrame = useStore((s) => s.setFrame);
@@ -26,18 +35,25 @@ export function App() {
   const clearHistory = useStore((s) => s.clearHistory);
   const clearSelection = useStore((s) => s.clearSelection);
 
-  // Run the evaluator whenever the library or frame changes
+  const projectDir = filePath ? dirname(filePath) : null;
+
+  // Run the evaluator whenever the library, frame, or project dir changes
   useEffect(() => {
-    const result = evaluate(library, frame);
-    setRenderResult(result);
-  }, [library, frame, setRenderResult]);
+    let cancelled = false;
+    evaluate(library, frame, projectDir).then((result) => {
+      if (!cancelled) setRenderResult(result);
+    });
+    return () => { cancelled = true; };
+  }, [library, frame, projectDir, setRenderResult]);
 
   // Re-evaluate once WASM is initialized (for textpath nodes)
   useEffect(() => {
     onWasmReady(() => {
       const s = useStore.getState();
-      const result = evaluate(s.library, s.frame);
-      s.setRenderResult(result);
+      const dir = s.filePath ? dirname(s.filePath) : null;
+      evaluate(s.library, s.frame, dir).then((result) => {
+        s.setRenderResult(result);
+      });
     });
   }, []);
 

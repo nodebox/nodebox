@@ -26,6 +26,10 @@ interface ElectronAPI {
     filters: { name: string; extensions: string[] }[],
     projectDir: string,
   ): Promise<{ path: string } | { error: string } | null>;
+  readAssetFile(
+    relativePath: string,
+    projectDir: string,
+  ): Promise<{ content: string } | { error: string }>;
   getFontList(): Promise<FontInfo[]>;
   getFontBytes(name: string): Promise<Uint8Array | null>;
   onMenuAction(callback: (action: string) => void): void;
