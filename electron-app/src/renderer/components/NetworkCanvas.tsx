@@ -416,7 +416,7 @@ export function NetworkCanvas() {
   const removeConnection = useStore((s) => s.removeConnection);
   const pushSnapshot = useStore((s) => s.pushSnapshot);
   const library = useStore((s) => s.library);
-  const renderErrors = useStore((s) => s.renderResult?.errors ?? []);
+  const renderErrors = useStore((s) => s.renderResult?.errors);
 
   const panZoom = usePanZoom({ x: 8, y: 8 });
   const { state: pz, handlers, worldToScreen, screenToWorld } = panZoom;
@@ -447,7 +447,7 @@ export function NetworkCanvas() {
         drawConnection(ctx, conn, children, worldToScreen, pz.zoom);
       }
 
-      const errorNodeNames = new Set(renderErrors.map((e) => e.nodeName));
+      const errorNodeNames = new Set(renderErrors?.map((e) => e.nodeName));
 
       // Determine output type of connection being dragged (for port feedback)
       const dragOutputType = creatingConnection
