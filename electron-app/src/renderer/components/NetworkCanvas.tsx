@@ -308,13 +308,21 @@ function drawConnection(
   const x2 = inRect.x + (PORT_WIDTH + PORT_SPACING) * zoom * portIdx + (PORT_WIDTH * zoom) / 2;
   const y2 = inRect.y - PORT_HEIGHT * zoom;
 
-  // Bezier curve colored by output type
-  const cpOffset = Math.abs(y2 - y1) * 0.4;
-  ctx.strokeStyle = portColor(outputNode.output_type);
+  // Wire colored by input port type (matching egui behavior)
+  const inputPort = inputNode.inputs[portIdx];
+  ctx.strokeStyle = inputPort ? portColor(inputPort.port_type) : portColor(outputNode.output_type);
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(x1, y1);
-  ctx.bezierCurveTo(x1, y1 + cpOffset, x2, y2 - cpOffset, x2, y2);
+
+  // Short connections render as straight lines (< 1 grid cell)
+  const dy = Math.abs(y2 - y1);
+  if (dy < GRID_SIZE * zoom) {
+    ctx.lineTo(x2, y2);
+  } else {
+    const cpOffset = dy * 0.4;
+    ctx.bezierCurveTo(x1, y1 + cpOffset, x2, y2 - cpOffset, x2, y2);
+  }
   ctx.stroke();
 }
 
