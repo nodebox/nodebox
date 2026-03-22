@@ -7,6 +7,12 @@ export interface PendingConnection {
   outputType: PortType;
 }
 
+export interface Notification {
+  id: number;
+  message: string;
+  level: 'info' | 'warning' | 'error';
+}
+
 export interface UISlice {
   networkSplitRatio: number;
   parameterPanelWidth: number;
@@ -20,6 +26,7 @@ export interface UISlice {
   pendingConnection: PendingConnection | null;
   aboutDialogVisible: boolean;
   viewerMode: ViewerMode;
+  notifications: Notification[];
 
   setNetworkSplitRatio: (ratio: number) => void;
   setParameterPanelWidth: (width: number) => void;
@@ -38,6 +45,8 @@ export interface UISlice {
   viewerZoomAction: 'in' | 'out' | 'reset' | null;
   requestViewerZoom: (action: 'in' | 'out' | 'reset') => void;
   clearViewerZoomAction: () => void;
+  addNotification: (message: string, level?: 'info' | 'warning' | 'error') => void;
+  dismissNotification: (id: number) => void;
 }
 
 export const createUISlice = (
@@ -55,6 +64,7 @@ export const createUISlice = (
   pendingConnection: null,
   aboutDialogVisible: false,
   viewerMode: 'visual',
+  notifications: [],
 
   setNetworkSplitRatio: (ratio) =>
     set((state) => {
@@ -133,5 +143,15 @@ export const createUISlice = (
   clearViewerZoomAction: () =>
     set((state) => {
       state.viewerZoomAction = null;
+    }),
+
+  addNotification: (message, level = 'warning') =>
+    set((state) => {
+      state.notifications.push({ id: Date.now(), message, level });
+    }),
+
+  dismissNotification: (id) =>
+    set((state) => {
+      state.notifications = state.notifications.filter((n) => n.id !== id);
     }),
 });
