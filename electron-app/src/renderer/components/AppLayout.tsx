@@ -8,6 +8,7 @@ import { DataViewer } from './DataViewer';
 import { ParameterPanel } from './ParameterPanel';
 import { NodeSelectionDialog } from './NodeSelectionDialog';
 import { AboutDialog } from './AboutDialog';
+import { NotificationBanner } from './NotificationBanner';
 import {
   PANEL_BG,
   PANE_HEADER_FOREGROUND_COLOR,
@@ -375,6 +376,7 @@ export function AppLayout() {
   return (
     <div className="flex flex-col h-screen" style={{ background: PANEL_BG }}>
       <AddressBar />
+      <NotificationBanner />
       <div className="flex flex-1" style={{ minHeight: 0 }}>
         {/* LEFT: Viewer (fills remaining space) */}
         <div className="flex flex-col flex-1" style={{ minWidth: 0 }}>
