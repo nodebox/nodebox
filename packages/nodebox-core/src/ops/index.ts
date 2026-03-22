@@ -6,3 +6,4 @@ export * from './color.js';
 export * from './string.js';
 export * from './data.js';
 export * from './network.js';
+export * from './text.js';
