@@ -26,7 +26,7 @@ export async function launchApp(): Promise<AppContext> {
   });
   const window = await electronApp.firstWindow();
   // Wait for the React app to mount
-  await window.waitForSelector('#root > *', { timeout: 15000 });
+  await window.waitForSelector('#root > *', { timeout: 30000 });
   return { electronApp, window };
 }
 

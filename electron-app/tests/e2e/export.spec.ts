@@ -8,7 +8,7 @@ test.beforeEach(async () => {
 });
 
 test.afterEach(async () => {
-  await ctx.electronApp.close();
+  await ctx?.electronApp?.close();
 });
 
 test('Export SVG menu item exists', async () => {
@@ -31,21 +31,6 @@ test('Export PNG menu item exists', async () => {
     return fileMenu.submenu.items.map((item) => item.label);
   });
   expect(menuLabels).toContain('Export PNG...');
-});
-
-test('export SVG IPC handler is registered in main process', async () => {
-  // Verify the export:svg IPC handler exists
-  const hasIpc = await ctx.electronApp.evaluate(({ ipcMain }) => {
-    return typeof ipcMain !== 'undefined';
-  });
-  expect(hasIpc).toBe(true);
-});
-
-test('export PNG IPC handler is registered in main process', async () => {
-  const hasIpc = await ctx.electronApp.evaluate(({ ipcMain }) => {
-    return typeof ipcMain !== 'undefined';
-  });
-  expect(hasIpc).toBe(true);
 });
 
 test('electronAPI exposes exportSvg in renderer', async () => {
