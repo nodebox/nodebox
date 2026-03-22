@@ -94,6 +94,21 @@ function portColor(portType: PortType): string {
   }
 }
 
+/** Strip trailing digits to get the name prefix (e.g. "rect1" -> "rect"). */
+function extractNamePrefix(name: string): string {
+  const match = name.match(/^(.*\D)\d*$/);
+  return match ? match[1] : name;
+}
+
+/** Generate a unique name with the given prefix, avoiding names in `existing`. */
+function generateUniqueName(prefix: string, existing: Set<string>): string {
+  for (let i = 1; i < 1000; i++) {
+    const name = `${prefix}${i}`;
+    if (!existing.has(name)) return name;
+  }
+  return `${prefix}1000`;
+}
+
 // Icon cache: loads SVG icons and pre-renders them as white-tinted OffscreenCanvas images
 class NodeIconCache {
   private entries = new Map<string, OffscreenCanvas | null>();
@@ -396,6 +411,7 @@ export function NetworkCanvas() {
   const setPendingConnection = useStore((s) => s.setPendingConnection);
   const setNodePosition = useStore((s) => s.setNodePosition);
   const setRenderedChild = useStore((s) => s.setRenderedChild);
+  const addNode = useStore((s) => s.addNode);
   const addConnection = useStore((s) => s.addConnection);
   const removeConnection = useStore((s) => s.removeConnection);
   const pushSnapshot = useStore((s) => s.pushSnapshot);
@@ -408,6 +424,7 @@ export function NetworkCanvas() {
   const [isDragging, setIsDragging] = useState(false);
   const dragStartWorld = useRef({ x: 0, y: 0 });
   const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const isAltCopyDrag = useRef(false);
 
   const [creatingConnection, setCreatingConnection] = useState<CreatingConnection | null>(null);
   const [rubberBand, setRubberBand] = useState<RubberBand | null>(null);
@@ -635,6 +652,62 @@ export function NetworkCanvas() {
         dragStartPositions.current = positions;
 
         pushSnapshot(library);
+
+        // Alt+drag: clone selected nodes and drag the copies
+        if (e.altKey) {
+          const usedNames = new Set(children.map((c) => c.name));
+          const nameMap = new Map<string, string>();
+
+          // Phase 1: Build old->new name mapping
+          for (const oldName of effectiveSelection) {
+            const prefix = extractNamePrefix(oldName);
+            const newName = generateUniqueName(prefix, usedNames);
+            usedNames.add(newName);
+            nameMap.set(oldName, newName);
+          }
+
+          // Phase 2: Clone nodes with new names
+          for (const oldName of effectiveSelection) {
+            const original = children.find((c) => c.name === oldName);
+            if (original) {
+              const cloned = JSON.parse(JSON.stringify(original));
+              cloned.name = nameMap.get(oldName)!;
+              addNode('root', cloned);
+            }
+          }
+
+          // Phase 3: Duplicate connections (internal + incoming)
+          for (const conn of connections) {
+            const outInSelection = nameMap.has(conn.output_node);
+            const inInSelection = nameMap.has(conn.input_node);
+            if (outInSelection && inInSelection) {
+              addConnection('root', {
+                output_node: nameMap.get(conn.output_node)!,
+                input_node: nameMap.get(conn.input_node)!,
+                input_port: conn.input_port,
+              });
+            } else if (inInSelection) {
+              addConnection('root', {
+                output_node: conn.output_node,
+                input_node: nameMap.get(conn.input_node)!,
+                input_port: conn.input_port,
+              });
+            }
+          }
+
+          // Phase 4: Update selection and drag positions to clones
+          selectNodes(Array.from(nameMap.values()));
+          const clonePositions = new Map<string, { x: number; y: number }>();
+          for (const [oldName, newName] of nameMap) {
+            const origPos = positions.get(oldName);
+            if (origPos) clonePositions.set(newName, { ...origPos });
+          }
+          dragStartPositions.current = clonePositions;
+          isAltCopyDrag.current = true;
+        } else {
+          isAltCopyDrag.current = false;
+        }
+
         setIsDragging(true);
         e.currentTarget.setPointerCapture(e.pointerId);
       } else {
@@ -649,7 +722,7 @@ export function NetworkCanvas() {
         e.currentTarget.setPointerCapture(e.pointerId);
       }
     },
-    [handlers, hitTestNode, findOutputPortAt, findInputPortAt, selectNode, toggleNode, clearSelection, selectedNodes, screenToWorld, connections, pushSnapshot, library, removeConnection, children, panZoom.isSpaceDown],
+    [handlers, hitTestNode, findOutputPortAt, findInputPortAt, selectNode, selectNodes, toggleNode, clearSelection, selectedNodes, screenToWorld, connections, pushSnapshot, library, removeConnection, children, panZoom.isSpaceDown, addNode, addConnection],
   );
 
   const handlePointerMove = useCallback(
