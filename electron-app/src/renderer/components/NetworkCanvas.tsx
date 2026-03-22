@@ -30,6 +30,7 @@ import {
   TOOLTIP_BG,
   TOOLTIP_TEXT,
   PORT_HOVER,
+  ERROR_RED,
 } from '../theme/tokens';
 
 // Layout constants
@@ -174,18 +175,22 @@ function drawNode(
   worldToScreen: (wx: number, wy: number) => { x: number; y: number },
   zoom: number,
   hoveredPort: { nodeName: string; portName: string; portType: string } | null,
+  hasError: boolean,
 ) {
   const rect = nodeScreenRect(node, worldToScreen, zoom);
   const z = zoom;
+
+  // Use error color if node has an error, otherwise use output type color
+  const bodyColor = hasError ? ERROR_RED : nodeBodyColor(node.output_type);
 
   // Selection: white background then body color inset by 2px
   if (isSelected) {
     ctx.fillStyle = ZINC_50;
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
-    ctx.fillStyle = nodeBodyColor(node.output_type);
+    ctx.fillStyle = bodyColor;
     ctx.fillRect(rect.x + 2 * z, rect.y + 2 * z, rect.width - 4 * z, rect.height - 4 * z);
   } else {
-    ctx.fillStyle = nodeBodyColor(node.output_type);
+    ctx.fillStyle = bodyColor;
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
   }
 
@@ -346,6 +351,7 @@ export function NetworkCanvas() {
   const removeConnection = useStore((s) => s.removeConnection);
   const pushSnapshot = useStore((s) => s.pushSnapshot);
   const library = useStore((s) => s.library);
+  const renderErrors = useStore((s) => s.renderResult?.errors ?? []);
 
   const panZoom = usePanZoom({ x: 8, y: 8 });
   const { state: pz, handlers, worldToScreen, screenToWorld } = panZoom;
@@ -375,10 +381,12 @@ export function NetworkCanvas() {
         drawConnection(ctx, conn, children, worldToScreen, pz.zoom);
       }
 
+      const errorNodeNames = new Set(renderErrors.map((e) => e.nodeName));
+
       for (const node of children) {
         const isSelected = selectedNodes.has(node.name);
         const isRendered = renderedChild === node.name;
-        drawNode(ctx, node, isSelected, isRendered, worldToScreen, pz.zoom, hoveredPort);
+        drawNode(ctx, node, isSelected, isRendered, worldToScreen, pz.zoom, hoveredPort, errorNodeNames.has(node.name));
       }
 
       // Draw pending connection
@@ -407,7 +415,7 @@ export function NetworkCanvas() {
         );
       }
     },
-    [pz, children, connections, selectedNodes, renderedChild, worldToScreen, creatingConnection, rubberBand, hoveredPort],
+    [pz, children, connections, selectedNodes, renderedChild, worldToScreen, creatingConnection, rubberBand, hoveredPort, renderErrors],
   );
 
   const { canvasRef, requestRender } = useCanvasRenderer(draw);
