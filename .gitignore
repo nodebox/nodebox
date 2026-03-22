@@ -19,3 +19,7 @@ Thumbs.db
 # Jython package cache and compiled files
 lib/cachedir
 *$py.class
+
+# Node.js
+node_modules
+pnpm-lock.yaml
