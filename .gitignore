@@ -23,6 +23,7 @@ lib/cachedir
 
 # Secrets
 .env
+.claude/settings.local.json
 
 # Playwright
 .playwright-mcp/
