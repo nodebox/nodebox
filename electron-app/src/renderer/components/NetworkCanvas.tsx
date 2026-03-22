@@ -44,10 +44,25 @@ const PORT_SPACING = 8;
 
 const NODE_ICON_SIZE = 24;
 const NODE_PADDING = 4;
+const PORT_HEIGHT_EXPANDED = 6;
+const PORT_HEIGHT_SHRUNK = 1;
 // Hit-test tolerance for ports (in screen pixels)
 const PORT_HIT_TOLERANCE = 6;
 // Margin between ports for expanded hit-area calculations during connection drag
 const PORT_MARGIN = 6;
+
+/** Check if an output type is compatible with an input type (mirrors Rust PortType::is_compatible). */
+function isPortCompatible(outputType: string, inputType: string): boolean {
+  if (outputType === inputType) return true;
+  if (inputType === 'List') return true;
+  if (outputType === 'List') return true;
+  if (outputType === 'Data' || inputType === 'Data') return true;
+  if (inputType === 'String') return true;
+  if (outputType === 'Int' && inputType === 'Float') return true;
+  if (outputType === 'Float' && inputType === 'Int') return true;
+  if ((outputType === 'Int' || outputType === 'Float') && inputType === 'Point') return true;
+  return false;
+}
 
 function nodeBodyColor(outputType: PortType): string {
   switch (outputType) {
@@ -176,6 +191,7 @@ function drawNode(
   zoom: number,
   hoveredPort: { nodeName: string; portName: string; portType: string } | null,
   hasError: boolean,
+  dragOutputType: string | null,
 ) {
   const rect = nodeScreenRect(node, worldToScreen, zoom);
   const z = zoom;
@@ -228,20 +244,45 @@ function drawNode(
     rect.width - 36 * z,
   );
 
-  // Input ports (left-aligned from node left edge)
+  // Input ports (left-aligned from node left edge) with connection-drag feedback
   for (let i = 0; i < node.inputs.length; i++) {
+    const port = node.inputs[i];
     const px = rect.x + (PORT_WIDTH + PORT_SPACING) * z * i;
-    const py = rect.y - PORT_HEIGHT * z;
-    const isHovered = hoveredPort?.nodeName === node.name && hoveredPort?.portName === node.inputs[i].name;
-    ctx.fillStyle = isHovered ? PORT_HOVER : portColor(node.inputs[i].port_type);
-    ctx.fillRect(px, py, PORT_WIDTH * z, PORT_HEIGHT * z);
+    const isHovered = hoveredPort?.nodeName === node.name && hoveredPort?.portName === port.name;
+
+    let portHeight: number;
+    let color: string;
+    if (dragOutputType) {
+      const compatible = isPortCompatible(dragOutputType, port.port_type);
+      if (isHovered && compatible) {
+        portHeight = PORT_HEIGHT;
+        color = PORT_HOVER;
+      } else if (compatible) {
+        portHeight = PORT_HEIGHT_EXPANDED;
+        color = portColor(port.port_type);
+      } else {
+        portHeight = PORT_HEIGHT_SHRUNK;
+        color = portColor(port.port_type);
+      }
+    } else if (isHovered) {
+      portHeight = PORT_HEIGHT;
+      color = PORT_HOVER;
+    } else {
+      portHeight = PORT_HEIGHT;
+      color = portColor(port.port_type);
+    }
+
+    // Port bottom hugs node top
+    const py = rect.y - portHeight * z;
+    ctx.fillStyle = color;
+    ctx.fillRect(px, py, PORT_WIDTH * z, portHeight * z);
   }
 
-  // Output port (bottom-left)
+  // Output port (bottom-left) — no expand/shrink during drag
   const opx = rect.x;
   const opy = rect.y + rect.height;
   const isOutputHovered = hoveredPort?.nodeName === node.name && hoveredPort?.portName === 'output';
-  ctx.fillStyle = isOutputHovered ? PORT_HOVER : portColor(node.output_type);
+  ctx.fillStyle = (isOutputHovered && !dragOutputType) ? PORT_HOVER : portColor(node.output_type);
   ctx.fillRect(opx, opy, PORT_WIDTH * z, PORT_HEIGHT * z);
 }
 
@@ -383,10 +424,15 @@ export function NetworkCanvas() {
 
       const errorNodeNames = new Set(renderErrors.map((e) => e.nodeName));
 
+      // Determine output type of connection being dragged (for port feedback)
+      const dragOutputType = creatingConnection
+        ? children.find((n) => n.name === creatingConnection.fromNode)?.output_type ?? null
+        : null;
+
       for (const node of children) {
         const isSelected = selectedNodes.has(node.name);
         const isRendered = renderedChild === node.name;
-        drawNode(ctx, node, isSelected, isRendered, worldToScreen, pz.zoom, hoveredPort, errorNodeNames.has(node.name));
+        drawNode(ctx, node, isSelected, isRendered, worldToScreen, pz.zoom, hoveredPort, errorNodeNames.has(node.name), dragOutputType);
       }
 
       // Draw pending connection
