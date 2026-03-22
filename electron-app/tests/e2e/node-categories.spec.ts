@@ -8,7 +8,7 @@ test.beforeEach(async () => {
 });
 
 test.afterEach(async () => {
-  await ctx.electronApp.close();
+  await ctx?.electronApp?.close();
 });
 
 test('rect1 has geometry category', async () => {

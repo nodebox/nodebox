@@ -8,7 +8,7 @@ test.beforeEach(async () => {
 });
 
 test.afterEach(async () => {
-  await ctx.electronApp.close();
+  await ctx?.electronApp?.close();
 });
 
 test('network canvas renders without errors', async () => {

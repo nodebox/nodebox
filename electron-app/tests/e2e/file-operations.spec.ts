@@ -8,7 +8,7 @@ test.beforeEach(async () => {
 });
 
 test.afterEach(async () => {
-  await ctx.electronApp.close();
+  await ctx?.electronApp?.close();
 });
 
 test('File > New resets the document', async () => {
