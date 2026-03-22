@@ -293,7 +293,10 @@ export function ViewerCanvas() {
     [activeNode, library],
   );
 
-  const panZoom = usePanZoom(undefined, undefined, { centerOrigin: true });
+  const panZoom = usePanZoom(undefined, undefined, {
+    scrollToZoom: true,
+    centerOrigin: true,
+  });
   const { state: pz, handlers } = panZoom;
   const { zoomIn, zoomOut, setPan, setZoom } = panZoom;
 

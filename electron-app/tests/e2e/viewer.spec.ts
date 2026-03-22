@@ -24,19 +24,20 @@ test('viewer canvas exists and has dimensions', async () => {
   expect(box!.height).toBeGreaterThan(0);
 });
 
-test('viewer canvas responds to wheel events', async () => {
+test('viewer canvas zooms with wheel events', async () => {
   const viewerCanvas = ctx.window.locator('canvas').nth(1);
   const box = await viewerCanvas.boundingBox();
   expect(box).not.toBeNull();
 
-  // Scroll on the viewer canvas
+  const before = await getStoreState(ctx.window);
+
+  // Scroll on the viewer canvas and confirm the viewer zoom changes.
   await ctx.window.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
   await ctx.window.mouse.wheel(0, -100);
   await waitForUpdate(ctx.window);
 
-  // App should still work
-  const title = await ctx.window.title();
-  expect(title).toBe('NodeBox');
+  const after = await getStoreState(ctx.window);
+  expect(after.viewerZoom).toBeGreaterThan(before.viewerZoom);
 });
 
 test('viewer pane header is visible', async () => {
