@@ -90,6 +90,7 @@ export function NodeSelectionDialog() {
   const children = library.root.children;
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const templates = useMemo(() => {
@@ -109,6 +110,11 @@ export function NodeSelectionDialog() {
       );
     }
 
+    // Filter by selected category
+    if (selectedCategory) {
+      result = result.filter((t) => t.category === selectedCategory);
+    }
+
     // Filter by search query
     if (query) {
       result = result.filter(
@@ -119,7 +125,7 @@ export function NodeSelectionDialog() {
     }
 
     return result;
-  }, [templates, query, pendingConnection]);
+  }, [templates, query, pendingConnection, selectedCategory]);
 
   const groupedItems = useMemo(() => {
     const groups: { category: string; items: { template: NodeTemplate; globalIndex: number }[] }[] = [];
@@ -168,10 +174,16 @@ export function NodeSelectionDialog() {
     [library, children, nodeDialogPosition, pendingConnection, addNode, addConnection, pushSnapshot, selectNode, setRenderedChild, setVisible, setPendingConnection],
   );
 
+  const categories = useMemo(() => {
+    const cats = new Set(templates.map((t) => t.category));
+    return Array.from(cats).sort();
+  }, [templates]);
+
   useEffect(() => {
     if (visible) {
       setQuery('');
       setSelectedIndex(0);
+      setSelectedCategory(null);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [visible]);
@@ -223,6 +235,35 @@ export function NodeSelectionDialog() {
           onKeyDown={handleKeyDown}
           className="outline-none px-3 py-2 bg-zinc-800 text-zinc-100 text-[13px] border-none"
         />
+
+        {/* Category filter pills */}
+        <div className="flex flex-wrap gap-1 px-2 py-1 bg-zinc-700 border-b border-zinc-600">
+          <button
+            className="px-2 py-0.5 text-[10px] uppercase tracking-wide cursor-pointer border-none"
+            style={{
+              background: selectedCategory === null ? '#52525b' : 'transparent',
+              color: selectedCategory === null ? '#fafafa' : '#a1a1aa',
+              borderRadius: 2,
+            }}
+            onClick={() => { setSelectedCategory(null); setSelectedIndex(0); }}
+          >
+            All
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              className="px-2 py-0.5 text-[10px] uppercase tracking-wide cursor-pointer border-none"
+              style={{
+                background: selectedCategory === cat ? getCategoryColor(cat) + '40' : 'transparent',
+                color: selectedCategory === cat ? getCategoryColor(cat) : '#a1a1aa',
+                borderRadius: 2,
+              }}
+              onClick={() => { setSelectedCategory(selectedCategory === cat ? null : cat); setSelectedIndex(0); }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
 
         {/* Results list */}
         <div className="overflow-y-auto flex-1">
