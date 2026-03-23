@@ -94,32 +94,40 @@ function DocRow({ label, children }: { label: string; children: React.ReactNode 
 function PortRow({ port, isConnected, onChange, onCommit }: { port: Port; isConnected: boolean; onChange: (v: Value) => void; onCommit: () => void }) {
   const [hovered, setHovered] = React.useState(false);
   const dragging = React.useRef(false);
-  const startX = React.useRef(0);
-  const startValues = React.useRef<any>(0);
+  const lastX = React.useRef(0);
+  const accumX = React.useRef(0);
+  const accumY = React.useRef(0);
   const isNumeric = !isConnected && (port.type === 'float' || port.type === 'int' || port.type === 'point');
 
   const handleLabelPointerDown = React.useCallback((e: React.PointerEvent) => {
     if (!isNumeric) return;
     dragging.current = true;
-    startX.current = e.clientX;
-    startValues.current = port.value.type === 'point' ? { ...(port.value as any).value } : (port.value as any).value;
+    lastX.current = e.clientX;
+    accumX.current = 0;
+    accumY.current = 0;
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     e.preventDefault();
-  }, [port, isNumeric]);
+  }, [isNumeric]);
 
+  // Incremental accumulator: modifier only affects each frame's delta
   const handleLabelPointerMove = React.useCallback((e: React.PointerEvent) => {
     if (!dragging.current) return;
-    const dx = e.clientX - startX.current;
+    const dx = e.clientX - lastX.current;
+    lastX.current = e.clientX;
     const modifier = e.shiftKey ? 10 : e.altKey ? 0.1 : 1;
     const v = port.value;
     if (v.type === 'float' || v.type === 'int') {
       const step = (v.type === 'int' ? 1 : 0.1) * modifier;
-      const newVal = (startValues.current as number) + dx * step;
+      accumX.current += dx * step;
+      const cur = (v.value as number);
+      const newVal = cur + accumX.current;
+      accumX.current = 0;
       onChange({ type: v.type, value: v.type === 'int' ? Math.round(newVal) : parseFloat(newVal.toFixed(2)) } as Value);
     } else if (v.type === 'point') {
       const step = 0.1 * modifier;
-      const sv = startValues.current as { x: number; y: number };
-      onChange({ type: 'point', value: { x: parseFloat((sv.x + dx * step).toFixed(2)), y: parseFloat((sv.y + dx * step).toFixed(2)) } });
+      const p = (v.value as { x: number; y: number });
+      const delta = dx * step;
+      onChange({ type: 'point', value: { x: parseFloat((p.x + delta).toFixed(2)), y: parseFloat((p.y + delta).toFixed(2)) } });
     }
   }, [port, onChange]);
 
