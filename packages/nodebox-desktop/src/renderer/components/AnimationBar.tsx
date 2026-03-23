@@ -11,19 +11,38 @@ export function AnimationBar() {
   const stop = useStore((s) => s.stop);
 
   return (
-    <div className="flex items-center h-7 px-1 bg-zinc-800 border-t border-zinc-900 text-[13px] text-zinc-100 shrink-0">
-      <DragValue value={currentFrame} onChange={(v) => setCurrentFrame(Math.max(1, Math.round(v)))} step={1} min={1} precision={0} />
-      <div className="w-1" />
-      <IconButton icon={playing ? '\u23F8' : '\u25B6'} tooltip={playing ? 'Stop' : 'Play'} onClick={playing ? pause : play} />
-      <IconButton icon={'\u23EE'} tooltip="Rewind" onClick={stop} />
+    <div style={{ display: 'flex', alignItems: 'center', height: 28, padding: '0 4px', background: '#27272a', borderTop: '1px solid #18181b', fontSize: 13, color: '#f4f4f5', flexShrink: 0, gap: 2 }}>
+      {/* Frame number (draggable) */}
+      <div style={{ width: 80 }}>
+        <DragValue value={currentFrame} onChange={(v) => setCurrentFrame(Math.max(1, Math.round(v)))} step={1} min={1} precision={0} />
+      </div>
+
+      {/* Play/Pause */}
+      <BarButton icon={playing ? '\u23F8' : '\u25B6'} label={playing ? 'Pause' : 'Play'} onClick={playing ? pause : play} />
+
+      {/* Rewind */}
+      <BarButton icon={'\u23EE'} label="Rewind" onClick={stop} />
     </div>
   );
 }
 
-function IconButton({ icon, tooltip, onClick }: { icon: string; tooltip: string; onClick: () => void }) {
+function BarButton({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+  const [hovered, setHovered] = React.useState(false);
   return (
-    <button onClick={onClick} title={tooltip} className="w-7 h-7 flex items-center justify-center bg-transparent border-none text-zinc-100 hover:bg-zinc-700 hover:text-zinc-50 cursor-pointer text-[13px] font-[inherit]">
-      {icon}
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 4,
+        height: 24, padding: '0 8px',
+        background: hovered ? '#3f3f46' : 'transparent',
+        border: 'none', color: hovered ? '#fafafa' : '#f4f4f5',
+        cursor: 'pointer', fontSize: 11, fontFamily: 'inherit',
+      }}
+    >
+      <span style={{ fontSize: 13 }}>{icon}</span>
+      <span>{label}</span>
     </button>
   );
 }

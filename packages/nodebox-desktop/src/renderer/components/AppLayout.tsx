@@ -42,7 +42,7 @@ function ZoomControl({ zoom, onZoom }: { zoom: number; onZoom: (action: 'in' | '
 
 function PaneHeader({ children }: { children: React.ReactNode }) {
   return (
-    <div className="h-6 bg-zinc-700 text-zinc-200 text-[11px] border-t border-t-zinc-600 border-b border-b-zinc-900 flex items-center px-2 gap-1 shrink-0">
+    <div style={{ height: 24, background: '#3f3f46', color: '#e4e4e7', fontSize: 11, borderTop: '1px solid #52525c', borderBottom: '1px solid #18181b', display: 'flex', alignItems: 'center', padding: '0 8px', gap: 4, flexShrink: 0 }}>
       {children}
     </div>
   );

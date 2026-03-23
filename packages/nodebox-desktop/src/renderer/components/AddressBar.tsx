@@ -7,15 +7,15 @@ export function AddressBar() {
   const parts = currentNetworkPath.split('/').filter(Boolean);
 
   return (
-    <div className="flex items-center h-7 px-2 bg-zinc-800 border-b border-zinc-900 text-[11px] text-zinc-100 shrink-0">
+    <div style={{ display: 'flex', alignItems: 'center', height: 28, padding: '0 8px', background: '#27272a', borderBottom: '1px solid #18181b', fontSize: 11, color: '#f4f4f5', flexShrink: 0 }}>
       {parts.map((part, i) => {
         const path = parts.slice(0, i + 1).join('/');
         return (
           <React.Fragment key={path}>
-            {i > 0 && <span className="mx-1 text-zinc-400">›</span>}
+            {i > 0 && <span style={{ margin: '0 4px', color: '#9f9fa9' }}>›</span>}
             <button
               onClick={() => setCurrentNetworkPath(path)}
-              className={`bg-transparent border-none cursor-pointer px-1 py-0.5 text-[11px] font-[inherit] ${i === parts.length - 1 ? 'text-zinc-100' : 'text-zinc-400'}`}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', fontSize: 11, fontFamily: 'inherit', color: i === parts.length - 1 ? '#f4f4f5' : '#9f9fa9' }}
             >
               {part}
             </button>
