@@ -17,32 +17,41 @@ export function createHistorySlice(set: any, get: any): HistorySlice {
     undoStack: [],
     redoStack: [],
 
-    pushHistory: () => set((state: any) => {
-      if (state.library) {
-        // Deep clone via structuredClone
-        state.undoStack.push(structuredClone(state.library));
+    // Capture the current (immutable) library via get() BEFORE entering the immer draft.
+    // Immer guarantees get() returns a frozen snapshot, so no cloning is needed.
+    pushHistory: () => {
+      const snapshot = get().library;
+      if (!snapshot) return;
+      set((state: any) => {
+        state.undoStack.push(snapshot);
         if (state.undoStack.length > MAX_HISTORY) {
           state.undoStack.shift();
         }
         state.redoStack = [];
-      }
-    }),
+      });
+    },
 
-    undo: () => set((state: any) => {
-      if (state.undoStack.length === 0) return;
-      if (state.library) {
-        state.redoStack.push(structuredClone(state.library));
-      }
-      state.library = state.undoStack.pop();
-    }),
+    undo: () => {
+      const { undoStack, library } = get();
+      if (undoStack.length === 0) return;
+      set((state: any) => {
+        if (library) {
+          state.redoStack.push(library);
+        }
+        state.library = state.undoStack.pop();
+      });
+    },
 
-    redo: () => set((state: any) => {
-      if (state.redoStack.length === 0) return;
-      if (state.library) {
-        state.undoStack.push(structuredClone(state.library));
-      }
-      state.library = state.redoStack.pop();
-    }),
+    redo: () => {
+      const { redoStack, library } = get();
+      if (redoStack.length === 0) return;
+      set((state: any) => {
+        if (library) {
+          state.undoStack.push(library);
+        }
+        state.library = state.redoStack.pop();
+      });
+    },
 
     canUndo: () => get().undoStack.length > 0,
     canRedo: () => get().redoStack.length > 0,
