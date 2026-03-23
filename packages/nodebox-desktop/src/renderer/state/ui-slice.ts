@@ -85,7 +85,8 @@ export function createUISlice(set: any): UISlice {
       s.notifications.push({ id: Date.now(), message, level });
     }),
     dismissNotification: (id) => set((s: UISlice) => {
-      s.notifications = s.notifications.filter((n) => n.id !== id);
+      const idx = s.notifications.findIndex((n) => n.id === id);
+      if (idx >= 0) s.notifications.splice(idx, 1);
     }),
   };
 }

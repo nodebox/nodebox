@@ -32,81 +32,81 @@ export function createLibrarySlice(set: any, get: any): LibrarySlice {
       state.dirty = false;
     }),
 
+    // All mutations use immer's draft proxy — mutate in-place, no spread/filter needed.
+    // Use splice() for removals instead of filter() to stay on the proxied array.
+
     addNodeToNetwork: (networkPath, node) => set((state: LibrarySlice) => {
-      if (!state.library) return;
       const network = findNode(state.library.root, networkPath);
-      if (network) {
-        network.children.push(node);
-        state.dirty = true;
-      }
+      if (!network) return;
+      network.children.push(node);
+      state.dirty = true;
     }),
 
     removeNodeFromNetwork: (networkPath, nodeName) => set((state: LibrarySlice) => {
-      if (!state.library) return;
       const network = findNode(state.library.root, networkPath);
-      if (network) {
-        network.children = network.children.filter(c => c.name !== nodeName);
-        network.connections = network.connections.filter(
-          c => c.inputNode !== nodeName && c.outputNode !== nodeName,
-        );
-        state.dirty = true;
+      if (!network) return;
+      const childIdx = network.children.findIndex(c => c.name === nodeName);
+      if (childIdx >= 0) network.children.splice(childIdx, 1);
+      // Reverse iterate for safe in-place splice
+      for (let i = network.connections.length - 1; i >= 0; i--) {
+        const c = network.connections[i];
+        if (c.inputNode === nodeName || c.outputNode === nodeName) {
+          network.connections.splice(i, 1);
+        }
       }
+      if (network.renderedChild === nodeName) network.renderedChild = null;
+      state.dirty = true;
     }),
 
     addConnectionToNetwork: (networkPath, conn) => set((state: LibrarySlice) => {
-      if (!state.library) return;
       const network = findNode(state.library.root, networkPath);
-      if (network) {
-        // Remove existing connection to same input
-        network.connections = network.connections.filter(
-          c => !(c.inputNode === conn.inputNode && c.inputPort === conn.inputPort),
-        );
-        network.connections.push(conn);
-        state.dirty = true;
+      if (!network) return;
+      for (let i = network.connections.length - 1; i >= 0; i--) {
+        const c = network.connections[i];
+        if (c.inputNode === conn.inputNode && c.inputPort === conn.inputPort) {
+          network.connections.splice(i, 1);
+        }
       }
+      network.connections.push(conn);
+      state.dirty = true;
     }),
 
     removeConnectionFromNetwork: (networkPath, inputNode, inputPort) => set((state: LibrarySlice) => {
-      if (!state.library) return;
       const network = findNode(state.library.root, networkPath);
-      if (network) {
-        network.connections = network.connections.filter(
-          c => !(c.inputNode === inputNode && c.inputPort === inputPort),
-        );
-        state.dirty = true;
+      if (!network) return;
+      for (let i = network.connections.length - 1; i >= 0; i--) {
+        const c = network.connections[i];
+        if (c.inputNode === inputNode && c.inputPort === inputPort) {
+          network.connections.splice(i, 1);
+        }
       }
+      state.dirty = true;
     }),
 
     setPortValueAction: (nodePath, portName, value) => set((state: LibrarySlice) => {
-      if (!state.library) return;
       const node = findNode(state.library.root, nodePath);
-      if (node) {
-        const port = node.inputs.find(p => p.name === portName);
-        if (port) {
-          port.value = value;
-          state.dirty = true;
-        }
+      if (!node) return;
+      const port = node.inputs.find(p => p.name === portName);
+      if (port) {
+        port.value = value;
+        state.dirty = true;
       }
     }),
 
     setRenderedChildAction: (networkPath, childName) => set((state: LibrarySlice) => {
-      if (!state.library) return;
       const network = findNode(state.library.root, networkPath);
-      if (network) {
-        network.renderedChild = childName;
-        state.dirty = true;
-      }
+      if (!network) return;
+      network.renderedChild = childName;
+      state.dirty = true;
     }),
 
     setNodePositionAction: (networkPath, nodeName, position) => set((state: LibrarySlice) => {
-      if (!state.library) return;
       const network = findNode(state.library.root, networkPath);
-      if (network) {
-        const child = network.children.find(c => c.name === nodeName);
-        if (child) {
-          child.position = position;
-          state.dirty = true;
-        }
+      if (!network) return;
+      const child = network.children.find(c => c.name === nodeName);
+      if (child) {
+        child.position = position;
+        // No dirty flag for position — cosmetic, high-frequency during drag
       }
     }),
 
