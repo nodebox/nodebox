@@ -15,6 +15,11 @@ import * as net from '../ops/network.js';
 
 export function unwrapValue(v: Value): unknown {
   if (v.type === 'null') return null;
+  // Geometry values are Path[] — unwrap single-element arrays to a single Path
+  // since most ops functions expect Path, not Path[]
+  if (v.type === 'geometry' && Array.isArray(v.value) && v.value.length === 1) {
+    return v.value[0];
+  }
   return v.value;
 }
 

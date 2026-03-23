@@ -1,8 +1,12 @@
 import type { NodeLibrary, Node, Connection, Value, Point } from 'nodebox-core';
-import { createNode, addChild, removeChild, addConnection, removeConnection, setPortValue, setRenderedChild, setNodePosition } from 'nodebox-core';
+import { createNode, createNodeLibrary } from 'nodebox-core';
+
+function createDefaultLibrary(): NodeLibrary {
+  return createNodeLibrary(createNode('root'));
+}
 
 export interface LibrarySlice {
-  library: NodeLibrary | null;
+  library: NodeLibrary;
   filePath: string | null;
   dirty: boolean;
   setLibrary: (library: NodeLibrary, filePath?: string) => void;
@@ -18,7 +22,7 @@ export interface LibrarySlice {
 
 export function createLibrarySlice(set: any, get: any): LibrarySlice {
   return {
-    library: null,
+    library: createDefaultLibrary(),
     filePath: null,
     dirty: false,
 

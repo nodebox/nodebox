@@ -64,6 +64,8 @@ export function NetworkCanvas() {
   const setNodePositionAction = useStore((s) => s.setNodePositionAction);
   const setRenderedChildAction = useStore((s) => s.setRenderedChildAction);
   const setCurrentNetworkPath = useStore((s) => s.setCurrentNetworkPath);
+  const setNodeSelectionDialogOpen = useStore((s) => s.setNodeSelectionDialogOpen);
+  const setNodeDialogPosition = useStore((s) => s.setNodeDialogPosition);
 
   const panZoom = usePanZoom();
   const { state: pz, handlers } = panZoom;
@@ -257,8 +259,14 @@ export function NetworkCanvas() {
       } else {
         setRenderedChildAction(currentNetworkPath, hit.name);
       }
+    } else {
+      // Double-click on empty space: open node dialog, placing node at clicked grid position
+      const gridX = Math.round(world.x / GRID_SIZE);
+      const gridY = Math.round(world.y / GRID_SIZE);
+      setNodeDialogPosition({ x: gridX, y: gridY });
+      setNodeSelectionDialogOpen(true);
     }
-  }, [findNetwork, worldToNode, panZoom, setCurrentNetworkPath, setRenderedChildAction, currentNetworkPath]);
+  }, [findNetwork, worldToNode, panZoom, setCurrentNetworkPath, setRenderedChildAction, currentNetworkPath, setNodeDialogPosition, setNodeSelectionDialogOpen]);
 
   return (
     <canvas
