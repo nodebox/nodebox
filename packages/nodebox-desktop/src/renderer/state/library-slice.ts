@@ -17,6 +17,7 @@ export interface LibrarySlice {
   setPortValueAction: (nodePath: string, portName: string, value: Value) => void;
   setRenderedChildAction: (networkPath: string, childName: string | null) => void;
   setNodePositionAction: (networkPath: string, nodeName: string, position: Point) => void;
+  setCanvasProperty: (key: string, value: string) => void;
   setDirty: (dirty: boolean) => void;
 }
 
@@ -108,6 +109,11 @@ export function createLibrarySlice(set: any, get: any): LibrarySlice {
         child.position = position;
         // No dirty flag for position — cosmetic, high-frequency during drag
       }
+    }),
+
+    setCanvasProperty: (key, value) => set((state: LibrarySlice) => {
+      state.library.properties[key] = value;
+      state.dirty = true;
     }),
 
     setDirty: (dirty) => set((state: LibrarySlice) => { state.dirty = dirty; }),

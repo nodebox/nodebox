@@ -78,7 +78,7 @@ export function DragValue({ value, onChange, onCommit, step = 1, min = null, max
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onDoubleClick={handleDoubleClick}
-      className="bg-zinc-700 hover:bg-field-hover text-zinc-100 text-[13px] px-1.5 py-0.5 cursor-ew-resize select-none min-w-[60px] text-right"
+      className="bg-transparent hover:bg-field-hover text-zinc-100 text-[13px] px-2 py-1 cursor-ew-resize select-none flex-1 text-left"
     >
       {displayValue}
     </div>
