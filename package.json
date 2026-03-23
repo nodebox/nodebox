@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
+    "start": "pnpm --filter nodebox-desktop dev",
     "test": "pnpm -r test",
     "dev": "pnpm --filter nodebox-desktop dev",
     "build": "pnpm -r build"

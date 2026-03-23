@@ -1,8 +1,12 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron';
 import { readFile, writeFile } from 'fs/promises';
 import { join, dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import { IPC } from '../shared/ipc-channels.js';
 import { createMenu } from './menu.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -18,10 +22,10 @@ function createWindow() {
     title: 'NodeBox',
   });
 
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173');
+  if (process.env.VITE_DEV_SERVER_URL) {
+    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(join(__dirname, '../../index.html'));
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
 
   Menu.setApplicationMenu(createMenu(mainWindow));
