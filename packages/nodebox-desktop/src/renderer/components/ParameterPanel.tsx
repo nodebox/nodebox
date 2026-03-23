@@ -78,11 +78,11 @@ export function ParameterPanel() {
 function DocRow({ label, children }: { label: string; children: React.ReactNode }) {
   const [hovered, setHovered] = React.useState(false);
   return (
-    <div className="flex items-center h-9" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
-      <div className={`w-28 shrink-0 text-[11px] text-zinc-300 text-right pr-2 h-full flex items-center justify-end ${hovered ? 'bg-field-hover' : 'bg-zinc-800'}`}>
+    <div style={{ display: 'flex', alignItems: 'center', height: 36 }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+      <div style={{ width: 112, flexShrink: 0, fontSize: 11, color: '#d4d4d8', textAlign: 'right', padding: '0 12px', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', background: hovered ? '#484851' : '#27272a' }}>
         {label}
       </div>
-      <div className={`flex-1 h-full flex items-center ${hovered ? 'bg-field-hover' : 'bg-zinc-700'}`}>
+      <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', padding: '0 12px', background: hovered ? '#484851' : '#3f3f46' }}>
         {children}
       </div>
     </div>
@@ -128,20 +128,18 @@ function PortRow({ port, isConnected, onChange, onCommit }: { port: Port; isConn
   }, [onCommit]);
 
   return (
-    <div className="flex items-center h-9" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
-      {/* Label: fixed width, right-aligned, darker bg */}
+    <div style={{ display: 'flex', alignItems: 'center', height: 36 }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <div
-        className={`w-28 shrink-0 h-full flex items-center justify-end pr-2 text-[11px] text-zinc-300 overflow-hidden whitespace-nowrap select-none ${isNumeric ? 'cursor-ew-resize' : ''} ${hovered ? 'bg-field-hover' : 'bg-zinc-800'}`}
+        style={{ width: 112, flexShrink: 0, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 12px', fontSize: 11, color: '#d4d4d8', overflow: 'hidden', whiteSpace: 'nowrap', userSelect: 'none', cursor: isNumeric ? 'ew-resize' : 'default', background: hovered ? '#484851' : '#27272a' }}
         onPointerDown={handleLabelPointerDown}
         onPointerMove={handleLabelPointerMove}
         onPointerUp={handleLabelPointerUp}
       >
         {port.label || port.name}
       </div>
-      {/* Value: fill remaining, lighter bg */}
-      <div className={`flex-1 h-full flex items-center ${hovered ? 'bg-field-hover' : 'bg-zinc-700'}`}>
+      <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', padding: '0 8px', background: hovered ? '#484851' : '#3f3f46' }}>
         {isConnected ? (
-          <span className="text-[11px] text-zinc-400 italic px-2">connected</span>
+          <span style={{ fontSize: 11, color: '#9f9fa9', fontStyle: 'italic' }}>connected</span>
         ) : (
           <PortWidget port={port} onChange={onChange} onCommit={onCommit} />
         )}

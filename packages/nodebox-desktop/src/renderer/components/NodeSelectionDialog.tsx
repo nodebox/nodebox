@@ -91,26 +91,26 @@ export function NodeSelectionDialog() {
     <div onClick={(e) => { if (e.target === e.currentTarget) setVisible(false); }} className="fixed inset-0 flex items-center justify-center z-[100] bg-black/40">
       <div className="w-[440px] h-[500px] bg-zinc-700 border border-zinc-500 rounded-lg overflow-hidden flex flex-col shadow-2xl">
         {/* Search */}
-        <div className="p-3">
+        <div style={{ padding: 12 }}>
           <input ref={inputRef} type="text" value={search}
             onChange={(e) => { setSearch(e.target.value); setSelectedIndex(0); }}
             onKeyDown={handleKeyDown} placeholder="Search nodes..."
-            className="w-full bg-zinc-600 text-zinc-50 border-none px-3 py-2 text-[13px] rounded outline-none font-[inherit] placeholder:text-zinc-400"
+            style={{ width: '100%', background: '#52525c', color: '#fafafa', border: 'none', padding: '8px 12px', fontSize: 13, borderRadius: 4, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
           />
         </div>
 
         {/* Category pills */}
-        <div className="flex gap-1.5 px-3 pb-3 flex-wrap">
+        <div style={{ display: 'flex', gap: 6, padding: '0 12px 12px', flexWrap: 'wrap' }}>
           <CategoryPill label="All" active={activeCategory === null} onClick={() => { setActiveCategory(null); setSelectedIndex(0); }} />
           {CATEGORIES.map((cat) => (
             <CategoryPill key={cat.category} label={cat.category} active={activeCategory === cat.category} onClick={() => { setActiveCategory(cat.category); setSelectedIndex(0); }} />
           ))}
         </div>
 
-        <div className="h-px bg-zinc-600 mx-3" />
+        <div style={{ height: 1, background: '#52525c', margin: '0 12px' }} />
 
         {/* Node list */}
-        <div ref={listRef} className="flex-1 overflow-auto py-2 px-2">
+        <div ref={listRef} style={{ flex: 1, overflow: 'auto', padding: '8px 8px' }}>
           {filteredTemplates.map((tmpl, i) => (
             <div key={tmpl.name + tmpl.function} onClick={() => addNode(tmpl)} onMouseEnter={() => setSelectedIndex(i)}
               className={`flex items-center gap-3 px-3 py-2 cursor-pointer rounded ${i === selectedIndex ? 'bg-violet-800' : 'hover:bg-zinc-600'}`}
