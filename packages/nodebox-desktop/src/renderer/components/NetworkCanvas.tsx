@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from '../state/store';
 import { usePanZoom } from '../hooks/usePanZoom';
 import { useCanvasRenderer } from '../hooks/useCanvasRenderer';
@@ -23,6 +23,58 @@ const NODE_ICON_SIZE = 24;
 const PORT_WIDTH = 12;
 const PORT_HEIGHT = 4;
 const PORT_SPACING = 8;
+
+// Icon cache: loads SVG icons and pre-renders them as white-tinted images
+const iconCache = new Map<string, OffscreenCanvas | null>();
+const iconListeners: (() => void)[] = [];
+
+function ensureIcon(name: string): void {
+  if (iconCache.has(name)) return;
+  iconCache.set(name, null); // mark loading
+  const img = new Image();
+  img.onload = () => {
+    const size = 32;
+    const oc = new OffscreenCanvas(size, size);
+    const octx = oc.getContext('2d')!;
+    octx.drawImage(img, 0, 0, size, size);
+    // Tint to white using source-atop compositing
+    octx.globalCompositeOperation = 'source-atop';
+    octx.fillStyle = 'white';
+    octx.fillRect(0, 0, size, size);
+    iconCache.set(name, oc);
+    for (const cb of iconListeners) cb();
+  };
+  img.onerror = () => { iconCache.set(name, null); };
+  img.src = `/icons/corevector/${name}.svg`;
+}
+
+function drawIcon(ctx: CanvasRenderingContext2D, name: string, x: number, y: number, size: number): void {
+  const oc = iconCache.get(name);
+  if (oc) ctx.drawImage(oc, x, y, size, size);
+}
+
+// Map function name to icon name
+function iconNameForNode(node: Node): string {
+  const fn = node.function ?? '';
+  // "corevector/rect" → "rect", "math/add" → "add"
+  const slash = fn.lastIndexOf('/');
+  const name = slash >= 0 ? fn.substring(slash + 1) : fn;
+  // Some mappings
+  switch (name) {
+    case 'lineAngle': return 'line_angle';
+    case 'quadCurve': return 'quad_curve';
+    case 'makePoint': return 'make_point';
+    case 'pointOnPath': return 'point_on_path';
+    case 'shapeOnPath': return 'shape_on_path';
+    case 'textOnPath': return 'text_on_path';
+    case 'fitTo': return 'fit_to';
+    case 'roundSegments': return 'edit';
+    case 'deletePaths': return 'delete';
+    case 'sortShapes': return 'sort';
+    case 'doNothing': return 'null';
+    default: return name;
+  }
+}
 
 function nodeBodyColor(outputType: string): string {
   switch (outputType) {
@@ -247,7 +299,12 @@ export function NetworkCanvas() {
           ctx.fill();
         }
 
-        // Name (after icon space)
+        // Icon
+        const icoName = iconNameForNode(child);
+        ensureIcon(icoName);
+        drawIcon(ctx, icoName, x + NODE_PADDING, y + NODE_PADDING, NODE_ICON_SIZE);
+
+        // Name (after icon)
         ctx.fillStyle = ZINC_50;
         ctx.font = `${FONT_SIZE_SMALL}px -apple-system, sans-serif`;
         ctx.textAlign = 'left';
@@ -290,7 +347,14 @@ export function NetworkCanvas() {
     [pz, findNetwork, selectedNodes, panZoom, connDrag, mouseWorld],
   );
 
-  const { canvasRef } = useCanvasRenderer(draw);
+  const { canvasRef, requestRender } = useCanvasRenderer(draw);
+
+  // Re-render when icons finish loading
+  useEffect(() => {
+    const cb = () => requestRender();
+    iconListeners.push(cb);
+    return () => { const idx = iconListeners.indexOf(cb); if (idx >= 0) iconListeners.splice(idx, 1); };
+  }, [requestRender]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
     if (e.button === 1 || e.altKey || panZoom.isSpaceDown) {
