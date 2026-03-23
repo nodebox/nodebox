@@ -70,12 +70,61 @@ function ParameterRow({ label, value }: { label: string; value: string }) {
 }
 
 function PortRow({ port, isConnected, onChange, onCommit }: { port: Port; isConnected: boolean; onChange: (v: Value) => void; onCommit: () => void }) {
+  const [hovered, setHovered] = React.useState(false);
+  const dragging = React.useRef(false);
+  const startX = React.useRef(0);
+  const startValues = React.useRef<any>(0);
+  const isNumeric = !isConnected && (port.type === 'float' || port.type === 'int' || port.type === 'point');
+
+  // Label drag: dragging the label adjusts values. For points, both x and y shift by the same offset.
+  const handleLabelPointerDown = React.useCallback((e: React.PointerEvent) => {
+    if (!isNumeric) return;
+    const v = port.value;
+    dragging.current = true;
+    startX.current = e.clientX;
+    startValues.current = v.type === 'point' ? { ...v.value } : v.value;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }, [port, isNumeric]);
+
+  const handleLabelPointerMove = React.useCallback((e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    const dx = e.clientX - startX.current;
+    const v = port.value;
+    if (v.type === 'float' || v.type === 'int') {
+      const step = v.type === 'int' ? 1 : 0.1;
+      const newVal = (startValues.current as number) + dx * step;
+      onChange({ type: v.type, value: v.type === 'int' ? Math.round(newVal) : parseFloat(newVal.toFixed(2)) } as Value);
+    } else if (v.type === 'point') {
+      const sv = startValues.current as { x: number; y: number };
+      onChange({ type: 'point', value: { x: parseFloat((sv.x + dx * 0.1).toFixed(2)), y: parseFloat((sv.y + dx * 0.1).toFixed(2)) } });
+    }
+  }, [port, onChange]);
+
+  const handleLabelPointerUp = React.useCallback(() => {
+    if (dragging.current) { dragging.current = false; onCommit(); }
+  }, [onCommit]);
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', height: PARAMETER_ROW_HEIGHT, borderBottom: `1px solid ${ZINC_800}`, background: PANEL_BG }}>
-      <div style={{ width: LABEL_WIDTH, paddingLeft: 8, fontSize: FONT_SIZE_SMALL, color: TEXT_SUBDUED, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+    <div
+      style={{ display: 'flex', alignItems: 'center', height: PARAMETER_ROW_HEIGHT, borderBottom: `1px solid ${ZINC_800}` }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div
+        style={{
+          width: LABEL_WIDTH, paddingLeft: 8, fontSize: FONT_SIZE_SMALL, color: TEXT_SUBDUED,
+          flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          cursor: isNumeric ? 'ew-resize' : 'default', userSelect: 'none',
+          background: hovered ? FIELD_HOVER_BG : PANEL_BG,
+        }}
+        onPointerDown={handleLabelPointerDown}
+        onPointerMove={handleLabelPointerMove}
+        onPointerUp={handleLabelPointerUp}
+      >
         {port.label || port.name}
       </div>
-      <div style={{ flex: 1, paddingRight: 8 }}>
+      <div style={{ flex: 1, paddingRight: 8, background: hovered ? FIELD_HOVER_BG : ZINC_700 }}>
         {isConnected ? (
           <span style={{ fontSize: FONT_SIZE_SMALL, color: TEXT_DISABLED, fontStyle: 'italic' }}>connected</span>
         ) : (

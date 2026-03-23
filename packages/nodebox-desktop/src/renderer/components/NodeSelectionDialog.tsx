@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useStore } from '../state/store';
 import { NODE_TEMPLATES, createNodeFromTemplate, getTemplatesByCategory } from '../node-templates';
+import { isCompatible } from 'nodebox-core';
 import {
   DIALOG_BACKGROUND, DIALOG_BORDER, SELECTION_BG,
   TEXT_STRONG, TEXT_DEFAULT, TEXT_DISABLED, ZINC_600,
@@ -13,7 +14,9 @@ export function NodeSelectionDialog() {
   const visible = useStore((s) => s.nodeSelectionDialogOpen);
   const setVisible = useStore((s) => s.setNodeSelectionDialogOpen);
   const nodeDialogPosition = useStore((s) => s.nodeDialogPosition);
+  const pendingConnection = useStore((s) => s.pendingConnection);
   const addNodeToNetwork = useStore((s) => s.addNodeToNetwork);
+  const addConnectionToNetwork = useStore((s) => s.addConnectionToNetwork);
   const currentNetworkPath = useStore((s) => s.currentNetworkPath);
   const pushHistory = useStore((s) => s.pushHistory);
 
@@ -38,8 +41,17 @@ export function NodeSelectionDialog() {
       const lower = search.toLowerCase();
       all = all.filter((t) => t.name.toLowerCase().includes(lower));
     }
+    // If we have a pending connection, sort compatible nodes first
+    if (pendingConnection) {
+      const compat = all.filter((t) => {
+        const firstInput = t.inputs.find((p) => p.type !== 'context');
+        return firstInput && isCompatible(pendingConnection.outputType, firstInput.type);
+      });
+      const incompat = all.filter((t) => !compat.includes(t));
+      return [...compat, ...incompat];
+    }
     return all;
-  }, [search, activeCategory]);
+  }, [search, activeCategory, pendingConnection]);
 
   const addNode = useCallback((template: typeof NODE_TEMPLATES[0]) => {
     pushHistory();
@@ -62,8 +74,21 @@ export function NodeSelectionDialog() {
     const pos = nodeDialogPosition ?? { x: 5, y: 5 };
     const node = createNodeFromTemplate(template, name, pos);
     addNodeToNetwork(currentNetworkPath, node);
+
+    // Auto-connect if we have a pending connection from drag
+    if (pendingConnection) {
+      const firstInput = template.inputs.find((p) => p.type !== 'context');
+      if (firstInput && isCompatible(pendingConnection.outputType, firstInput.type)) {
+        addConnectionToNetwork(currentNetworkPath, {
+          outputNode: pendingConnection.fromNode,
+          inputNode: name,
+          inputPort: firstInput.name,
+        });
+      }
+    }
+
     setVisible(false);
-  }, [addNodeToNetwork, currentNetworkPath, pushHistory, setVisible, nodeDialogPosition]);
+  }, [addNodeToNetwork, addConnectionToNetwork, currentNetworkPath, pushHistory, setVisible, nodeDialogPosition, pendingConnection]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedIndex((i) => Math.min(i + 1, filteredTemplates.length - 1)); }
