@@ -13,9 +13,13 @@ export interface PanZoomHandlers {
   onPointerUp: (e: React.PointerEvent<HTMLCanvasElement>) => void;
 }
 
-const MIN_ZOOM = 0.1;
-const MAX_ZOOM = 10.0;
-const ZOOM_STEP = 1.1;
+// Predefined zoom levels matching the Rust/Java implementation
+const ZOOM_LEVELS = [
+  0.01, 0.02, 0.05, 0.08, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40,
+  0.50, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 10.0,
+];
+const MIN_ZOOM = ZOOM_LEVELS[0];
+const MAX_ZOOM = ZOOM_LEVELS[ZOOM_LEVELS.length - 1];
 
 export function usePanZoom(
   initialPan = { x: 0, y: 0 },
@@ -111,8 +115,14 @@ export function usePanZoom(
 
   const onPointerUp = useCallback(() => setIsPanning(false), []);
 
-  const zoomIn = useCallback(() => setPzState((p) => ({ ...p, zoom: Math.min(MAX_ZOOM, p.zoom * ZOOM_STEP) })), []);
-  const zoomOut = useCallback(() => setPzState((p) => ({ ...p, zoom: Math.max(MIN_ZOOM, p.zoom / ZOOM_STEP) })), []);
+  const zoomIn = useCallback(() => setPzState((p) => {
+    const next = ZOOM_LEVELS.find(l => l > p.zoom + 0.001);
+    return { ...p, zoom: next ?? p.zoom };
+  }), []);
+  const zoomOut = useCallback(() => setPzState((p) => {
+    const prev = [...ZOOM_LEVELS].reverse().find(l => l < p.zoom - 0.001);
+    return { ...p, zoom: prev ?? p.zoom };
+  }), []);
   const setPan = useCallback((x: number, y: number) => setPzState((p) => ({ ...p, panX: x, panY: y })), []);
   const setZoom = useCallback((z: number) => setPzState((p) => ({ ...p, zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z)) })), []);
 
