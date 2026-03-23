@@ -82,6 +82,42 @@ function ToggleButton({ label, active, onClick }: { label: string; active: boole
   );
 }
 
+const zoomBtnStyle: React.CSSProperties = {
+  width: 22,
+  height: 22,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'transparent',
+  border: 'none',
+  color: TEXT_DISABLED,
+  cursor: 'pointer',
+  fontSize: 14,
+  fontFamily: 'inherit',
+  flexShrink: 0,
+};
+
+function ZoomControl({ zoom, onZoom }: { zoom: number; onZoom: (action: 'in' | 'out' | 'reset') => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', background: ZINC_600, height: 20, flexShrink: 0 }}>
+      <button onClick={() => onZoom('out')} style={zoomBtnStyle}
+        onMouseEnter={(e) => { e.currentTarget.style.color = TEXT_STRONG; }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = TEXT_DISABLED; }}
+      >−</button>
+      <span
+        onClick={() => onZoom('reset')}
+        style={{ width: 48, textAlign: 'center', fontSize: FONT_SIZE_SMALL, color: TEXT_DISABLED, cursor: 'pointer', userSelect: 'none' }}
+      >
+        {Math.round(zoom * 100)}%
+      </span>
+      <button onClick={() => onZoom('in')} style={zoomBtnStyle}
+        onMouseEnter={(e) => { e.currentTarget.style.color = TEXT_STRONG; }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = TEXT_DISABLED; }}
+      >+</button>
+    </div>
+  );
+}
+
 function ViewerHeader() {
   const viewerMode = useStore((s) => s.viewerMode);
   const setViewerMode = useStore((s) => s.setViewerMode);
@@ -113,11 +149,7 @@ function ViewerHeader() {
       <ToggleButton label="Origin" active={showOrigin} onClick={toggleOrigin} />
       <ToggleButton label="Canvas" active={showCanvasBorder} onClick={toggleCanvasBorder} />
       <div style={{ flex: 1 }} />
-      <button onClick={() => requestViewerZoom('out')} style={{ background: 'transparent', border: 'none', color: TEXT_DISABLED, cursor: 'pointer', fontSize: FONT_SIZE_SMALL }}>-</button>
-      <span onClick={() => requestViewerZoom('reset')} style={{ fontSize: FONT_SIZE_SMALL, color: TEXT_DISABLED, cursor: 'pointer', padding: '0 2px' }}>
-        {Math.round(viewerZoom * 100)}%
-      </span>
-      <button onClick={() => requestViewerZoom('in')} style={{ background: 'transparent', border: 'none', color: TEXT_DISABLED, cursor: 'pointer', fontSize: FONT_SIZE_SMALL }}>+</button>
+      <ZoomControl zoom={viewerZoom} onZoom={requestViewerZoom} />
     </div>
   );
 }
