@@ -30,7 +30,7 @@ export function ParameterPanel() {
     const h = parseFloat(library.properties.canvasHeight ?? '1000');
     const bg = library.properties.canvasBackground ?? '#e4e4e7';
     return (
-      <div className="pt-2">
+      <div className="">
         <DocRow label="width">
           <DragValue value={w} onChange={(v) => setCanvasProperty('canvasWidth', String(Math.round(v)))} onCommit={pushHistory} step={1} precision={0} min={1} />
         </DocRow>
@@ -57,7 +57,7 @@ export function ParameterPanel() {
   }
 
   return (
-    <div className="pt-2">
+    <div className="">
       {node.inputs
         .filter((p: Port) => p.type !== 'context')
         .map((port: Port) => (
