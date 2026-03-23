@@ -23,3 +23,10 @@ lib/cachedir
 # Node.js
 node_modules
 pnpm-lock.yaml
+.vite
+
+# Playwright
+.playwright-mcp
+
+# Temp files
+tmp
