@@ -59,8 +59,8 @@ export function ParameterPanel() {
 function ParamRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center h-9 border-b border-zinc-800">
-      <div className="w-28 pl-2 text-[11px] text-zinc-300 shrink-0">{label}</div>
-      <div className="flex-1 pr-2 text-[13px] text-zinc-100 text-right">{value}</div>
+      <div className="w-28 px-3 text-[11px] text-zinc-300 shrink-0">{label}</div>
+      <div className="flex-1 px-3 text-[13px] text-zinc-100 text-right">{value}</div>
     </div>
   );
 }
@@ -102,14 +102,14 @@ function PortRow({ port, isConnected, onChange, onCommit }: { port: Port; isConn
   return (
     <div className="flex items-center h-9 border-b border-zinc-800" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <div
-        className={`w-28 pl-2 text-[11px] text-zinc-300 shrink-0 overflow-hidden text-ellipsis whitespace-nowrap select-none ${isNumeric ? 'cursor-ew-resize' : ''} ${hovered ? 'bg-field-hover' : 'bg-panel'}`}
+        className={`w-28 px-3 py-2 text-[11px] text-zinc-300 shrink-0 overflow-hidden text-ellipsis whitespace-nowrap select-none ${isNumeric ? 'cursor-ew-resize' : ''} ${hovered ? 'bg-field-hover' : 'bg-panel'}`}
         onPointerDown={handleLabelPointerDown}
         onPointerMove={handleLabelPointerMove}
         onPointerUp={handleLabelPointerUp}
       >
         {port.label || port.name}
       </div>
-      <div className={`flex-1 pr-2 ${hovered ? 'bg-field-hover' : 'bg-zinc-700'}`}>
+      <div className={`flex-1 px-3 py-1 ${hovered ? 'bg-field-hover' : 'bg-zinc-700'}`}>
         {isConnected ? (
           <span className="text-[11px] text-zinc-400 italic">connected</span>
         ) : (

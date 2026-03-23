@@ -113,7 +113,7 @@ function NetworkHeader() {
       <PaneLabel>Network</PaneLabel>
       <PaneSeparator />
       <div className="flex-1" />
-      <button onClick={() => setNodeSelectionDialogOpen(true)} className="bg-transparent border-none text-zinc-200 text-[11px] cursor-pointer px-1">
+      <button onClick={() => setNodeSelectionDialogOpen(true)} className="bg-transparent border-none text-zinc-200 text-[11px] cursor-pointer px-2 py-0.5">
         + New Node
       </button>
     </PaneHeader>
