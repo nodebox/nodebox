@@ -1,29 +1,40 @@
 export interface SelectionSlice {
   selectedNodes: string[];
-  selectNode: (name: string, additive?: boolean) => void;
+  activeNode: string | null;
+
+  selectNode: (name: string) => void;
   selectNodes: (names: string[]) => void;
+  toggleNode: (name: string) => void;
   deselectAll: () => void;
+  setActiveNode: (name: string | null) => void;
 }
 
 export function createSelectionSlice(set: any): SelectionSlice {
   return {
     selectedNodes: [],
-    selectNode: (name, additive = false) => set((state: SelectionSlice) => {
-      if (additive) {
-        if (state.selectedNodes.includes(name)) {
-          state.selectedNodes = state.selectedNodes.filter(n => n !== name);
-        } else {
-          state.selectedNodes.push(name);
-        }
+    activeNode: null,
+
+    selectNode: (name) => set((s: SelectionSlice) => {
+      s.selectedNodes = [name];
+      s.activeNode = name;
+    }),
+    selectNodes: (names) => set((s: SelectionSlice) => {
+      s.selectedNodes = names;
+      s.activeNode = names.length > 0 ? names[names.length - 1] : null;
+    }),
+    toggleNode: (name) => set((s: SelectionSlice) => {
+      const idx = s.selectedNodes.indexOf(name);
+      if (idx >= 0) {
+        s.selectedNodes.splice(idx, 1);
       } else {
-        state.selectedNodes = [name];
+        s.selectedNodes.push(name);
       }
+      s.activeNode = s.selectedNodes.length > 0 ? s.selectedNodes[s.selectedNodes.length - 1] : null;
     }),
-    selectNodes: (names) => set((state: SelectionSlice) => {
-      state.selectedNodes = names;
+    deselectAll: () => set((s: SelectionSlice) => {
+      s.selectedNodes = [];
+      s.activeNode = null;
     }),
-    deselectAll: () => set((state: SelectionSlice) => {
-      state.selectedNodes = [];
-    }),
+    setActiveNode: (name) => set((s: SelectionSlice) => { s.activeNode = name; }),
   };
 }
