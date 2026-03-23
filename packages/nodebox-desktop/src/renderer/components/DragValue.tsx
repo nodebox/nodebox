@@ -36,7 +36,9 @@ export function DragValue({ value, onChange, onCommit, step = 1, min = null, max
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragging.current) return;
     const dx = e.clientX - startX.current;
-    const newValue = clamp(startValue.current + dx * step);
+    // Shift = 10x speed, Alt = 0.1x speed
+    const modifier = e.shiftKey ? 10 : e.altKey ? 0.1 : 1;
+    const newValue = clamp(startValue.current + dx * step * modifier);
     onChange(step >= 1 ? Math.round(newValue) : parseFloat(newValue.toFixed(precision)));
   }, [onChange, step, min, max, precision]);
 

@@ -110,14 +110,16 @@ function PortRow({ port, isConnected, onChange, onCommit }: { port: Port; isConn
   const handleLabelPointerMove = React.useCallback((e: React.PointerEvent) => {
     if (!dragging.current) return;
     const dx = e.clientX - startX.current;
+    const modifier = e.shiftKey ? 10 : e.altKey ? 0.1 : 1;
     const v = port.value;
     if (v.type === 'float' || v.type === 'int') {
-      const step = v.type === 'int' ? 1 : 0.1;
+      const step = (v.type === 'int' ? 1 : 0.1) * modifier;
       const newVal = (startValues.current as number) + dx * step;
       onChange({ type: v.type, value: v.type === 'int' ? Math.round(newVal) : parseFloat(newVal.toFixed(2)) } as Value);
     } else if (v.type === 'point') {
+      const step = 0.1 * modifier;
       const sv = startValues.current as { x: number; y: number };
-      onChange({ type: 'point', value: { x: parseFloat((sv.x + dx * 0.1).toFixed(2)), y: parseFloat((sv.y + dx * 0.1).toFixed(2)) } });
+      onChange({ type: 'point', value: { x: parseFloat((sv.x + dx * step).toFixed(2)), y: parseFloat((sv.y + dx * step).toFixed(2)) } });
     }
   }, [port, onChange]);
 
