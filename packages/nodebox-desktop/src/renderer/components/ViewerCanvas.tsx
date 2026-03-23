@@ -143,7 +143,8 @@ export function ViewerCanvas() {
   return (
     <canvas
       ref={canvasRef}
-      style={{ width: '100%', height: '100%', display: 'block', cursor }}
+      className="w-full h-full block"
+      style={{ cursor }}
       onWheel={handlers.onWheel}
       onPointerDown={handlers.onPointerDown}
       onPointerMove={handlers.onPointerMove}

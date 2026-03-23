@@ -488,7 +488,8 @@ export function NetworkCanvas() {
   return (
     <canvas
       ref={canvasRef}
-      style={{ width: '100%', height: '100%', display: 'block', cursor: panZoom.isPanning ? 'grabbing' : panZoom.isSpaceDown ? 'grab' : connDrag ? 'crosshair' : dragNode ? 'move' : 'default' }}
+      className="w-full h-full block"
+      style={{ cursor: panZoom.isPanning ? 'grabbing' : panZoom.isSpaceDown ? 'grab' : connDrag ? 'crosshair' : dragNode ? 'move' : 'default' }}
       onWheel={handlers.onWheel}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}

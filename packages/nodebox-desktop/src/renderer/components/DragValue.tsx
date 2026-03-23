@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { TEXT_DEFAULT, TEXT_STRONG, ZINC_600, ZINC_700, FIELD_HOVER_BG, FONT_SIZE_BASE } from '../theme/tokens';
 
 interface DragValueProps {
   value: number;
@@ -14,7 +13,6 @@ interface DragValueProps {
 export function DragValue({ value, onChange, onCommit, step = 1, min = null, max = null, precision = 2 }: DragValueProps) {
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState('');
-  const [hovered, setHovered] = useState(false);
   const dragging = useRef(false);
   const startX = useRef(0);
   const startValue = useRef(0);
@@ -43,10 +41,7 @@ export function DragValue({ value, onChange, onCommit, step = 1, min = null, max
   }, [onChange, step, min, max, precision]);
 
   const handlePointerUp = useCallback(() => {
-    if (dragging.current) {
-      dragging.current = false;
-      onCommit?.();
-    }
+    if (dragging.current) { dragging.current = false; onCommit?.(); }
   }, [onCommit]);
 
   const handleDoubleClick = useCallback(() => {
@@ -70,16 +65,7 @@ export function DragValue({ value, onChange, onCommit, step = 1, min = null, max
         onBlur={commitEdit}
         onKeyDown={(e) => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') setEditing(false); }}
         autoFocus
-        style={{
-          width: '100%',
-          background: ZINC_600,
-          color: TEXT_STRONG,
-          border: 'none',
-          fontSize: FONT_SIZE_BASE,
-          padding: '2px 6px',
-          outline: 'none',
-          fontFamily: 'inherit',
-        }}
+        className="w-full bg-zinc-600 text-zinc-50 border-none text-[13px] px-1.5 py-0.5 outline-none font-[inherit]"
       />
     );
   }
@@ -92,18 +78,7 @@ export function DragValue({ value, onChange, onCommit, step = 1, min = null, max
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onDoubleClick={handleDoubleClick}
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-      style={{
-        background: hovered ? FIELD_HOVER_BG : ZINC_700,
-        color: TEXT_DEFAULT,
-        fontSize: FONT_SIZE_BASE,
-        padding: '2px 6px',
-        cursor: 'ew-resize',
-        userSelect: 'none',
-        minWidth: 60,
-        textAlign: 'right',
-      }}
+      className="bg-zinc-700 hover:bg-field-hover text-zinc-100 text-[13px] px-1.5 py-0.5 cursor-ew-resize select-none min-w-[60px] text-right"
     >
       {displayValue}
     </div>

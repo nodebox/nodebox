@@ -2,10 +2,6 @@ import React from 'react';
 import { useStore } from '../state/store';
 import { DragValue } from './DragValue';
 import type { Port, Value } from 'nodebox-core';
-import {
-  PANEL_BG, ZINC_700, ZINC_800, TEXT_DEFAULT, TEXT_DISABLED, TEXT_SUBDUED,
-  FONT_SIZE_SMALL, FONT_SIZE_BASE, LABEL_WIDTH, PARAMETER_ROW_HEIGHT,
-} from '../theme/tokens';
 
 export function ParameterPanel() {
   const library = useStore((s) => s.library);
@@ -30,9 +26,9 @@ export function ParameterPanel() {
   if (!node) {
     return (
       <div>
-        <ParameterRow label="width" value={library.properties.canvasWidth ?? '1000'} />
-        <ParameterRow label="height" value={library.properties.canvasHeight ?? '1000'} />
-        <ParameterRow label="background" value={library.properties.canvasBackground ?? '#e4e4e7'} />
+        <ParamRow label="width" value={library.properties.canvasWidth ?? '1000'} />
+        <ParamRow label="height" value={library.properties.canvasHeight ?? '1000'} />
+        <ParamRow label="background" value={library.properties.canvasBackground ?? '#e4e4e7'} />
       </div>
     );
   }
@@ -60,11 +56,11 @@ export function ParameterPanel() {
   );
 }
 
-function ParameterRow({ label, value }: { label: string; value: string }) {
+function ParamRow({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', height: PARAMETER_ROW_HEIGHT, borderBottom: `1px solid ${ZINC_800}` }}>
-      <div style={{ width: LABEL_WIDTH, paddingLeft: 8, fontSize: FONT_SIZE_SMALL, color: TEXT_SUBDUED, flexShrink: 0 }}>{label}</div>
-      <div style={{ flex: 1, paddingRight: 8, fontSize: FONT_SIZE_BASE, color: TEXT_DEFAULT, textAlign: 'right' }}>{value}</div>
+    <div className="flex items-center h-9 border-b border-zinc-800">
+      <div className="w-28 pl-2 text-[11px] text-zinc-300 shrink-0">{label}</div>
+      <div className="flex-1 pr-2 text-[13px] text-zinc-100 text-right">{value}</div>
     </div>
   );
 }
@@ -76,13 +72,11 @@ function PortRow({ port, isConnected, onChange, onCommit }: { port: Port; isConn
   const startValues = React.useRef<any>(0);
   const isNumeric = !isConnected && (port.type === 'float' || port.type === 'int' || port.type === 'point');
 
-  // Label drag: dragging the label adjusts values. For points, both x and y shift by the same offset.
   const handleLabelPointerDown = React.useCallback((e: React.PointerEvent) => {
     if (!isNumeric) return;
-    const v = port.value;
     dragging.current = true;
     startX.current = e.clientX;
-    startValues.current = v.type === 'point' ? { ...v.value } : v.value;
+    startValues.current = port.value.type === 'point' ? { ...port.value.value } : port.value.value;
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     e.preventDefault();
   }, [port, isNumeric]);
@@ -106,27 +100,18 @@ function PortRow({ port, isConnected, onChange, onCommit }: { port: Port; isConn
   }, [onCommit]);
 
   return (
-    <div
-      style={{ display: 'flex', alignItems: 'center', height: PARAMETER_ROW_HEIGHT, borderBottom: `1px solid ${ZINC_800}` }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <div className="flex items-center h-9 border-b border-zinc-800" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <div
-        style={{
-          width: LABEL_WIDTH, paddingLeft: 8, fontSize: FONT_SIZE_SMALL, color: TEXT_SUBDUED,
-          flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          cursor: isNumeric ? 'ew-resize' : 'default', userSelect: 'none',
-          background: hovered ? FIELD_HOVER_BG : PANEL_BG,
-        }}
+        className={`w-28 pl-2 text-[11px] text-zinc-300 shrink-0 overflow-hidden text-ellipsis whitespace-nowrap select-none ${isNumeric ? 'cursor-ew-resize' : ''} ${hovered ? 'bg-field-hover' : 'bg-panel'}`}
         onPointerDown={handleLabelPointerDown}
         onPointerMove={handleLabelPointerMove}
         onPointerUp={handleLabelPointerUp}
       >
         {port.label || port.name}
       </div>
-      <div style={{ flex: 1, paddingRight: 8, background: hovered ? FIELD_HOVER_BG : ZINC_700 }}>
+      <div className={`flex-1 pr-2 ${hovered ? 'bg-field-hover' : 'bg-zinc-700'}`}>
         {isConnected ? (
-          <span style={{ fontSize: FONT_SIZE_SMALL, color: TEXT_DISABLED, fontStyle: 'italic' }}>connected</span>
+          <span className="text-[11px] text-zinc-400 italic">connected</span>
         ) : (
           <PortWidget port={port} onChange={onChange} onCommit={onCommit} />
         )}
@@ -143,7 +128,7 @@ function PortWidget({ port, onChange, onCommit }: { port: Port; onChange: (v: Va
       <select
         value={value.type === 'string' ? value.value : ''}
         onChange={(e) => { onChange({ type: 'string', value: e.target.value }); onCommit(); }}
-        style={{ width: '100%', background: ZINC_700, color: TEXT_DEFAULT, border: 'none', fontSize: FONT_SIZE_BASE, padding: '2px 4px', fontFamily: 'inherit' }}
+        className="w-full bg-zinc-700 text-zinc-100 border-none text-[13px] px-1 py-0.5 font-[inherit]"
       >
         {port.menuItems.map((item) => (<option key={item.key} value={item.key}>{item.label}</option>))}
       </select>
@@ -156,15 +141,15 @@ function PortWidget({ port, onChange, onCommit }: { port: Port; onChange: (v: Va
     const c = value.type === 'color' ? value.value : { r: 0, g: 0, b: 0, a: 1 };
     const hex = `#${Math.round(c.r * 255).toString(16).padStart(2, '0')}${Math.round(c.g * 255).toString(16).padStart(2, '0')}${Math.round(c.b * 255).toString(16).padStart(2, '0')}`;
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <input type="color" value={hex} onChange={(e) => { const h = e.target.value.slice(1); onChange({ type: 'color', value: { r: parseInt(h.slice(0, 2), 16) / 255, g: parseInt(h.slice(2, 4), 16) / 255, b: parseInt(h.slice(4, 6), 16) / 255, a: c.a } }); }} onBlur={onCommit} style={{ width: 24, height: 20, border: 'none', padding: 0, cursor: 'pointer' }} />
+      <div className="flex items-center gap-1">
+        <input type="color" value={hex} onChange={(e) => { const h = e.target.value.slice(1); onChange({ type: 'color', value: { r: parseInt(h.slice(0, 2), 16) / 255, g: parseInt(h.slice(2, 4), 16) / 255, b: parseInt(h.slice(4, 6), 16) / 255, a: c.a } }); }} onBlur={onCommit} className="w-6 h-5 border-none p-0 cursor-pointer" />
       </div>
     );
   }
   if (port.type === 'point') {
     const p = value.type === 'point' ? value.value : { x: 0, y: 0 };
     return (
-      <div style={{ display: 'flex', gap: 4 }}>
+      <div className="flex gap-1">
         <DragValue value={p.x} onChange={(x) => onChange({ type: 'point', value: { x, y: p.y } })} onCommit={onCommit} step={0.1} />
         <DragValue value={p.y} onChange={(y) => onChange({ type: 'point', value: { x: p.x, y } })} onCommit={onCommit} step={0.1} />
       </div>
@@ -175,7 +160,7 @@ function PortWidget({ port, onChange, onCommit }: { port: Port; onChange: (v: Va
     return <DragValue value={num} onChange={(v) => onChange({ type: port.type as 'float' | 'int', value: port.type === 'int' ? Math.round(v) : v })} onCommit={onCommit} step={port.type === 'int' ? 1 : 0.1} min={port.minimumValue} max={port.maximumValue} precision={port.type === 'int' ? 0 : 2} />;
   }
   if (port.type === 'string') {
-    return <input type="text" value={value.type === 'string' ? value.value : ''} onChange={(e) => onChange({ type: 'string', value: e.target.value })} onBlur={onCommit} style={{ width: '100%', background: ZINC_700, color: TEXT_DEFAULT, border: 'none', fontSize: FONT_SIZE_BASE, padding: '2px 6px', fontFamily: 'inherit' }} />;
+    return <input type="text" value={value.type === 'string' ? value.value : ''} onChange={(e) => onChange({ type: 'string', value: e.target.value })} onBlur={onCommit} className="w-full bg-zinc-700 text-zinc-100 border-none text-[13px] px-1.5 py-0.5 font-[inherit]" />;
   }
-  return <span style={{ fontSize: FONT_SIZE_SMALL, color: TEXT_DISABLED }}>{port.type}</span>;
+  return <span className="text-[11px] text-zinc-400">{port.type}</span>;
 }

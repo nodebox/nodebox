@@ -8,57 +8,12 @@ import { DataViewer } from './DataViewer';
 import { ParameterPanel } from './ParameterPanel';
 import { NodeSelectionDialog } from './NodeSelectionDialog';
 import { NotificationBanner } from './NotificationBanner';
-import {
-  PANEL_BG,
-  PANE_HEADER_FOREGROUND_COLOR,
-  PANE_HEADER_BACKGROUND_COLOR,
-  PANE_HEADER_HEIGHT,
-  FONT_SIZE_SMALL,
-  SPLITTER_THICKNESS,
-  SPLITTER_AFFORDANCE,
-  LABEL_WIDTH,
-  TEXT_STRONG,
-  TEXT_DISABLED,
-  ZINC_500,
-  ZINC_600,
-  ZINC_900,
-} from '../theme/tokens';
-
-const headerStyle: React.CSSProperties = {
-  height: PANE_HEADER_HEIGHT,
-  background: PANE_HEADER_BACKGROUND_COLOR,
-  color: PANE_HEADER_FOREGROUND_COLOR,
-  fontSize: FONT_SIZE_SMALL,
-  borderTop: `1px solid ${ZINC_600}`,
-  borderBottom: `1px solid ${ZINC_900}`,
-  display: 'flex',
-  alignItems: 'center',
-  paddingLeft: 8,
-  paddingRight: 8,
-  gap: 4,
-  flexShrink: 0,
-};
-
-const separatorStyle: React.CSSProperties = {
-  width: 1,
-  alignSelf: 'stretch',
-  background: ZINC_500,
-  marginTop: 4,
-  marginBottom: 4,
-};
 
 function SegmentButton({ label, active, onClick }: { label: string; active: boolean; onClick?: () => void }) {
   return (
     <span
       onClick={onClick}
-      style={{
-        fontSize: FONT_SIZE_SMALL,
-        padding: '1px 6px',
-        background: active ? ZINC_600 : 'transparent',
-        color: active ? TEXT_STRONG : PANE_HEADER_FOREGROUND_COLOR,
-        cursor: 'pointer',
-        userSelect: 'none',
-      }}
+      className={`text-[11px] px-1.5 py-px cursor-pointer select-none ${active ? 'bg-zinc-600 text-zinc-50' : 'text-zinc-200'}`}
     >
       {label}
     </span>
@@ -67,55 +22,38 @@ function SegmentButton({ label, active, onClick }: { label: string; active: bool
 
 function ToggleButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
-    <span
-      onClick={onClick}
-      style={{
-        fontSize: FONT_SIZE_SMALL,
-        padding: '1px 4px',
-        color: active ? TEXT_STRONG : TEXT_DISABLED,
-        cursor: 'pointer',
-        userSelect: 'none',
-      }}
-    >
+    <span onClick={onClick} className={`text-[11px] px-1 py-px cursor-pointer select-none ${active ? 'text-zinc-50' : 'text-zinc-400'}`}>
       {label}
     </span>
   );
 }
 
-const zoomBtnStyle: React.CSSProperties = {
-  width: 22,
-  height: 22,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: 'transparent',
-  border: 'none',
-  color: TEXT_DISABLED,
-  cursor: 'pointer',
-  fontSize: 14,
-  fontFamily: 'inherit',
-  flexShrink: 0,
-};
-
 function ZoomControl({ zoom, onZoom }: { zoom: number; onZoom: (action: 'in' | 'out' | 'reset') => void }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', height: 20, flexShrink: 0 }}>
-      <button onClick={() => onZoom('out')} style={zoomBtnStyle}
-        onMouseEnter={(e) => { e.currentTarget.style.color = TEXT_STRONG; }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = TEXT_DISABLED; }}
-      >−</button>
-      <span
-        onClick={() => onZoom('reset')}
-        style={{ width: 48, textAlign: 'center', fontSize: FONT_SIZE_SMALL, color: TEXT_DISABLED, cursor: 'pointer', userSelect: 'none' }}
-      >
+    <div className="flex items-center h-5 shrink-0">
+      <button onClick={() => onZoom('out')} className="w-[22px] h-[22px] flex items-center justify-center bg-transparent border-none text-zinc-400 hover:text-zinc-50 cursor-pointer text-sm shrink-0">−</button>
+      <span onClick={() => onZoom('reset')} className="w-12 text-center text-[11px] text-zinc-400 cursor-pointer select-none">
         {Math.round(zoom * 100)}%
       </span>
-      <button onClick={() => onZoom('in')} style={zoomBtnStyle}
-        onMouseEnter={(e) => { e.currentTarget.style.color = TEXT_STRONG; }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = TEXT_DISABLED; }}
-      >+</button>
+      <button onClick={() => onZoom('in')} className="w-[22px] h-[22px] flex items-center justify-center bg-transparent border-none text-zinc-400 hover:text-zinc-50 cursor-pointer text-sm shrink-0">+</button>
     </div>
   );
+}
+
+function PaneHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="h-6 bg-zinc-700 text-zinc-200 text-[11px] border-t border-t-zinc-600 border-b border-b-zinc-900 flex items-center px-2 gap-1 shrink-0">
+      {children}
+    </div>
+  );
+}
+
+function PaneSeparator() {
+  return <div className="w-px self-stretch bg-zinc-500 my-1" />;
+}
+
+function PaneLabel({ children }: { children: React.ReactNode }) {
+  return <span className="w-24 text-[10px] tracking-wider uppercase">{children}</span>;
 }
 
 function ViewerHeader() {
@@ -135,22 +73,20 @@ function ViewerHeader() {
   const requestViewerZoom = useStore((s) => s.requestViewerZoom);
 
   return (
-    <div style={headerStyle}>
-      <span style={{ width: LABEL_WIDTH - 16, fontSize: 10, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-        Viewer
-      </span>
-      <div style={separatorStyle} />
+    <PaneHeader>
+      <PaneLabel>Viewer</PaneLabel>
+      <PaneSeparator />
       <SegmentButton label="Visual" active={viewerMode === 'visual'} onClick={() => setViewerMode('visual')} />
       <SegmentButton label="Data" active={viewerMode === 'data'} onClick={() => setViewerMode('data')} />
-      <div style={{ width: 8 }} />
+      <div className="w-2" />
       <ToggleButton label="Handles" active={showHandles} onClick={toggleHandles} />
       <ToggleButton label="Points" active={showPoints} onClick={togglePoints} />
       <ToggleButton label="Pt#" active={showPointNumbers} onClick={togglePointNumbers} />
       <ToggleButton label="Origin" active={showOrigin} onClick={toggleOrigin} />
       <ToggleButton label="Canvas" active={showCanvasBorder} onClick={toggleCanvasBorder} />
-      <div style={{ flex: 1 }} />
+      <div className="flex-1" />
       <ZoomControl zoom={viewerZoom} onZoom={requestViewerZoom} />
-    </div>
+    </PaneHeader>
   );
 }
 
@@ -160,39 +96,27 @@ function ParametersHeader() {
   const node = activeNode && library ? library.root.children.find((n: any) => n.name === activeNode) : null;
 
   return (
-    <div style={headerStyle}>
-      <span style={{ width: LABEL_WIDTH - 16, fontSize: 10, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-        Parameters
-      </span>
-      <div style={separatorStyle} />
-      <span style={{ marginLeft: 4, fontSize: FONT_SIZE_SMALL }}>
-        {node ? node.name : 'Document'}
-      </span>
-      <div style={{ flex: 1 }} />
-      {node?.prototype && (
-        <span style={{ fontSize: FONT_SIZE_SMALL, color: TEXT_DISABLED }}>{node.prototype}</span>
-      )}
-    </div>
+    <PaneHeader>
+      <PaneLabel>Parameters</PaneLabel>
+      <PaneSeparator />
+      <span className="ml-1 text-[11px]">{node ? node.name : 'Document'}</span>
+      <div className="flex-1" />
+      {node?.prototype && <span className="text-[11px] text-zinc-400">{node.prototype}</span>}
+    </PaneHeader>
   );
 }
 
 function NetworkHeader() {
   const setNodeSelectionDialogOpen = useStore((s) => s.setNodeSelectionDialogOpen);
-
   return (
-    <div style={headerStyle}>
-      <span style={{ width: LABEL_WIDTH - 16, fontSize: 10, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-        Network
-      </span>
-      <div style={separatorStyle} />
-      <div style={{ flex: 1 }} />
-      <button
-        onClick={() => setNodeSelectionDialogOpen(true)}
-        style={{ background: 'transparent', border: 'none', color: PANE_HEADER_FOREGROUND_COLOR, fontSize: FONT_SIZE_SMALL, cursor: 'pointer', padding: '0 4px' }}
-      >
+    <PaneHeader>
+      <PaneLabel>Network</PaneLabel>
+      <PaneSeparator />
+      <div className="flex-1" />
+      <button onClick={() => setNodeSelectionDialogOpen(true)} className="bg-transparent border-none text-zinc-200 text-[11px] cursor-pointer px-1">
         + New Node
       </button>
-    </div>
+    </PaneHeader>
   );
 }
 
@@ -201,12 +125,12 @@ function HorizontalSplitter({ onDrag }: { onDrag: (deltaY: number) => void }) {
   const lastY = useRef(0);
   return (
     <div
-      style={{ height: SPLITTER_THICKNESS, background: PANEL_BG, position: 'relative', cursor: 'row-resize', flexShrink: 0 }}
+      className="h-0.5 bg-panel relative cursor-row-resize shrink-0"
       onPointerDown={(e) => { dragging.current = true; lastY.current = e.clientY; (e.target as HTMLElement).setPointerCapture(e.pointerId); }}
       onPointerMove={(e) => { if (!dragging.current) return; onDrag(e.clientY - lastY.current); lastY.current = e.clientY; }}
       onPointerUp={() => { dragging.current = false; }}
     >
-      <div style={{ position: 'absolute', left: 0, right: 0, top: -(SPLITTER_AFFORDANCE - SPLITTER_THICKNESS) / 2, bottom: -(SPLITTER_AFFORDANCE - SPLITTER_THICKNESS) / 2, cursor: 'row-resize' }} />
+      <div className="absolute left-0 right-0 -top-[3px] -bottom-[3px] cursor-row-resize" />
     </div>
   );
 }
@@ -216,12 +140,12 @@ function VerticalSplitter({ onDrag }: { onDrag: (deltaX: number) => void }) {
   const lastX = useRef(0);
   return (
     <div
-      style={{ width: SPLITTER_THICKNESS, background: PANEL_BG, position: 'relative', cursor: 'col-resize', flexShrink: 0 }}
+      className="w-0.5 bg-panel relative cursor-col-resize shrink-0"
       onPointerDown={(e) => { dragging.current = true; lastX.current = e.clientX; (e.target as HTMLElement).setPointerCapture(e.pointerId); }}
       onPointerMove={(e) => { if (!dragging.current) return; onDrag(e.clientX - lastX.current); lastX.current = e.clientX; }}
       onPointerUp={() => { dragging.current = false; }}
     >
-      <div style={{ position: 'absolute', top: 0, bottom: 0, left: -(SPLITTER_AFFORDANCE - SPLITTER_THICKNESS) / 2, right: -(SPLITTER_AFFORDANCE - SPLITTER_THICKNESS) / 2, cursor: 'col-resize' }} />
+      <div className="absolute top-0 bottom-0 -left-[3px] -right-[3px] cursor-col-resize" />
     </div>
   );
 }
@@ -229,12 +153,8 @@ function VerticalSplitter({ onDrag }: { onDrag: (deltaX: number) => void }) {
 function ViewerContent() {
   const viewerMode = useStore((s) => s.viewerMode);
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <div style={{
-        position: 'absolute', inset: 0,
-        visibility: viewerMode === 'visual' ? 'visible' : 'hidden',
-        pointerEvents: viewerMode === 'visual' ? 'auto' : 'none',
-      }}>
+    <div className="w-full h-full relative">
+      <div className={`absolute inset-0 ${viewerMode === 'visual' ? 'visible pointer-events-auto' : 'invisible pointer-events-none'}`}>
         <ViewerCanvas />
       </div>
       {viewerMode === 'data' && <DataViewer />}
@@ -259,34 +179,30 @@ export function AppLayout() {
   }, [rightPanelWidth, setRightPanelWidth]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: PANEL_BG, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", fontSize: 13, color: '#f4f4f5', WebkitFontSmoothing: 'antialiased' }}>
+    <div className="flex flex-col h-screen bg-panel text-zinc-100">
       <AddressBar />
       <NotificationBanner />
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        {/* LEFT: Viewer */}
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+      <div className="flex flex-1 min-h-0">
+        <div className="flex flex-col flex-1 min-w-0">
           <ViewerHeader />
-          <div style={{ flex: 1, minHeight: 0 }}>
+          <div className="flex-1 min-h-0">
             <ViewerContent />
           </div>
         </div>
 
         <VerticalSplitter onDrag={onVerticalDrag} />
 
-        {/* RIGHT: Parameters (top) + Network (bottom) */}
-        <div ref={rightPanelRef} style={{ display: 'flex', flexDirection: 'column', width: rightPanelWidth, minWidth: 0 }}>
-          <div style={{ flex: rightPanelSplit, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <div ref={rightPanelRef} className="flex flex-col min-w-0" style={{ width: rightPanelWidth }}>
+          <div className="flex flex-col min-h-0" style={{ flex: rightPanelSplit }}>
             <ParametersHeader />
-            <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+            <div className="flex-1 min-h-0 overflow-auto">
               <ParameterPanel />
             </div>
           </div>
-
           <HorizontalSplitter onDrag={onHorizontalDrag} />
-
-          <div style={{ flex: 1 - rightPanelSplit, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <div className="flex flex-col min-h-0" style={{ flex: 1 - rightPanelSplit }}>
             <NetworkHeader />
-            <div style={{ flex: 1, minHeight: 0 }}>
+            <div className="flex-1 min-h-0">
               <NetworkCanvas />
             </div>
           </div>
