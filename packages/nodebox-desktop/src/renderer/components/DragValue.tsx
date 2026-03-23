@@ -88,7 +88,7 @@ export function DragValue({ value, onChange, onCommit, step = 1, min = null, max
         onBlur={commitEdit}
         onKeyDown={(e) => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') setEditing(false); }}
         autoFocus
-        style={{ width: '100%', background: '#52525c', color: '#fafafa', border: 'none', fontSize: 13, padding: '2px 8px', outline: 'none', fontFamily: 'inherit' }}
+        className="w-full bg-zinc-600 text-zinc-50 border-none text-[13px] px-2 py-0.5 outline-none font-[inherit]"
       />
     );
   }
@@ -100,7 +100,7 @@ export function DragValue({ value, onChange, onCommit, step = 1, min = null, max
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      style={{ background: 'transparent', color: '#f4f4f5', fontSize: 13, padding: '4px 8px', cursor: 'ew-resize', userSelect: 'none', flex: 1, textAlign: 'left' }}
+      className="bg-transparent hover:bg-field-hover text-zinc-100 text-[13px] px-2 py-1 cursor-ew-resize select-none flex-1 text-left"
     >
       {displayValue}
     </div>

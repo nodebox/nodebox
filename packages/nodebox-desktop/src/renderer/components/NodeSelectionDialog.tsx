@@ -91,26 +91,26 @@ export function NodeSelectionDialog() {
     <div onClick={(e) => { if (e.target === e.currentTarget) setVisible(false); }} className="fixed inset-0 flex items-center justify-center z-[100] bg-black/40">
       <div className="w-[440px] h-[500px] bg-zinc-700 border border-zinc-500 rounded-lg overflow-hidden flex flex-col shadow-2xl">
         {/* Search */}
-        <div style={{ padding: 12 }}>
+        <div className="p-3">
           <input ref={inputRef} type="text" value={search}
             onChange={(e) => { setSearch(e.target.value); setSelectedIndex(0); }}
             onKeyDown={handleKeyDown} placeholder="Search nodes..."
-            style={{ width: '100%', background: '#52525c', color: '#fafafa', border: 'none', padding: '8px 12px', fontSize: 13, borderRadius: 4, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+            className="w-full bg-zinc-600 text-zinc-50 border-none px-3 py-2 text-[13px] rounded outline-none font-[inherit] placeholder:text-zinc-400"
           />
         </div>
 
         {/* Category pills */}
-        <div style={{ display: 'flex', gap: 6, padding: '0 12px 12px', flexWrap: 'wrap' }}>
+        <div className="flex gap-1.5 px-3 pb-3 flex-wrap">
           <CategoryPill label="All" active={activeCategory === null} onClick={() => { setActiveCategory(null); setSelectedIndex(0); }} />
           {CATEGORIES.map((cat) => (
             <CategoryPill key={cat.category} label={cat.category} active={activeCategory === cat.category} onClick={() => { setActiveCategory(cat.category); setSelectedIndex(0); }} />
           ))}
         </div>
 
-        <div style={{ height: 1, background: '#52525c', margin: '0 12px' }} />
+        <div className="h-px bg-zinc-600 mx-3" />
 
         {/* Node list */}
-        <div ref={listRef} style={{ flex: 1, overflow: 'auto', padding: '8px 8px' }}>
+        <div ref={listRef} className="flex-1 overflow-auto py-2 px-2">
           {filteredTemplates.map((tmpl, i) => (
             <div key={tmpl.name + tmpl.function} onClick={() => addNode(tmpl)} onMouseEnter={() => setSelectedIndex(i)}
               className={`flex items-center gap-3 px-3 py-2 cursor-pointer rounded ${i === selectedIndex ? 'bg-violet-800' : 'hover:bg-zinc-600'}`}
@@ -135,16 +135,7 @@ function CategoryPill({ label, active, onClick }: { label: string; active: boole
   return (
     <button
       onClick={onClick}
-      style={{
-        background: active ? '#52525c' : 'transparent',
-        color: active ? '#fafafa' : '#9f9fa9',
-        border: 'none',
-        borderBottom: active ? '2px solid #a78bfa' : '2px solid transparent',
-        padding: '4px 8px',
-        fontSize: 11,
-        cursor: 'pointer',
-        fontFamily: 'inherit',
-      }}
+      className={`border-b-2 px-2 py-1 text-[11px] cursor-pointer font-[inherit] ${active ? 'bg-zinc-600 text-zinc-50 border-b-violet-400' : 'bg-transparent text-zinc-400 border-b-transparent hover:text-zinc-300'}`}
     >{label}</button>
   );
 }

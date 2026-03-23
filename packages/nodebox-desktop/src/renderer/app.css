@@ -24,7 +24,8 @@
   --color-field-hover: #484851;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* Tailwind's preflight handles box-sizing and margin resets.
+   Do NOT add * { padding: 0 } — it overrides Tailwind utility classes. */
 
 html, body, #root {
   height: 100%;
