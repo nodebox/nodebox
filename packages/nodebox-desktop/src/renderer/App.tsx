@@ -28,13 +28,16 @@ export function App() {
     evaluate({ library, frame: currentFrame, platform }).then((result) => {
       if (!cancelled) {
         setRenderResult(result.paths, result.texts, result.output, result.errors);
-        // Auto-switch viewer mode based on whether output has geometry
-        setAutoDataMode(result.paths.length > 0);
+        // Auto-switch: only go to data if there IS non-visual output but no geometry.
+        // Empty scene (no output at all) stays in visual.
+        const hasGeometry = result.paths.length > 0;
+        const hasDataOutput = result.output.length > 0;
+        setAutoDataMode(hasGeometry || !hasDataOutput);
       }
     }).catch((err) => {
       if (!cancelled) {
         setRenderResult([], [], [], [{ nodePath: '', message: String(err) }]);
-        setAutoDataMode(false);
+        setAutoDataMode(true); // error or empty → stay in visual
       }
     });
 

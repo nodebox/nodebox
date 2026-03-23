@@ -1,8 +1,15 @@
 import type { NodeLibrary, Node, Connection, Value, Point } from 'nodebox-core';
 import { createNode, createNodeLibrary } from 'nodebox-core';
+import { findTemplate, createNodeFromTemplate } from '../node-templates';
 
 function createDefaultLibrary(): NodeLibrary {
-  return createNodeLibrary(createNode('root'));
+  const root = createNode('root');
+  const rectTemplate = findTemplate('rect');
+  if (rectTemplate) {
+    root.children.push(createNodeFromTemplate(rectTemplate, 'rect1', { x: 1, y: 1 }));
+    root.renderedChild = 'rect1';
+  }
+  return createNodeLibrary(root);
 }
 
 export interface LibrarySlice {
