@@ -89,7 +89,7 @@ export function NodeSelectionDialog() {
 
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) setVisible(false); }} className="fixed inset-0 flex items-center justify-center z-[100] bg-black/40">
-      <div className="w-[440px] h-[500px] bg-zinc-700 border border-zinc-500 rounded-lg overflow-hidden flex flex-col shadow-2xl">
+      <div className="w-[560px] h-[500px] bg-zinc-700 border border-zinc-500 rounded-lg overflow-hidden flex flex-col shadow-2xl">
         {/* Search */}
         <div className="p-3">
           <input ref={inputRef} type="text" value={search}
