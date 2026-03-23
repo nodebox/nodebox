@@ -133,8 +133,18 @@ export function NodeSelectionDialog() {
 
 function CategoryPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
-    <button onClick={onClick}
-      className={`border rounded-full px-3 py-0.5 text-[11px] cursor-pointer font-[inherit] transition-colors ${active ? 'bg-zinc-600 text-zinc-50 border-zinc-500' : 'bg-transparent text-zinc-400 border-zinc-600 hover:border-zinc-500 hover:text-zinc-300'}`}
+    <button
+      onClick={onClick}
+      style={{
+        background: active ? '#52525c' : 'transparent',
+        color: active ? '#fafafa' : '#9f9fa9',
+        border: 'none',
+        borderBottom: active ? '2px solid #a78bfa' : '2px solid transparent',
+        padding: '4px 8px',
+        fontSize: 11,
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+      }}
     >{label}</button>
   );
 }
