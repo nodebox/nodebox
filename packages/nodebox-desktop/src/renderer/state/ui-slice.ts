@@ -24,7 +24,9 @@ export interface UISlice {
   nodeSelectionDialogOpen: boolean;
   nodeDialogPosition: { x: number; y: number } | null;
   pendingConnection: PendingConnection | null;
-  viewerMode: ViewerMode;
+  viewerMode: ViewerMode;         // what's currently displayed
+  userViewerMode: ViewerMode;     // what the user manually chose
+  autoDataMode: boolean;          // true when auto-switched to data for non-visual output
   viewerZoom: number;
   viewerZoomAction: 'in' | 'out' | 'reset' | null;
   notifications: Notification[];
@@ -39,7 +41,8 @@ export interface UISlice {
   setNodeSelectionDialogOpen: (open: boolean) => void;
   setNodeDialogPosition: (pos: { x: number; y: number } | null) => void;
   setPendingConnection: (pending: PendingConnection | null) => void;
-  setViewerMode: (mode: ViewerMode) => void;
+  setViewerMode: (mode: ViewerMode) => void;       // user-initiated switch
+  setAutoDataMode: (hasGeometry: boolean) => void;  // called after each evaluation
   setViewerZoom: (zoom: number) => void;
   requestViewerZoom: (action: 'in' | 'out' | 'reset') => void;
   clearViewerZoomAction: () => void;
@@ -60,6 +63,8 @@ export function createUISlice(set: any): UISlice {
     nodeDialogPosition: null,
     pendingConnection: null,
     viewerMode: 'visual',
+    userViewerMode: 'visual',
+    autoDataMode: false,
     viewerZoom: 1.0,
     viewerZoomAction: null,
     notifications: [],
@@ -77,7 +82,26 @@ export function createUISlice(set: any): UISlice {
     }),
     setNodeDialogPosition: (pos) => set((s: UISlice) => { s.nodeDialogPosition = pos; }),
     setPendingConnection: (pending) => set((s: UISlice) => { s.pendingConnection = pending; }),
-    setViewerMode: (mode) => set((s: UISlice) => { s.viewerMode = mode; }),
+    // User manually picks a mode — this is the "sticky" preference
+    setViewerMode: (mode) => set((s: UISlice) => {
+      s.viewerMode = mode;
+      s.userViewerMode = mode;
+      s.autoDataMode = false;
+    }),
+    // Called after each evaluation with whether output has geometry.
+    // Auto-switches to data when no geometry, restores user mode when geometry returns.
+    setAutoDataMode: (hasGeometry) => set((s: UISlice) => {
+      if (!hasGeometry && s.userViewerMode === 'visual') {
+        // No geometry + user was in visual → auto-switch to data
+        s.viewerMode = 'data';
+        s.autoDataMode = true;
+      } else if (hasGeometry && s.autoDataMode) {
+        // Geometry returned + we auto-switched → restore visual
+        s.viewerMode = 'visual';
+        s.autoDataMode = false;
+      }
+      // If user manually chose 'data', do nothing — respect their choice
+    }),
     setViewerZoom: (zoom) => set((s: UISlice) => { s.viewerZoom = zoom; }),
     requestViewerZoom: (action) => set((s: UISlice) => { s.viewerZoomAction = action; }),
     clearViewerZoomAction: () => set((s: UISlice) => { s.viewerZoomAction = null; }),

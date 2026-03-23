@@ -16,6 +16,7 @@ export function App() {
   const endFrame = useStore((s) => s.endFrame);
   const setRenderResult = useStore((s) => s.setRenderResult);
   const setEvaluating = useStore((s) => s.setEvaluating);
+  const setAutoDataMode = useStore((s) => s.setAutoDataMode);
 
   // Re-evaluate whenever library or frame changes
   useEffect(() => {
@@ -27,15 +28,18 @@ export function App() {
     evaluate({ library, frame: currentFrame, platform }).then((result) => {
       if (!cancelled) {
         setRenderResult(result.paths, result.texts, result.output, result.errors);
+        // Auto-switch viewer mode based on whether output has geometry
+        setAutoDataMode(result.paths.length > 0);
       }
     }).catch((err) => {
       if (!cancelled) {
         setRenderResult([], [], [], [{ nodePath: '', message: String(err) }]);
+        setAutoDataMode(false);
       }
     });
 
     return () => { cancelled = true; };
-  }, [library, currentFrame, setRenderResult, setEvaluating]);
+  }, [library, currentFrame, setRenderResult, setEvaluating, setAutoDataMode]);
 
   // Animation playback loop
   useEffect(() => {
