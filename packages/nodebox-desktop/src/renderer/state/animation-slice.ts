@@ -1,11 +1,8 @@
 export interface AnimationSlice {
   currentFrame: number;
-  startFrame: number;
-  endFrame: number;
   fps: number;
   playing: boolean;
   setCurrentFrame: (frame: number) => void;
-  setFrameRange: (start: number, end: number) => void;
   setFps: (fps: number) => void;
   play: () => void;
   pause: () => void;
@@ -15,24 +12,18 @@ export interface AnimationSlice {
 export function createAnimationSlice(set: any): AnimationSlice {
   return {
     currentFrame: 1,
-    startFrame: 1,
-    endFrame: 100,
     fps: 30,
     playing: false,
 
     setCurrentFrame: (frame) => set((state: AnimationSlice) => {
       state.currentFrame = frame;
     }),
-    setFrameRange: (start, end) => set((state: AnimationSlice) => {
-      state.startFrame = start;
-      state.endFrame = end;
-    }),
     setFps: (fps) => set((state: AnimationSlice) => { state.fps = fps; }),
     play: () => set((state: AnimationSlice) => { state.playing = true; }),
     pause: () => set((state: AnimationSlice) => { state.playing = false; }),
     stop: () => set((state: AnimationSlice) => {
       state.playing = false;
-      state.currentFrame = state.startFrame;
+      state.currentFrame = 1;
     }),
   };
 }

@@ -12,8 +12,6 @@ export function App() {
   const currentFrame = useStore((s) => s.currentFrame);
   const playing = useStore((s) => s.playing);
   const setCurrentFrame = useStore((s) => s.setCurrentFrame);
-  const startFrame = useStore((s) => s.startFrame);
-  const endFrame = useStore((s) => s.endFrame);
   const setRenderResult = useStore((s) => s.setRenderResult);
   const setEvaluating = useStore((s) => s.setEvaluating);
   const setAutoDataMode = useStore((s) => s.setAutoDataMode);
@@ -57,7 +55,7 @@ export function App() {
       if (elapsed >= frameDuration) {
         lastTime = now - (elapsed % frameDuration);
         const state = useStore.getState();
-        const nextFrame = state.currentFrame >= state.endFrame ? state.startFrame : state.currentFrame + 1;
+        const nextFrame = state.currentFrame + 1;
         setCurrentFrame(nextFrame);
       }
       rafId = requestAnimationFrame(tick);
