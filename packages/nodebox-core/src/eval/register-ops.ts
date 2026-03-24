@@ -100,6 +100,28 @@ export function createDefaultRegistry(): FunctionRegistry {
   registerOp(registry, 'corevector/compound', flt.compound, 'geometry');
   registerOp(registry, 'corevector/shapeOnPath', flt.shapeOnPath, 'geometry', 'list');
 
+  // ─── pyvector aliases ────────────────────────────────
+  // .ndbx library files use "pyvector/" for functions originally implemented in Python.
+  // In the TS port these are all under "corevector/". Register aliases so parsed
+  // .ndbx files resolve correctly.
+  registerOp(registry, 'pyvector/polygon', gen.polygon, 'geometry');
+  registerOp(registry, 'pyvector/star', gen.star, 'geometry');
+  registerOp(registry, 'pyvector/quad_curve', gen.quadCurve, 'geometry');
+  registerOp(registry, 'pyvector/compound', flt.compound, 'geometry');
+  registerOp(registry, 'pyvector/delete', flt.deletePaths, 'geometry');
+  registerOp(registry, 'pyvector/distribute', flt.distribute, 'geometry', 'list');
+  registerOp(registry, 'pyvector/reflect', flt.reflect, 'geometry');
+  registerOp(registry, 'pyvector/resample', flt.resample, 'geometry');
+  registerOp(registry, 'pyvector/rotate', flt.rotateOp, 'geometry');
+  registerOp(registry, 'pyvector/round_segments', flt.roundSegments, 'geometry');
+  registerOp(registry, 'pyvector/scale', flt.scaleOp, 'geometry');
+  registerOp(registry, 'pyvector/scatter', flt.scatter, 'point', 'list');
+  registerOp(registry, 'pyvector/shape_on_path', flt.shapeOnPath, 'geometry', 'list');
+  registerOp(registry, 'pyvector/sort', flt.sortShapes, 'geometry', 'list');
+  registerOp(registry, 'pyvector/stack', flt.stack, 'geometry', 'list');
+  registerOp(registry, 'pyvector/translate', flt.translateOp, 'geometry');
+  registerOp(registry, 'pyvector/wiggle', flt.wiggle, 'geometry', 'list');
+
   // ─── Math ──────────────────────────────────────────
   registerOp(registry, 'math/abs', math.abs, 'float');
   registerOp(registry, 'math/ceil', math.ceil, 'int');
@@ -129,6 +151,7 @@ export function createDefaultRegistry(): FunctionRegistry {
   registerOp(registry, 'math/number', math.number, 'float');
   registerOp(registry, 'math/integer', math.integer, 'int');
   registerOp(registry, 'math/boolean', math.boolean, 'boolean');
+  registerOp(registry, 'math/makeBoolean', math.boolean, 'boolean');
   registerOp(registry, 'math/range', math.range, 'float', 'list');
   registerOp(registry, 'math/sample', math.sample, 'float', 'list');
   registerOp(registry, 'math/randomNumbers', math.randomNumbers, 'float', 'list');

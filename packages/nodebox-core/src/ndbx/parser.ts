@@ -78,7 +78,7 @@ function parseNdbxDocument(doc: Document, uuid: string, libraryLoader?: LibraryL
   };
 }
 
-function parseNodeElement(el: Element, libraryLoader?: LibraryLoader): Node {
+function parseNodeElement(el: Element, libraryLoader?: LibraryLoader, siblings?: Node[]): Node {
   const name = el.getAttribute('name') ?? '';
   const prototypeRef = el.getAttribute('prototype') ?? null;
   const func = el.getAttribute('function') ?? null;
@@ -100,10 +100,15 @@ function parseNodeElement(el: Element, libraryLoader?: LibraryLoader): Node {
     y: parseFloat(posParts[1]) || 0,
   };
 
-  // Resolve prototype
+  // Resolve prototype: cross-library ("corevector.colorize") or local ("filter")
   let protoNode: Node | null = null;
   if (prototypeRef) {
-    protoNode = resolvePrototype(prototypeRef, libraryLoader);
+    if (prototypeRef.includes('.')) {
+      protoNode = resolvePrototype(prototypeRef, libraryLoader);
+    } else if (siblings) {
+      // Local prototype reference — look up among already-parsed siblings
+      protoNode = siblings.find(s => s.name === prototypeRef) ?? null;
+    }
   }
 
   // Parse child elements
@@ -119,13 +124,13 @@ function parseNodeElement(el: Element, libraryLoader?: LibraryLoader): Node {
     if (childEl.tagName === 'port') {
       ports.push(parsePortElement(childEl));
     } else if (childEl.tagName === 'node') {
-      children.push(parseNodeElement(childEl, libraryLoader));
+      // Pass already-parsed children as siblings context for local prototype resolution
+      children.push(parseNodeElement(childEl, libraryLoader, children));
     } else if (childEl.tagName === 'conn') {
       connections.push(parseConnectionElement(childEl));
     } else if (childEl.tagName === 'importCoreNode') {
       const ref = childEl.getAttribute('ref');
       if (ref === 'ROOT') {
-        // ROOT is the base template — add no-op node with core/zero function
         children.push(createRootNode());
       } else if (ref === 'NETWORK') {
         children.push(createNetworkNode());
