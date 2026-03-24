@@ -318,13 +318,20 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     output = renderChild(rootPath, library.root.renderedChild, new Map());
   }
 
-  // Extract paths from geometry values
+  // Extract paths from geometry values (recursively unwrapping lists)
   const paths: Path[] = [];
-  for (const v of output) {
-    if (v.type === 'geometry') {
-      paths.push(...v.value);
+  function collectPaths(values: Value[]) {
+    for (const v of values) {
+      if (v.type === 'geometry') {
+        for (const p of v.value) {
+          if (p && p.contours) paths.push(p);
+        }
+      } else if (v.type === 'list') {
+        collectPaths(v.value);
+      }
     }
   }
+  collectPaths(output);
 
   return { paths, texts: [], output, errors };
 }

@@ -1,79 +1,82 @@
 /**
- * Golden tests: parse real .ndbx example files, evaluate them, verify output.
- * These test the full pipeline: NDBX parse → prototype resolution → evaluation.
+ * Golden tests: parse real .ndbx example files, evaluate them, verify no crashes.
+ * Tests the full pipeline: NDBX parse → prototype resolution → evaluation.
+ * This is the "does it run?" complement to the golden-master SVG comparison tests.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, readdirSync, existsSync, statSync } from 'fs';
+import { join, relative } from 'path';
 import { parseNdbx, clearLibraryCache } from '../../src/ndbx/parser';
 import { evaluate } from '../../src/eval/evaluate';
 import { TestPlatform } from '../../src/platform';
 import type { NodeLibrary } from '../../src/node/library';
 
 const ROOT = join(__dirname, '..', '..', '..', '..');
+const EXAMPLES_DIR = join(ROOT, 'examples');
 
-function loadFile(path: string): string {
-  return readFileSync(join(ROOT, path), 'utf-8');
+/** Skip examples that need external resources. */
+const SKIP_PATTERNS = ['device/', 'Web/', 'Geocoding/', 'Twitter'];
+
+function shouldSkip(relPath: string): boolean {
+  return SKIP_PATTERNS.some((p) => relPath.includes(p));
 }
 
 function loadLibraries() {
   const libs: Record<string, NodeLibrary> = {};
-  for (const name of ['core', 'corevector', 'list', 'math', 'color', 'string', 'data']) {
+  for (const name of ['core', 'corevector', 'list', 'math', 'color', 'string', 'data', 'network']) {
     try {
-      libs[name] = parseNdbx(loadFile(`libraries/${name}/${name}.ndbx`));
+      libs[name] = parseNdbx(readFileSync(join(ROOT, `libraries/${name}/${name}.ndbx`), 'utf-8'));
     } catch { /* some libs may not exist */ }
   }
   return (name: string) => libs[name];
 }
 
-describe('Golden: Parse and evaluate .ndbx example files', () => {
-  beforeEach(() => clearLibraryCache());
-
-  const loader = loadLibraries();
-
-  // Find all example .ndbx files
-  const exampleDirs = [
-    'examples/01 Basics/01 Shape',
-    'examples/01 Basics/02 Transform',
-  ];
-
-  for (const dir of exampleDirs) {
-    const fullDir = join(ROOT, dir);
-    let subdirs: string[] = [];
-    try { subdirs = readdirSync(fullDir); } catch { continue; }
-
-    for (const subdir of subdirs) {
-      const ndbxFiles = (() => {
-        try {
-          return readdirSync(join(fullDir, subdir)).filter(f => f.endsWith('.ndbx'));
-        } catch { return []; }
-      })();
-
-      for (const file of ndbxFiles) {
-        const relPath = `${dir}/${subdir}/${file}`;
-
-        it(`parses and evaluates: ${subdir}/${file}`, async () => {
-          clearLibraryCache();
-          const xml = loadFile(relPath);
-          const lib = parseNdbx(xml, loader);
-
-          expect(lib.root.name).toBe('root');
-          expect(lib.root.children.length).toBeGreaterThan(0);
-
-          if (lib.root.renderedChild) {
-            const result = await evaluate({
-              library: lib,
-              frame: 1,
-              platform: new TestPlatform(),
-            });
-
-            // Should evaluate without crashing
-            // Some examples may have errors for unimplemented nodes, that's ok
-            expect(result).toBeDefined();
-            expect(result.output).toBeDefined();
-          }
-        });
-      }
+/** Recursively find all .ndbx files. */
+function findNdbxFiles(dir: string): string[] {
+  const results: string[] = [];
+  if (!existsSync(dir)) return results;
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    const stat = statSync(full);
+    if (stat.isDirectory()) {
+      results.push(...findNdbxFiles(full));
+    } else if (entry.endsWith('.ndbx')) {
+      results.push(full);
     }
+  }
+  return results;
+}
+
+describe('Parse and evaluate all .ndbx example files', () => {
+  const loader = loadLibraries();
+  const ndbxFiles = findNdbxFiles(EXAMPLES_DIR);
+
+  for (const ndbxPath of ndbxFiles) {
+    const relPath = relative(EXAMPLES_DIR, ndbxPath);
+
+    if (shouldSkip(relPath)) {
+      it.skip(`${relPath} (external dependency)`, () => {});
+      continue;
+    }
+
+    it(`parses and evaluates: ${relPath}`, async () => {
+      clearLibraryCache();
+      const xml = readFileSync(ndbxPath, 'utf-8');
+      const lib = parseNdbx(xml, loader);
+
+      expect(lib.root.name).toBe('root');
+      expect(lib.root.children.length).toBeGreaterThan(0);
+
+      if (lib.root.renderedChild) {
+        const result = await evaluate({
+          library: lib,
+          frame: 1,
+          platform: new TestPlatform(),
+        });
+
+        expect(result).toBeDefined();
+        expect(result.output).toBeDefined();
+      }
+    });
   }
 });

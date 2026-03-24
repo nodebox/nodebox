@@ -321,6 +321,25 @@
         </javadoc>
     </target>
 
+    <target name="compile-dev" depends="compile">
+        <mkdir dir="${build.dev}"/>
+        <javac srcdir="${dev}" destdir="${build.dev}" release="11" includeantruntime="false" deprecation="yes">
+            <classpath refid="runtime.classpath"/>
+            <compilerarg value="-Xlint:unchecked"/>
+        </javac>
+    </target>
+
+    <target name="batch-render" depends="compile-dev" description="Render all examples to SVG for golden master testing">
+        <java classname="nodebox.BatchRenderer" fork="true">
+            <classpath>
+                <path refid="runtime.classpath"/>
+                <pathelement location="${build.dev}"/>
+            </classpath>
+            <arg value="--all"/>
+            <arg value="packages/nodebox-core/tests/golden/expected"/>
+        </java>
+    </target>
+
     <target name="clean" depends="properties">
         <delete dir="${build}"/>
         <delete dir="${dist}"/>

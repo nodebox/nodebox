@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="-500 -500 1000 1000">
+    <path d="M-124.02,-135L-175.98,-135L-150,-180Z" stroke-width="15" fill="#d26b27" stroke="#4e9df4"/>
+    <path d="M-90,-124.02L-90,-175.98L-45,-150Z" stroke-width="15" fill="#001a2f" stroke="#001a2f"/>
+    <path d="M-25.98,-165L25.98,-165L0.00,-120Z" stroke-width="15" fill="#4e9df4" stroke="#d26b27"/>
+    <path d="M90,-175.98L90,-124.02L45,-150Z" stroke-width="15" fill="#d26b27" stroke="#4e9df4"/>
+    <path d="M175.98,-135L124.02,-135L150,-180Z" stroke-width="15" fill="#001a2f" stroke="#001a2f"/>
+    <path d="M-165,-49.02L-165,-100.98L-120,-75Z" stroke-width="15" fill="#4e9df4" stroke="#d26b27"/>
+    <path d="M-100.98,-90L-49.02,-90L-75,-45Z" stroke-width="15" fill="#d26b27" stroke="#4e9df4"/>
+    <path d="M15.00,-100.98L15.00,-49.02L-30,-75Z" stroke-width="15" fill="#001a2f" stroke="#001a2f"/>
+    <path d="M100.98,-60L49.02,-60L75,-105Z" stroke-width="15" fill="#4e9df4" stroke="#d26b27"/>
+    <path d="M135,-49.02L135,-100.98L180,-75Z" stroke-width="15" fill="#d26b27" stroke="#4e9df4"/>
+    <path d="M-175.98,-15.00L-124.02,-15.00L-150,30Z" stroke-width="15" fill="#001a2f" stroke="#001a2f"/>
+    <path d="M-60,-25.98L-60,25.98L-105,0.00Z" stroke-width="15" fill="#4e9df4" stroke="#d26b27"/>
+    <path d="M25.98,15.00L-25.98,15.00L-0.00,-30Z" stroke-width="15" fill="#d26b27" stroke="#4e9df4"/>
+    <path d="M60,25.98L60,-25.98L105,-0.00Z" stroke-width="15" fill="#001a2f" stroke="#001a2f"/>
+    <path d="M124.02,-15.00L175.98,-15.00L150,30Z" stroke-width="15" fill="#4e9df4" stroke="#d26b27"/>
+    <path d="M-135,49.02L-135,100.98L-180,75Z" stroke-width="15" fill="#d26b27" stroke="#4e9df4"/>
+    <path d="M-49.02,90L-100.98,90L-75,45Z" stroke-width="15" fill="#001a2f" stroke="#001a2f"/>
+    <path d="M-15.00,100.98L-15.00,49.02L30,75Z" stroke-width="15" fill="#4e9df4" stroke="#d26b27"/>
+    <path d="M49.02,60L100.98,60L75,105Z" stroke-width="15" fill="#d26b27" stroke="#4e9df4"/>
+    <path d="M165,49.02L165,100.98L120,75Z" stroke-width="15" fill="#001a2f" stroke="#001a2f"/>
+    <path d="M-124.02,165L-175.98,165L-150,120Z" stroke-width="15" fill="#4e9df4" stroke="#d26b27"/>
+    <path d="M-90,175.98L-90,124.02L-45,150Z" stroke-width="15" fill="#d26b27" stroke="#4e9df4"/>
+    <path d="M-25.98,135L25.98,135L0.00,180Z" stroke-width="15" fill="#001a2f" stroke="#001a2f"/>
+    <path d="M90,124.02L90,175.98L45,150Z" stroke-width="15" fill="#4e9df4" stroke="#d26b27"/>
+    <path d="M175.98,165L124.02,165L150,120Z" stroke-width="15" fill="#d26b27" stroke="#4e9df4"/>
+</svg>

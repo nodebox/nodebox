@@ -21,6 +21,7 @@ export function exportSvg(paths: Path[], texts: Text[], options: SvgExportOption
   }
 
   for (const path of paths) {
+    if (!path || !path.contours) continue;
     const d = pathToSvgData(path, precision);
     if (!d) continue;
     const attrs: string[] = [`d="${d}"`];
