@@ -25,7 +25,7 @@ export function exportSvg(paths: Path[], texts: Text[], options: SvgExportOption
     const d = pathToSvgData(path, precision);
     if (!d) continue;
     const attrs: string[] = [`d="${d}"`];
-    if (path.fill) {
+    if (path.fill && path.fill.a > 0) {
       // SVG default fill is black — omit when fill is black (matches Java SVGRenderer)
       if (!isBlack(path.fill)) attrs.push(`fill="${colorToSvg(path.fill)}"`);
     } else {
@@ -83,10 +83,20 @@ function contourToSvgData(contour: Contour, precision: number): string {
         }
       }
     } else if (pt.type === 'quadData') {
-      if (i + 1 < contour.points.length) {
+      // Convert quadratic to cubic to match Java's PathIterator behavior
+      if (i + 1 < contour.points.length && i > 0) {
         const ep = contour.points[i + 1];
         if (ep.type === 'quadTo') {
-          parts.push(`Q ${n(pt.point.x, precision)} ${n(pt.point.y, precision)} ${n(ep.point.x, precision)} ${n(ep.point.y, precision)}`);
+          // Find the previous point (start of this quad segment)
+          const p0 = contour.points[i - 1].point;
+          const p1 = pt.point; // quad control point
+          const p2 = ep.point; // quad end point
+          // Convert: CP1 = P0 + 2/3*(P1-P0), CP2 = P2 + 2/3*(P1-P2)
+          const cp1x = p0.x + (2 / 3) * (p1.x - p0.x);
+          const cp1y = p0.y + (2 / 3) * (p1.y - p0.y);
+          const cp2x = p2.x + (2 / 3) * (p1.x - p2.x);
+          const cp2y = p2.y + (2 / 3) * (p1.y - p2.y);
+          parts.push(`C ${n(cp1x, precision)} ${n(cp1y, precision)} ${n(cp2x, precision)} ${n(cp2y, precision)} ${n(p2.x, precision)} ${n(p2.y, precision)}`);
         }
       }
     } else if (pt.type === 'quadTo') {

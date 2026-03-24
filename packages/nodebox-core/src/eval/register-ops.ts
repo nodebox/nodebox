@@ -257,6 +257,10 @@ export function createDefaultRegistry(): FunctionRegistry {
   registerOp(registry, 'color/grayColor', clr.grayColor, 'color');
   registerOp(registry, 'color/hsbColor', clr.hsbColor, 'color');
   registerOp(registry, 'color/rgbColor', clr.rgbColor, 'color');
+  // .ndbx aliases (short names used in library files)
+  registerOp(registry, 'color/gray', clr.grayColor, 'color');
+  registerOp(registry, 'color/hsb', clr.hsbColor, 'color');
+  registerOp(registry, 'color/rgb', clr.rgbColor, 'color');
 
   // ─── String ────────────────────────────────────────
   registerOp(registry, 'string/string', str.string, 'string');
@@ -271,6 +275,7 @@ export function createDefaultRegistry(): FunctionRegistry {
   registerOp(registry, 'string/startsWith', str.startsWith, 'boolean');
   registerOp(registry, 'string/endsWith', str.endsWith, 'boolean');
   registerOp(registry, 'string/equals', str.equals, 'boolean');
+  registerOp(registry, 'string/equal', str.equals, 'boolean'); // .ndbx alias
   registerOp(registry, 'string/replace', str.replace, 'string');
   registerOp(registry, 'string/subString', str.subString, 'string');
   registerOp(registry, 'string/trim', str.trim, 'string');
@@ -297,6 +302,7 @@ export function createDefaultRegistry(): FunctionRegistry {
 
   // ─── Network ───────────────────────────────────────
   registerOp(registry, 'network/encodeUrl', net.encodeUrl, 'string');
+  registerOp(registry, 'network/encodeURL', net.encodeUrl, 'string'); // .ndbx alias
 
   return registry;
 }
