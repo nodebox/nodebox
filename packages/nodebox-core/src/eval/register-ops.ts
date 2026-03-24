@@ -20,6 +20,10 @@ export function unwrapValue(v: Value): unknown {
   if (v.type === 'geometry' && Array.isArray(v.value) && v.value.length === 1) {
     return v.value[0];
   }
+  // List values: recursively unwrap each item so ops get raw values (Point[], Path[], etc.)
+  if (v.type === 'list' && Array.isArray(v.value)) {
+    return v.value.map((item: Value) => unwrapValue(item));
+  }
   return v.value;
 }
 
