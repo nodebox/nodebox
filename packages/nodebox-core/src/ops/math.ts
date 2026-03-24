@@ -14,9 +14,9 @@ export function multiply(v1: number, v2: number): number { return v1 * v2; }
 export function divide(v1: number, v2: number): number { return v2 === 0 ? 0 : v1 / v2; }
 export function mod(v1: number, v2: number): number { return v2 === 0 ? 0 : v1 % v2; }
 
-// ─── Trigonometry (degrees) ────────────────────────────
-export function sin(degrees: number): number { return Math.sin(degrees * Math.PI / 180); }
-export function cos(degrees: number): number { return Math.cos(degrees * Math.PI / 180); }
+// ─── Trigonometry (radians — matching Java's Math.sin/Math.cos) ──
+export function sin(v: number): number { return Math.sin(v); }
+export function cos(v: number): number { return Math.cos(v); }
 export function sqrt(v: number): number { return Math.sqrt(v); }
 export function pow(base: number, exponent: number): number { return Math.pow(base, exponent); }
 export function log(v: number): number { return v <= 0 ? 0 : Math.log(v); }

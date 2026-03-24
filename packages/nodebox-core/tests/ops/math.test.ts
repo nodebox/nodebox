@@ -15,8 +15,8 @@ describe('Math Operations', () => {
   it('divide by zero', () => expect(m.divide(10, 0)).toBe(0));
   it('mod', () => expect(m.mod(10, 3)).toBe(1));
 
-  it('sin (degrees)', () => expect(m.sin(90)).toBeCloseTo(1));
-  it('cos (degrees)', () => expect(m.cos(0)).toBeCloseTo(1));
+  it('sin (radians)', () => expect(m.sin(Math.PI / 2)).toBeCloseTo(1));
+  it('cos (radians)', () => expect(m.cos(0)).toBeCloseTo(1));
   it('sqrt', () => expect(m.sqrt(9)).toBe(3));
   it('pow', () => expect(m.pow(2, 10)).toBe(1024));
   it('log', () => expect(m.log(Math.E)).toBeCloseTo(1));
