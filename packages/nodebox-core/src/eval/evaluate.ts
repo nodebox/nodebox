@@ -188,6 +188,11 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     const portArguments = new Map<Port, Value[]>();
     for (const port of child.inputs) {
       let result = evaluatePort(networkPath, child, port, networkArgumentMap);
+      // List matching: when a list Value flows into a value-range port,
+      // expand it so the function runs once per item (NodeBox's core semantic)
+      if (port.range === 'value') {
+        result = expandListValues(result);
+      }
       result = convertResultsForPort(port, result);
       result = clampResultsForPort(port, result);
       portArguments.set(port, result);
@@ -258,6 +263,19 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     const value = getPortValue(childPath, childPort);
     if (value.type === 'null') return [];
     return [value];
+  }
+
+  /** Expand list Values into individual items for list matching. */
+  function expandListValues(values: Value[]): Value[] {
+    const expanded: Value[] = [];
+    for (const v of values) {
+      if (v.type === 'list' && Array.isArray(v.value)) {
+        expanded.push(...v.value);
+      } else {
+        expanded.push(v);
+      }
+    }
+    return expanded;
   }
 
   function convertResultsForPort(port: Port, values: Value[]): Value[] {
