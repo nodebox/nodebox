@@ -25,11 +25,17 @@ export function exportSvg(paths: Path[], texts: Text[], options: SvgExportOption
     const d = pathToSvgData(path, precision);
     if (!d) continue;
     const attrs: string[] = [`d="${d}"`];
-    if (path.fill) attrs.push(`fill="${colorToSvg(path.fill)}"`);
-    else attrs.push(`fill="none"`);
-    if (path.stroke) {
+    if (path.fill) {
+      // SVG default fill is black — omit when fill is black (matches Java SVGRenderer)
+      if (!isBlack(path.fill)) attrs.push(`fill="${colorToSvg(path.fill)}"`);
+    } else {
+      attrs.push(`fill="none"`);
+    }
+    if (path.stroke && path.stroke.a > 0 && path.strokeWidth > 0) {
       attrs.push(`stroke="${colorToSvg(path.stroke)}"`);
-      attrs.push(`stroke-width="${path.strokeWidth}"`);
+      if (path.strokeWidth !== 1) {
+        attrs.push(`stroke-width="${smartFloat(path.strokeWidth)}"`);
+      }
     }
     lines.push(`  <path ${attrs.join(' ')}/>`);
   }
@@ -95,7 +101,14 @@ function contourToSvgData(contour: Contour, precision: number): string {
 }
 
 function n(value: number, precision: number): string {
+  if (value === undefined || value === null || typeof value !== 'number' || isNaN(value)) return '0';
   return value.toFixed(precision);
+}
+
+/** Format number like Java's smartFloat: drop decimals for integer values. */
+function smartFloat(value: number): string {
+  if (Math.floor(value) === value) return String(value);
+  return value.toFixed(2);
 }
 
 function colorToSvg(color: Color): string {
@@ -106,6 +119,10 @@ function colorToSvg(color: Color): string {
     return `rgba(${r},${g},${b},${color.a.toFixed(2)})`;
   }
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+function isBlack(color: Color): boolean {
+  return color.r === 0 && color.g === 0 && color.b === 0 && color.a === 1;
 }
 
 function textAnchor(align: string): string {

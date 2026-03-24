@@ -39,24 +39,26 @@ export function compareSvg(actual: string, expected: string, tolerance = 0.5): S
       differences.push(`path[${i}] d: ${d}`);
     }
 
-    // Compare fill
-    if (!colorsMatch(ap.fill, ep.fill)) {
+    // Compare fill — treat missing fill as black (SVG default)
+    if (!colorsMatch(ap.fill ?? '#000000', ep.fill ?? '#000000')) {
       differences.push(`path[${i}] fill: actual="${ap.fill}", expected="${ep.fill}"`);
     }
 
-    // Compare stroke
-    if (!colorsMatch(ap.stroke, ep.stroke)) {
-      differences.push(`path[${i}] stroke: actual="${ap.stroke}", expected="${ep.stroke}"`);
-    }
-
-    // Compare stroke-width
-    if (ap.strokeWidth !== ep.strokeWidth) {
-      // Try numeric comparison
-      const aw = ap.strokeWidth ? parseFloat(ap.strokeWidth) : 0;
-      const ew = ep.strokeWidth ? parseFloat(ep.strokeWidth) : 0;
+    // Compare stroke — treat missing stroke and stroke="none" as equivalent
+    const aHasStroke = ap.stroke !== null && ap.stroke !== 'none';
+    const eHasStroke = ep.stroke !== null && ep.stroke !== 'none';
+    if (aHasStroke && eHasStroke) {
+      if (!colorsMatch(ap.stroke, ep.stroke)) {
+        differences.push(`path[${i}] stroke: actual="${ap.stroke}", expected="${ep.stroke}"`);
+      }
+      // Compare stroke-width only when both have strokes
+      const aw = ap.strokeWidth ? parseFloat(ap.strokeWidth) : 1;
+      const ew = ep.strokeWidth ? parseFloat(ep.strokeWidth) : 1;
       if (Math.abs(aw - ew) > 0.01) {
         differences.push(`path[${i}] stroke-width: actual="${ap.strokeWidth}", expected="${ep.strokeWidth}"`);
       }
+    } else if (aHasStroke !== eHasStroke) {
+      differences.push(`path[${i}] stroke: actual="${ap.stroke}", expected="${ep.stroke}"`);
     }
   }
 

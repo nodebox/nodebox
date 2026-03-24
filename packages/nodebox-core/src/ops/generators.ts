@@ -74,12 +74,9 @@ export function ellipse(position: Point, width: number, height: number): Path {
   const kx = rx * k;
   const ky = ry * k;
 
+  // Start at rightmost point going clockwise — matches Java's Ellipse2D PathIterator
   const points: PathPoint[] = [
-    pp(cx, cy - ry),
-    // right quadrant
-    pp(cx + kx, cy - ry, 'curveData'),
-    pp(cx + rx, cy - ky, 'curveData'),
-    pp(cx + rx, cy, 'curveTo'),
+    pp(cx + rx, cy),
     // bottom quadrant
     pp(cx + rx, cy + ky, 'curveData'),
     pp(cx + kx, cy + ry, 'curveData'),
@@ -92,6 +89,10 @@ export function ellipse(position: Point, width: number, height: number): Path {
     pp(cx - rx, cy - ky, 'curveData'),
     pp(cx - kx, cy - ry, 'curveData'),
     pp(cx, cy - ry, 'curveTo'),
+    // right quadrant (back to start)
+    pp(cx + kx, cy - ry, 'curveData'),
+    pp(cx + rx, cy - ky, 'curveData'),
+    pp(cx + rx, cy, 'curveTo'),
   ];
   return makeClosedPath(points);
 }
