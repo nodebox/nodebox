@@ -230,24 +230,31 @@ export function connect(points: Point[], closed: boolean): Path {
 
 // ─── quadCurve ─────────────────────────────────────────
 export function quadCurve(point1: Point, point2: Point, t: number, distance: number): Path {
-  // Control point perpendicular to the line at parameter t
-  const mx = point1.x + (point2.x - point1.x) * t;
-  const my = point1.y + (point2.y - point1.y) * t;
-  const dx = point2.x - point1.x;
-  const dy = point2.y - point1.y;
-  const len = Math.sqrt(dx * dx + dy * dy);
-  if (len === 0) return makeOpenPath([pp(point1.x, point1.y)], null);
-  const nx = -dy / len;
-  const ny = dx / len;
-  const cx = mx + nx * distance;
-  const cy = my + ny * distance;
+  // t is in range 0-100, normalize to 0-1
+  const nt = t / 100;
+  // Point on the line at parameter t
+  const cx = point1.x + nt * (point2.x - point1.x);
+  const cy = point1.y + nt * (point2.y - point1.y);
+  // Perpendicular direction (angle + 90°)
+  const a = Math.atan2(point2.y - point1.y, point2.x - point1.x) + Math.PI / 2;
+  const qx = cx + Math.cos(a) * distance;
+  const qy = cy + Math.sin(a) * distance;
+
+  // Convert quadratic control point to cubic (matching Python/Java output)
+  const c1x = point1.x + (2 / 3) * (qx - point1.x);
+  const c1y = point1.y + (2 / 3) * (qy - point1.y);
+  const c2x = point2.x + (2 / 3) * (qx - point2.x);
+  const c2y = point2.y + (2 / 3) * (qy - point2.y);
 
   const points: PathPoint[] = [
     pp(point1.x, point1.y),
-    pp(cx, cy, 'quadData'),
-    pp(point2.x, point2.y, 'quadTo'),
+    pp(c1x, c1y, 'curveData'),
+    pp(c2x, c2y, 'curveData'),
+    pp(point2.x, point2.y, 'curveTo'),
   ];
-  return makeOpenPath(points, null);
+  const path = makeOpenPath(points, null);
+  // Python sets fill=None, stroke=BLACK by default
+  return { ...path, fill: null, stroke: { r: 0, g: 0, b: 0, a: 1 }, strokeWidth: 1 };
 }
 
 // ─── link ──────────────────────────────────────────────

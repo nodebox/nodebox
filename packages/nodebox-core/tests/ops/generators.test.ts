@@ -165,11 +165,17 @@ describe('Generator Operations', () => {
   });
 
   describe('quadCurve', () => {
-    it('creates a quadratic curve', () => {
-      const p = quadCurve({ x: 0, y: 0 }, { x: 100, y: 0 }, 0.5, 50);
-      expect(p.contours[0].points.length).toBe(3);
-      expect(p.contours[0].points[1].type).toBe('quadData');
-      expect(p.contours[0].points[2].type).toBe('quadTo');
+    it('creates a quadratic curve (output as cubic)', () => {
+      // t=50 means 50% along the line (range 0-100), distance=50
+      const p = quadCurve({ x: 0, y: 0 }, { x: 100, y: 0 }, 50, 50);
+      expect(p.contours[0].points.length).toBe(4); // M, curveData, curveData, curveTo
+      expect(p.contours[0].points[1].type).toBe('curveData');
+      expect(p.contours[0].points[2].type).toBe('curveData');
+      expect(p.contours[0].points[3].type).toBe('curveTo');
+      expect(p.contours[0].points[3].point.x).toBeCloseTo(100);
+      expect(p.contours[0].points[3].point.y).toBeCloseTo(0);
+      expect(p.fill).toBeNull();
+      expect(p.stroke).not.toBeNull();
     });
   });
 
