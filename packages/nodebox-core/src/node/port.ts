@@ -70,13 +70,16 @@ export function isPublishedPort(port: Port): boolean {
 
 export function getChildNodeName(port: Port): string | null {
   if (!port.childReference) return null;
-  const parts = port.childReference.split('/');
+  // .ndbx uses dot separator (e.g. "slice1.list"), code may use slash
+  const sep = port.childReference.includes('.') ? '.' : '/';
+  const parts = port.childReference.split(sep);
   return parts[0] ?? null;
 }
 
 export function getChildPortName(port: Port): string | null {
   if (!port.childReference) return null;
-  const parts = port.childReference.split('/');
+  const sep = port.childReference.includes('.') ? '.' : '/';
+  const parts = port.childReference.split(sep);
   return parts[1] ?? null;
 }
 
