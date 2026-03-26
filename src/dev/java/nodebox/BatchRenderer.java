@@ -67,9 +67,9 @@ public class BatchRenderer {
         try {
             NodeLibrary library = loadLibrary(inFile, systemRepository);
 
-            // Remap Verdana → Inter in font_name ports
+            // Remap all font references to Inter for reproducible golden masters
             if (interFontFamily != null) {
-                library = remapFonts(library, "Verdana", interFontFamily);
+                library = remapAllFonts(library, interFontFamily);
             }
 
             FunctionRepository functionRepository = FunctionRepository.combine(
@@ -103,24 +103,24 @@ public class BatchRenderer {
     }
 
     /**
-     * Walk the node tree and replace font name values in font_name ports.
+     * Walk the node tree and replace ALL font name values in font_name ports.
+     * This ensures golden masters use a single bundled font (Inter) regardless
+     * of what fonts the examples originally specified.
      */
-    private static NodeLibrary remapFonts(NodeLibrary library, String from, String to) {
-        Node root = remapFontsInNode(library.getRoot(), from, to);
+    private static NodeLibrary remapAllFonts(NodeLibrary library, String to) {
+        Node root = remapAllFontsInNode(library.getRoot(), to);
         return library.withRoot(root);
     }
 
-    private static Node remapFontsInNode(Node node, String from, String to) {
+    private static Node remapAllFontsInNode(Node node, String to) {
         Node result = node;
-        // Check ports for font_name with the target value
         for (nodebox.node.Port port : node.getInputs()) {
-            if (port.getName().equals("font_name") && port.stringValue().equals(from)) {
+            if (port.getName().equals("font_name") && !port.stringValue().isEmpty()) {
                 result = result.withInputValue(port.getName(), to);
             }
         }
-        // Recurse into children
         for (Node child : node.getChildren()) {
-            Node remapped = remapFontsInNode(child, from, to);
+            Node remapped = remapAllFontsInNode(child, to);
             if (remapped != child) {
                 result = result.withChildReplaced(child.getName(), remapped);
             }

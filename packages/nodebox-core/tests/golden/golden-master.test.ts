@@ -64,16 +64,20 @@ describe('Golden Master: Java vs TypeScript SVG output', () => {
   const loader = loadLibraries();
   const ndbxFiles = findNdbxFiles(EXAMPLES_DIR);
 
-  // Create a platform that provides Inter.ttf as "Verdana"
-  // (Java golden masters were rendered with Inter substituted for Verdana)
+  // Load Inter.ttf for ALL font names used in examples.
+  // Java golden masters remap all fonts to Inter for reproducibility.
   const platform = new TestPlatform();
   const interFontPath = join(FONT_DIR, 'Inter.ttf');
+  const FONT_NAMES = ['Verdana', 'Verdana-Bold', 'Arial-Black', 'HelveticaNeue-Bold'];
   if (existsSync(interFontPath)) {
     const fontBytes = new Uint8Array(readFileSync(interFontPath));
-    platform.addFont('Verdana', fontBytes);
-    // Pre-load into the font cache so textpath can use it synchronously
+    for (const name of FONT_NAMES) {
+      platform.addFont(name, fontBytes);
+    }
     beforeAll(async () => {
-      await loadFont(fontBytes, 'Verdana');
+      for (const name of FONT_NAMES) {
+        await loadFont(fontBytes, name);
+      }
     });
   }
 
