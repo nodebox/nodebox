@@ -199,9 +199,16 @@ describe('Generator Operations', () => {
   });
 
   describe('group', () => {
-    it('returns shapes as-is', () => {
-      const shapes = [rect({ x: 0, y: 0 }, 10, 10, { x: 0, y: 0 })];
-      expect(group(shapes)).toBe(shapes);
+    it('merges shapes into a single multi-contour path', () => {
+      const r1 = rect({ x: 0, y: 0 }, 10, 10, { x: 0, y: 0 });
+      const r2 = rect({ x: 20, y: 0 }, 10, 10, { x: 0, y: 0 });
+      const grouped = group([r1, r2]);
+      expect(grouped.contours.length).toBe(2);
+    });
+
+    it('returns single shape unchanged', () => {
+      const r = rect({ x: 0, y: 0 }, 10, 10, { x: 0, y: 0 });
+      expect(group([r])).toBe(r);
     });
   });
 
