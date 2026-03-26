@@ -281,13 +281,14 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
   function convertResultsForPort(port: Port, values: Value[]): Value[] {
     const results: Value[] = [];
     for (const v of values) {
-      // Special case: geometry → point extracts all path points (NodeBox's point extraction)
+      // Special case: geometry → point extracts all on-curve path points (NodeBox's point extraction)
       if (port.type === 'point' && v.type === 'geometry' && Array.isArray(v.value)) {
         for (const path of v.value) {
           if (path && path.contours) {
             for (const contour of path.contours) {
               for (const pt of contour.points) {
-                if (pt.type === 'lineTo' || pt.type === 'curveTo' || pt.type === 'quadTo' || pt.type === undefined) {
+                // Include on-curve points only (not control points like curveData/quadData)
+                if (pt.type !== 'curveData' && pt.type !== 'quadData') {
                   results.push({ type: 'point', value: pt.point });
                 }
               }
