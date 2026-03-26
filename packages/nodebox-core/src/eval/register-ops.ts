@@ -297,7 +297,34 @@ export function createDefaultRegistry(platform?: Platform): FunctionRegistry {
   registerOp(registry, 'string/asNumberList', str.asNumberList, 'float', 'list');
 
   // ─── Data ──────────────────────────────────────────
-  // importCsv and importText are async and need Platform, registered specially
+  // importCSV is async — reads file from platform
+  registry.register('data/importCSV', async (...args: Value[]) => {
+    const file = args[0]?.type === 'string' ? args[0].value : '';
+    const delimiter = args[1]?.type === 'string' ? args[1].value : ',';
+    const quoteChar = args[2]?.type === 'string' ? args[2].value : '"';
+    const numberSep = args[3]?.type === 'string' ? args[3].value : '.';
+    if (!file || !platform) return { type: 'list', value: [] };
+    try {
+      const content = await platform.readTextFile({ root: null, projectFile: null, frame: 0 }, file);
+      const rows = data.importCsv(content, delimiter, quoteChar, numberSep);
+      return rows;
+    } catch {
+      return { type: 'list', value: [] };
+    }
+  });
+
+  registry.register('data/importText', async (...args: Value[]) => {
+    const file = args[0]?.type === 'string' ? args[0].value : '';
+    if (!file || !platform) return { type: 'list', value: [] };
+    try {
+      const content = await platform.readTextFile({ root: null, projectFile: null, frame: 0 }, file);
+      const lines = data.importText(content);
+      return lines.map((l: string) => ({ type: 'string', value: l }) as Value);
+    } catch {
+      return { type: 'list', value: [] };
+    }
+  });
+
   registry.register('data/lookup', (list: Value, key: Value) => {
     const items = list.type === 'list' ? list.value : [];
     const k = key.type === 'string' ? key.value : '';

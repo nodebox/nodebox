@@ -320,14 +320,24 @@ export function freehand(pathData: string): Path {
   const tokens = pathData.trim().split(/[\s,]+/);
   let path = createPath();
   let i = 0;
+  let lastCmd = '';
   while (i < tokens.length) {
-    const cmd = tokens[i++];
+    let cmd = tokens[i];
+    // Check if this token is a number — if so, use implicit command
+    if (!isNaN(parseFloat(cmd)) && lastCmd) {
+      // After M, implicit coordinates are L (lineTo) per SVG spec
+      cmd = lastCmd === 'M' ? 'L' : lastCmd;
+    } else {
+      i++; // consume the command letter
+    }
     switch (cmd) {
       case 'M':
         path = moveTo(path, parseFloat(tokens[i++]), parseFloat(tokens[i++]));
+        lastCmd = 'M';
         break;
       case 'L':
         path = lineTo(path, parseFloat(tokens[i++]), parseFloat(tokens[i++]));
+        lastCmd = 'L';
         break;
       case 'C':
         path = curveTo(path,
@@ -335,12 +345,14 @@ export function freehand(pathData: string): Path {
           parseFloat(tokens[i++]), parseFloat(tokens[i++]),
           parseFloat(tokens[i++]), parseFloat(tokens[i++]),
         );
+        lastCmd = 'C';
         break;
       case 'Z':
         path = closePath(path);
+        lastCmd = '';
         break;
       default:
-        // Skip unknown commands
+        i++; // skip unknown token
         break;
     }
   }
