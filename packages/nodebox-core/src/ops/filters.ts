@@ -423,12 +423,13 @@ export function distribute(shapes: Path[], horizontal: string, vertical: string)
 export function deletePaths(
   shape: Path, bounding: Path, scope: string, operation: string,
 ): Path {
+  if (!shape?.contours || !bounding?.contours) return shape ?? createPath();
   const inBounding = (p: Point) => pathContains(bounding, p);
 
   if (scope === 'points') {
     return {
       ...shape,
-      contours: shape.contours.map(contour => ({
+      contours: shape.contours.filter(c => c && c.points).map(contour => ({
         ...contour,
         points: contour.points.filter(pt => {
           const inside = inBounding(pt.point);

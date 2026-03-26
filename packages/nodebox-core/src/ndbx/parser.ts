@@ -149,7 +149,9 @@ function parseNodeElement(el: Element, libraryLoader?: LibraryLoader, siblings?:
     position,
     comment,
     inputs: mergeInputs(protoNode?.inputs ?? [], ports),
-    outputType: outputType ?? protoNode?.outputType ?? 'geometry',
+    // Default to 'float' — most nodes without explicit outputType are math/data nodes.
+    // Vector nodes always specify outputType='geometry' in their .ndbx definition.
+    outputType: outputType ?? protoNode?.outputType ?? 'float',
     outputRange: outputRange ?? protoNode?.outputRange ?? 'value',
     children,
     connections,

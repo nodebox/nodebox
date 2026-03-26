@@ -86,7 +86,16 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
       const map = new Map<Port, Value>();
       for (const [port, values] of portArguments) {
         if (port.range === 'list') {
-          map.set(port, { type: 'list', value: values });
+          // Flatten: if values contains list Values, use their items directly
+          const flatValues: Value[] = [];
+          for (const v of values) {
+            if (v.type === 'list' && Array.isArray(v.value)) {
+              flatValues.push(...v.value);
+            } else {
+              flatValues.push(v);
+            }
+          }
+          map.set(port, { type: 'list', value: flatValues });
         } else {
           map.set(port, wrappingGet(values, i));
         }
@@ -265,12 +274,17 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     return [value];
   }
 
-  /** Expand list Values into individual items for list matching. */
+  /** Expand list/multi-geometry Values into individual items for list matching. */
   function expandListValues(values: Value[]): Value[] {
     const expanded: Value[] = [];
     for (const v of values) {
       if (v.type === 'list' && Array.isArray(v.value)) {
         expanded.push(...v.value);
+      } else if (v.type === 'geometry' && Array.isArray(v.value) && v.value.length > 1) {
+        // Multi-path geometry: expand into individual geometry Values for list matching
+        for (const path of v.value) {
+          expanded.push({ type: 'geometry', value: [path] });
+        }
       } else {
         expanded.push(v);
       }

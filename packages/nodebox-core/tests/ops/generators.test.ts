@@ -199,16 +199,13 @@ describe('Generator Operations', () => {
   });
 
   describe('group', () => {
-    it('merges shapes into a single multi-contour path', () => {
+    it('returns paths as a group', () => {
       const r1 = rect({ x: 0, y: 0 }, 10, 10, { x: 0, y: 0 });
       const r2 = rect({ x: 20, y: 0 }, 10, 10, { x: 0, y: 0 });
       const grouped = group([r1, r2]);
-      expect(grouped.contours.length).toBe(2);
-    });
-
-    it('returns single shape unchanged', () => {
-      const r = rect({ x: 0, y: 0 }, 10, 10, { x: 0, y: 0 });
-      expect(group([r])).toBe(r);
+      expect(grouped.length).toBe(2);
+      expect(grouped[0]).toBe(r1);
+      expect(grouped[1]).toBe(r2);
     });
   });
 

@@ -385,18 +385,9 @@ export function freehand(pathData: string): Path {
 }
 
 // ─── group ─────────────────────────────────────────────
-export function group(shapes: Path[]): Path {
-  // Merge all paths into a single multi-contour path (like Java's Geometry)
-  if (shapes.length === 0) return createPath();
-  if (shapes.length === 1) return shapes[0];
-  const contours: Contour[] = [];
-  let fill = shapes[0].fill;
-  let stroke = shapes[0].stroke;
-  let strokeWidth = shapes[0].strokeWidth;
-  for (const shape of shapes) {
-    contours.push(...shape.contours);
-  }
-  return { contours, fill, stroke, strokeWidth };
+export function group(shapes: Path[]): Path[] {
+  // Returns paths as a geometry group (Java's Geometry container)
+  return shapes;
 }
 
 // ─── doNothing ─────────────────────────────────────────
