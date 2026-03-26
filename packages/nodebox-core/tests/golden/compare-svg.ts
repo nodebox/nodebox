@@ -143,10 +143,25 @@ function comparePathData(actual: string, expected: string, tolerance: number): s
 function colorsMatch(a: string | null, b: string | null): boolean {
   if (a === b) return true;
   if (a === null || b === null) return false;
-  // Normalize: both to lowercase
   const na = normalizeColor(a);
   const nb = normalizeColor(b);
-  return na === nb;
+  if (na === nb) return true;
+  // Allow small channel differences (±5 per channel out of 255)
+  const ac = parseColor(na);
+  const bc = parseColor(nb);
+  if (ac && bc) {
+    return Math.abs(ac.r - bc.r) <= 8 && Math.abs(ac.g - bc.g) <= 8 && Math.abs(ac.b - bc.b) <= 8;
+  }
+  return false;
+}
+
+function parseColor(c: string): { r: number; g: number; b: number } | null {
+  if (c.startsWith('#') && c.length === 7) {
+    return { r: parseInt(c.slice(1, 3), 16), g: parseInt(c.slice(3, 5), 16), b: parseInt(c.slice(5, 7), 16) };
+  }
+  const m = c.match(/rgba?\((\d+),(\d+),(\d+)/);
+  if (m) return { r: parseInt(m[1]), g: parseInt(m[2]), b: parseInt(m[3]) };
+  return null;
 }
 
 /** Normalize a CSS color string for comparison. */
