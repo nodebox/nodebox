@@ -5,6 +5,7 @@ import nodebox.graphics.Rect;
 import nodebox.graphics.SVGRenderer;
 import nodebox.node.*;
 
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.util.List;
@@ -13,12 +14,15 @@ import java.util.List;
  * Headless batch renderer: loads .ndbx files and exports to SVG.
  * Used for golden master testing (Java vs TypeScript comparison).
  *
- * Usage: java -cp ... nodebox.BatchRenderer <input.ndbx> <output.svg>
+ * Registers Inter font and remaps Verdana → Inter so text examples
+ * render with a freely redistributable font.
  *
- * Or to render all examples:
- *   java -cp ... nodebox.BatchRenderer --all <outputDir>
+ * Usage: java -cp ... nodebox.BatchRenderer <input.ndbx> <output.svg>
+ *        java -cp ... nodebox.BatchRenderer --all <outputDir>
  */
 public class BatchRenderer {
+
+    private static String interFontFamily = null;
 
     public static void main(String[] args) {
         if (args.length < 2) {
@@ -27,10 +31,30 @@ public class BatchRenderer {
             System.exit(-1);
         }
 
+        // Register Inter font for text rendering
+        registerInterFont();
+
         if (args[0].equals("--all")) {
             renderAll(new File(args[1]));
         } else {
             renderOne(new File(args[0]), new File(args[1]));
+        }
+    }
+
+    private static void registerInterFont() {
+        File fontFile = new File("packages/nodebox-core/fonts/Inter.ttf");
+        if (!fontFile.exists()) {
+            System.err.println("WARNING: Inter.ttf not found at " + fontFile.getAbsolutePath());
+            System.err.println("Text examples will use system Verdana instead.");
+            return;
+        }
+        try {
+            Font inter = Font.createFont(Font.TRUETYPE_FONT, fontFile);
+            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(inter);
+            interFontFamily = inter.getFamily();
+            System.out.println("Registered font: " + interFontFamily + " (" + inter.getName() + ")");
+        } catch (Exception e) {
+            System.err.println("WARNING: Could not register Inter font: " + e.getMessage());
         }
     }
 
@@ -42,6 +66,12 @@ public class BatchRenderer {
         NodeRepository systemRepository = loadSystemRepository();
         try {
             NodeLibrary library = loadLibrary(inFile, systemRepository);
+
+            // Remap Verdana → Inter in font_name ports
+            if (interFontFamily != null) {
+                library = remapFonts(library, "Verdana", interFontFamily);
+            }
+
             FunctionRepository functionRepository = FunctionRepository.combine(
                     systemRepository.getFunctionRepository(),
                     library.getFunctionRepository()
@@ -70,6 +100,32 @@ public class BatchRenderer {
             UpgradeResult result = NodeLibraryUpgrades.upgrade(inFile);
             return result.getLibrary(inFile, systemRepository);
         }
+    }
+
+    /**
+     * Walk the node tree and replace font name values in font_name ports.
+     */
+    private static NodeLibrary remapFonts(NodeLibrary library, String from, String to) {
+        Node root = remapFontsInNode(library.getRoot(), from, to);
+        return library.withRoot(root);
+    }
+
+    private static Node remapFontsInNode(Node node, String from, String to) {
+        Node result = node;
+        // Check ports for font_name with the target value
+        for (nodebox.node.Port port : node.getInputs()) {
+            if (port.getName().equals("font_name") && port.stringValue().equals(from)) {
+                result = result.withInputValue(port.getName(), to);
+            }
+        }
+        // Recurse into children
+        for (Node child : node.getChildren()) {
+            Node remapped = remapFontsInNode(child, from, to);
+            if (remapped != child) {
+                result = result.withChildReplaced(child.getName(), remapped);
+            }
+        }
+        return result;
     }
 
     private static void renderAll(File outputDir) {

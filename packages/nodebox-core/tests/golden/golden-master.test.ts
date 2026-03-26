@@ -6,19 +6,21 @@
  * TypeScript and compares the output structurally (path count, coordinates with
  * tolerance, colors, strokes).
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync, readdirSync, existsSync, statSync } from 'fs';
 import { join, relative } from 'path';
 import { parseNdbx, clearLibraryCache } from '../../src/ndbx/parser';
 import { evaluate } from '../../src/eval/evaluate';
 import { exportSvg } from '../../src/svg/export';
 import { TestPlatform } from '../../src/platform';
+import { loadFont } from '../../src/ops/text';
 import type { NodeLibrary } from '../../src/node/library';
 import { compareSvg } from './compare-svg';
 
 const ROOT = join(__dirname, '..', '..', '..', '..');
 const EXAMPLES_DIR = join(ROOT, 'examples');
 const EXPECTED_DIR = join(__dirname, 'expected');
+const FONT_DIR = join(__dirname, '..', '..', 'fonts');
 
 /** Patterns to skip — these examples depend on external resources or hardware. */
 const SKIP_PATTERNS = [
@@ -62,6 +64,19 @@ describe('Golden Master: Java vs TypeScript SVG output', () => {
   const loader = loadLibraries();
   const ndbxFiles = findNdbxFiles(EXAMPLES_DIR);
 
+  // Create a platform that provides Inter.ttf as "Verdana"
+  // (Java golden masters were rendered with Inter substituted for Verdana)
+  const platform = new TestPlatform();
+  const interFontPath = join(FONT_DIR, 'Inter.ttf');
+  if (existsSync(interFontPath)) {
+    const fontBytes = new Uint8Array(readFileSync(interFontPath));
+    platform.addFont('Verdana', fontBytes);
+    // Pre-load into the font cache so textpath can use it synchronously
+    beforeAll(async () => {
+      await loadFont(fontBytes, 'Verdana');
+    });
+  }
+
   for (const ndbxPath of ndbxFiles) {
     const relPath = relative(EXAMPLES_DIR, ndbxPath);
     const svgRelPath = relPath.replace(/\.ndbx$/, '.svg');
@@ -91,7 +106,7 @@ describe('Golden Master: Java vs TypeScript SVG output', () => {
       const result = await evaluate({
         library: lib,
         frame: 1,
-        platform: new TestPlatform(),
+        platform,
       });
 
       const width = parseFloat(lib.properties.canvasWidth ?? '1000');
