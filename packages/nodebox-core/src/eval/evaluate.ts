@@ -37,7 +37,7 @@ export interface EvalContextData {
 
 export async function evaluate(options: EvalOptions): Promise<EvalResult> {
   const { library, frame, platform, functionRegistry } = options;
-  const registry = functionRegistry ?? createDefaultRegistry();
+  const registry = functionRegistry ?? createDefaultRegistry(platform);
   const nodeMap = flattenNodeMap(library.root);
   const context: EvalContextData = { frame, mouse: null };
   const renderResults = new Map<string, Value[]>();
@@ -122,7 +122,7 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     return [result];
   }
 
-  function renderNode(nodePath: string, argumentMap?: Map<Port, Value>): Value[] {
+  async function renderNode(nodePath: string, argumentMap?: Map<Port, Value>): Promise<Value[]> {
     const node = getNode(nodePath);
     if (!node) {
       errors.push({ nodePath, message: `Node not found: ${nodePath}` });
@@ -137,7 +137,7 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     if (node.children.length > 0) {
       // Network node
       if (node.renderedChild) {
-        result = renderChild(nodePath, node.renderedChild, argumentMap ?? new Map());
+        result = await renderChild(nodePath, node.renderedChild, argumentMap ?? new Map());
       } else {
         result = [];
       }
@@ -146,13 +146,13 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
         if (child.alwaysRendered) {
           const childPath = getChildPath(nodePath, child.name);
           if (!renderResults.has(childPath)) {
-            renderNode(childPath);
+            await renderNode(childPath);
           }
         }
       }
     } else {
       // Leaf node — invoke function
-      result = invokeNode(nodePath, argumentMap ?? new Map());
+      result = await invokeNode(nodePath, argumentMap ?? new Map());
     }
 
     const results = postProcessResult(nodePath, result);
@@ -162,11 +162,11 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     return results;
   }
 
-  function renderChild(
+  async function renderChild(
     networkPath: string,
     childName: string,
     networkArgumentMap: Map<Port, Value>,
-  ): Value[] {
+  ): Promise<Value[]> {
     const network = getNode(networkPath);
     if (!network) return [];
     const child = network.children.find(c => c.name === childName);
@@ -187,7 +187,7 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     // Evaluate each port
     const portArguments = new Map<Port, Value[]>();
     for (const port of child.inputs) {
-      let result = evaluatePort(networkPath, child, port, networkArgumentMap);
+      let result = await evaluatePort(networkPath, child, port, networkArgumentMap);
       // List matching: when a list Value flows into a value-range port,
       // expand it so the function runs once per item (NodeBox's core semantic)
       if (port.range === 'value') {
@@ -216,7 +216,7 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     const argumentMaps = buildArgumentMaps(portArguments);
     const childPath = getChildPath(networkPath, child.name);
     for (const argMap of argumentMaps) {
-      const results = renderNode(childPath, argMap);
+      const results = await renderNode(childPath, argMap);
       resultsList.push(...results);
     }
 
@@ -224,12 +224,12 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     return resultsList;
   }
 
-  function evaluatePort(
+  async function evaluatePort(
     networkPath: string,
     child: Node,
     childPort: Port,
     networkArgumentMap: Map<Port, Value>,
-  ): Value[] {
+  ): Promise<Value[]> {
     const network = getNode(networkPath);
     if (!network) return [];
 
@@ -287,7 +287,7 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     return values.map(v => clampValue(v, port.minimumValue, port.maximumValue));
   }
 
-  function invokeNode(nodePath: string, argumentMap: Map<Port, Value>): Value | Value[] {
+  async function invokeNode(nodePath: string, argumentMap: Map<Port, Value>): Promise<Value | Value[]> {
     const node = getNode(nodePath);
     if (!node) return { type: 'null' };
 
@@ -312,7 +312,7 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
     }
 
     try {
-      return fn(...args);
+      return await fn(...args);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       errors.push({ nodePath, message: msg });
@@ -333,7 +333,7 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
   const rootPath = library.root.name;
   let output: Value[] = [];
   if (library.root.renderedChild) {
-    output = renderChild(rootPath, library.root.renderedChild, new Map());
+    output = await renderChild(rootPath, library.root.renderedChild, new Map());
   }
 
   // Extract paths from geometry values (recursively unwrapping lists)

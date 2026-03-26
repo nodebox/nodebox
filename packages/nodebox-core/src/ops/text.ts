@@ -2,6 +2,7 @@ import type { Point } from '../geometry/point.js';
 import type { Path, PathPoint, Contour } from '../geometry/path.js';
 import type { TextAlign } from '../geometry/text.js';
 import type { Color } from '../geometry/color.js';
+import type { Platform } from '../platform.js';
 import { DEFAULT_FILL, pointOnPath, pathLength } from '../geometry/path.js';
 import { translateTransform, rotateTransform, multiplyTransforms, transformPoint } from '../geometry/transform.js';
 
@@ -31,6 +32,20 @@ export async function loadFont(fontBytes: Uint8Array, name: string): Promise<voi
 
 export function hasFontLoaded(name: string): boolean {
   return fontCache.has(name);
+}
+
+/** Ensure a font is loaded, fetching from Platform if needed. */
+async function ensureFont(fontName: string, platform?: Platform): Promise<any> {
+  let font = fontCache.get(fontName);
+  if (font) return font;
+  if (!platform) return null;
+  try {
+    const bytes = await platform.getFontBytes(fontName);
+    await loadFont(bytes, fontName);
+    return fontCache.get(fontName) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 // Convert opentype glyph paths to our Path format
@@ -73,13 +88,14 @@ function glyphPathToPath(otPath: any): Path {
   return { contours, fill: DEFAULT_FILL, stroke: null, strokeWidth: 1 };
 }
 
-export function textpath(
+export async function textpath(
   text: string, fontName: string, fontSize: number,
   align: TextAlign, position: Point, width: number,
-): Path {
-  const font = fontCache.get(fontName);
+  platform?: Platform,
+): Promise<Path> {
+  const font = await ensureFont(fontName, platform);
   if (!font) {
-    // Return empty path if font not loaded
+    // Return empty path if font not available
     return { contours: [], fill: DEFAULT_FILL, stroke: null, strokeWidth: 1 };
   }
 
@@ -108,11 +124,12 @@ export function textpath(
   };
 }
 
-export function textOnPath(
+export async function textOnPath(
   text: string, path: Path, fontName: string, fontSize: number,
   alignment: string, margin: number, baselineOffset: number,
-): Path {
-  const font = fontCache.get(fontName);
+  platform?: Platform,
+): Promise<Path> {
+  const font = await ensureFont(fontName, platform);
   if (!font) {
     return { contours: [], fill: DEFAULT_FILL, stroke: null, strokeWidth: 1 };
   }

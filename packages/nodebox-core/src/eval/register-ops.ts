@@ -12,6 +12,8 @@ import * as clr from '../ops/color.js';
 import * as str from '../ops/string.js';
 import * as data from '../ops/data.js';
 import * as net from '../ops/network.js';
+import * as txt from '../ops/text.js';
+import type { Platform } from '../platform.js';
 
 export function unwrapValue(v: Value): unknown {
   if (v.type === 'null') return null;
@@ -47,7 +49,7 @@ export function wrapResult(result: unknown, outputType: string, _outputRange: Po
   return { type: 'null' };
 }
 
-export function createDefaultRegistry(): FunctionRegistry {
+export function createDefaultRegistry(platform?: Platform): FunctionRegistry {
   const registry = createFunctionRegistry();
 
   // Core functions
@@ -307,6 +309,31 @@ export function createDefaultRegistry(): FunctionRegistry {
   // ─── Network ───────────────────────────────────────
   registerOp(registry, 'network/encodeUrl', net.encodeUrl, 'string');
   registerOp(registry, 'network/encodeURL', net.encodeUrl, 'string'); // .ndbx alias
+
+  // ─── Text (async — lazy font loading via Platform) ──
+  registry.register('corevector/textpath', async (...args: Value[]) => {
+    const text = args[0]?.type === 'string' ? args[0].value : '';
+    const fontName = args[1]?.type === 'string' ? args[1].value : 'Verdana';
+    const fontSize = args[2]?.type === 'float' || args[2]?.type === 'int' ? (args[2].value as number) : 24;
+    const align = args[3]?.type === 'string' ? args[3].value : 'center';
+    const position = args[4]?.type === 'point' ? args[4].value : { x: 0, y: 0 };
+    const width = args[5]?.type === 'float' || args[5]?.type === 'int' ? (args[5].value as number) : 0;
+    const path = await txt.textpath(text, fontName, fontSize, align as any, position, width, platform);
+    return wrapResult(path, 'geometry');
+  });
+
+  registry.register('pyvector/text_on_path', async (...args: Value[]) => {
+    const text = args[0]?.type === 'string' ? args[0].value : '';
+    const shape = unwrapValue(args[1] ?? { type: 'null' }) as any;
+    const fontName = args[2]?.type === 'string' ? args[2].value : 'Verdana';
+    const fontSize = args[3]?.type === 'float' || args[3]?.type === 'int' ? (args[3].value as number) : 24;
+    const alignment = args[4]?.type === 'string' ? args[4].value : 'leading';
+    const margin = args[5]?.type === 'float' || args[5]?.type === 'int' ? (args[5].value as number) : 0;
+    const baseline = args[6]?.type === 'float' || args[6]?.type === 'int' ? (args[6].value as number) : 0;
+    if (!shape || !shape.contours) return { type: 'geometry', value: [] };
+    const path = await txt.textOnPath(text, shape, fontName, fontSize, alignment, margin, baseline, platform);
+    return wrapResult(path, 'geometry');
+  });
 
   return registry;
 }

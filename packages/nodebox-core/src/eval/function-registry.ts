@@ -1,6 +1,6 @@
 import type { Value } from '../node/value.js';
 
-export type NodeFunction = (...args: Value[]) => Value | Value[];
+export type NodeFunction = (...args: Value[]) => Value | Value[] | Promise<Value | Value[]>;
 
 export interface FunctionRegistry {
   get(name: string): NodeFunction | undefined;
