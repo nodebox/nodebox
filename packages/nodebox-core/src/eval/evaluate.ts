@@ -279,7 +279,26 @@ export async function evaluate(options: EvalOptions): Promise<EvalResult> {
   }
 
   function convertResultsForPort(port: Port, values: Value[]): Value[] {
-    return values.map(v => convert(v, port.type));
+    const results: Value[] = [];
+    for (const v of values) {
+      // Special case: geometry → point extracts all path points (NodeBox's point extraction)
+      if (port.type === 'point' && v.type === 'geometry' && Array.isArray(v.value)) {
+        for (const path of v.value) {
+          if (path && path.contours) {
+            for (const contour of path.contours) {
+              for (const pt of contour.points) {
+                if (pt.type === 'lineTo' || pt.type === 'curveTo' || pt.type === 'quadTo' || pt.type === undefined) {
+                  results.push({ type: 'point', value: pt.point });
+                }
+              }
+            }
+          }
+        }
+      } else {
+        results.push(convert(v, port.type));
+      }
+    }
+    return results;
   }
 
   function clampResultsForPort(port: Port, values: Value[]): Value[] {

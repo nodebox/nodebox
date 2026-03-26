@@ -122,11 +122,12 @@ function smartFloat(value: number): string {
 }
 
 function colorToSvg(color: Color): string {
-  const r = Math.round(color.r * 255);
-  const g = Math.round(color.g * 255);
-  const b = Math.round(color.b * 255);
-  if (color.a < 1) {
-    return `rgba(${r},${g},${b},${color.a.toFixed(2)})`;
+  const r = Math.max(0, Math.min(255, Math.round(color.r * 255)));
+  const g = Math.max(0, Math.min(255, Math.round(color.g * 255)));
+  const b = Math.max(0, Math.min(255, Math.round(color.b * 255)));
+  const a = Math.max(0, Math.min(1, color.a));
+  if (a < 1) {
+    return `rgba(${r},${g},${b},${a.toFixed(2)})`;
   }
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }

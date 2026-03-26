@@ -96,6 +96,11 @@ export function createDefaultRegistry(platform?: Platform): FunctionRegistry {
   registerOp(registry, 'corevector/wiggle', flt.wiggle, 'geometry', 'list');
   registerOp(registry, 'corevector/ungroup', flt.ungroup, 'geometry', 'list');
   registerOp(registry, 'corevector/scatter', flt.scatter, 'point', 'list');
+  // corevector/point: identity function for point values — critical for geometry→point extraction
+  registry.register('corevector/point', (value: Value) => {
+    if (value.type === 'point') return value;
+    return { type: 'point', value: { x: 0, y: 0 } };
+  });
   registerOp(registry, 'corevector/centroid', flt.centroid, 'point');
   registerOp(registry, 'corevector/pointOnPath', flt.pointOnPathOp, 'point');
   registerOp(registry, 'corevector/sort', flt.sortShapes, 'geometry', 'list');
