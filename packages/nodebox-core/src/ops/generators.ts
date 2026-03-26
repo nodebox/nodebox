@@ -110,23 +110,48 @@ export function arc(
 
   // Convert to radians
   const startRad = startAngle * Math.PI / 180;
-  const endRad = (startAngle + degrees) * Math.PI / 180;
+  const sweepRad = degrees * Math.PI / 180;
 
-  // Approximate the arc with line segments (for simplicity, use many segments)
-  const steps = Math.max(4, Math.ceil(Math.abs(degrees) / 5));
+  // Approximate arc with cubic Bezier segments (90° max per segment)
+  const numSegs = Math.max(1, Math.ceil(Math.abs(degrees) / 90));
+  const segAngle = sweepRad / numSegs;
+
   const points: PathPoint[] = [];
 
-  if (arcType === 'pie') {
-    points.push(pp(cx, cy));
-  }
-
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const angle = startRad + t * (endRad - startRad);
-    points.push(pp(cx + rx * Math.cos(angle), cy + ry * Math.sin(angle)));
-  }
+  // Start point: for pie, start at the arc edge (closePath will return to center)
+  const arcStartX = cx + rx * Math.cos(startRad);
+  const arcStartY = cy + ry * Math.sin(startRad);
 
   if (arcType === 'pie') {
+    // Pie: moveTo arc start (Java's Arc2D.PIE starts at the arc edge)
+    points.push(pp(arcStartX, arcStartY));
+  } else {
+    points.push(pp(arcStartX, arcStartY));
+  }
+
+  for (let i = 0; i < numSegs; i++) {
+    const a1 = startRad + i * segAngle;
+    const a2 = a1 + segAngle;
+    // Cubic bezier approximation of an arc segment
+    const alpha = Math.sin(segAngle) * (Math.sqrt(4 + 3 * Math.pow(Math.tan(segAngle / 2), 2)) - 1) / 3;
+
+    const x1 = cx + rx * Math.cos(a1);
+    const y1 = cy + ry * Math.sin(a1);
+    const x2 = cx + rx * Math.cos(a2);
+    const y2 = cy + ry * Math.sin(a2);
+
+    const cp1x = x1 - alpha * rx * Math.sin(a1);
+    const cp1y = y1 + alpha * ry * Math.cos(a1);
+    const cp2x = x2 + alpha * rx * Math.sin(a2);
+    const cp2y = y2 - alpha * ry * Math.cos(a2);
+
+    points.push(pp(cp1x, cp1y, 'curveData'));
+    points.push(pp(cp2x, cp2y, 'curveData'));
+    points.push(pp(x2, y2, 'curveTo'));
+  }
+
+  if (arcType === 'pie') {
+    // Line to center — closePath will connect back to arc start
     points.push(pp(cx, cy));
   }
 
