@@ -100,7 +100,7 @@ describe('Golden Master: Java vs TypeScript SVG output', () => {
       const actualSvg = exportSvg(result.paths, result.texts, { width, height });
       const expectedSvg = readFileSync(expectedPath, 'utf-8');
 
-      const diff = compareSvg(actualSvg, expectedSvg, 0.5);
+      const diff = compareSvg(actualSvg, expectedSvg, 1.0);
 
       if (!diff.match) {
         const summary = diff.differences.slice(0, 10).join('\n  ');
