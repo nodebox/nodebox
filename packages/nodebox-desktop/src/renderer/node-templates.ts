@@ -571,7 +571,6 @@ export const NODE_TEMPLATES: NodeTemplate[] = [
       port('period', 'float', f(60)),
       port('offset', 'float', f(0)),
       port('type', 'string', s('sine'), { widget: 'menu', menuItems: [{ key: 'sine', label: 'Sine' }, { key: 'square', label: 'Square' }, { key: 'triangle', label: 'Triangle' }, { key: 'sawtooth', label: 'Sawtooth' }] }),
-      port('frame', 'float', f(1)),
     ],
   },
 

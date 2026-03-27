@@ -70,7 +70,8 @@ describe('Math Operations', () => {
   it('runningTotal', () => expect(m.runningTotal([1, 2, 3])).toEqual([1, 3, 6]));
 
   it('wave sine', () => {
-    const v = m.wave(0, 1, 4, 0, 'sine', 1);
+    // offset acts as the time parameter (frame comes via core/frame connection)
+    const v = m.wave(0, 1, 4, 1, 'sine');
     expect(v).toBeGreaterThanOrEqual(0);
     expect(v).toBeLessThanOrEqual(1);
   });

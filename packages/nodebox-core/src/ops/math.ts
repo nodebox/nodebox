@@ -152,14 +152,15 @@ export function runningTotal(values: number[]): number[] {
 }
 
 export function wave(
-  minVal: number, maxVal: number, period: number, offset: number, type: string, frame: number,
+  minVal: number, maxVal: number, period: number, offset: number, type: string,
 ): number {
-  const t = ((frame + offset) / period) * Math.PI * 2;
+  // Java's wave uses offset as the time parameter (frame comes via core/frame → offset connection)
+  const t = (offset / period) * Math.PI * 2;
   let v: number;
   if (type === 'sine') v = Math.sin(t);
   else if (type === 'square') v = Math.sin(t) >= 0 ? 1 : -1;
-  else if (type === 'triangle') v = 2 * Math.abs(2 * ((frame + offset) / period - Math.floor((frame + offset) / period + 0.5))) - 1;
-  else if (type === 'sawtooth') v = 2 * ((frame + offset) / period - Math.floor((frame + offset) / period + 0.5));
+  else if (type === 'triangle') v = 2 * Math.abs(2 * (offset / period - Math.floor(offset / period + 0.5))) - 1;
+  else if (type === 'sawtooth') v = 2 * (offset / period - Math.floor(offset / period + 0.5));
   else v = Math.sin(t);
 
   return minVal + (v + 1) / 2 * (maxVal - minVal);
