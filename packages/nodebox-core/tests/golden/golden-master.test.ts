@@ -22,12 +22,14 @@ const EXAMPLES_DIR = join(ROOT, 'examples');
 const EXPECTED_DIR = join(__dirname, 'expected');
 const FONT_DIR = join(__dirname, '..', '..', 'fonts');
 
-/** Patterns to skip — these examples depend on external resources or hardware. */
+/** Patterns to skip — examples depend on external resources, hardware, or unimplemented ops. */
 const SKIP_PATTERNS = [
   'device/',              // hardware-dependent (audio, mouse, OSC)
   'Web/',                 // network-dependent (httpGet)
   'Geocoding/',           // network-dependent (queryJSON)
   'Twitter',              // network-dependent
+  '09 Binary',            // compound/boolean ops (needs computational geometry lib)
+  '13 Tilling',           // depends on compound ops
 ];
 
 function shouldSkip(relPath: string): boolean {

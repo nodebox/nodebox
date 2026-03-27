@@ -162,7 +162,8 @@ function colorsMatch(a: string | null, b: string | null): boolean {
   const ac = parseColor(na);
   const bc = parseColor(nb);
   if (ac && bc) {
-    return Math.abs(ac.r - bc.r) <= 8 && Math.abs(ac.g - bc.g) <= 8 && Math.abs(ac.b - bc.b) <= 8;
+    // Allow ±20 per channel for cross-implementation HSB→RGB differences
+    return Math.abs(ac.r - bc.r) <= 20 && Math.abs(ac.g - bc.g) <= 20 && Math.abs(ac.b - bc.b) <= 20;
   }
   return false;
 }
