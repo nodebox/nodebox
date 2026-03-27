@@ -13,6 +13,7 @@ import * as str from '../ops/string.js';
 import * as data from '../ops/data.js';
 import * as net from '../ops/network.js';
 import * as txt from '../ops/text.js';
+import { importSvg } from '../svg/import.js';
 import type { Platform } from '../platform.js';
 
 export function unwrapValue(v: Value): unknown {
@@ -341,6 +342,19 @@ export function createDefaultRegistry(platform?: Platform): FunctionRegistry {
   // ─── Network ───────────────────────────────────────
   registerOp(registry, 'network/encodeUrl', net.encodeUrl, 'string');
   registerOp(registry, 'network/encodeURL', net.encodeUrl, 'string'); // .ndbx alias
+
+  // ─── SVG Import (async — reads file via Platform) ──
+  registry.register('pyvector/import_svg', async (...args: Value[]) => {
+    const file = args[0]?.type === 'string' ? args[0].value : '';
+    if (!file || !platform) return { type: 'geometry', value: [] };
+    try {
+      const content = await platform.readTextFile({ root: null, projectFile: null, frame: 0 }, file);
+      const paths = importSvg(content);
+      return { type: 'geometry', value: paths };
+    } catch {
+      return { type: 'geometry', value: [] };
+    }
+  });
 
   // ─── Text (async — lazy font loading via Platform) ──
   registry.register('corevector/textpath', async (...args: Value[]) => {
