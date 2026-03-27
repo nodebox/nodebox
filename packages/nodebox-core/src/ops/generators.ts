@@ -342,7 +342,9 @@ export function makePoint(x: number, y: number): Point {
 export function freehand(pathData: string): Path {
   // Parse internal path data format: "M x y L x y C cx1 cy1 cx2 cy2 x y Z"
   if (!pathData || pathData.trim() === '') return createPath();
-  const tokens = pathData.trim().split(/[\s,]+/);
+  // Split SVG path data into tokens: handles "M2.00,-2.50" where command
+  // letter is directly adjacent to coordinates (no space separator)
+  const tokens = pathData.trim().match(/[MLCQZmlcqz]|-?\d+\.?\d*/g) ?? [];
   let path = createPath();
   let i = 0;
   let lastCmd = '';

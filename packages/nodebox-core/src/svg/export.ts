@@ -70,6 +70,8 @@ function contourToSvgData(contour: Contour, precision: number): string {
   for (const pt of contour.points) {
     if (i === 0) {
       parts.push(`M ${n(pt.point.x, precision)} ${n(pt.point.y, precision)}`);
+    } else if (pt.type === 'lineTo' || pt.type === undefined) {
+      parts.push(`L ${n(pt.point.x, precision)} ${n(pt.point.y, precision)}`);
     } else if (pt.type === 'curveTo') {
       // Already handled by curveData
     } else if (pt.type === 'curveData') {
