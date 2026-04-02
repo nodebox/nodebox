@@ -6,18 +6,19 @@
 
 mod platform_bridge;
 
-use std::collections::HashMap;
-use std::sync::Arc;
-use wasm_bindgen::prelude::*;
-use nodebox_core::geometry::{Color, Point};
 use nodebox_core::geometry::font;
+use nodebox_core::geometry::{Color, Point};
 use nodebox_core::node::{Connection, NodeLibrary, PortType};
+use nodebox_core::ops::data::DataValue;
 use nodebox_core::platform::{Platform, ProjectContext};
 use nodebox_core::Value;
 use nodebox_eval::eval::{evaluate_network, NodeOutput};
-use nodebox_eval::node_templates::NODE_TEMPLATES;
 use nodebox_eval::node_factory::create_node_from_template;
+use nodebox_eval::node_templates::NODE_TEMPLATES;
 use platform_bridge::WasmPlatform;
+use std::collections::HashMap;
+use std::sync::Arc;
+use wasm_bindgen::prelude::*;
 
 /// Initialize the WASM module (call once on startup).
 #[wasm_bindgen]
@@ -56,7 +57,12 @@ pub fn get_node_templates() -> String {
 /// Takes the template name, the current library state as JSON (for unique naming),
 /// and the desired grid position. Returns the full Node as JSON.
 #[wasm_bindgen]
-pub fn create_node(template_name: &str, library_json: &str, x: f64, y: f64) -> Result<String, JsError> {
+pub fn create_node(
+    template_name: &str,
+    library_json: &str,
+    x: f64,
+    y: f64,
+) -> Result<String, JsError> {
     let template = NODE_TEMPLATES
         .iter()
         .find(|t| t.name == template_name)
@@ -141,9 +147,10 @@ impl WasmNodeLibrary {
     pub fn remove_node(&mut self, name: &str) {
         self.library.root.children.retain(|n| n.name != name);
         // Also remove any connections involving this node
-        self.library.root.connections.retain(|c| {
-            c.output_node != name && c.input_node != name
-        });
+        self.library
+            .root
+            .connections
+            .retain(|c| c.output_node != name && c.input_node != name);
         // Clear rendered child if it was removed
         if self.library.root.rendered_child.as_deref() == Some(name) {
             self.library.root.rendered_child = None;
@@ -153,12 +160,23 @@ impl WasmNodeLibrary {
     /// Set an input port value on a node.
     /// `value_json` should be a JSON value matching the port type.
     #[wasm_bindgen]
-    pub fn set_port_value(&mut self, node_name: &str, port_name: &str, value_json: &str) -> Result<(), JsError> {
-        let node = self.library.root.children.iter_mut()
+    pub fn set_port_value(
+        &mut self,
+        node_name: &str,
+        port_name: &str,
+        value_json: &str,
+    ) -> Result<(), JsError> {
+        let node = self
+            .library
+            .root
+            .children
+            .iter_mut()
             .find(|n| n.name == node_name)
             .ok_or_else(|| JsError::new(&format!("Node not found: {}", node_name)))?;
 
-        let port = node.inputs.iter_mut()
+        let port = node
+            .inputs
+            .iter_mut()
             .find(|p| p.name == port_name)
             .ok_or_else(|| JsError::new(&format!("Port not found: {}.{}", node_name, port_name)))?;
 
@@ -224,7 +242,9 @@ impl WasmNodeLibrary {
     #[wasm_bindgen]
     pub fn remove_connection(&mut self, output_node: &str, input_node: &str, input_port: &str) {
         self.library.root.connections.retain(|c| {
-            !(c.output_node == output_node && c.input_node == input_node && c.input_port == input_port)
+            !(c.output_node == output_node
+                && c.input_node == input_node
+                && c.input_port == input_port)
         });
     }
 
@@ -284,39 +304,56 @@ impl WasmNodeLibrary {
             "errors": error_list,
         });
 
-        serde_json::to_string(&result).unwrap_or_else(|_| r#"{"svg":"","output":null,"errors":[]}"#.to_string())
+        serde_json::to_string(&result)
+            .unwrap_or_else(|_| r#"{"svg":"","output":null,"errors":[]}"#.to_string())
     }
 
     /// Get the library state as JSON (nodes, connections, properties).
     #[wasm_bindgen]
     pub fn get_state(&self) -> String {
-        let nodes: Vec<serde_json::Value> = self.library.root.children.iter().map(|n| {
-            let inputs: Vec<serde_json::Value> = n.inputs.iter().map(|p| {
-                let value_json = value_to_json(&p.value);
+        let nodes: Vec<serde_json::Value> = self
+            .library
+            .root
+            .children
+            .iter()
+            .map(|n| {
+                let inputs: Vec<serde_json::Value> = n
+                    .inputs
+                    .iter()
+                    .map(|p| {
+                        let value_json = value_to_json(&p.value);
+                        serde_json::json!({
+                            "name": p.name,
+                            "type": p.port_type.as_str(),
+                            "value": value_json,
+                        })
+                    })
+                    .collect();
+
                 serde_json::json!({
-                    "name": p.name,
-                    "type": p.port_type.as_str(),
-                    "value": value_json,
+                    "name": n.name,
+                    "prototype": n.prototype,
+                    "category": n.category,
+                    "position": { "x": n.position.x, "y": n.position.y },
+                    "inputs": inputs,
+                    "outputType": n.output_type.as_str(),
                 })
-            }).collect();
-
-            serde_json::json!({
-                "name": n.name,
-                "prototype": n.prototype,
-                "category": n.category,
-                "position": { "x": n.position.x, "y": n.position.y },
-                "inputs": inputs,
-                "outputType": n.output_type.as_str(),
             })
-        }).collect();
+            .collect();
 
-        let connections: Vec<serde_json::Value> = self.library.root.connections.iter().map(|c| {
-            serde_json::json!({
-                "outputNode": c.output_node,
-                "inputNode": c.input_node,
-                "inputPort": c.input_port,
+        let connections: Vec<serde_json::Value> = self
+            .library
+            .root
+            .connections
+            .iter()
+            .map(|c| {
+                serde_json::json!({
+                    "outputNode": c.output_node,
+                    "inputNode": c.input_node,
+                    "inputPort": c.input_port,
+                })
             })
-        }).collect();
+            .collect();
 
         let result = serde_json::json!({
             "renderedChild": self.library.root.rendered_child,
@@ -371,11 +408,15 @@ fn describe_output(output: &NodeOutput) -> serde_json::Value {
         NodeOutput::Ints(vs) => serde_json::json!({"type": "Ints", "count": vs.len()}),
         NodeOutput::String(s) => serde_json::json!({"type": "String", "value": s}),
         NodeOutput::Strings(ss) => serde_json::json!({"type": "Strings", "count": ss.len()}),
-        NodeOutput::Color(c) => serde_json::json!({"type": "Color", "value": {"r": c.r, "g": c.g, "b": c.b, "a": c.a}}),
+        NodeOutput::Color(c) => {
+            serde_json::json!({"type": "Color", "value": {"r": c.r, "g": c.g, "b": c.b, "a": c.a}})
+        }
         NodeOutput::Colors(cs) => serde_json::json!({"type": "Colors", "count": cs.len()}),
         NodeOutput::Boolean(v) => serde_json::json!({"type": "Boolean", "value": v}),
         NodeOutput::Booleans(vs) => serde_json::json!({"type": "Booleans", "count": vs.len()}),
-        NodeOutput::DataRow(row) => serde_json::json!({"type": "DataRow", "keys": row.keys().collect::<Vec<_>>()}),
+        NodeOutput::DataRow(row) => {
+            serde_json::json!({"type": "DataRow", "keys": row.keys().collect::<Vec<_>>()})
+        }
         NodeOutput::DataRows(rows) => serde_json::json!({"type": "DataRows", "count": rows.len()}),
     }
 }
@@ -452,9 +493,7 @@ fn serialize_eval_result(
         NodeOutput::DataRows(_) => ("Data", true),
     };
 
-    let values: Vec<String> = (0..paths.len())
-        .map(|i| format!("Path {}", i))
-        .collect();
+    let values = output_display_strings(output);
 
     let error_list: Vec<serde_json::Value> = errors
         .iter()
@@ -479,6 +518,40 @@ fn serialize_eval_result(
 
     serde_json::to_string(&result)
         .unwrap_or_else(|_| error_result_json("Failed to serialize result"))
+}
+
+fn output_display_strings(output: &NodeOutput) -> Vec<String> {
+    match output {
+        NodeOutput::None => vec![],
+        NodeOutput::Path(_) => vec!["[Path]".to_string()],
+        NodeOutput::Paths(ps) => (0..ps.len()).map(|i| format!("[Path {}]", i)).collect(),
+        NodeOutput::Point(p) => vec![format!("{:.2}, {:.2}", p.x, p.y)],
+        NodeOutput::Points(points) => points
+            .iter()
+            .map(|p| format!("{:.2}, {:.2}", p.x, p.y))
+            .collect(),
+        NodeOutput::Float(v) => vec![format!("{}", v)],
+        NodeOutput::Floats(values) => values.iter().map(|v| format!("{}", v)).collect(),
+        NodeOutput::Int(v) => vec![format!("{}", v)],
+        NodeOutput::Ints(values) => values.iter().map(|v| format!("{}", v)).collect(),
+        NodeOutput::String(value) => vec![value.clone()],
+        NodeOutput::Strings(values) => values.clone(),
+        NodeOutput::Color(c) => vec![c.to_hex()],
+        NodeOutput::Colors(colors) => colors.iter().map(|c| c.to_hex()).collect(),
+        NodeOutput::Boolean(v) => vec![format!("{}", v)],
+        NodeOutput::Booleans(values) => values.iter().map(|v| format!("{}", v)).collect(),
+        NodeOutput::DataRow(row) => vec![format_data_row(row)],
+        NodeOutput::DataRows(rows) => rows.iter().map(format_data_row).collect(),
+    }
+}
+
+fn format_data_row(row: &HashMap<String, DataValue>) -> String {
+    let mut pairs: Vec<String> = row
+        .iter()
+        .map(|(k, v)| format!("{}: {}", k, v.as_string()))
+        .collect();
+    pairs.sort();
+    format!("{{{}}}", pairs.join(", "))
 }
 
 /// Resolve prototype ports for all nodes in the library.
@@ -532,25 +605,33 @@ pub fn text_to_path(text: &str, font_size: f64, position_x: f64, position_y: f64
 
     match font::text_to_path_from_bytes(text, font_bytes, font_size, position) {
         Ok(path) => {
-            let contours: Vec<serde_json::Value> = path.contours.iter().map(|c| {
-                let points: Vec<serde_json::Value> = c.points.iter().map(|p| {
+            let contours: Vec<serde_json::Value> = path
+                .contours
+                .iter()
+                .map(|c| {
+                    let points: Vec<serde_json::Value> = c
+                        .points
+                        .iter()
+                        .map(|p| {
+                            serde_json::json!({
+                                "x": p.x(),
+                                "y": p.y(),
+                                "type": match p.point_type {
+                                    nodebox_core::geometry::PointType::LineTo => "lineTo",
+                                    nodebox_core::geometry::PointType::CurveTo => "curveTo",
+                                    nodebox_core::geometry::PointType::CurveData => "curveData",
+                                    nodebox_core::geometry::PointType::QuadTo => "quadTo",
+                                    nodebox_core::geometry::PointType::QuadData => "quadData",
+                                },
+                            })
+                        })
+                        .collect();
                     serde_json::json!({
-                        "x": p.x(),
-                        "y": p.y(),
-                        "type": match p.point_type {
-                            nodebox_core::geometry::PointType::LineTo => "lineTo",
-                            nodebox_core::geometry::PointType::CurveTo => "curveTo",
-                            nodebox_core::geometry::PointType::CurveData => "curveData",
-                            nodebox_core::geometry::PointType::QuadTo => "quadTo",
-                            nodebox_core::geometry::PointType::QuadData => "quadData",
-                        },
+                        "points": points,
+                        "closed": c.closed,
                     })
-                }).collect();
-                serde_json::json!({
-                    "points": points,
-                    "closed": c.closed,
                 })
-            }).collect();
+                .collect();
             serde_json::to_string(&contours).unwrap_or_else(|_| "[]".to_string())
         }
         Err(_) => "[]".to_string(),
@@ -580,16 +661,30 @@ mod tests {
         let mut library = nodebox_core::ndbx::parse(ndbx).unwrap();
 
         // Before resolution: copy1 only has the one overridden port
-        let copy_before = library.root.children.iter().find(|n| n.name == "copy1").unwrap();
+        let copy_before = library
+            .root
+            .children
+            .iter()
+            .find(|n| n.name == "copy1")
+            .unwrap();
         assert_eq!(copy_before.inputs.len(), 1);
         assert_eq!(copy_before.inputs[0].name, "copies");
 
         resolve_prototype_ports(&mut library);
 
-        let copy = library.root.children.iter().find(|n| n.name == "copy1").unwrap();
+        let copy = library
+            .root
+            .children
+            .iter()
+            .find(|n| n.name == "copy1")
+            .unwrap();
 
         // After resolution: copy1 has all template ports
-        assert!(copy.inputs.len() > 1, "Expected multiple ports, got {}", copy.inputs.len());
+        assert!(
+            copy.inputs.len() > 1,
+            "Expected multiple ports, got {}",
+            copy.inputs.len()
+        );
 
         // The `shape` port should exist (from template)
         let shape_port = copy.inputs.iter().find(|p| p.name == "shape");
@@ -674,9 +769,18 @@ mod tests {
         let subnet = &library.root.children[0];
         let ellipse = &subnet.children[0];
         let port_names: Vec<&str> = ellipse.inputs.iter().map(|p| p.name.as_str()).collect();
-        assert!(port_names.contains(&"position"), "Missing 'position' port in nested node");
-        assert!(port_names.contains(&"width"), "Missing 'width' port in nested node");
-        assert!(port_names.contains(&"height"), "Missing 'height' port in nested node");
+        assert!(
+            port_names.contains(&"position"),
+            "Missing 'position' port in nested node"
+        );
+        assert!(
+            port_names.contains(&"width"),
+            "Missing 'width' port in nested node"
+        );
+        assert!(
+            port_names.contains(&"height"),
+            "Missing 'height' port in nested node"
+        );
 
         // Overridden width should be preserved
         let width = ellipse.inputs.iter().find(|p| p.name == "width").unwrap();

@@ -4,12 +4,12 @@
 //! `Unsupported` for most operations. The Electron app handles
 //! file I/O and dialogs on the JavaScript side.
 
-use std::collections::HashMap;
-use std::path::PathBuf;
 use nodebox_core::platform::{
     DirectoryEntry, FileFilter, FontInfo, LogLevel, Platform, PlatformError, PlatformInfo,
     ProjectContext, RelativePath,
 };
+use std::collections::HashMap;
+use std::path::PathBuf;
 
 /// WASM platform implementation.
 ///
@@ -40,15 +40,28 @@ impl Platform for WasmPlatform {
         }
     }
 
-    fn read_file(&self, _ctx: &ProjectContext, _path: &RelativePath) -> Result<Vec<u8>, PlatformError> {
+    fn read_file(
+        &self,
+        _ctx: &ProjectContext,
+        _path: &RelativePath,
+    ) -> Result<Vec<u8>, PlatformError> {
         Err(PlatformError::Unsupported)
     }
 
-    fn write_file(&self, _ctx: &ProjectContext, _path: &RelativePath, _data: &[u8]) -> Result<(), PlatformError> {
+    fn write_file(
+        &self,
+        _ctx: &ProjectContext,
+        _path: &RelativePath,
+        _data: &[u8],
+    ) -> Result<(), PlatformError> {
         Err(PlatformError::Unsupported)
     }
 
-    fn list_directory(&self, _ctx: &ProjectContext, _path: &RelativePath) -> Result<Vec<DirectoryEntry>, PlatformError> {
+    fn list_directory(
+        &self,
+        _ctx: &ProjectContext,
+        _path: &RelativePath,
+    ) -> Result<Vec<DirectoryEntry>, PlatformError> {
         Err(PlatformError::Unsupported)
     }
 
@@ -59,7 +72,11 @@ impl Platform for WasmPlatform {
             .ok_or(PlatformError::Unsupported)
     }
 
-    fn read_binary_file(&self, _ctx: &ProjectContext, _path: &str) -> Result<Vec<u8>, PlatformError> {
+    fn read_binary_file(
+        &self,
+        _ctx: &ProjectContext,
+        _path: &str,
+    ) -> Result<Vec<u8>, PlatformError> {
         Err(PlatformError::Unsupported)
     }
 
@@ -83,23 +100,42 @@ impl Platform for WasmPlatform {
         Err(PlatformError::Unsupported)
     }
 
-    fn show_open_project_dialog(&self, _filters: &[FileFilter]) -> Result<Option<PathBuf>, PlatformError> {
+    fn show_open_project_dialog(
+        &self,
+        _filters: &[FileFilter],
+    ) -> Result<Option<PathBuf>, PlatformError> {
         Err(PlatformError::Unsupported)
     }
 
-    fn show_save_project_dialog(&self, _filters: &[FileFilter], _default_name: Option<&str>) -> Result<Option<PathBuf>, PlatformError> {
+    fn show_save_project_dialog(
+        &self,
+        _filters: &[FileFilter],
+        _default_name: Option<&str>,
+    ) -> Result<Option<PathBuf>, PlatformError> {
         Err(PlatformError::Unsupported)
     }
 
-    fn show_open_file_dialog(&self, _ctx: &ProjectContext, _filters: &[FileFilter]) -> Result<Option<RelativePath>, PlatformError> {
+    fn show_open_file_dialog(
+        &self,
+        _ctx: &ProjectContext,
+        _filters: &[FileFilter],
+    ) -> Result<Option<RelativePath>, PlatformError> {
         Err(PlatformError::Unsupported)
     }
 
-    fn show_save_file_dialog(&self, _ctx: &ProjectContext, _filters: &[FileFilter], _default_name: Option<&str>) -> Result<Option<RelativePath>, PlatformError> {
+    fn show_save_file_dialog(
+        &self,
+        _ctx: &ProjectContext,
+        _filters: &[FileFilter],
+        _default_name: Option<&str>,
+    ) -> Result<Option<RelativePath>, PlatformError> {
         Err(PlatformError::Unsupported)
     }
 
-    fn show_select_folder_dialog(&self, _ctx: &ProjectContext) -> Result<Option<RelativePath>, PlatformError> {
+    fn show_select_folder_dialog(
+        &self,
+        _ctx: &ProjectContext,
+    ) -> Result<Option<RelativePath>, PlatformError> {
         Err(PlatformError::Unsupported)
     }
 
@@ -107,7 +143,12 @@ impl Platform for WasmPlatform {
         Err(PlatformError::Unsupported)
     }
 
-    fn show_message_dialog(&self, _title: &str, _message: &str, _buttons: &[&str]) -> Result<Option<usize>, PlatformError> {
+    fn show_message_dialog(
+        &self,
+        _title: &str,
+        _message: &str,
+        _buttons: &[&str],
+    ) -> Result<Option<usize>, PlatformError> {
         Err(PlatformError::Unsupported)
     }
 
