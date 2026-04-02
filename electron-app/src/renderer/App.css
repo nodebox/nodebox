@@ -1,0 +1,106 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Zinc scale */
+  --color-zinc-50: #fafafa;
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-200: #e4e4e7;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-400: #9f9fa9;
+  --color-zinc-500: #71717b;
+  --color-zinc-600: #52525c;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-800: #27272a;
+  --color-zinc-900: #18181b;
+  --color-zinc-950: #09090b;
+
+  /* Violet accent */
+  --color-violet-400: #a78bfa;
+  --color-violet-500: #8b5cf6;
+  --color-violet-600: #7c3aed;
+  --color-violet-800: #4c3a76;
+  --color-violet-900: #2d2640;
+
+  /* Status */
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-error: #ff6467;
+
+  /* Semantic */
+  --color-panel: #27272a;
+  --color-surface: #52525c;
+  --color-selection: #4c3a76;
+
+  /* Semantic backgrounds */
+  --color-field-hover: #484851;
+  --color-port-label: #27272a;
+  --color-port-value: #3f3f46;
+  --color-dialog: #3f3f46;
+
+  /* Category colors */
+  --color-cat-geometry: #5078c8;
+  --color-cat-transform: #c87850;
+  --color-cat-color: #c85078;
+  --color-cat-math: #78c850;
+  --color-cat-list: #c8c850;
+  --color-cat-string: #b450c8;
+  --color-cat-data: #50c8c8;
+
+  /* Point type colors */
+  --color-point-line: #64c864;
+  --color-point-curve: #c86464;
+  --color-point-data: #6464c8;
+
+  /* Spacing */
+  --spacing-sm: 4px;
+  --spacing-md: 8px;
+  --spacing-lg: 12px;
+  --spacing-xl: 16px;
+
+  /* Sizing */
+  --spacing-label-w: 112px;
+  --spacing-row-h: 36px;
+  --spacing-header-h: 24px;
+  --spacing-bar-h: 28px;
+
+  /* Typography */
+  --font-size-body: 13px;
+  --font-size-small: 11px;
+  --font-size-heading: 16px;
+}
+
+/* Electron native-app defaults */
+html {
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  cursor: default;
+}
+
+input, textarea, select {
+  -webkit-user-select: auto;
+  cursor: auto;
+}
+
+img {
+  -webkit-user-drag: none;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Draggable title bar region */
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+}

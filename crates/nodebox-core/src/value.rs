@@ -11,6 +11,7 @@ use crate::geometry::{Point, Color, Path, Geometry};
 /// Values are produced by node operations and consumed by connected nodes.
 /// The type system ensures compatibility at connection time.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Value {
     /// No value (null).
     Null,

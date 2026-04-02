@@ -7,15 +7,24 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 
+[features]
+default = ["system-fonts", "parallel"]
+system-fonts = ["dep:font-kit", "dep:pathfinder_geometry"]
+parallel = ["dep:rayon"]
+serde = ["dep:serde"]
+
 [dependencies]
 uuid = { workspace = true }
-font-kit = { workspace = true }
-pathfinder_geometry = { workspace = true }
+font-kit = { workspace = true, optional = true }
+pathfinder_geometry = { workspace = true, optional = true }
 
 # From nodebox-ops
-rayon = "1.10"
+rayon = { version = "1.10", optional = true }
 usvg = "0.42"
 csv = "1"
+
+# For WASM-compatible text-to-path
+ttf-parser = "0.24"
 
 # From nodebox-ndbx
 quick-xml = { workspace = true }
@@ -25,6 +34,9 @@ thiserror = { workspace = true }
 
 # From nodebox-port
 log = "0.4"
+
+# Optional serde support
+serde = { version = "1", features = ["derive"], optional = true }
 
 [[bench]]
 name = "clone_library"

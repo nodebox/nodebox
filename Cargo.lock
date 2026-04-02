@@ -962,6 +962,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "console_error_panic_hook"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
+dependencies = [
+ "cfg-if",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2972,8 +2982,10 @@ dependencies = [
  "proptest",
  "quick-xml 0.31.0",
  "rayon",
+ "serde",
  "tempfile",
  "thiserror 1.0.69",
+ "ttf-parser 0.24.1",
  "usvg",
  "uuid",
 ]
@@ -2995,6 +3007,7 @@ dependencies = [
  "log",
  "muda",
  "nodebox-core",
+ "nodebox-eval",
  "pollster",
  "rfd",
  "serde",
@@ -3004,6 +3017,30 @@ dependencies = [
  "tiny-skia",
  "ureq",
  "vello",
+]
+
+[[package]]
+name = "nodebox-electron"
+version = "0.1.0"
+dependencies = [
+ "console_error_panic_hook",
+ "js-sys",
+ "log",
+ "nodebox-core",
+ "nodebox-eval",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_json",
+ "uuid",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "nodebox-eval"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "nodebox-core",
 ]
 
 [[package]]
@@ -4412,6 +4449,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde-wasm-bindgen"
+version = "0.6.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8302e169f0eddcc139c70f139d19d6467353af16f9fce27e8c30158036a1e16b"
+dependencies = [
+ "js-sys",
+ "serde",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "serde_core"
 version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4972,6 +5020,12 @@ name = "ttf-parser"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c591d83f69777866b9126b24c6dd9a18351f177e49d625920d19f989fd31cf8"
+
+[[package]]
+name = "ttf-parser"
+version = "0.24.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5be21190ff5d38e8b4a2d3b6a3ae57f612cc39c96e83cedeaf7abc338a8bac4a"
 
 [[package]]
 name = "ttf-parser"

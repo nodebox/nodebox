@@ -7,6 +7,7 @@ use std::fmt;
 /// Connections go from the output of one node (there's only one output per node)
 /// to a specific input port on another node.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Connection {
     /// The name of the upstream (output) node.
     pub output_node: String,

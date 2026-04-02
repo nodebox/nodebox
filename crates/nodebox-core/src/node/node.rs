@@ -13,6 +13,7 @@ use super::{Port, PortType, PortRange, Connection};
 ///
 /// Nodes are immutable; "mutations" return new node instances.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Node {
     /// The node's unique name within its parent network.
     pub name: String,

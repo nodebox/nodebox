@@ -30,6 +30,7 @@ use super::{Point, PathPoint, Rect};
 /// assert_eq!(p, Point::new(15.0, 25.0));
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Transform {
     /// Matrix elements [m00, m10, m01, m11, m02, m12]
     m: [f64; 6],

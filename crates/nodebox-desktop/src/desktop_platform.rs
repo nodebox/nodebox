@@ -1,8 +1,8 @@
 //! Desktop (macOS, Windows, Linux) implementation of the Platform trait.
 
 use nodebox_core::platform::{
-    DirectoryEntry, FileFilter, LogLevel, PlatformInfo, Platform, PlatformError, ProjectContext,
-    RelativePath,
+    DirectoryEntry, FileFilter, FontInfo, LogLevel, PlatformInfo, Platform, PlatformError,
+    ProjectContext, RelativePath,
 };
 use std::path::{Path, PathBuf};
 
@@ -502,6 +502,48 @@ impl Platform for DesktopPlatform {
         let mut families = source.all_families().unwrap_or_default();
         families.sort();
         families
+    }
+
+    fn get_font_list(&self) -> Vec<FontInfo> {
+        let source = font_kit::source::SystemSource::new();
+        let families = source.all_families().unwrap_or_default();
+        let mut result = Vec::new();
+
+        for family_name in &families {
+            let family = font_kit::family_name::FamilyName::Title(family_name.clone());
+            if let Ok(handle) = source.select_best_match(
+                &[family],
+                &font_kit::properties::Properties::new(),
+            ) {
+                if let Ok(font) = handle.load() {
+                    let postscript_name = font
+                        .postscript_name()
+                        .unwrap_or_else(|| family_name.clone());
+                    result.push(FontInfo {
+                        family: family_name.clone(),
+                        postscript_name,
+                    });
+                }
+            }
+        }
+
+        result
+    }
+
+    fn get_font_bytes(&self, postscript_name: &str) -> Result<Vec<u8>, PlatformError> {
+        let source = font_kit::source::SystemSource::new();
+        let handle = source
+            .select_by_postscript_name(postscript_name)
+            .map_err(|e| PlatformError::Other(format!("Font not found: {}", e)))?;
+
+        match handle {
+            font_kit::handle::Handle::Path { path, font_index: _ } => {
+                std::fs::read(&path).map_err(PlatformError::from)
+            }
+            font_kit::handle::Handle::Memory { bytes, font_index: _ } => {
+                Ok((*bytes).clone())
+            }
+        }
     }
 }
 

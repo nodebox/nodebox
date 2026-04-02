@@ -305,6 +305,16 @@ impl FileFilter {
     }
 }
 
+/// Information about a font available on the system.
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct FontInfo {
+    /// The font family name (e.g., "Helvetica").
+    pub family: String,
+    /// The PostScript name used for loading the font (e.g., "Helvetica-Bold").
+    pub postscript_name: String,
+}
+
 /// Log level for the `log` method.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogLevel {
@@ -511,6 +521,12 @@ pub trait Platform: Send + Sync {
 
     /// List available font families on the system.
     fn list_fonts(&self) -> Vec<String>;
+
+    /// Get a list of available fonts with family and PostScript names.
+    fn get_font_list(&self) -> Vec<FontInfo>;
+
+    /// Load font file bytes by PostScript name.
+    fn get_font_bytes(&self, postscript_name: &str) -> Result<Vec<u8>, PlatformError>;
 }
 
 /// A minimal Platform implementation for testing.
@@ -664,6 +680,14 @@ impl Platform for TestPlatform {
 
     fn list_fonts(&self) -> Vec<String> {
         Vec::new()
+    }
+
+    fn get_font_list(&self) -> Vec<FontInfo> {
+        Vec::new()
+    }
+
+    fn get_font_bytes(&self, _postscript_name: &str) -> Result<Vec<u8>, PlatformError> {
+        Err(PlatformError::Unsupported)
     }
 }
 

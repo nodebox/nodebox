@@ -17,15 +17,19 @@ resolver = "2"
 members = [
     ".",
     "crates/nodebox-core",
+    "crates/nodebox-eval",
     "crates/nodebox-desktop",
+    "crates/nodebox-electron",
     "crates/nodebox-python",
 ]
 
-# Default members exclude nodebox-python (requires Python development libraries).
-# To build it: cargo build -p nodebox-python
+# Default members exclude nodebox-python (requires Python development libraries)
+# and nodebox-electron (requires wasm32 target).
+# To build them: cargo build -p nodebox-python / wasm-pack build crates/nodebox-electron
 default-members = [
     ".",
     "crates/nodebox-core",
+    "crates/nodebox-eval",
     "crates/nodebox-desktop",
 ]
 

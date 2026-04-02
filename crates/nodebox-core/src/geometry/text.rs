@@ -1,10 +1,14 @@
 //! Text rendering type.
 
-use super::{Point, Color, Rect, Transform, Path};
-use super::font::{text_to_path, FontError};
+use super::{Point, Color, Rect, Transform};
+#[cfg(feature = "system-fonts")]
+use super::Path;
+#[cfg(feature = "system-fonts")]
+use super::font::{FontError, text_to_path};
 
 /// Text alignment options.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum TextAlign {
     #[default]
     Left,
@@ -17,6 +21,7 @@ pub enum TextAlign {
 /// Text rendering requires font support which is platform-dependent.
 /// This struct holds the text properties; actual rendering happens elsewhere.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Text {
     /// The text content.
     pub text: String,
@@ -109,7 +114,7 @@ impl Text {
         }
     }
 
-    /// Converts this text to a vector path using the specified font.
+    /// Converts this text to a vector path using the specified system font.
     ///
     /// The text is rendered at its position using the font family and size
     /// specified in the Text struct.
@@ -125,6 +130,7 @@ impl Text {
     /// let text = Text::with_font("Hello", 0.0, 100.0, "Arial", 72.0);
     /// let path = text.to_path().unwrap();
     /// ```
+    #[cfg(feature = "system-fonts")]
     pub fn to_path(&self) -> Result<Path, FontError> {
         let mut path = text_to_path(
             &self.text,
