@@ -26,6 +26,8 @@ export interface UISlice {
   pendingConnection: PendingConnection | null;
   aboutDialogVisible: boolean;
   viewerMode: ViewerMode;
+  preferredGeometryViewerMode: ViewerMode;
+  visualViewerAvailable: boolean;
   notifications: Notification[];
 
   setNetworkSplitRatio: (ratio: number) => void;
@@ -39,7 +41,10 @@ export interface UISlice {
   setNodeDialogPosition: (position: { x: number; y: number } | null) => void;
   setPendingConnection: (pending: PendingConnection | null) => void;
   setAboutDialogVisible: (visible: boolean) => void;
+  setPreferredGeometryViewerMode: (mode: ViewerMode) => void;
+  setVisualViewerAvailable: (available: boolean) => void;
   setViewerMode: (mode: ViewerMode) => void;
+  syncViewerModeForRender: (hasRenderedChild: boolean, isVisualOutput: boolean) => void;
   viewerZoom: number;
   setViewerZoom: (zoom: number) => void;
   viewerZoomAction: 'in' | 'out' | 'reset' | null;
@@ -64,6 +69,8 @@ export const createUISlice = (
   pendingConnection: null,
   aboutDialogVisible: false,
   viewerMode: 'visual',
+  preferredGeometryViewerMode: 'visual',
+  visualViewerAvailable: true,
   notifications: [],
 
   setNetworkSplitRatio: (ratio) =>
@@ -124,9 +131,47 @@ export const createUISlice = (
       state.aboutDialogVisible = visible;
     }),
 
+  setPreferredGeometryViewerMode: (mode) =>
+    set((state) => {
+      state.preferredGeometryViewerMode = mode;
+    }),
+
+  setVisualViewerAvailable: (available) =>
+    set((state) => {
+      state.visualViewerAvailable = available;
+    }),
+
   setViewerMode: (mode) =>
     set((state) => {
       state.viewerMode = mode;
+      if (state.visualViewerAvailable) {
+        state.preferredGeometryViewerMode = mode;
+      }
+    }),
+
+  syncViewerModeForRender: (hasRenderedChild, isVisualOutput) =>
+    set((state) => {
+      if (!hasRenderedChild) {
+        state.visualViewerAvailable = true;
+        return;
+      }
+
+      if (isVisualOutput && !state.visualViewerAvailable) {
+        state.visualViewerAvailable = true;
+        state.viewerMode = state.preferredGeometryViewerMode;
+        return;
+      }
+
+      if (!isVisualOutput && state.visualViewerAvailable) {
+        state.preferredGeometryViewerMode = state.viewerMode;
+        state.visualViewerAvailable = false;
+        state.viewerMode = 'data';
+        return;
+      }
+
+      if (!isVisualOutput) {
+        state.viewerMode = 'data';
+      }
     }),
 
   viewerZoom: 1.0,

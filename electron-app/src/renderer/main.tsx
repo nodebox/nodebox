@@ -35,9 +35,12 @@ import './App.css';
             (sum, p) => sum + p.contours.reduce((cs, c) => cs + c.points.length, 0),
             0,
           ),
+          outputType: s.renderResult.output.type,
+          outputValues: s.renderResult.output.values,
         }
       : null,
     viewerMode: (s as any).viewerMode ?? 'visual',
+    visualViewerAvailable: (s as any).visualViewerAvailable ?? true,
     isPlaying: s.isPlaying,
     frame: s.frame,
     viewerZoom: s.viewerZoom,

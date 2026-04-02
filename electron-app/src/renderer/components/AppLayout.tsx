@@ -50,6 +50,7 @@ const separatorStyle: React.CSSProperties = {
 
 function ViewerHeader() {
   const viewerMode = useStore((s) => s.viewerMode);
+  const visualViewerAvailable = useStore((s) => s.visualViewerAvailable);
   const setViewerMode = useStore((s) => s.setViewerMode);
   const showHandles = useStore((s) => s.showHandles);
   const showPoints = useStore((s) => s.showPoints);
@@ -75,7 +76,15 @@ function ViewerHeader() {
       <div style={separatorStyle} />
 
       {/* View mode tabs */}
-      <SegmentButton label="Visual" active={viewerMode === 'visual'} onClick={() => setViewerMode('visual')} />
+      <SegmentButton
+        label="Visual"
+        active={viewerMode === 'visual'}
+        disabled={!visualViewerAvailable}
+        onClick={() => {
+          if (!visualViewerAvailable) return;
+          setViewerMode('visual');
+        }}
+      />
       <SegmentButton label="Data" active={viewerMode === 'data'} onClick={() => setViewerMode('data')} />
 
       <div style={{ width: 8 }} />
@@ -169,16 +178,29 @@ function NetworkHeader() {
   );
 }
 
-function SegmentButton({ label, active, onClick }: { label: string; active: boolean; onClick?: () => void }) {
+function SegmentButton({
+  label,
+  active,
+  disabled = false,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
+}) {
   return (
     <span
+      data-testid={`viewer-mode-${label.toLowerCase()}`}
+      aria-disabled={disabled}
       onClick={onClick}
       style={{
         fontSize: FONT_SIZE_SMALL,
         padding: '1px 6px',
         background: active ? ZINC_600 : 'transparent',
-        color: active ? TEXT_STRONG : PANE_HEADER_FOREGROUND_COLOR,
-        cursor: 'pointer',
+        color: disabled ? TEXT_DISABLED : active ? TEXT_STRONG : PANE_HEADER_FOREGROUND_COLOR,
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.45 : 1,
         userSelect: 'none',
       }}
     >

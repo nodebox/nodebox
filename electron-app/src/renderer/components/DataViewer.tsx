@@ -5,7 +5,7 @@ import {
   TABLE_HEADER_HEIGHT,
   ROW_HEIGHT,
 } from '../theme/tokens';
-import type { PathRenderData } from '../types/eval-result';
+import type { OutputInfo, PathRenderData } from '../types/eval-result';
 
 function colorToHex(c: { r: number; g: number; b: number; a: number }): string {
   const r = Math.round(c.r * 255);
@@ -22,6 +22,14 @@ function totalPoints(path: PathRenderData): number {
   return count;
 }
 
+function isVisualOutput(output: OutputInfo): boolean {
+  return output.type === 'Geometry' || output.type === 'Point';
+}
+
+function isColorString(value: string): boolean {
+  return /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value);
+}
+
 const cellClass = 'px-2 text-[11px] whitespace-nowrap overflow-hidden text-ellipsis';
 
 const headerCellStyle: React.CSSProperties = {
@@ -29,18 +37,150 @@ const headerCellStyle: React.CSSProperties = {
   lineHeight: `${TABLE_HEADER_HEIGHT}px`,
 };
 
+function EmptyState() {
+  return (
+    <div
+      data-testid="data-viewer"
+      className="w-full h-full bg-zinc-800 text-zinc-100 text-[11px] p-4"
+    >
+      No data to display.
+    </div>
+  );
+}
+
+function GeometryTable({ paths }: { paths: PathRenderData[] }) {
+  return (
+    <table className="w-full border-collapse">
+      <thead>
+        <tr className="bg-zinc-700">
+          <th className={`${cellClass} text-zinc-200 font-semibold text-right w-10`} style={headerCellStyle}>#</th>
+          <th className={`${cellClass} text-zinc-200 font-semibold text-left`} style={headerCellStyle}>Fill</th>
+          <th className={`${cellClass} text-zinc-200 font-semibold text-left`} style={headerCellStyle}>Stroke</th>
+          <th className={`${cellClass} text-zinc-200 font-semibold text-right`} style={headerCellStyle}>Contours</th>
+          <th className={`${cellClass} text-zinc-200 font-semibold text-right`} style={headerCellStyle}>Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        {paths.map((path, i) => (
+          <tr
+            key={i}
+            data-testid="data-row"
+            style={{
+              background: i % 2 === 0 ? TABLE_ROW_EVEN : TABLE_ROW_ODD,
+              height: ROW_HEIGHT,
+            }}
+          >
+            <td className={`${cellClass} text-zinc-300 text-right`}>
+              {i}
+            </td>
+            <td className={`${cellClass} text-zinc-100 text-left`}>
+              {path.fill ? (
+                <span className="inline-flex items-center gap-1">
+                  <span
+                    className="inline-block w-3 h-3"
+                    style={{
+                      background: colorToHex(path.fill),
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  />
+                  {colorToHex(path.fill)}
+                </span>
+              ) : (
+                'none'
+              )}
+            </td>
+            <td className={`${cellClass} text-zinc-100 text-left`}>
+              {path.stroke ? (
+                <span className="inline-flex items-center gap-1">
+                  <span
+                    className="inline-block w-3 h-3"
+                    style={{
+                      background: colorToHex(path.stroke),
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  />
+                  {colorToHex(path.stroke)}
+                </span>
+              ) : (
+                'none'
+              )}
+            </td>
+            <td className={`${cellClass} text-zinc-100 text-right`}>
+              {path.contours.length}
+            </td>
+            <td className={`${cellClass} text-zinc-100 text-right`}>
+              {totalPoints(path)}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function ValuesTable({ output }: { output: OutputInfo }) {
+  const valueHeader = output.type === 'none' ? 'Value' : output.type;
+  const showSwatch = output.type === 'Color';
+
+  return (
+    <table className="w-full border-collapse">
+      <thead>
+        <tr className="bg-zinc-700">
+          <th className={`${cellClass} text-zinc-200 font-semibold text-right w-10`} style={headerCellStyle}>#</th>
+          {showSwatch && (
+            <th className={`${cellClass} text-zinc-200 font-semibold text-left w-10`} style={headerCellStyle}>Swatch</th>
+          )}
+          <th className={`${cellClass} text-zinc-200 font-semibold text-left`} style={headerCellStyle}>{valueHeader}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {output.values.map((value, i) => (
+          <tr
+            key={`${i}-${value}`}
+            data-testid="data-row"
+            style={{
+              background: i % 2 === 0 ? TABLE_ROW_EVEN : TABLE_ROW_ODD,
+              height: ROW_HEIGHT,
+            }}
+          >
+            <td className={`${cellClass} text-zinc-300 text-right`}>
+              {i}
+            </td>
+            {showSwatch && (
+              <td className={`${cellClass} text-zinc-100 text-left`}>
+                {isColorString(value) ? (
+                  <span
+                    className="inline-block w-3 h-3"
+                    style={{
+                      background: value,
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  />
+                ) : null}
+              </td>
+            )}
+            <td className={`${cellClass} text-zinc-100 text-left`}>
+              {value}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 export function DataViewer() {
   const renderResult = useStore((s) => s.renderResult);
 
-  if (!renderResult || renderResult.paths.length === 0) {
-    return (
-      <div
-        data-testid="data-viewer"
-        className="w-full h-full bg-zinc-800 text-zinc-100 text-[11px] p-4"
-      >
-        No data to display.
-      </div>
-    );
+  if (!renderResult) {
+    return <EmptyState />;
+  }
+
+  const hasVisualData = isVisualOutput(renderResult.output) && renderResult.paths.length > 0;
+  const hasValueData = renderResult.output.values.length > 0;
+
+  if (!hasVisualData && !hasValueData) {
+    return <EmptyState />;
   }
 
   return (
@@ -48,71 +188,11 @@ export function DataViewer() {
       data-testid="data-viewer"
       className="w-full h-full overflow-auto bg-zinc-800"
     >
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-zinc-700">
-            <th className={`${cellClass} text-zinc-200 font-semibold text-right w-10`} style={headerCellStyle}>#</th>
-            <th className={`${cellClass} text-zinc-200 font-semibold text-left`} style={headerCellStyle}>Fill</th>
-            <th className={`${cellClass} text-zinc-200 font-semibold text-left`} style={headerCellStyle}>Stroke</th>
-            <th className={`${cellClass} text-zinc-200 font-semibold text-right`} style={headerCellStyle}>Contours</th>
-            <th className={`${cellClass} text-zinc-200 font-semibold text-right`} style={headerCellStyle}>Points</th>
-          </tr>
-        </thead>
-        <tbody>
-          {renderResult.paths.map((path, i) => (
-            <tr
-              key={i}
-              data-testid="data-row"
-              style={{
-                background: i % 2 === 0 ? TABLE_ROW_EVEN : TABLE_ROW_ODD,
-                height: ROW_HEIGHT,
-              }}
-            >
-              <td className={`${cellClass} text-zinc-300 text-right`}>
-                {i}
-              </td>
-              <td className={`${cellClass} text-zinc-100 text-left`}>
-                {path.fill ? (
-                  <span className="inline-flex items-center gap-1">
-                    <span
-                      className="inline-block w-3 h-3"
-                      style={{
-                        background: colorToHex(path.fill),
-                        border: '1px solid rgba(255,255,255,0.2)',
-                      }}
-                    />
-                    {colorToHex(path.fill)}
-                  </span>
-                ) : (
-                  'none'
-                )}
-              </td>
-              <td className={`${cellClass} text-zinc-100 text-left`}>
-                {path.stroke ? (
-                  <span className="inline-flex items-center gap-1">
-                    <span
-                      className="inline-block w-3 h-3"
-                      style={{
-                        background: colorToHex(path.stroke),
-                        border: '1px solid rgba(255,255,255,0.2)',
-                      }}
-                    />
-                    {colorToHex(path.stroke)}
-                  </span>
-                ) : (
-                  'none'
-                )}
-              </td>
-              <td className={`${cellClass} text-zinc-100 text-right`}>
-                {path.contours.length}
-              </td>
-              <td className={`${cellClass} text-zinc-100 text-right`}>
-                {totalPoints(path)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {hasVisualData ? (
+        <GeometryTable paths={renderResult.paths} />
+      ) : (
+        <ValuesTable output={renderResult.output} />
+      )}
     </div>
   );
 }

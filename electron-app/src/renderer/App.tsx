@@ -22,8 +22,10 @@ export function App() {
   const filePath = useStore((s) => s.filePath);
   const frame = useStore((s) => s.frame);
   const isPlaying = useStore((s) => s.isPlaying);
+  const renderResult = useStore((s) => s.renderResult);
   const setFrame = useStore((s) => s.setFrame);
   const setRenderResult = useStore((s) => s.setRenderResult);
+  const syncViewerModeForRender = useStore((s) => s.syncViewerModeForRender);
   const toggleHandles = useStore((s) => s.toggleHandles);
   const togglePoints = useStore((s) => s.togglePoints);
   const toggleOrigin = useStore((s) => s.toggleOrigin);
@@ -56,6 +58,26 @@ export function App() {
       });
     });
   }, []);
+
+  useEffect(() => {
+    const renderedChild = library.root.rendered_child;
+    const hasRenderedChild = renderedChild !== null;
+
+    if (!hasRenderedChild) {
+      syncViewerModeForRender(false, true);
+      return;
+    }
+
+    const declaredOutputType = library.root.children.find(
+      (child) => child.name === renderedChild,
+    )?.output_type;
+    const outputType = declaredOutputType ?? renderResult?.output.type;
+
+    if (!outputType) return;
+
+    const isVisualOutput = outputType === 'Geometry' || outputType === 'Point';
+    syncViewerModeForRender(true, isVisualOutput);
+  }, [library.root.children, library.root.rendered_child, renderResult?.output.type, syncViewerModeForRender]);
 
   // Animation playback loop
   useEffect(() => {
