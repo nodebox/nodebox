@@ -27,6 +27,7 @@ pub use desktop_platform::DesktopPlatform;
 mod address_bar;
 mod animation_bar;
 pub mod app;
+pub mod document;
 mod canvas;
 mod components;
 pub mod eval;
@@ -56,6 +57,7 @@ pub mod vello_viewer;
 
 // Re-export key types for testing and external use
 pub use app::NodeBoxApp;
+pub use document::{AppRequest, Document, DocumentEnv};
 pub use history::{History, SelectionSnapshot};
 pub use state::{populate_default_ports, AppState, Notification, NotificationLevel};
 
@@ -95,11 +97,12 @@ pub fn run() -> eframe::Result<()> {
     // Create the desktop platform for file operations
     let port: Arc<dyn nodebox_core::platform::Platform> = Arc::new(crate::DesktopPlatform::new());
 
-    // Get initial file from command line arguments
-    let initial_file: Option<PathBuf> = std::env::args()
-        .nth(1)
+    // Get initial files from command line arguments (each opens a window)
+    let initial_files: Vec<PathBuf> = std::env::args()
+        .skip(1)
         .map(PathBuf::from)
-        .filter(|p| p.extension().is_some_and(|ext| ext == "ndbx"));
+        .filter(|p| p.extension().is_some_and(|ext| ext == "ndbx"))
+        .collect();
 
     // Native options
     let options = eframe::NativeOptions {
@@ -114,6 +117,6 @@ pub fn run() -> eframe::Result<()> {
     eframe::run_native(
         "NodeBox",
         options,
-        Box::new(move |cc| Ok(Box::new(NodeBoxApp::new_with_port(cc, port.clone(), initial_file)))),
+        Box::new(move |cc| Ok(Box::new(NodeBoxApp::new_with_port(cc, port.clone(), initial_files.clone())))),
     )
 }
