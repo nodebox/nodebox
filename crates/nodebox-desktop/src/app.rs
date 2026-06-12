@@ -61,6 +61,13 @@ pub struct NodeBoxApp {
     was_dragging: bool,
     /// Vertical split ratio between Parameters (top) and Network (bottom). Default 0.35.
     right_panel_split: f32,
+    /// Set once a close has been confirmed (saved or discarded), so the
+    /// re-sent close request is allowed through without prompting again.
+    allowed_to_close: bool,
+    /// Last window title sent to the OS, to avoid resending every frame.
+    last_title: String,
+    /// Receives file paths the OS asks us to open (e.g. Finder double-click).
+    open_file_rx: Option<std::sync::mpsc::Receiver<std::path::PathBuf>>,
 }
 
 impl NodeBoxApp {
@@ -135,6 +142,9 @@ impl NodeBoxApp {
             pending_connection: None,
             was_dragging: false,
             right_panel_split: 0.35,
+            allowed_to_close: false,
+            last_title: String::new(),
+            open_file_rx: crate::platform_integration::take_open_file_receiver(),
         }
     }
 
@@ -221,6 +231,9 @@ impl NodeBoxApp {
             pending_connection: None,
             was_dragging: false,
             right_panel_split: 0.35,
+            allowed_to_close: false,
+            last_title: String::new(),
+            open_file_rx: crate::platform_integration::take_open_file_receiver(),
         }
     }
 
@@ -257,6 +270,9 @@ impl NodeBoxApp {
             pending_connection: None,
             was_dragging: false,
             right_panel_split: 0.35,
+            allowed_to_close: false,
+            last_title: String::new(),
+            open_file_rx: None,
         }
     }
 
@@ -294,6 +310,9 @@ impl NodeBoxApp {
             pending_connection: None,
             was_dragging: false,
             right_panel_split: 0.35,
+            allowed_to_close: false,
+            last_title: String::new(),
+            open_file_rx: None,
         }
     }
 
@@ -520,12 +539,67 @@ impl NodeBoxApp {
         }
     }
 
+    /// Update the OS window title to reflect the document name and dirty state.
+    fn update_window_title(&mut self, ctx: &egui::Context) {
+        let title = format!(
+            "{}{} — NodeBox",
+            if self.state.dirty { "• " } else { "" },
+            self.document_name()
+        );
+        if title != self.last_title {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Title(title.clone()));
+            self.last_title = title;
+        }
+    }
+
+    /// Open .ndbx project files dropped onto the window.
+    fn handle_dropped_files(&mut self, ctx: &egui::Context) {
+        let dropped: Vec<std::path::PathBuf> = ctx.input(|i| {
+            i.raw
+                .dropped_files
+                .iter()
+                .filter_map(|f| f.path.clone())
+                .filter(|p| p.extension().is_some_and(|ext| ext == "ndbx"))
+                .collect()
+        });
+        // Single-document app: open the first dropped project file.
+        if let Some(path) = dropped.first() {
+            self.open_path(path);
+        }
+    }
+
+    /// Open documents the OS asked us to open (Finder double-click, dock drop).
+    fn poll_open_file_events(&mut self) {
+        let Some(rx) = self.open_file_rx.as_ref() else {
+            return;
+        };
+        let paths: Vec<std::path::PathBuf> = rx.try_iter().collect();
+        for path in paths {
+            self.open_path(&path);
+        }
+    }
+
+    /// Intercept window close: prompt to save when there are unsaved changes.
+    fn handle_close_request(&mut self, ctx: &egui::Context) {
+        if !ctx.input(|i| i.viewport().close_requested()) {
+            return;
+        }
+        if self.allowed_to_close || !self.state.dirty {
+            return; // Let the close proceed.
+        }
+        ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+        if self.confirm_discard_changes() {
+            self.allowed_to_close = true;
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        }
+    }
+
     /// Handle a menu action from the native menu bar.
     fn handle_menu_action(&mut self, action: MenuAction, ctx: &egui::Context) {
         match action {
-            MenuAction::New => self.state.new_document(),
+            MenuAction::New => self.new_document(),
             MenuAction::Open => self.open_file(),
-            MenuAction::OpenRecent(path) => self.open_recent_file(&path),
+            MenuAction::OpenRecent(path) => self.open_path(&path),
             MenuAction::ClearRecent => self.clear_recent_files(),
             MenuAction::Save => self.save_file(),
             MenuAction::SaveAs => self.save_file_as(),
@@ -557,9 +631,9 @@ impl NodeBoxApp {
             MenuAction::ZoomOut => self.viewer_pane.zoom_out(),
             MenuAction::ZoomReset => self.viewer_pane.reset_zoom(),
             MenuAction::About => self.state.show_about = true,
-            // Clipboard actions handled by system
-            MenuAction::Cut | MenuAction::Copy | MenuAction::Paste |
-            MenuAction::Delete | MenuAction::SelectAll => {}
+            // Route Quit through the window close path so the
+            // unsaved-changes prompt applies.
+            MenuAction::Quit => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
         }
         ctx.request_repaint();
     }
@@ -573,7 +647,7 @@ impl NodeBoxApp {
         egui::MenuBar::new().ui(ui, |ui| {
             ui.menu_button("File", |ui| {
                 if ui.button("New").clicked() {
-                    self.state.new_document();
+                    self.new_document();
                     ui.close();
                 }
                 if ui.button("Open...").clicked() {
@@ -597,7 +671,7 @@ impl NodeBoxApp {
                             }
                         }
                         if let Some(path) = path_to_open {
-                            self.open_recent_file(&path);
+                            self.open_path(&path);
                         }
                         ui.separator();
                     }
@@ -709,6 +783,18 @@ impl eframe::App for NodeBoxApp {
                 self.handle_menu_action(action, ctx);
             }
         }
+
+        // Keep the window title in sync with the document name and dirty state
+        self.update_window_title(ctx);
+
+        // Open .ndbx files dropped onto the window
+        self.handle_dropped_files(ctx);
+
+        // Open files delivered by the OS (Finder double-click, dock drop)
+        self.poll_open_file_events();
+
+        // Intercept window close to prompt for unsaved changes
+        self.handle_close_request(ctx);
 
         // Poll for background render results
         self.poll_render_results();
@@ -1184,39 +1270,97 @@ impl NodeBoxApp {
         }
     }
 
+    /// The display name of the current document.
+    fn document_name(&self) -> String {
+        self.state
+            .current_file
+            .as_ref()
+            .and_then(|p| p.file_name())
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_else(|| "Untitled".to_string())
+    }
+
+    /// Ask the user what to do with unsaved changes.
+    ///
+    /// Returns true if it is safe to discard the current document:
+    /// not dirty, saved via the prompt, or explicitly discarded.
+    fn confirm_discard_changes(&mut self) -> bool {
+        if !self.state.dirty {
+            return true;
+        }
+        let result = rfd::MessageDialog::new()
+            .set_level(rfd::MessageLevel::Warning)
+            .set_title("Unsaved Changes")
+            .set_description(format!(
+                "Do you want to save the changes you made to \u{201c}{}\u{201d}?\nYour changes will be lost if you don't save them.",
+                self.document_name()
+            ))
+            .set_buttons(rfd::MessageButtons::YesNoCancelCustom(
+                "Save".to_string(),
+                "Don't Save".to_string(),
+                "Cancel".to_string(),
+            ))
+            .show();
+        match result {
+            rfd::MessageDialogResult::Custom(choice) => match choice.as_str() {
+                "Save" => {
+                    self.save_file();
+                    // Save As may have been cancelled; only proceed if the save stuck.
+                    !self.state.dirty
+                }
+                "Don't Save" => true,
+                _ => false,
+            },
+            _ => false,
+        }
+    }
+
+    /// Create a new empty document, prompting for unsaved changes first.
+    fn new_document(&mut self) {
+        if self.confirm_discard_changes() {
+            self.state.new_document();
+            self.reset_document_baseline();
+        }
+    }
+
+    /// Reset change detection and history after a document switch, so the
+    /// fresh document is not immediately marked dirty (with a bogus undo
+    /// entry pointing at the previous document).
+    fn reset_document_baseline(&mut self) {
+        self.history = History::new();
+        self.previous_library_hash = Self::hash_library(&self.state.library);
+        self.previous_library = Arc::clone(&self.state.library);
+        self.previous_selection = self.current_selection();
+        self.render_pending = true;
+    }
+
     fn open_file(&mut self) {
         use nodebox_core::platform::FileFilter;
 
         match self.port.show_open_project_dialog(&[FileFilter::nodebox()]) {
-            Ok(Some(path)) => {
-                if let Err(e) = self.state.load_file(&path) {
-                    log::error!("Failed to load file: {}", e);
-                } else {
-                    // Update project context with new file location
-                    if let (Some(parent), Some(file_name)) = (path.parent(), path.file_name()) {
-                        self.project_context =
-                            ProjectContext::new(parent, file_name.to_string_lossy().to_string());
-                    }
-                    self.add_to_recent_files(path);
-                }
-            }
+            Ok(Some(path)) => self.open_path(&path),
             Ok(None) => {} // User cancelled
             Err(e) => log::error!("Failed to open file dialog: {}", e),
         }
     }
 
-    /// Open a file from the recent files list.
-    fn open_recent_file(&mut self, path: &std::path::Path) {
-        if let Err(e) = self.state.load_file(path) {
-            log::error!("Failed to load recent file: {}", e);
-        } else {
-            // Update project context with new file location
-            if let (Some(parent), Some(file_name)) = (path.parent(), path.file_name()) {
-                self.project_context =
-                    ProjectContext::new(parent, file_name.to_string_lossy().to_string());
-            }
-            self.add_to_recent_files(path.to_path_buf());
+    /// Load a document from `path`, prompting for unsaved changes first.
+    /// Updates the project context and recent files on success.
+    fn open_path(&mut self, path: &std::path::Path) {
+        if !self.confirm_discard_changes() {
+            return;
         }
+        if let Err(e) = self.state.load_file(path) {
+            log::error!("Failed to load file {:?}: {}", path, e);
+            return;
+        }
+        self.reset_document_baseline();
+        // Update project context with new file location
+        if let (Some(parent), Some(file_name)) = (path.parent(), path.file_name()) {
+            self.project_context =
+                ProjectContext::new(parent, file_name.to_string_lossy().to_string());
+        }
+        self.add_to_recent_files(path.to_path_buf());
     }
 
     /// Add a file to the recent files list and update the menu.
@@ -2020,5 +2164,45 @@ mod tests {
             "Redo should restore selection to ellipse1");
         assert!(app.network_view.selected_nodes().contains("ellipse1"),
             "Network view should show ellipse1 selected after redo");
+    }
+
+    /// Loading a document must not mark it dirty or create an undo entry:
+    /// the change-detection baseline has to be resynced after the load,
+    /// otherwise check_for_changes sees the old document's hash and records
+    /// a bogus change.
+    #[test]
+    fn test_loading_document_does_not_mark_dirty() {
+        let mut app = NodeBoxApp::new_for_testing();
+
+        // Save the current (demo) library to a temp file, then load it back.
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.ndbx");
+        app.state.save_file(&path).unwrap();
+        app.state.load_file(&path).unwrap();
+        app.reset_document_baseline();
+
+        // Simulate a frame: change detection must see no difference.
+        app.update_for_testing();
+        assert!(!app.state.dirty, "freshly loaded document must not be dirty");
+        assert!(!app.history.can_undo(), "loading must not create an undo entry");
+    }
+
+    /// The window title should reflect the document name and dirty state.
+    #[test]
+    fn test_window_title_reflects_document_and_dirty_state() {
+        let mut app = NodeBoxApp::new_for_testing();
+        let ctx = egui::Context::default();
+
+        app.update_window_title(&ctx);
+        assert_eq!(app.last_title, "Untitled — NodeBox");
+
+        app.state.dirty = true;
+        app.update_window_title(&ctx);
+        assert_eq!(app.last_title, "• Untitled — NodeBox");
+
+        app.state.current_file = Some(std::path::PathBuf::from("/tmp/demo.ndbx"));
+        app.state.dirty = false;
+        app.update_window_title(&ctx);
+        assert_eq!(app.last_title, "demo.ndbx — NodeBox");
     }
 }

@@ -1,8 +1,4 @@
 //! Native menu bar support for macOS.
-//!
-//! Note: Menu polling is not yet integrated into the main event loop.
-
-#![allow(dead_code)]
 
 #[cfg(target_os = "macos")]
 use muda::{Menu, MenuId, MenuItem, PredefinedMenuItem, Submenu, accelerator::Accelerator, MenuEvent};
@@ -11,6 +7,8 @@ use std::cell::{Cell, RefCell};
 use std::path::PathBuf;
 
 /// Menu item identifiers for handling menu events.
+// On non-macOS platforms poll_event() never returns, so variants are never constructed.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MenuAction {
     New,
@@ -23,15 +21,11 @@ pub enum MenuAction {
     ExportSvg,
     Undo,
     Redo,
-    Cut,
-    Copy,
-    Paste,
-    Delete,
-    SelectAll,
     ZoomIn,
     ZoomOut,
     ZoomReset,
     About,
+    Quit,
 }
 
 /// Handle to the native menu, with item IDs for event handling.
@@ -42,7 +36,6 @@ pub struct NativeMenuHandle {
     new_id: MenuId,
     open_id: MenuId,
     recent_submenu: Submenu,
-    clear_recent_id: MenuId,
     /// Map from menu IDs to file paths for recent files
     recent_file_ids: RefCell<Vec<(MenuId, PathBuf)>>,
     save_id: MenuId,
@@ -55,6 +48,7 @@ pub struct NativeMenuHandle {
     zoom_out_id: MenuId,
     zoom_reset_id: MenuId,
     about_id: MenuId,
+    quit_id: MenuId,
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -78,7 +72,11 @@ impl NativeMenuHandle {
         app_menu.append(&PredefinedMenuItem::hide_others(None)).unwrap();
         app_menu.append(&PredefinedMenuItem::show_all(None)).unwrap();
         app_menu.append(&PredefinedMenuItem::separator()).unwrap();
-        app_menu.append(&PredefinedMenuItem::quit(None)).unwrap();
+        // Custom Quit item (not PredefinedMenuItem::quit) so quitting goes through
+        // the app's close path, allowing an unsaved-changes prompt.
+        let quit_item = MenuItem::new("Quit NodeBox", true, Some(Accelerator::new(Some(muda::accelerator::Modifiers::META), muda::accelerator::Code::KeyQ)));
+        let quit_id = quit_item.id().clone();
+        app_menu.append(&quit_item).unwrap();
 
         // File menu
         let file_menu = Submenu::new("File", true);
@@ -89,9 +87,10 @@ impl NativeMenuHandle {
 
         // Open Recent submenu
         let recent_submenu = Submenu::new("Open Recent", true);
+        // Start with just "Clear Recent" (will be rebuilt with files later).
+        // Note: poll_event identifies "Clear Recent" by item text, since the
+        // item is recreated on every rebuild_recent_menu call.
         let clear_recent = MenuItem::new("Clear Recent", true, None);
-        let clear_recent_id = clear_recent.id().clone();
-        // Start with just "Clear Recent" (will be rebuilt with files later)
         recent_submenu.append(&clear_recent).unwrap();
 
         let save_item = MenuItem::new("Save", true, Some(Accelerator::new(Some(muda::accelerator::Modifiers::META), muda::accelerator::Code::KeyS)));
@@ -173,7 +172,6 @@ impl NativeMenuHandle {
             new_id,
             open_id,
             recent_submenu,
-            clear_recent_id,
             recent_file_ids: RefCell::new(Vec::new()),
             save_id,
             save_as_id,
@@ -185,6 +183,7 @@ impl NativeMenuHandle {
             zoom_out_id,
             zoom_reset_id,
             about_id,
+            quit_id,
         }
     }
 
@@ -267,6 +266,8 @@ impl NativeMenuHandle {
                 return Some(MenuAction::ZoomReset);
             } else if event.id == self.about_id {
                 return Some(MenuAction::About);
+            } else if event.id == self.quit_id {
+                return Some(MenuAction::Quit);
             }
 
             // Check recent file IDs
