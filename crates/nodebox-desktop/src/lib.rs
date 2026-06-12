@@ -74,6 +74,7 @@ pub use vello_renderer::{VelloConfig, VelloError, VelloRenderer, ViewTransform};
 pub use vello_viewer::VelloViewer;
 
 mod native_menu;
+mod platform_integration;
 mod recent_files;
 
 use std::path::PathBuf;
@@ -86,6 +87,10 @@ use std::sync::Arc;
 pub fn run() -> eframe::Result<()> {
     // Initialize logging
     env_logger::init();
+
+    // Set up platform lifecycle integration (e.g. macOS open-file events).
+    // Must happen before the event loop starts.
+    platform_integration::init();
 
     // Create the desktop platform for file operations
     let port: Arc<dyn nodebox_core::platform::Platform> = Arc::new(crate::DesktopPlatform::new());
