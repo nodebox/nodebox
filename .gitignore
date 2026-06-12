@@ -23,3 +23,10 @@ lib/cachedir
 
 # Secrets
 .env
+
+# Leftovers from the abandoned Electron experiment and local tooling
+node_modules/
+packages/
+pnpm-lock.yaml
+.vite/
+.playwright-mcp/

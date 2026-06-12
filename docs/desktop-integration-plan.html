@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NodeBox — Desktop Integration Plan</title>
+<meta name="description" content="Strategy for making the Rust rewrite of NodeBox behave like a proper native desktop app: multi-document windows, Finder file opening, native menus, unsaved-changes guards, and platform packaging.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* NodeBox Linear-inspired dark palette */
+  --bg: #0E0E11;
+  --bg-alt: #131316;
+  --bg-raised: #1A1A1F;
+  --bg-hover: #202027;
+  --text: #E4E4E9;
+  --text-strong: #FAFAFC;
+  --text-muted: #8B8B96;
+  --text-dim: #5C5C66;
+  --border: #232329;
+  --violet: #8B7CF6;
+  --violet-bright: #A595FF;
+  --violet-deep: #2A2440;
+  --green: #4ADE80;
+  --amber: #FBBF24;
+  --red: #F87171;
+
+  --font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --space-xs: 8px; --space-sm: 16px; --space-md: 24px;
+  --space-lg: 40px; --space-xl: 64px; --space-2xl: 96px;
+
+  --max-w: 1040px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+::selection { background: var(--violet); color: #fff; }
+
+/* Subtle noise texture */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.container { max-width: var(--max-w); margin: 0 auto; padding: 0 28px; position: relative; z-index: 2; }
+
+h1, h2, h3, h4 { font-family: var(--font-heading); color: var(--text-strong); line-height: 1.15; }
+a { color: var(--violet-bright); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--bg-raised);
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  color: var(--violet-bright);
+  white-space: nowrap;
+}
+pre code { white-space: pre; display: block; padding: var(--space-sm); line-height: 1.6; overflow-x: auto; }
+
+.label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: var(--violet-bright);
+  font-weight: 600;
+  font-family: var(--font-heading);
+  display: block;
+  margin-bottom: var(--space-sm);
+}
+
+/* ---------- Nav ---------- */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 100;
+  transition: background .3s ease, border-color .3s ease;
+  border-bottom: 1px solid transparent;
+}
+nav.scrolled {
+  background: rgba(14, 14, 17, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom-color: var(--border);
+}
+.nav-inner {
+  max-width: var(--max-w); margin: 0 auto; padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+.nav-logo {
+  font-family: var(--font-heading); font-weight: 700; font-size: 1rem;
+  color: var(--text-strong); display: flex; align-items: center; gap: 10px;
+}
+.nav-logo .dot { width: 10px; height: 10px; background: var(--violet); display: inline-block; }
+.nav-links { display: flex; gap: var(--space-md); list-style: none; }
+.nav-links a {
+  font-size: 0.82rem; color: var(--text-muted); font-weight: 500;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--text-strong); text-decoration: none; }
+.nav-burger {
+  display: none; background: none; border: none; cursor: pointer;
+  width: 32px; height: 32px; position: relative;
+}
+.nav-burger span {
+  position: absolute; left: 6px; right: 6px; height: 2px; background: var(--text);
+  transition: transform .25s, opacity .25s;
+}
+.nav-burger span:nth-child(1) { top: 10px; }
+.nav-burger span:nth-child(2) { top: 16px; }
+.nav-burger span:nth-child(3) { top: 22px; }
+.nav-burger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.nav-burger.open span:nth-child(2) { opacity: 0; }
+.nav-burger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+.mobile-menu {
+  display: none;
+  background: rgba(14,14,17,0.97);
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-sm) 28px var(--space-md);
+}
+.mobile-menu.open { display: block; }
+.mobile-menu a { display: block; padding: 10px 0; color: var(--text-muted); font-size: 0.95rem; }
+
+/* ---------- Hero ---------- */
+header.hero {
+  padding: 180px 0 var(--space-2xl);
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute; top: -300px; right: -200px;
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(139,124,246,0.13) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero h1 {
+  font-size: clamp(2.6rem, 6.5vw, 4.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  max-width: 17ch;
+  margin-bottom: var(--space-md);
+}
+.hero h1 em { font-style: normal; color: var(--violet-bright); }
+.hero .lede {
+  font-size: 1.15rem; color: var(--text-muted); max-width: 60ch;
+  margin-bottom: var(--space-lg);
+}
+.hero-meta {
+  display: flex; gap: var(--space-md); flex-wrap: wrap;
+  font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim);
+}
+.hero-meta span { border-left: 2px solid var(--violet); padding-left: 10px; }
+
+/* ---------- Sections ---------- */
+section { padding: var(--space-2xl) 0; border-bottom: 1px solid var(--border); }
+section h2 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-md);
+  max-width: 24ch;
+}
+.section-intro { color: var(--text-muted); max-width: 68ch; margin-bottom: var(--space-lg); }
+.section-intro strong { color: var(--text); }
+
+/* ---------- Status grid ---------- */
+.status-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);
+}
+.status-col h3 {
+  font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px;
+  font-weight: 600; margin-bottom: var(--space-sm);
+  display: flex; align-items: center; gap: 8px;
+}
+.status-col.good h3 { color: var(--green); }
+.status-col.bad h3 { color: var(--amber); }
+.status-item {
+  background: var(--bg-alt);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: 10px;
+  border-left: 2px solid var(--border);
+  transition: background .2s, border-color .2s;
+}
+.status-col.good .status-item { border-left-color: rgba(74,222,128,0.4); }
+.status-col.bad .status-item { border-left-color: rgba(251,191,36,0.4); }
+.status-item:hover { background: var(--bg-raised); }
+.status-item b { color: var(--text-strong); font-weight: 600; display: block; margin-bottom: 2px; font-size: 0.95rem; }
+.status-item p { font-size: 0.87rem; color: var(--text-muted); }
+.gap-num {
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--amber);
+  margin-right: 8px;
+}
+
+.callout {
+  margin-top: var(--space-lg);
+  background: var(--violet-deep);
+  border-left: 2px solid var(--violet);
+  padding: var(--space-md);
+  font-size: 0.92rem;
+  color: var(--text);
+  max-width: 75ch;
+}
+.callout b { color: var(--text-strong); }
+
+/* ---------- Strategy options ---------- */
+.options { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); }
+.option {
+  background: var(--bg-alt);
+  padding: var(--space-md);
+  border-top: 2px solid var(--border);
+  display: flex; flex-direction: column;
+  transition: background .2s;
+}
+.option:hover { background: var(--bg-raised); }
+.option.recommended {
+  border-top-color: var(--violet);
+  background: linear-gradient(180deg, rgba(139,124,246,0.07) 0%, var(--bg-alt) 40%);
+}
+.option .opt-letter {
+  font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim);
+  margin-bottom: var(--space-xs);
+}
+.option.recommended .opt-letter { color: var(--violet-bright); }
+.option h3 { font-size: 1.15rem; margin-bottom: var(--space-xs); }
+.option .verdict {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px;
+  font-weight: 600; margin-bottom: var(--space-sm);
+}
+.option .verdict.no { color: var(--red); }
+.option .verdict.yes { color: var(--green); }
+.option p { font-size: 0.88rem; color: var(--text-muted); flex: 1; }
+.option p + p { margin-top: var(--space-xs); }
+.option p b { color: var(--text); }
+
+/* ---------- Fix table ---------- */
+.fix-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.fix-table th {
+  text-align: left; font-family: var(--font-heading); font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim);
+  padding: 10px 14px; border-bottom: 1px solid var(--border); font-weight: 600;
+}
+.fix-table td {
+  padding: 13px 14px; border-bottom: 1px solid var(--border);
+  vertical-align: top; color: var(--text-muted);
+}
+.fix-table td:first-child { color: var(--text-strong); font-weight: 500; white-space: nowrap; }
+.fix-table tr:hover td { background: var(--bg-alt); }
+.size-tag {
+  font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 8px;
+  white-space: nowrap;
+}
+.size-tag.tiny { color: var(--green); background: rgba(74,222,128,0.08); }
+.size-tag.small { color: var(--violet-bright); background: rgba(139,124,246,0.1); }
+.size-tag.real { color: var(--amber); background: rgba(251,191,36,0.08); }
+
+/* ---------- Phases ---------- */
+.phase {
+  background: var(--bg-alt);
+  margin-bottom: 12px;
+  border-left: 2px solid var(--border);
+}
+.phase.open { border-left-color: var(--violet); }
+.phase-head {
+  display: flex; align-items: baseline; gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer; user-select: none;
+  transition: background .2s;
+}
+.phase-head:hover { background: var(--bg-raised); }
+.phase-num {
+  font-family: var(--font-mono); font-size: 0.78rem; color: var(--violet-bright);
+  min-width: 56px;
+}
+.phase-head h3 { font-size: 1.05rem; flex: 1; }
+.phase-tag {
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim);
+  white-space: nowrap;
+}
+.phase-arrow {
+  color: var(--text-dim); transition: transform .25s; font-size: 0.8rem;
+  align-self: center;
+}
+.phase.open .phase-arrow { transform: rotate(90deg); color: var(--violet-bright); }
+.phase-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height .4s cubic-bezier(.16,1,.3,1);
+}
+.phase-body-inner { padding: 0 var(--space-md) var(--space-md) calc(56px + var(--space-md) + var(--space-sm)); }
+.phase-body ul { list-style: none; }
+.phase-body li {
+  font-size: 0.9rem; color: var(--text-muted);
+  padding: 6px 0 6px 18px; position: relative;
+}
+.phase-body li::before {
+  content: "—"; position: absolute; left: 0; color: var(--violet);
+}
+.phase-body li b { color: var(--text); font-weight: 500; }
+.phase-body .gate {
+  margin-top: var(--space-sm); font-size: 0.8rem; color: var(--green);
+  font-family: var(--font-mono);
+}
+
+/* ---------- Insight cards ---------- */
+.insights { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+.insight {
+  background: var(--bg-alt); padding: var(--space-md);
+  border-top: 2px solid var(--violet);
+}
+.insight h3 { font-size: 1rem; margin-bottom: var(--space-xs); }
+.insight p { font-size: 0.88rem; color: var(--text-muted); }
+.insight p + p { margin-top: var(--space-xs); }
+
+/* ---------- Bottom line (dark accent section) ---------- */
+.bottomline {
+  background: var(--bg-alt);
+  position: relative;
+  overflow: hidden;
+}
+.bottomline::after {
+  content: "";
+  position: absolute; bottom: -250px; left: -150px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(139,124,246,0.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+.bottomline blockquote {
+  font-family: var(--font-heading);
+  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  font-weight: 500;
+  color: var(--text-strong);
+  max-width: 30ch;
+  line-height: 1.4;
+  border-left: 3px solid var(--violet);
+  padding-left: var(--space-md);
+}
+.bottomline blockquote em { font-style: normal; color: var(--violet-bright); }
+.bottomline p.sub { margin-top: var(--space-md); color: var(--text-muted); max-width: 62ch; }
+
+/* ---------- Footer ---------- */
+footer {
+  padding: var(--space-lg) 0;
+  font-size: 0.8rem; color: var(--text-dim);
+  display: block;
+}
+footer .container { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-sm); }
+footer code { font-size: 0.75rem; }
+
+/* ---------- Reveal ---------- */
+.reveal {
+  opacity: 0; transform: translateY(24px);
+  transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+  .options { grid-template-columns: 1fr; }
+  .insights { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .nav-burger { display: block; }
+  .status-grid { grid-template-columns: 1fr; }
+  header.hero { padding-top: 130px; }
+  .fix-table th:nth-child(3), .fix-table td:nth-child(3) { display: none; }
+  .phase-body-inner { padding-left: var(--space-md); }
+}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="nav-inner">
+    <div class="nav-logo"><span class="dot"></span>NodeBox <span style="color:var(--text-dim);font-weight:400">/ desktop plan</span></div>
+    <ul class="nav-links">
+      <li><a href="#status">Status</a></li>
+      <li><a href="#strategy">Strategy</a></li>
+      <li><a href="#fixes">The Fixes</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="#decisions">Key Decisions</a></li>
+    </ul>
+    <button class="nav-burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#status">Status</a>
+    <a href="#strategy">Strategy</a>
+    <a href="#fixes">The Fixes</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#decisions">Key Decisions</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <span class="label">Desktop Integration Plan</span>
+    <h1>Make the Rust rewrite a <em>real</em> desktop app.</h1>
+    <p class="lede">
+      NodeBox on eframe/egui already renders, evaluates, and packages. What's missing is
+      app lifecycle: documents that open from Finder, multiple windows, guards against
+      losing work. This plan closes those gaps with a thin per-platform integration
+      layer — not a full native shell.
+    </p>
+    <div class="hero-meta">
+      <span>branch&nbsp;rewrite-in-rust</span>
+      <span>eframe / egui 0.33 + Vello</span>
+      <span>targets&nbsp;macOS · Windows · Linux</span>
+    </div>
+  </div>
+</header>
+
+<section id="status">
+  <div class="container">
+    <span class="label reveal">01 — Where we stand</span>
+    <h2 class="reveal">Stronger on packaging than it looks, thinner on lifecycle than it feels.</h2>
+    <p class="section-intro reveal">
+      An audit of <code>crates/nodebox-desktop</code> and the build scripts. The
+      foundations — native menus, file-type registration, a platform abstraction —
+      are already built. The gaps cluster around one theme: <strong>how the running
+      app learns about documents and protects them.</strong>
+    </p>
+    <div class="status-grid">
+      <div class="status-col good reveal">
+        <h3>Already solid</h3>
+        <div class="status-item"><b>Native macOS menu bar</b><p>Real NSMenu via <code>muda</code> — App/File/Edit/View/Window/Help, ⌘-shortcuts, dynamic Open Recent. Wired into the event loop (<code>app.rs:524</code>). In-window egui menu correctly gated to non-macOS.</p></div>
+        <div class="status-item"><b>Packaging pipeline</b><p><code>build-mac-bundle.sh</code> emits Info.plist with <code>CFBundleDocumentTypes</code> for .ndbx + document icon; sign / notarize / DMG scripts; Linux AppImage &amp; deb; Windows installer.</p></div>
+        <div class="status-item"><b>Platform abstraction</b><p><code>nodebox-core/src/platform.rs</code> — a <code>Platform</code> trait (file IO, dialogs, clipboard, HTTP) with a desktop impl on rfd/arboard/ureq. Wasm-aware. Exactly the seam any shell strategy needs.</p></div>
+        <div class="status-item"><b>Document plumbing</b><p>Recent-files persistence, <code>dirty</code> flag, Arc-snapshot undo history with copy-on-write libraries.</p></div>
+      </div>
+      <div class="status-col bad reveal">
+        <h3>The gaps</h3>
+        <div class="status-item"><b><span class="gap-num">G1</span>Finder double-click doesn't open the file</b><p>The .ndbx association is registered, so Finder launches NodeBox — but macOS delivers the document via an <code>application:openURLs:</code> Apple event, not argv. The app only reads <code>argv[1]</code> (<code>lib.rs:94</code>), which Finder never sets. Known winit limitation.</p></div>
+        <div class="status-item"><b><span class="gap-num">G2</span>Single document, period</b><p>One <code>AppState</code>, one window. Opening a second file replaces the current document.</p></div>
+        <div class="status-item"><b><span class="gap-num">G3</span>No unsaved-changes guard</b><p><code>dirty</code> exists but nothing intercepts close — Quit sends <code>ViewportCommand::Close</code> unconditionally. Work can be lost silently.</p></div>
+        <div class="status-item"><b><span class="gap-num">G4</span>No file drag-and-drop</b><p>egui's <code>dropped_files</code> is never read.</p></div>
+        <div class="status-item"><b><span class="gap-num">G5</span>Window title always "NodeBox"</b><p>No document name, no dirty indicator, no macOS proxy icon.</p></div>
+        <div class="status-item"><b><span class="gap-num">G6</span>No window geometry persistence</b><p>eframe's <code>persistence</code> feature isn't enabled.</p></div>
+      </div>
+    </div>
+    <div class="callout reveal">
+      <b>File associations are two separate problems.</b> Registration (OS metadata — done)
+      and delivery (how the process learns about the file). Windows passes argv; macOS sends
+      an Apple event to the app delegate; Linux passes argv via the .desktop Exec line.
+      Code that only reads argv works on two of three platforms — and macOS adds a wrinkle:
+      apps are single-instance, so a second double-click must reach the <em>running</em> app at any time,
+      not just at startup.
+    </div>
+  </div>
+</section>
+
+<section id="strategy">
+  <div class="container">
+    <span class="label reveal">02 — Strategy</span>
+    <h2 class="reveal">Native shell? Scope it down to native glue.</h2>
+    <p class="section-intro reveal">
+      Three architectures were weighed. The "native platform shell" instinct is right in
+      spirit — but at full size it means a second rewrite. The same outcome is reachable
+      with a per-platform <strong>integration layer</strong>: small adapters that handle exactly what
+      winit doesn't, and forward events to the portable egui app.
+    </p>
+    <div class="options">
+      <div class="option reveal">
+        <div class="opt-letter">OPTION A</div>
+        <h3>Full native shells</h3>
+        <div class="verdict no">Ruled out — too costly</div>
+        <p>AppKit <code>NSDocument</code> / Win32 / GTK shells embedding the Rust core. Best possible platform citizenship — NSDocumentController gives recent files, autosave, versions, and open-file plumbing for free.</p>
+        <p><b>But:</b> three shell codebases, an FFI surface, and the entire egui UI (network view, viewer, Vello pipeline) rewritten or awkwardly embedded three times. A second rewrite layered on the first.</p>
+      </div>
+      <div class="option reveal">
+        <div class="opt-letter">OPTION B</div>
+        <h3>Electron / Tauri shell</h3>
+        <div class="verdict no">Ruled out — spike answered</div>
+        <p>The untracked <code>packages/</code> dist shows this was already tried. It solves lifecycle (Electron's open-file event, multi-window) but abandons the egui/Vello investment for a web renderer.</p>
+        <p><b>Verdict:</b> treat the experiment as a spike that answered a question, not a direction. Delete or gitignore the leftover build output.</p>
+      </div>
+      <div class="option recommended reveal">
+        <div class="opt-letter">OPTION C — RECOMMENDED</div>
+        <h3>egui shell + thin platform adapters</h3>
+        <div class="verdict yes">Selected</div>
+        <p>Keep eframe/egui as the shell. Add a small per-OS module handling app lifecycle: an objc2 Apple-event shim on macOS, single-instance argv forwarding on Windows, MIME registration on Linux. All feed one channel the app drains each frame.</p>
+        <p><b>~90% of the native feel for ~5% of the cost.</b> Roughly 300 lines of platform glue plus one real refactor (multi-document).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="fixes">
+  <div class="container">
+    <span class="label reveal">03 — The fixes</span>
+    <h2 class="reveal">Every gap maps to a known, bounded fix.</h2>
+    <div class="reveal" style="overflow-x:auto">
+      <table class="fix-table">
+        <thead>
+          <tr><th>Gap</th><th>Fix</th><th>Where</th><th>Size</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>G1 · Finder double-click</td>
+            <td><code>objc2</code> shim installing an <code>NSApplicationDelegate</code> <code>application:openURLs:</code> handler that pushes paths into a channel drained each frame. Also covers drag-onto-dock-icon and open-while-running.</td>
+            <td><code>platform_integration/macos.rs</code></td>
+            <td><span class="size-tag real">~100–150 loc</span></td>
+          </tr>
+          <tr>
+            <td>G1 · Second instance (Win)</td>
+            <td>Single-instance mutex + forward argv to the running process via named pipe; paths arrive on the same channel.</td>
+            <td><code>platform_integration/windows.rs</code></td>
+            <td><span class="size-tag small">small</span></td>
+          </tr>
+          <tr>
+            <td>G1 · Linux</td>
+            <td><code>.desktop</code> file + shared-mime-info XML for .ndbx in the AppImage/deb scripts; argv already works.</td>
+            <td><code>scripts/</code></td>
+            <td><span class="size-tag tiny">script-only</span></td>
+          </tr>
+          <tr>
+            <td>G3 · Unsaved-changes prompt</td>
+            <td><code>close_requested()</code> + <code>ViewportCommand::CancelClose</code> + rfd confirm dialog. Pure egui, no native code.</td>
+            <td><code>app.rs</code></td>
+            <td><span class="size-tag small">small</span></td>
+          </tr>
+          <tr>
+            <td>G4 · Drag-and-drop</td>
+            <td>Read <code>raw.dropped_files</code> each frame; route into the same open-document path.</td>
+            <td><code>app.rs</code></td>
+            <td><span class="size-tag tiny">tiny</span></td>
+          </tr>
+          <tr>
+            <td>G5 · Title + dirty dot</td>
+            <td><code>ViewportCommand::Title("file.ndbx — Edited")</code>; optional <code>setDocumentEdited:</code> objc2 call for the native close-button dot.</td>
+            <td><code>app.rs</code></td>
+            <td><span class="size-tag tiny">tiny</span></td>
+          </tr>
+          <tr>
+            <td>G6 · Geometry persistence</td>
+            <td>Enable eframe's <code>persistence</code> feature.</td>
+            <td><code>Cargo.toml</code></td>
+            <td><span class="size-tag tiny">tiny</span></td>
+          </tr>
+          <tr>
+            <td>G2 · Multi-document</td>
+            <td>Refactor singleton <code>AppState</code> → <code>Vec&lt;Document&gt;</code>, one egui deferred viewport (real OS window) per document. The load-bearing change — details below.</td>
+            <td><code>state.rs</code>, <code>app.rs</code></td>
+            <td><span class="size-tag real">real refactor</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="container">
+    <span class="label reveal">04 — Roadmap</span>
+    <h2 class="reveal">Four phases, each independently shippable.</h2>
+    <p class="section-intro reveal">Click a phase to expand. Phase 2 deliberately precedes the platform shims — once "open file" means "append a document" instead of "replace my state," every open/save/close path changes shape.</p>
+
+    <div class="phase reveal" data-phase>
+      <div class="phase-head">
+        <span class="phase-num">PHASE 1</span>
+        <h3>Quick wins</h3>
+        <span class="phase-tag">days · ships alone</span>
+        <span class="phase-arrow">▶</span>
+      </div>
+      <div class="phase-body"><div class="phase-body-inner">
+        <ul>
+          <li><b>Unsaved-changes prompt</b> on window close and Quit (<code>close_requested</code> + <code>CancelClose</code> + rfd dialog)</li>
+          <li><b>Window title</b> shows document name + dirty indicator; updates on save/load/edit</li>
+          <li><b>Drag-and-drop</b> of .ndbx files onto the window</li>
+          <li><b>Window geometry persistence</b> via eframe's persistence feature</li>
+          <li>Cleanup: stale "not yet integrated" doc comment and blanket <code>#![allow(dead_code)]</code> in <code>native_menu.rs</code>; delete or gitignore the Electron <code>packages/</code> leftovers</li>
+        </ul>
+        <div class="gate">✓ gate: close a dirty document → prompted; reopen app → window where you left it</div>
+      </div></div>
+    </div>
+
+    <div class="phase reveal" data-phase>
+      <div class="phase-head">
+        <span class="phase-num">PHASE 2</span>
+        <h3>Multi-document refactor</h3>
+        <span class="phase-tag">the load-bearing move</span>
+        <span class="phase-arrow">▶</span>
+      </div>
+      <div class="phase-body"><div class="phase-body-inner">
+        <ul>
+          <li><b>Document struct</b>: library, history, dirty flag, pan/zoom, selection, render worker — extracted from the current singleton <code>AppState</code></li>
+          <li><b>One deferred viewport per document</b> — real native OS windows, one process, one event loop</li>
+          <li><b>Menu routing</b>: the app-global native menu dispatches actions to the focused document</li>
+          <li><b>Window menu</b> lists open documents; per-document close prompts; Quit iterates all dirty documents</li>
+          <li>Open ⌘O / recent-file actions create documents instead of replacing state</li>
+        </ul>
+        <div class="gate">✓ gate: two .ndbx files open side-by-side, independent undo stacks, per-window save prompts</div>
+      </div></div>
+    </div>
+
+    <div class="phase reveal" data-phase>
+      <div class="phase-head">
+        <span class="phase-num">PHASE 3</span>
+        <h3>Platform delivery layer</h3>
+        <span class="phase-tag">~300 loc of glue</span>
+        <span class="phase-arrow">▶</span>
+      </div>
+      <div class="phase-body"><div class="phase-body-inner">
+        <ul>
+          <li><b>macOS</b>: objc2 <code>NSApplicationDelegate</code> shim for <code>application:openURLs:</code> → channel → new document in the running app</li>
+          <li><b>Windows</b>: single-instance mutex; second invocation forwards its argv over a named pipe and exits</li>
+          <li><b>Linux</b>: .desktop + shared-mime-info registration in AppImage/deb packaging</li>
+          <li>All three feed one <code>open_file_rx</code> channel the app drains each frame — the portable core never knows the difference</li>
+        </ul>
+        <div class="gate">✓ gate: Finder double-click opens a new document in the already-running app — the full native behavior</div>
+      </div></div>
+    </div>
+
+    <div class="phase reveal" data-phase>
+      <div class="phase-head">
+        <span class="phase-num">PHASE 4</span>
+        <h3>Polish tier</h3>
+        <span class="phase-tag">later · as needed</span>
+        <span class="phase-arrow">▶</span>
+      </div>
+      <div class="phase-body"><div class="phase-body-inner">
+        <ul>
+          <li>Autosave + crash recovery</li>
+          <li>macOS proxy icon and <code>setDocumentEdited:</code> close-button dot</li>
+          <li>⌘` window cycling, full Window-menu conventions</li>
+          <li>Auto-update (Sparkle-style on macOS, equivalent elsewhere)</li>
+        </ul>
+        <div class="gate">✓ gate: indistinguishable from a first-class native document app in daily use</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section id="decisions">
+  <div class="container">
+    <span class="label reveal">05 — Key decisions &amp; risks</span>
+    <h2 class="reveal">What we're betting on, and why it holds.</h2>
+    <div class="insights">
+      <div class="insight reveal">
+        <h3>In-process multi-window, not process-per-document</h3>
+        <p>One process per document is simpler code, but on macOS it breaks the single-app illusion: multiple dock icons, broken ⌘-Tab, and it fights the Apple-event delivery model. egui deferred viewports give real OS windows inside one process.</p>
+      </div>
+      <div class="insight reveal">
+        <h3>One update loop is fine — render is already off-thread</h3>
+        <p>egui deferred viewports run all windows through one <code>App::update</code> on one thread — normally a hazard. But NodeBox already offloads evaluation to <code>render_worker.rs</code>, so per-document workers keep windows independent. The architecture pre-paid for multi-window.</p>
+      </div>
+      <div class="insight reveal">
+        <h3>Refactor before glue</h3>
+        <p>The <code>AppState → Vec&lt;Document&gt;</code> change goes first because it redefines what "open a file" means. The existing <code>Arc&lt;NodeLibrary&gt;</code> copy-on-write pattern already makes documents cheap to snapshot — the design is friendly to this.</p>
+      </div>
+      <div class="insight reveal">
+        <h3>Known risk: winit and Apple events</h3>
+        <p>Open-file event delivery is <em>the</em> long-standing pain point of the Rust desktop ecosystem. The objc2 delegate shim is well-trodden but fiddly: it must compose with eframe's own delegate setup, and needs testing for launch-time delivery (event arrives before the event loop runs) as well as while-running delivery.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bottomline">
+  <div class="container reveal">
+    <blockquote>You don't need a native shell — you need <em>300 lines of lifecycle glue</em> and one real refactor.</blockquote>
+    <p class="sub">The expensive-looking parts — native menus, packaging, file-type registration, the platform trait — are already built and good. What remains is delivery and document plumbing, and both are bounded, sequenced, and independently shippable.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span>NodeBox · Desktop Integration Plan · June 2026</span>
+    <span>branch <code>rewrite-in-rust</code> · audit basis <code>crates/nodebox-desktop</code> @ 1a58546b</span>
+  </div>
+</footer>
+
+<script>
+// Nav scroll state
+const nav = document.getElementById('nav');
+const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 24);
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+// Mobile menu
+const burger = document.getElementById('burger');
+const mobileMenu = document.getElementById('mobileMenu');
+burger.addEventListener('click', () => {
+  burger.classList.toggle('open');
+  mobileMenu.classList.toggle('open');
+});
+mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  burger.classList.remove('open');
+  mobileMenu.classList.remove('open');
+}));
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -60px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Expandable phases
+document.querySelectorAll('[data-phase]').forEach(phase => {
+  const head = phase.querySelector('.phase-head');
+  const body = phase.querySelector('.phase-body');
+  head.addEventListener('click', () => {
+    const isOpen = phase.classList.toggle('open');
+    body.style.maxHeight = isOpen ? body.scrollHeight + 'px' : '0';
+  });
+});
+// Open the first phase by default
+const first = document.querySelector('[data-phase]');
+if (first) {
+  first.classList.add('open');
+  const b = first.querySelector('.phase-body');
+  b.style.maxHeight = b.scrollHeight + 'px';
+}
+</script>
+</body>
+</html>
