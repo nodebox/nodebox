@@ -4,10 +4,14 @@ A generative design toolkit for creating 2D graphics through visual programming 
 
 ## Quick Start
 
-### GUI (Visual Editor)
+### Launching the App
 
 ```bash
-cargo run -p nodebox-gui
+# Run the visual editor
+cargo run
+
+# Open a document directly
+cargo run -- "examples/01 Basics/06 Lists/Compare/Compare.ndbx"
 ```
 
 Opens the visual editor with:
@@ -16,18 +20,17 @@ Opens the visual editor with:
 - **Parameter editor** - Tweak values with sliders and inputs
 - **Timeline** - Animate parameters over time
 
-### Command Line
+You can also open `.ndbx` files by dragging them onto the window.
+
+### macOS App Bundle
+
+To build a proper `NodeBox.app` (with Finder file associations, so
+double-clicking `.ndbx` files opens them):
 
 ```bash
-# Generate demo SVGs
-cargo run -p nodebox-cli -- demo shapes > shapes.svg
-cargo run -p nodebox-cli -- demo spiral > spiral.svg
-
-# Convert text to vector paths
-cargo run -p nodebox-cli -- text "Hello" > hello.svg
-
-# Interactive mode
-cargo run -p nodebox-cli
+./scripts/build-mac-bundle.sh            # release build
+./scripts/build-mac-bundle.sh --debug    # debug build
+open target/release/NodeBox.app
 ```
 
 ## Using as a Library
@@ -37,16 +40,17 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 nodebox-core = { path = "crates/nodebox-core" }
-nodebox-ops = { path = "crates/nodebox-ops" }
-nodebox-svg = { path = "crates/nodebox-svg" }
 ```
+
+Operations and SVG rendering live in the `ops` and `svg` modules of
+`nodebox-core`.
 
 ### Example: Generative Pattern
 
 ```rust
-use nodebox_core::{Point, Color, Path};
-use nodebox_ops::{polygon, star};
-use nodebox_svg::render_to_svg;
+use nodebox_core::{Point, Color};
+use nodebox_core::ops::star;
+use nodebox_core::svg::render_to_svg;
 
 fn main() {
     let mut paths = Vec::new();
@@ -59,7 +63,7 @@ fn main() {
             let rotation = (row + col) as f64 * 15.0;
 
             let mut s = star(Point::new(x, y), 6, 30.0, 15.0);
-            s = nodebox_ops::rotate(&s, Point::new(x, y), rotation);
+            s = nodebox_core::ops::rotate(&s, rotation, Point::new(x, y));
             s.fill = Some(Color::hsb(
                 (row * 5 + col) as f64 / 25.0,  // hue
                 0.7,                              // saturation
@@ -77,9 +81,9 @@ fn main() {
 ### Example: Animated Export
 
 ```rust
-use nodebox_core::{Point, Color, Path};
-use nodebox_ops::polygon;
-use nodebox_svg::render_to_svg;
+use nodebox_core::{Point, Color};
+use nodebox_core::ops::polygon;
+use nodebox_core::svg::render_to_svg;
 use std::f64::consts::PI;
 
 fn main() {
@@ -130,4 +134,4 @@ For Python scripting support (requires Python dev headers):
 cargo build -p nodebox-python
 ```
 
-See [docs/python-nodes.md](docs/python-nodes.md) for writing Python nodes.
+See [crates/nodebox-python/README.md](crates/nodebox-python/README.md) for writing Python nodes.
