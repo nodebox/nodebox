@@ -63,6 +63,7 @@ export default function ShareModal() {
     navigator.clipboard.writeText(link);
   };
 
+  const selfHostZipUrl = `/api/download-published/${userId}/${project.value?.id}`;
   const embedCode = `<iframe src="https://new.nodebox.live/embed/${userId}/${project.value?.id}" width="100%" height="100%" frameborder="0"></iframe>`;
   const relativePublishTime = useRelativeTime(isPublished ? publishDate! : new Date().toISOString());
   return (
@@ -107,6 +108,19 @@ export default function ShareModal() {
             </a>
             .
           </p>
+          {isPublished && (
+            <p className="text-xs text-zinc-500 mt-2">
+              To host it yourself, independent from our servers,{" "}
+              <a href={selfHostZipUrl} download className="underline">
+                download the self-hosting ZIP
+              </a>{" "}
+              and follow the{" "}
+              <a href="https://new.nodebox.live/guide/embedding-nodebox" target="_blank" className="underline">
+                self-hosting instructions
+              </a>
+              .
+            </p>
+          )}
           {/* Publishing */}
           <div className="flex justify-end items-center gap-2 mt-4">
             <span className="flex flex-col items-start gap-1">

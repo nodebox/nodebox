@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import { NodeBoxPlayer, loadMainProject, renderItemToSvgString, renderItem, renderItemToPngBlob } from "@ndbx/runtime";
 
-const DEFAULT_PUBLISHED_URL_TEMPLATE =
-  "https://nodeboxlive.ams3.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/versions/published.json";
-const DEFAULT_ASSETS_URL_TEMPLATE =
-  "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/blobs/{{ hash }}";
-const DEFAULT_LIB_URL_TEMPLATE =
-  "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/lib/{{ file }}.js";
+const DEFAULT_PUBLISHED_URL_TEMPLATE = "https://new.nodebox.live/api/published/{{ userId }}/{{ projectId }}";
+const DEFAULT_ASSETS_URL_TEMPLATE = "https://new.nodebox.live/api/assets/{{ userId }}/{{ projectId }}/blobs/{{ hash }}";
+const DEFAULT_LIB_URL_TEMPLATE = "https://new.nodebox.live/api/fn/{{ userId }}/{{ projectId }}/{{ file }}.js";
 
 function parseNodeBoxUrl(url) {
   const match = url.match(/https?:\/\/[^\/]+\/([^\/]+)\/([^\/]+)/);
