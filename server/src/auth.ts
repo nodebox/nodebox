@@ -4,7 +4,6 @@ import type { Store } from "./store";
 import type { AuthPayload, Bindings, Membership } from "./types";
 
 export const USERS_PUBLIC_SCOPE = ["example", "core"];
-export const ADMIN_USERS = ["fdb"];
 
 export interface AuthVariables {
   store: Store;
@@ -62,12 +61,18 @@ async function getOwnership(c: Context<AppEnv>, userId: string, next: () => Prom
   return next();
 }
 
-export async function checkAdmin(c: Context<AppEnv>) {
+// Admins are marked with role "admin" in their profile (scripts/set-role.mjs).
+export async function adminUserId(c: Context<AppEnv>): Promise<string | undefined> {
   const token = bearerToken(c);
-  if (!token) return false;
+  if (!token) return undefined;
   const decoded = await verifyToken(token, c.env.JWT_SECRET);
-  if (!decoded) return false;
-  return ADMIN_USERS.includes(decoded.userId);
+  if (!decoded) return undefined;
+  try {
+    const profile = await c.var.store.getUserProfile(decoded.userId);
+    return profile.role === "admin" ? decoded.userId : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export const checkOwnershipFromParam: MiddlewareHandler<AppEnv> = (c, next) =>

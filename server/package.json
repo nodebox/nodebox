@@ -9,6 +9,7 @@
     "deploy": "node scripts/build-static.mjs && wrangler deploy",
     "seed": "node scripts/seed-data.mjs --local",
     "seed:remote": "node scripts/seed-data.mjs --remote",
+    "set-role": "node scripts/set-role.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test-dev": "vitest --ui"

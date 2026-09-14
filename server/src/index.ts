@@ -7,8 +7,7 @@ import { marked } from "marked";
 import { zipSync, strToU8 } from "fflate";
 
 import {
-  ADMIN_USERS,
-  checkAdmin,
+  adminUserId,
   checkOwnershipFromBody,
   checkOwnershipFromParam,
   error,
@@ -613,13 +612,14 @@ app.get("/embed/:userId/:projectId/:item?", async (c) => {
 app.get("/admin", (c) => c.html(renderTemplate(adminTemplate, {})));
 
 app.get("/api/admin/current-user", async (c) => {
-  if (!(await checkAdmin(c))) return error(c, "Not logged in", 401);
-  return success(c, { userId: ADMIN_USERS[0] });
+  const userId = await adminUserId(c);
+  if (!userId) return error(c, "Not logged in", 401);
+  return success(c, { userId });
 });
 
 app.post("/admin/reset-password", async (c) => {
   const store = c.var.store;
-  if (!(await checkAdmin(c))) return error(c, "Not logged in", 401);
+  if (!(await adminUserId(c))) return error(c, "Not logged in", 401);
   const { userIdOrEmail, newPassword, confirmPassword } = await c.req.json<{
     userIdOrEmail: string;
     newPassword: string;

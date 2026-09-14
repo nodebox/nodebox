@@ -30,6 +30,7 @@ export interface Profile {
   email: string;
   password: string;
   projects: ProjectInfo[];
+  role?: "admin";
   membership_type?: string;
   membership_until?: string;
   membership_message?: string;
