@@ -1,5 +1,0 @@
-# Copy to .dev.vars for local development (wrangler dev reads it).
-# In production, set these with: wrangler secret put JWT_SECRET
-
-# Secret key for JWT. Generate a new random key using: openssl rand -hex 32
-JWT_SECRET=LONG_RANDOM_STRING_HERE
