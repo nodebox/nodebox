@@ -350,9 +350,10 @@ export function createStore(bucket: R2Bucket, assetsUrl?: string) {
     }
   }
 
-  function assetsUrlTemplate() {
+  // Absolute, because the runtime also evaluates it inside embeds on other sites.
+  function assetsUrlTemplate(origin: string) {
     if (assetsUrl) return `${assetsUrl}/users/{{ userId }}/{{ projectId }}/blobs/{{ hash }}`;
-    return "/api/assets/{{ userId }}/{{ projectId }}/blobs/{{ hash }}";
+    return `${origin}/api/assets/{{ userId }}/{{ projectId }}/blobs/{{ hash }}`;
   }
 
   async function loadAsset(userId: string, projectId: string, assetId: string) {

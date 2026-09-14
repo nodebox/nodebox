@@ -85,14 +85,11 @@ const envType = typeof window === "undefined" ? "node" : "browser";
 
 export const config = {
   apiRoot: "https://new.nodebox.live",
-  publishedUrlTemplate:
-    "https://nodeboxlive.ams3.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/versions/published.json",
+  publishedUrlTemplate: "https://new.nodebox.live/api/published/{{ userId }}/{{ projectId }}",
   // Template for asset URLs
-  assetsUrlTemplate:
-    "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/blobs/{{ hash }}",
+  assetsUrlTemplate: "https://new.nodebox.live/api/assets/{{ userId }}/{{ projectId }}/blobs/{{ hash }}",
   // Template for library URLs
-  libUrlTemplate:
-    "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/lib/{{ file }}.js",
+  libUrlTemplate: "https://new.nodebox.live/api/fn/{{ userId }}/{{ projectId }}/{{ file }}.js",
   // Used to replace @ndbx/g with https://esm.sh/@ndbx/g
   bareImportReplacer: (name: string) => `https://esm.sh/${name}`,
 };

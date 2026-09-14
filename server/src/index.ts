@@ -355,7 +355,7 @@ app.get("/api/projects/:userId/:projectId/:version", getOwnershipFromParam, asyn
     if (project && project.scope == "private" && userId !== c.var.authUserId) {
       return error(c, "Project not accesible");
     }
-    return success(c, { assetsUrlTemplate: store.assetsUrlTemplate(), project });
+    return success(c, { assetsUrlTemplate: store.assetsUrlTemplate(new URL(c.req.url).origin), project });
   } catch (e) {
     return error(c, (e as Error).message, 404);
   }
