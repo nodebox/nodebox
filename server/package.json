@@ -4,33 +4,27 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon --watch src src/index.js",
+    "dev": "node scripts/build-static.mjs && wrangler dev --port 3000",
+    "build": "tsc --noEmit && node scripts/build-static.mjs",
+    "deploy": "node scripts/build-static.mjs && wrangler deploy",
+    "seed": "node scripts/seed-data.mjs --local",
+    "seed:remote": "node scripts/seed-data.mjs --remote",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test-dev": "vitest --ui",
-    "deploy": "node scripts/deploy-to-s3.mjs"
+    "test-dev": "vitest --ui"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.665.0",
-    "@aws-sdk/client-sesv2": "^3.665.0",
-    "@aws-sdk/s3-request-presigner": "^3.665.0",
-    "@nodelib/fs.walk": "^2.0.0",
-    "archiver": "^7.0.1",
-    "bcryptjs": "^2.4.3",
-    "compression": "^1.7.4",
-    "cors": "^2.8.5",
-    "dotenv": "16.4.5",
-    "express": "^4.21.0",
-    "fs-extra": "11.2.0",
-    "helmet": "^8.0.0",
-    "jsonwebtoken": "9.0.2",
-    "marked": "^14.1.2",
-    "nodemailer": "^6.9.15"
+    "bcryptjs": "^3.0.2",
+    "fflate": "^0.8.2",
+    "hono": "^4.6.0",
+    "marked": "^14.1.2"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/fs-extra": "^11.0.4",
-    "nodemon": "3.1.7",
-    "vitest": "^2.1.2"
+    "@aws-sdk/client-s3": "^3.665.0",
+    "@cloudflare/workers-types": "^4.20250914.0",
+    "dotenv": "16.4.5",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.2",
+    "wrangler": "^4.58.0"
   }
 }
