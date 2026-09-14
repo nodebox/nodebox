@@ -98,7 +98,9 @@ export default function RawEditor() {
             {projectId}
           </a>
           <select className="bg-zinc-700 text-xs rounded-md px-2 py-1" onChange={handleChangeItem}>
-            {cx?.project.items.map((item) => <option key={item.name}>{item.name}</option>)}
+            {cx?.project.items.map((item) => (
+              <option key={item.name}>{item.name}</option>
+            ))}
           </select>
         </div>
         <div>

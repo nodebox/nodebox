@@ -396,14 +396,12 @@ function findInputByPosition(
       NODE_WIDTH + PORT_HEIGHT_AFFORDANCE,
       isConnecting ? NODE_HEIGHT : PORT_HEIGHT_AFFORDANCE,
     );
-    if (
-      !(
-        r.containsPoint(x - PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
-        r.containsPoint(x - PORT_MARGIN / 2, y + PORT_MARGIN / 2) ||
-        r.containsPoint(x + PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
-        r.containsPoint(x + PORT_MARGIN / 2, y + PORT_MARGIN / 2)
-      )
-    )
+    if (!(
+      r.containsPoint(x - PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
+      r.containsPoint(x - PORT_MARGIN / 2, y + PORT_MARGIN / 2) ||
+      r.containsPoint(x + PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
+      r.containsPoint(x + PORT_MARGIN / 2, y + PORT_MARGIN / 2)
+    ))
       continue;
     // In order to know which ports the node has, we need to get the node function.
     const fn = cx.lookupItemByName(node.fn);
@@ -427,14 +425,12 @@ function findInputByPosition(
 function findOutputByPosition(cx: Context, network: Network, x: number, y: number): NodeAndPort | null {
   for (const node of networkNodes(network)) {
     const r = new Rect(node.x, node.y + NODE_HEIGHT - PORT_HEIGHT_AFFORDANCE, NODE_WIDTH, PORT_HEIGHT_AFFORDANCE);
-    if (
-      !(
-        r.containsPoint(x - PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
-        r.containsPoint(x - PORT_MARGIN / 2, y + PORT_MARGIN / 2) ||
-        r.containsPoint(x + PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
-        r.containsPoint(x + PORT_MARGIN / 2, y + PORT_MARGIN / 2)
-      )
-    )
+    if (!(
+      r.containsPoint(x - PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
+      r.containsPoint(x - PORT_MARGIN / 2, y + PORT_MARGIN / 2) ||
+      r.containsPoint(x + PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
+      r.containsPoint(x + PORT_MARGIN / 2, y + PORT_MARGIN / 2)
+    ))
       continue;
     const fn = cx.lookupItemByName(node.fn);
     const portIndex = Math.floor((x - node.x + PORT_MARGIN / 2) / (PORT_WIDTH + PORT_MARGIN));
@@ -448,14 +444,12 @@ function findOutputByPosition(cx: Context, network: Network, x: number, y: numbe
 function findInletPortByPosition(network: Network, x: number, y: number): Inlet | undefined {
   for (const inlet of networkInlets(network)) {
     const r = inletPortRect(inlet);
-    if (
-      !(
-        r.containsPoint(x - PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
-        r.containsPoint(x - PORT_MARGIN / 2, y + PORT_MARGIN / 2) ||
-        r.containsPoint(x + PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
-        r.containsPoint(x + PORT_MARGIN / 2, y + PORT_MARGIN / 2)
-      )
-    )
+    if (!(
+      r.containsPoint(x - PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
+      r.containsPoint(x - PORT_MARGIN / 2, y + PORT_MARGIN / 2) ||
+      r.containsPoint(x + PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
+      r.containsPoint(x + PORT_MARGIN / 2, y + PORT_MARGIN / 2)
+    ))
       continue;
     return inlet;
   }
@@ -464,14 +458,12 @@ function findInletPortByPosition(network: Network, x: number, y: number): Inlet 
 function findOutletByPosition(network: Network, x: number, y: number, isConnecting?: boolean): Outlet | undefined {
   for (const outlet of networkOutlets(network)) {
     const r = outletPortRect(outlet, isConnecting);
-    if (
-      !(
-        r.containsPoint(x - PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
-        r.containsPoint(x - PORT_MARGIN / 2, y + PORT_MARGIN / 2) ||
-        r.containsPoint(x + PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
-        r.containsPoint(x + PORT_MARGIN / 2, y + PORT_MARGIN / 2)
-      )
-    )
+    if (!(
+      r.containsPoint(x - PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
+      r.containsPoint(x - PORT_MARGIN / 2, y + PORT_MARGIN / 2) ||
+      r.containsPoint(x + PORT_MARGIN / 2, y - PORT_MARGIN / 2) ||
+      r.containsPoint(x + PORT_MARGIN / 2, y + PORT_MARGIN / 2)
+    ))
       continue;
     return outlet;
   }
