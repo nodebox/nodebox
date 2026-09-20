@@ -19,3 +19,27 @@ Thumbs.db
 # Jython package cache and compiled files
 lib/cachedir
 *$py.class
+
+# TypeScript workspace (packages/*)
+node_modules
+/packages/*/dist
+/packages/*/build
+/packages/server/data/*
+!/packages/server/data/core
+/packages/server/data/core/g/project.json
+/packages/server/data/core/g/versions/published.json
+/packages/server/data/core/plot/project.json
+/packages/server/data/core/plot/versions/published.json
+!/packages/server/data/demo
+!/packages/server/data/example
+!/packages/server/data/skel
+!/packages/server/data/template
+!/packages/server/data/tutorial
+.wrangler
+.dev.vars
+/packages/server/static
+/packages/server/.env
+/packages/server/.env.spaces
+*.log
+llms.txt
+.claude

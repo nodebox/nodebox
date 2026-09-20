@@ -1,0 +1,49 @@
+{
+  "name": "nodebox",
+  "version": "4.0.0-dev",
+  "description": "NodeBox: node-based generative graphics, on the desktop and on the web.",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "g:dev": "npm --workspace @ndbx/g run dev",
+    "g:build": "npm --workspace @ndbx/g run build",
+    "g:test": "npm --workspace @ndbx/g test",
+    "core:dev": "npm --workspace @ndbx/core run dev",
+    "core:build": "npm --workspace @ndbx/core run build",
+    "core:test": "npm --workspace @ndbx/core test",
+    "runtime:dev": "npm --workspace @ndbx/runtime run dev",
+    "runtime:build": "npm --workspace @ndbx/runtime run build",
+    "runtime:test": "npm --workspace @ndbx/runtime test",
+    "server:dev": "npm --workspace @ndbx/server run dev",
+    "server:build": "npm --workspace @ndbx/server run build",
+    "server:seed": "npm --workspace @ndbx/server run seed",
+    "server:test": "npm --workspace @ndbx/server test",
+    "web:dev": "npm --workspace @ndbx/web run dev",
+    "web:build": "npm --workspace @ndbx/web run build",
+    "desktop:dev": "npm --workspace @ndbx/desktop run dev",
+    "desktop:build": "npm --workspace @ndbx/desktop run build",
+    "desktop:test": "npm --workspace @ndbx/desktop test",
+    "build": "npm run g:build && npm run core:build && npm run runtime:build && npm run web:build && npm run server:build",
+    "dev": "concurrently npm:g:dev npm:core:dev npm:runtime:dev npm:web:dev npm:server:dev",
+    "deploy": "npm --workspace @ndbx/server run deploy",
+    "test": "npm run g:test && npm run core:test && npm run runtime:test && npm run server:test",
+    "format": "prettier --write .",
+    "check-format": "prettier --check ."
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "prettier": "^3.3.3"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true,
+    "esbuild@0.28.1": true,
+    "esbuild@0.25.4": true,
+    "workerd@1.20260911.1": true
+  }
+}
