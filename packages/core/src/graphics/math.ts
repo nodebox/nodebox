@@ -88,7 +88,7 @@ export function curvePoint(
   const outY1 = y01 * mint + y12 * t;
   const outX2 = x12 * mint + x23 * t;
   const outY2 = y12 * mint + y23 * t;
-  return new Point(outX1 * mint + outX2 * t, outY1 * mint + outY2 * t, Point.CURVE_TO);
+  return new Point(outX1 * mint + outX2 * t, outY1 * mint + outY2 * t);
 }
 
 /** Axis-aligned extrema of a cubic bezier, as [minX, minY, maxX, maxY]. */

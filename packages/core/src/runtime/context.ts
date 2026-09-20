@@ -160,7 +160,12 @@ export class NodeContext {
     const portArguments = new Map<Port, unknown[]>();
     for (const port of child.inputs) {
       const raw = await this.evaluatePort(networkPath, child, port, networkArgumentMap);
-      let values = this.convertResultsForPort(port, raw.values, raw.sourceType);
+      let values: unknown[];
+      try {
+        values = this.convertResultsForPort(port, raw.values, raw.sourceType);
+      } catch (e) {
+        throw new NodeRenderError(childNodePath, child, new Error(`Cannot convert the value for port ${port.name}: ${e instanceof Error ? e.message : e}`));
+      }
       values = clampResultsForPort(port, values);
       portArguments.set(port, values);
     }

@@ -10,7 +10,19 @@ import {
   renderItemToSvgString,
 } from "@ndbx/runtime";
 import { CanvasSize, Context as GraphicsContext, Shape, Bounds } from "@ndbx/g";
-import { projectId, result, resultVersion, nodeError, currentItem, togglePlay, playState, PlayState } from "./signals";
+import {
+  projectId,
+  result,
+  resultVersion,
+  nodeError,
+  currentItem,
+  togglePlay,
+  playState,
+  PlayState,
+  engine,
+  setEngine,
+} from "./signals";
+import type { Engine } from "@ndbx/runtime";
 import TableViewer from "./table-viewer";
 import DetailViewer from "./detail-viewer";
 import Toggle from "../components/toggle";
@@ -535,6 +547,16 @@ export default function Viewer() {
           <div className="border-l border-r border-zinc-700 px-2 h-10 flex items-center">
             <Icon name={playState.value === PlayState.Playing ? "pause" : "play"} onClick={togglePlay} size={24} />
           </div>
+          <select
+            title="Engine: the Live engine, or the core engine (subnetworks, list matching, NodeBox 3 nodes)"
+            className="text-xs bg-transparent text-zinc-400 px-2 h-10 outline-none"
+            value={engine.value}
+            onChange={(e) => setEngine(e.target.value as Engine)}
+          >
+            <option value="auto">Engine: auto</option>
+            <option value="live">Engine: live</option>
+            <option value="core">Engine: core</option>
+          </select>
         </div>
         <div className="flex gap-2 pr-2">
           {realActiveTab === ViewerMode.Table && (

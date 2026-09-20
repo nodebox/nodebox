@@ -17,8 +17,14 @@ for (const name of names) {
       const node = e.node;
       const cause = e.cause as Error;
       console.log(`FAIL  ${name}: at ${e.nodePath} [${node.prototype} -> ${node.function}] ${cause?.message}`);
-      console.log(`      inputs: ${node.inputs.map((p) => `${p.name}:${p.type}${p.range === "list" ? "[]" : ""}`).join(", ")}`);
-      const frames = (cause?.stack ?? "").split("\n").slice(1, 5).map((l) => l.trim().replace(/^at /, "")).join(" | ");
+      console.log(
+        `      inputs: ${node.inputs.map((p) => `${p.name}:${p.type}${p.range === "list" ? "[]" : ""}`).join(", ")}`,
+      );
+      const frames = (cause?.stack ?? "")
+        .split("\n")
+        .slice(1, 5)
+        .map((l) => l.trim().replace(/^at /, ""))
+        .join(" | ");
       console.log(`      ${frames}`);
     } else {
       console.log(`FAIL  ${name}: ${(e as Error).stack?.split("\n").slice(0, 4).join(" | ")}`);
