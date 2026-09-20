@@ -16,5 +16,5 @@ install:
 build_script:
   - ant dist-win
 artifacts:
-- path: dist\windows\bundles\*.exe
-  name: winstaller
+  - path: dist\windows\bundles\*.exe
+    name: winstaller

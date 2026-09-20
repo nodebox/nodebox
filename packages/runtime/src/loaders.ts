@@ -16,6 +16,7 @@ import RuntimeNode, { defaultValueForType, defaultWidgetForType } from "./runtim
 import { updateFormatVersion } from "./upgrades";
 import { evalTemplate, startCase } from "./string-utils";
 import { findNodeStatements } from "./lexer";
+import { isNativeItem, nativeProject } from "./core-engine";
 
 interface LoadResult {
   status: "ok" | "error";
@@ -122,7 +123,11 @@ async function loadProject(
     return loader.projectMap.get(projectKey)!;
   }
   let result: LoadResult;
-  if (version !== "published") {
+  if (userId === "nodebox") {
+    // The NodeBox 3 built-in libraries come from @ndbx/core, not from the server.
+    const project = nativeProject(projectKey);
+    result = project ? { status: "ok", project: project as unknown as Project } : { status: "error", message: `Unknown built-in library ${projectKey}` };
+  } else if (version !== "published") {
     // If it's not a published project, we're going through the API
     const projectUrl = `${config.apiRoot}/api/projects/${userId}/${projectId}/${version}`;
     result = await loadProjectThroughApi(projectUrl);
@@ -161,6 +166,8 @@ function setMetaDataForItems(project: Project) {
 function analyzeFunctions(project: Project) {
   if (project === undefined) return;
   for (const item of project.items) {
+    // Native items carry their ports and parameters explicitly; there is no source to analyze.
+    if (isNativeItem(item)) continue;
     if (item.type === "FUNCTION") {
       const nodeStatements = findNodeStatements(item.source);
       const { parameters, sections, inputPorts, outputPorts } = parseNodeStatements(nodeStatements);

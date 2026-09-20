@@ -1,6 +1,17 @@
 # Repository Guidelines
 
+## Two Codebases in One Repository
+
+- `packages/` is the TypeScript workspace (npm workspaces): `@ndbx/g`, `@ndbx/core`, `@ndbx/runtime`,
+  `@ndbx/web`, `@ndbx/server`, `@ndbx/desktop`. Its conventions (Prettier, vitest, functional style) are
+  described in `docs/unified-architecture.md`; the Live-era guidelines in `doc/guide` and the package
+  READMEs still apply. `npm run build`, `npm test` and `npm run check-format` must pass.
+- Everything below describes the Java application (NodeBox 3), which stays buildable with Ant.
+- `libraries/*.ndbx` are shared: the Java app loads them at runtime and `@ndbx/core` embeds them at
+  build time (`packages/core/scripts/embed-libraries.mjs`). Change a built-in node there, once.
+
 ## Project Structure & Module Organization
+
 - `src/main/java` holds the core Java application (`nodebox.*` packages).
 - `src/main/python` contains bundled Python node libraries and helpers.
 - `src/main/resources` stores runtime assets and `version.properties`.
@@ -11,6 +22,7 @@
 - `build.xml` (Ant) and `pom.xml` (Maven deps) define the build and test pipeline.
 
 ## Build, Test, and Development Commands
+
 - `ant run` builds and launches NodeBox.
 - `ant test` compiles and runs JUnit tests; XML reports land in `reports/`.
 - `ant test-perf` runs the drag-responsiveness measurement harness (needs a display); writes `build/e2e-artifacts/drag-perf.txt`. Pick a scenario with `-Dperf.example=… -Dperf.node=… -Dperf.port=…`.
@@ -21,19 +33,23 @@
 Prereqs: Java JDK and Apache Ant are required; Maven is used for dependency resolution (see `README.md`).
 
 ## Coding Style & Naming Conventions
+
 - Java: 4-space indentation, braces on the same line, and standard Java naming (classes `UpperCamelCase`, methods `lowerCamelCase`, constants `UPPER_SNAKE_CASE`).
 - Python: follow existing API naming (many public helpers are `lowerCamelCase`), keep function signatures consistent with current modules.
 - Keep edits localized and match the surrounding file’s formatting and ordering.
 
 ## Testing Guidelines
+
 - JUnit is the primary test framework; tests are discovered by `**/*Test.class` in `src/test/java`.
 - Name new Java tests `SomethingTest.java` and keep them close to the package they cover.
 - Run `ant test` before shipping changes that affect core behavior or UI flows.
 
 ## Commit & Pull Request Guidelines
+
 - Recent history favors short, sentence-style commit messages (e.g., “Use Ctrl key on Windows.”). Keep messages concise and specific.
 - PRs should describe the user-visible change, list test commands run, and include screenshots or recordings for UI updates.
 - Link relevant issues or tickets when applicable.
 
 ## Notes for Contributors
+
 - Versioning lives in `src/main/resources/version.properties`; update it when preparing a release build.

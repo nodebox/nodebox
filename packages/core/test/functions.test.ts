@@ -144,7 +144,12 @@ describe("corevector", () => {
     expect(corevector.centroid(copies[2])).toEqual(new Point(40, 0));
   });
   it("grids and stars and polygons", () => {
-    expect(corevector.grid(2, 2, 100, 100, Point.ZERO)).toEqual([new Point(-50, -50), new Point(50, -50), new Point(-50, 50), new Point(50, 50)]);
+    expect(corevector.grid(2, 2, 100, 100, Point.ZERO)).toEqual([
+      new Point(-50, -50),
+      new Point(50, -50),
+      new Point(-50, 50),
+      new Point(50, 50),
+    ]);
     expect(corevector.star(Point.ZERO, 5, 100, 50).pointCount).toBe(10);
     expect(corevector.polygon(Point.ZERO, 50, 6, false).pointCount).toBe(6);
   });

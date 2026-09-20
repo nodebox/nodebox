@@ -29,6 +29,7 @@
     "vitest": "^2.1.2"
   },
   "dependencies": {
+    "@ndbx/core": "*",
     "@ndbx/g": "*",
     "d3-shape": "^3.2.0",
     "json5": "^2.2.3",

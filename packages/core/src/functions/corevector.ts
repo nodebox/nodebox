@@ -623,8 +623,20 @@ export async function importSvg(fileName: string, centered = false, position: Po
   return importSvgString(text, centered, position);
 }
 
+type DomParserClass = new () => DOMParser;
+let domParserClass: DomParserClass | null = null;
+
+/** Install a DOMParser for SVG import outside the browser (e.g. from jsdom or linkedom). */
+export function setDomParser(parser: DomParserClass | null): void {
+  domParserClass = parser;
+}
+
+export function getDomParser(): DomParserClass | null {
+  return domParserClass ?? (globalThis as { DOMParser?: DomParserClass }).DOMParser ?? null;
+}
+
 export function importSvgString(svg: string, centered = false, position: Point = Point.ZERO): Geometry {
-  const parserClass = (globalThis as { DOMParser?: new () => DOMParser }).DOMParser;
+  const parserClass = getDomParser();
   if (!parserClass) throw new Error("Importing SVG needs a DOM parser; install one with setDomParser or run in a browser.");
   const shape = parseSVG(svg, new parserClass());
   let g = fromG(shape);

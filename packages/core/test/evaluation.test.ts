@@ -153,7 +153,13 @@ describe("NodeContext", () => {
   });
 
   it("converts geometry to points", async () => {
-    const line = rootNode("line", "corevector/line", port("point1", "point", new Point(10, 20)), port("point2", "point", new Point(30, 40)), port("points", "int", 2));
+    const line = rootNode(
+      "line",
+      "corevector/line",
+      port("point1", "point", new Point(10, 20)),
+      port("point2", "point", new Point(30, 40)),
+      port("points", "int", 2),
+    );
     line.outputType = "geometry";
     const pt = rootNode("point", "corevector/point", port("value", "point", Point.ZERO));
     pt.outputType = "point";
@@ -254,7 +260,14 @@ describe("NodeContext", () => {
   });
 
   it("applies the list output range", async () => {
-    const slice = rootNode("slice", "list/slice", port("list", "string", "", "list"), port("start", "int", 0), port("size", "int", 1000), port("invert", "boolean", false));
+    const slice = rootNode(
+      "slice",
+      "list/slice",
+      port("list", "string", "", "list"),
+      port("start", "int", 0),
+      port("size", "int", 1000),
+      port("invert", "boolean", false),
+    );
     slice.outputRange = "list";
     const makeStrings = instance(makeStringsNode, "makeStrings", { string: "A;B;C" });
     const makeNumbers = instance(makeNumbersNode, "makeNumbers", { string: "0;1;2", separator: ";" });
@@ -266,7 +279,13 @@ describe("NodeContext", () => {
 
   it("wraps list results of value-range networks", async () => {
     const makeStrings = instance(makeStringsNode, "makeStrings", { string: "A;B;C" });
-    const repeat = rootNode("repeat", "list/repeat", port("value", "list", null, "list"), port("amount", "int", 3), port("per_item", "boolean", false));
+    const repeat = rootNode(
+      "repeat",
+      "list/repeat",
+      port("value", "list", null, "list"),
+      port("amount", "int", 3),
+      port("per_item", "boolean", false),
+    );
     repeat.outputRange = "list";
     const repeatNet = networkNode("repeatNet", repeat);
     repeatNet.renderedChild = "repeat";
@@ -282,7 +301,12 @@ describe("NodeContext", () => {
 
   it("runs a nested filter per element", async () => {
     const makeStrings = instance(makeStringsNode, "makeStrings", { string: "alpha;beta;gamma" });
-    const caseNode = rootNode("changeCase", "string/changeCase", port("value", "string", ""), port("method", "string", "uppercase"));
+    const caseNode = rootNode(
+      "changeCase",
+      "string/changeCase",
+      port("value", "string", ""),
+      port("method", "string", "uppercase"),
+    );
     const caseNet = networkNode("caseNet", caseNode);
     caseNet.renderedChild = "changeCase";
     publish(caseNet, "changeCase", "value", "value");

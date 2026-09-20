@@ -30,6 +30,9 @@ import {
   WidgetType,
   defaultValueForType,
   renderItemToSvgString,
+  chooseEngine,
+  renderItemWithCore,
+  Engine,
 } from "@ndbx/runtime";
 import * as mutation from "@ndbx/runtime/src/mutation";
 import { debounce } from "../util";
@@ -347,7 +350,38 @@ async function _render() {
   _renderItem(fqName, item);
 }
 
+/** Which evaluator renders: the Live engine, or the core engine (subnetworks, NodeBox 3 nodes). */
+export const engine = signal<Engine>((localStorage.getItem("engine") as Engine | null) ?? "auto");
+
+export function setEngine(value: Engine) {
+  engine.value = value;
+  localStorage.setItem("engine", value);
+  if (cx.value) cx.value.runtimeNodes.forEach((node) => (node.dirty = true));
+  requestRender();
+}
+
+async function _renderItemWithCore(item: Item) {
+  try {
+    nodeError.value = null;
+    const value = await renderItemWithCore(cx.value!, item, { frame: coreFrame++ });
+    result.value = value as PortValue;
+  } catch (e) {
+    console.error(`Error evaluating ${item.name} [${item.id}] with the core engine: ${e}`, (e as Error).stack);
+    nodeError.value = e as Error;
+    result.value = null;
+  }
+  _renderRequested = false;
+  resultVersion.value = resultVersion.value + 1;
+  if (playState.value === PlayState.Playing) requestRender();
+}
+
+let coreFrame = 1;
+
 async function _renderItem(fqName: string, item: Item) {
+  if (chooseEngine(project.value!, engine.value) === "core") {
+    await _renderItemWithCore(item);
+    return;
+  }
   let runtimeNode;
   try {
     runtimeNode = await evaluateItem(cx.value!, fqName, item);

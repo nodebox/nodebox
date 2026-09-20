@@ -75,5 +75,5 @@ export default {
     typescript(),
     functionsToJSON(),
   ],
-  external: ["react", "react-dom"],
+  external: ["react", "react-dom", "@ndbx/core"],
 };

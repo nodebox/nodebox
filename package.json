@@ -38,7 +38,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.0.1",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "tsx": "^4.23.15"
   },
   "allowScripts": {
     "esbuild@0.21.5": true,

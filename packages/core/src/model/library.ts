@@ -88,6 +88,13 @@ export class NodeRepository {
   /** Resolve "library.node" to the prototype node, or undefined when unknown. */
   getNode(identifier: string): Node | undefined {
     if (identifier === "_root") return CORE_NODES.ROOT();
+    // NodeBox Live ids: "userId/projectId/Item Name", where the library is named "userId/projectId".
+    if (identifier.includes("/")) {
+      const parts = identifier.split("/");
+      if (parts.length < 3) return undefined;
+      const library = this.libraries.get(`${parts[0]}/${parts[1]}`);
+      return library ? getChild(library.root, parts.slice(2).join("/")) : undefined;
+    }
     const i = identifier.indexOf(".");
     if (i < 0) return undefined;
     const libraryName = identifier.slice(0, i);

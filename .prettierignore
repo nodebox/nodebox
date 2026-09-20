@@ -38,3 +38,5 @@ specs/
 *.xml
 *.nsi
 *.nsh
+packages/core/src/libraries/builtin-ndbx.ts
+packages/desktop/release/

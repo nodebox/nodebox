@@ -10,6 +10,21 @@ import { Text } from "./text";
 
 export type Grob = Path | Geometry | Text | Contour;
 
+/**
+ * Whether a value is an @ndbx/g shape. Duck-typed on purpose: NodeBox Live nodes may import their
+ * own copy of @ndbx/g (from a CDN or a data: URL), so `instanceof` is not reliable across modules.
+ */
+export function isGShape(value: unknown): value is g.Shape {
+  if (value instanceof g.Shape) return true;
+  if (value === null || typeof value !== "object") return false;
+  const v = value as { type?: unknown; toPathData?: unknown; getBounds?: unknown; transform?: unknown };
+  return typeof v.type === "string" && typeof v.toPathData === "function" && typeof v.getBounds === "function" && v.transform !== undefined;
+}
+
+function isGGroup(value: unknown): value is g.Group {
+  return isGShape(value) && (value as g.Group).type === g.ShapeType.Group && Array.isArray((value as g.Group).children);
+}
+
 function toPaint(color: Color | null): g.Paint {
   if (color === null || !color.isVisible()) return g.Paint.none();
   return g.Paint.solid(color.r, color.g, color.b, color.a);
@@ -69,7 +84,7 @@ export function textToG(text: Text): g.Shape {
 /** Convert any render result (a grob, a point, a list of those, or an @ndbx/g shape) to a shape tree. */
 export function toG(value: unknown): g.Shape | null {
   if (value === null || value === undefined) return null;
-  if (value instanceof g.Shape) return value;
+  if (isGShape(value)) return value;
   if (value instanceof Path) return pathToG(value);
   if (value instanceof Geometry) return geometryToG(value);
   if (value instanceof Text) return textToG(value);
@@ -101,7 +116,7 @@ export function fromG(shape: g.Shape): Geometry {
 }
 
 function collect(shape: g.Shape, into: Geometry): void {
-  if (shape instanceof g.Group) {
+  if (isGGroup(shape)) {
     for (const child of shape.children) collect(child, into);
     return;
   }
@@ -158,6 +173,14 @@ function lastOnCurve(path: Path): Point {
 
 function fromPaint(paint: g.Paint | undefined, fallback: Color | null): Color | null {
   if (!paint) return fallback;
+  if (typeof paint === "string") {
+    try {
+      const parsed = g.Paint.parse(paint);
+      return fromPaint(parsed, fallback);
+    } catch {
+      return fallback;
+    }
+  }
   if (paint.type === "solid") {
     const solid = paint as g.SolidPaint;
     return new Color(solid.r, solid.g, solid.b, solid.a);

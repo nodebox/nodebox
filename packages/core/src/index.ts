@@ -6,4 +6,6 @@ export * from "./ndbx";
 export * from "./runtime";
 export * from "./functions";
 export * from "./libraries";
+export * from "./live";
+export * from "./fonts";
 export * from "./document";

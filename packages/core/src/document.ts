@@ -8,6 +8,10 @@ import { builtinFunctionRepository } from "./functions";
 import { builtinNodeRepository } from "./libraries";
 import { ContextOptions, NodeContext } from "./runtime/context";
 import { FunctionRepository } from "./runtime/function-repository";
+import { LiveFunctionLibrary, LiveLibraryOptions } from "./live/library";
+import { LiveProject } from "./live/types";
+import { LiveReadResult, parseLiveProject } from "./live/reader";
+import { writeLiveProject } from "./live/writer";
 
 export interface OpenOptions {
   /** Where the document came from; used for relative paths and the library name. */
@@ -33,6 +37,31 @@ export function openNdbx(xml: string, options: OpenOptions = {}): ReadResult {
 
 export function saveNdbx(library: Library, repository?: NodeRepository): string {
   return writeNdbx(library, { repository: repository ?? builtinNodeRepository() });
+}
+
+export interface OpenLiveOptions {
+  /** "userId/projectId" of the project. Defaults to "self/self". */
+  projectKey?: string;
+  /** Libraries the project depends on (e.g. core/g), already loaded as Live libraries. */
+  dependencies?: Library[];
+  repository?: NodeRepository;
+}
+
+/** Open a NodeBox Live project.json; dependency prototypes resolve against the given libraries. */
+export function openLive(json: string | LiveProject, options: OpenLiveOptions = {}): LiveReadResult {
+  const repository = options.repository ?? NodeRepository.of(...(options.dependencies ?? []));
+  return parseLiveProject(json, { projectKey: options.projectKey, repository });
+}
+
+export function saveLive(library: Library): LiveProject {
+  return writeLiveProject(library);
+}
+
+/** A function library serving the JavaScript items of the given Live libraries. */
+export function liveFunctions(libraries: Library[], options: LiveLibraryOptions = {}): FunctionRepository {
+  const live = new LiveFunctionLibrary(options);
+  for (const library of libraries) live.addLibrary(library);
+  return FunctionRepository.of(live);
 }
 
 export interface RenderOptions extends ContextOptions {

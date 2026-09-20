@@ -21,6 +21,7 @@ export * as device from "./device";
 export * as core from "./core";
 export { setTextFileReader, getTextFileReader, parseCsvTable, parseCsv } from "./data";
 export { setOscSender } from "./device";
+export { setDomParser, getDomParser } from "./corevector";
 export {
   coreLibrary,
   mathLibrary,

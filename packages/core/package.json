@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "generate": "node scripts/embed-libraries.mjs",
-    "build": "node scripts/embed-libraries.mjs && tsc -p tsconfig.build.json",
+    "build": "node scripts/embed-libraries.mjs && tsc -p tsconfig.build.json && node scripts/copy-declarations.mjs",
     "dev": "tsc -p tsconfig.build.json --watch",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/embed-libraries.mjs && vitest run",
@@ -25,9 +25,11 @@
   "license": "GPL-2.0-or-later",
   "dependencies": {
     "@ndbx/g": "*",
+    "opentype.js": "2.0.0",
     "polygon-clipping": "^0.15.7"
   },
   "devDependencies": {
+    "jsdom": "^25.0.1",
     "typescript": "^5.6.2",
     "vitest": "^2.1.2"
   }

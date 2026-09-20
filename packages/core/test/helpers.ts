@@ -55,12 +55,26 @@ export const makeNumbersNode = (() => {
   return n;
 })();
 export const makeStringsNode = (() => {
-  const n = rootNode("makeStrings", "string/makeStrings", port("string", "string", "Alpha;Beta;Gamma"), port("separator", "string", ";"));
+  const n = rootNode(
+    "makeStrings",
+    "string/makeStrings",
+    port("string", "string", "Alpha;Beta;Gamma"),
+    port("separator", "string", ";"),
+  );
   n.outputRange = "list";
   return n;
 })();
 
-export const sideEffects = { theInput: 0, theOutput: 0, theCounter: 0, reset() { this.theInput = 0; this.theOutput = 0; this.theCounter = 0; } };
+export const sideEffects = {
+  theInput: 0,
+  theOutput: 0,
+  theCounter: 0,
+  reset() {
+    this.theInput = 0;
+    this.theOutput = 0;
+    this.theCounter = 0;
+  },
+};
 
 export const testLibraries = new JavaScriptLibrary("side-effects", {
   getNumber: () => sideEffects.theInput,
@@ -94,7 +108,11 @@ export async function renderNode(node: Node, data?: Record<string, unknown>): Pr
   return ctx.render("/");
 }
 
-export async function renderChild(network: Node, child: Node, options: { portOverrides?: Record<string, unknown> } = {}): Promise<unknown[]> {
+export async function renderChild(
+  network: Node,
+  child: Node,
+  options: { portOverrides?: Record<string, unknown> } = {},
+): Promise<unknown[]> {
   const ctx = new NodeContext(libraryWithRoot(network), functions(), options);
   const results = await ctx.renderChild("/", child);
   return results.get("output") ?? [];

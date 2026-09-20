@@ -6,6 +6,7 @@ import { Color } from "../graphics/color";
 import { Contour } from "../graphics/contour";
 import { Geometry, Path } from "../graphics/path";
 import { Point } from "../graphics/point";
+import { fromG, isGShape } from "../graphics/to-g";
 import { Text } from "../graphics/text";
 import { PortType } from "../model/types";
 
@@ -21,6 +22,7 @@ export type ValueType =
   | "path"
   | "contour"
   | "text"
+  | "gshape"
   | "list"
   | "map"
   | "null"
@@ -45,6 +47,7 @@ export function valueType(value: unknown, numberHint: "int" | "float" = "float")
   if (value instanceof Path) return "path";
   if (value instanceof Contour) return "contour";
   if (value instanceof Text) return "text";
+  if (isGShape(value)) return "gshape";
   if (Array.isArray(value)) return "list";
   if (value instanceof Map) return "map";
   return "object";
@@ -65,7 +68,7 @@ export function listType(values: readonly unknown[], numberHint: "int" | "float"
 }
 
 export function isGeometryType(t: ValueType): boolean {
-  return t === "geometry" || t === "path" || t === "contour" || t === "text";
+  return t === "geometry" || t === "path" || t === "contour" || t === "text" || t === "gshape";
 }
 
 /**
@@ -79,10 +82,13 @@ export function convertValues(sourceType: ValueType, targetType: PortType, value
     const points: unknown[] = [];
     for (const v of values) {
       if (v instanceof Text) points.push(...v.getPath().points);
+      else if (isGShape(v)) points.push(...fromG(v).points);
       else if (v instanceof Path || v instanceof Geometry || v instanceof Contour) points.push(...v.points);
     }
     return points;
   }
+  // @ndbx/g shapes from NodeBox Live nodes become geometry for NodeBox 3 nodes.
+  if (sourceType === "gshape" && targetType === "geometry") return values.map((v) => (isGShape(v) ? fromG(v) : v));
   const convert = converter(sourceType, targetType);
   return convert ? values.map(convert) : (values as unknown[]);
 }

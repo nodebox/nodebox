@@ -9,4 +9,5 @@ export * from "./queries";
 export * from "./render";
 export * from "./runtime-node";
 export * from "./export";
+export * from "./core-engine";
 export { config, Context, NodeBoxPlayer, loadMainProject, loadAsset };
