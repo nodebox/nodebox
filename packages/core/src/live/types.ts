@@ -48,6 +48,8 @@ export interface LiveNetwork {
   parameters?: LiveParameter[];
   sections?: LiveSection[];
   __gallery?: unknown;
+  /** The NodeBox 3 output type and range of a converted network (see LivePort.__ndbx). */
+  __ndbx?: { outputType: string; outputRange: string; origin?: "center" };
 }
 
 export type LiveNetworkItem = LiveNode | LiveInlet | LiveOutlet | LiveSticky;
@@ -120,6 +122,8 @@ export interface LivePort {
   name: string;
   type: LivePortType;
   label?: string;
+  /** The NodeBox 3 port type and range, kept because Live types cannot express a list of shapes. */
+  __ndbx?: { type: string; range: string };
 }
 
 export type LiveParameterType = "NUMBER" | "STRING" | "BOOLEAN" | "POINT" | "COLOR" | "FILE" | "CHOICE";
@@ -140,7 +144,8 @@ export interface LiveParameter {
 
 export type LiveLiteralValue = number | string | boolean | LivePoint | LiveColor;
 
-export type LiveParameterValue = { type: "VALUE"; value: LiveLiteralValue } | { type: "EXPRESSION"; expression: string };
+export type LiveParameterValue =
+  { type: "VALUE"; value: LiveLiteralValue } | { type: "EXPRESSION"; expression: string };
 
 export interface LiveChoice {
   name: string;

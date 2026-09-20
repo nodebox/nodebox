@@ -14,7 +14,18 @@ import { getChild, uniqueName } from "../model/node";
 import { isPublishedPort, portLabel } from "../model/port";
 import { Library, Node, Port } from "../model/types";
 import { builtinNodeRepository } from "../libraries";
-import { LIVE_FORMAT_VERSION, LiveConnection, LiveFunctionItem, LiveItem, LiveNetworkItem, LiveParameter, LiveParameterValue, LivePort, LivePortType, LiveProject } from "./types";
+import {
+  LIVE_FORMAT_VERSION,
+  LiveConnection,
+  LiveFunctionItem,
+  LiveItem,
+  LiveNetworkItem,
+  LiveParameter,
+  LiveParameterValue,
+  LivePort,
+  LivePortType,
+  LiveProject,
+} from "./types";
 
 export const NATIVE_USER_ID = "nodebox";
 
@@ -35,7 +46,9 @@ export function nativeProjectKey(libraryName: string): string {
 }
 
 /** Live projects for the built-in NodeBox 3 libraries, keyed by "nodebox/<library>". */
-export function nativeLibraryProjects(repository: NodeRepository = builtinNodeRepository()): Record<string, LiveProject> {
+export function nativeLibraryProjects(
+  repository: NodeRepository = builtinNodeRepository(),
+): Record<string, LiveProject> {
   const projects: Record<string, LiveProject> = {};
   for (const library of repository.getLibraries()) {
     if (library.sourceFormat === "live") continue;
@@ -68,7 +81,13 @@ function nativeItem(node: Node, prototype: string, id: string): NativeFunctionIt
   const outputPorts: LivePort[] =
     node.outputs.length > 0
       ? node.outputs.map((p) => ({ name: p.name, type: livePortTypeFor(p), label: portLabel(p) }))
-      : [{ name: "output", type: node.outputRange === "list" ? "TABLE" : outputTypeFor(node.outputType), label: "Output" }];
+      : [
+          {
+            name: "output",
+            type: node.outputRange === "list" ? "TABLE" : outputTypeFor(node.outputType),
+            label: "Output",
+          },
+        ];
   return {
     type: "FUNCTION",
     native: true,
@@ -104,7 +123,20 @@ function outputTypeFor(type: string): LivePortType {
 }
 
 export function portToLiveParameter(port: Port): LiveParameter {
-  const type = port.type === "float" || port.type === "int" ? "NUMBER" : port.type === "boolean" ? "BOOLEAN" : port.type === "point" ? "POINT" : port.type === "color" ? "COLOR" : port.widget === "file" || port.widget === "image" ? "FILE" : port.menuItems.length > 0 || port.widget === "menu" ? "CHOICE" : "STRING";
+  const type =
+    port.type === "float" || port.type === "int"
+      ? "NUMBER"
+      : port.type === "boolean"
+        ? "BOOLEAN"
+        : port.type === "point"
+          ? "POINT"
+          : port.type === "color"
+            ? "COLOR"
+            : port.widget === "file" || port.widget === "image"
+              ? "FILE"
+              : port.menuItems.length > 0 || port.widget === "menu"
+                ? "CHOICE"
+                : "STRING";
   const widget = port.widget === "text" ? "TEXT" : type === "CHOICE" ? "CHOICE" : (type as LiveParameter["widget"]);
   return {
     name: port.name,
@@ -167,7 +199,10 @@ export function libraryToLiveProject(library: Library, options: ConvertOptions =
       if (child.isNetwork) {
         fn = `self/self/${hoist(child, child.name)}`;
       } else if (child.prototype && child.prototype.includes(".") && repository.getNode(child.prototype)) {
-        const [lib, nodeName] = [child.prototype.slice(0, child.prototype.indexOf(".")), child.prototype.slice(child.prototype.indexOf(".") + 1)];
+        const [lib, nodeName] = [
+          child.prototype.slice(0, child.prototype.indexOf(".")),
+          child.prototype.slice(child.prototype.indexOf(".") + 1),
+        ];
         dependencies[nativeProjectKey(lib)] = "dev";
         fn = `${nativeProjectKey(lib)}/${nodeName}`;
       } else if (child.prototype && child.prototype.includes("/")) {
@@ -176,13 +211,27 @@ export function libraryToLiveProject(library: Library, options: ConvertOptions =
         // A node defined in the document itself (a prototype sibling or a custom function node).
         fn = `self/self/${hoistFunction(child)}`;
       }
-      children.push({ type: "NODE", id, name: child.name, x: Math.round(child.position.x * gridSize), y: Math.round(child.position.y * gridSize), fn, values: valuesOf(child) });
+      children.push({
+        type: "NODE",
+        id,
+        name: child.name,
+        x: Math.round(child.position.x * gridSize),
+        y: Math.round(child.position.y * gridSize),
+        fn,
+        values: valuesOf(child),
+      });
     }
     for (const c of network.connections) {
       const outNode = ids.get(c.outputNode);
       const inNode = ids.get(c.inputNode);
       if (!outNode || !inNode) continue;
-      connections.push({ type: "NODE_TO_NODE", outNode, outPort: c.outputPort ?? "output", inNode, inPort: c.inputPort });
+      connections.push({
+        type: "NODE_TO_NODE",
+        outNode,
+        outPort: c.outputPort ?? "output",
+        inNode,
+        inPort: c.inputPort,
+      });
     }
     const inputPorts: LivePort[] = [];
     const parameters: LiveParameter[] = [];
@@ -191,8 +240,20 @@ export function libraryToLiveProject(library: Library, options: ConvertOptions =
       if (isPublishedPort(port)) {
         const inletId = freshId();
         const type = livePortTypeFor(port);
-        children.push({ type: "INLET", id: inletId, x: -gridSize * 3, y: (inletY += gridSize), portName: port.name, portType: type });
-        inputPorts.push({ name: port.name, type, label: portLabel(port) });
+        children.push({
+          type: "INLET",
+          id: inletId,
+          x: -gridSize * 3,
+          y: (inletY += gridSize),
+          portName: port.name,
+          portType: type,
+        });
+        inputPorts.push({
+          name: port.name,
+          type,
+          label: portLabel(port),
+          __ndbx: { type: port.type, range: port.range },
+        });
         const [childName, childPort] = port.childReference!.split(".");
         const inNode = ids.get(childName);
         if (inNode) connections.push({ type: "INLET_TO_NODE", inlet: inletId, inNode, inPort: childPort });
@@ -205,16 +266,41 @@ export function libraryToLiveProject(library: Library, options: ConvertOptions =
     if (renderedNode) {
       const outletId = freshId();
       const child = getChild(network, network.renderedChild)!;
-      const type: LivePortType = network.outputRange === "list" && network.outputType !== "geometry" ? "TABLE" : outputTypeFor(network.outputType || child.outputType);
+      const type: LivePortType =
+        network.outputRange === "list" && network.outputType !== "geometry"
+          ? "TABLE"
+          : outputTypeFor(network.outputType || child.outputType);
       children.push({ type: "OUTLET", id: outletId, x: gridSize * 8, y: gridSize, portName: "output", portType: type });
       outputPorts.push({ name: "output", type, label: "Output" });
       connections.push({ type: "NODE_TO_OUTLET", outNode: renderedNode, outPort: "output", outlet: outletId });
     }
     for (const sticky of network.stickies) {
-      children.push({ type: "STICKY", id: sticky.id || freshId(), x: sticky.x, y: sticky.y, width: sticky.width, height: sticky.height, backgroundColor: colorOf(sticky.backgroundColor), text: sticky.text, fontSize: sticky.fontSize, fontColor: colorOf(sticky.fontColor) });
+      children.push({
+        type: "STICKY",
+        id: sticky.id || freshId(),
+        x: sticky.x,
+        y: sticky.y,
+        width: sticky.width,
+        height: sticky.height,
+        backgroundColor: colorOf(sticky.backgroundColor),
+        text: sticky.text,
+        fontSize: sticky.fontSize,
+        fontColor: colorOf(sticky.fontColor),
+      });
     }
     if (network.comment) {
-      children.push({ type: "STICKY", id: freshId(), x: 0, y: -gridSize * 2, width: 320, height: 40, backgroundColor: { r: 1, g: 1, b: 0.85, a: 0.9 }, text: network.comment, fontSize: 12, fontColor: { r: 0.1, g: 0.1, b: 0.1, a: 1 } });
+      children.push({
+        type: "STICKY",
+        id: freshId(),
+        x: 0,
+        y: -gridSize * 2,
+        width: 320,
+        height: 40,
+        backgroundColor: { r: 1, g: 1, b: 0.85, a: 0.9 },
+        text: network.comment,
+        fontSize: 12,
+        fontColor: { r: 0.1, g: 0.1, b: 0.1, a: 1 },
+      });
     }
     items.push({
       type: "NETWORK",
@@ -234,6 +320,8 @@ export function libraryToLiveProject(library: Library, options: ConvertOptions =
       outputPorts,
       parameters,
       sections: [],
+      // NodeBox 3 canvases are centered on the origin; the viewer honours "origin".
+      __ndbx: { outputType: network.outputType, outputRange: network.outputRange, origin: "center" },
     });
     return itemName;
   };

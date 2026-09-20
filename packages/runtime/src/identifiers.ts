@@ -37,7 +37,9 @@ export function checkProjectId(id: string): boolean {
 }
 
 export function checkFunctionId(id: string): boolean {
-  return /^[a-z0-9\-]{3,32}\/[a-z0-9\-]{1,32}\/[a-zA-Z0-9:\-\s]{2,32}$/.test(id);
+  // Item names from NodeBox 3 documents use underscores ("random_numbers", "gear_") and can be
+  // longer than the names the editor creates.
+  return /^[a-z0-9\-]{3,32}\/[a-z0-9\-]{1,32}\/[a-zA-Z0-9:\-\s_]{1,64}$/.test(id);
 }
 
 export function generateUniqueName(prefix: string, existingNames: string[]): string {

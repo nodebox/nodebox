@@ -6,7 +6,18 @@ import { Point } from "../graphics/point";
 import { splitReference } from "../model/node";
 import { isPublishedPort } from "../model/port";
 import { Library, Node, Port } from "../model/types";
-import { LIVE_FORMAT_VERSION, LiveColor, LiveConnection, LiveItem, LiveLiteralValue, LiveNetworkItem, LiveParameter, LiveParameterValue, LivePortType, LiveProject } from "./types";
+import {
+  LIVE_FORMAT_VERSION,
+  LiveColor,
+  LiveConnection,
+  LiveItem,
+  LiveLiteralValue,
+  LiveNetworkItem,
+  LiveParameter,
+  LiveParameterValue,
+  LivePortType,
+  LiveProject,
+} from "./types";
 
 export function writeLiveProject(library: Library): LiveProject {
   const projectKey = String(library.meta.projectKey ?? "self/self");
@@ -59,12 +70,19 @@ function networkToItem(node: Node, projectKey: string, freshId: () => string): L
       name: child.name,
       x: child.position.x,
       y: child.position.y,
-      fn: child.prototype && child.prototype.includes("/") ? child.prototype : `${projectKey}/${child.prototype ?? child.name}`,
+      fn:
+        child.prototype && child.prototype.includes("/")
+          ? child.prototype
+          : `${projectKey}/${child.prototype ?? child.name}`,
       values: valuesOf(child),
     });
   }
-  const inletMeta = (node.meta.liveInlets as { id: string; x: number; y: number; portName: string; portType: LivePortType }[] | undefined) ?? [];
-  const outletMeta = (node.meta.liveOutlets as { id: string; x: number; y: number; portName: string; portType: LivePortType }[] | undefined) ?? [];
+  const inletMeta =
+    (node.meta.liveInlets as
+      { id: string; x: number; y: number; portName: string; portType: LivePortType }[] | undefined) ?? [];
+  const outletMeta =
+    (node.meta.liveOutlets as
+      { id: string; x: number; y: number; portName: string; portType: LivePortType }[] | undefined) ?? [];
   const connections: LiveConnection[] = [];
   for (const c of node.connections) {
     const outNode = ids.get(c.outputNode);
@@ -77,7 +95,14 @@ function networkToItem(node: Node, projectKey: string, freshId: () => string): L
   for (const port of node.inputs) {
     if (isPublishedPort(port)) {
       const meta = inletMeta.find((i) => i.portName === port.name);
-      const inlet = { type: "INLET" as const, id: meta?.id ?? freshId(), x: meta?.x ?? 0, y: meta?.y ?? 0, portName: port.name, portType: meta?.portType ?? toLivePortType(port) };
+      const inlet = {
+        type: "INLET" as const,
+        id: meta?.id ?? freshId(),
+        x: meta?.x ?? 0,
+        y: meta?.y ?? 0,
+        portName: port.name,
+        portType: meta?.portType ?? toLivePortType(port),
+      };
       children.push(inlet);
       inputPorts.push({ name: port.name, type: inlet.portType });
       const [childName, childPort] = splitReference(port.childReference!);
@@ -100,7 +125,14 @@ function networkToItem(node: Node, projectKey: string, freshId: () => string): L
   const outputPorts: { name: string; type: LivePortType }[] = [];
   for (const port of node.outputs) {
     const meta = outletMeta.find((o) => o.portName === port.name);
-    const outlet = { type: "OUTLET" as const, id: meta?.id ?? freshId(), x: meta?.x ?? 0, y: meta?.y ?? 0, portName: port.name, portType: meta?.portType ?? toLivePortType(port) };
+    const outlet = {
+      type: "OUTLET" as const,
+      id: meta?.id ?? freshId(),
+      x: meta?.x ?? 0,
+      y: meta?.y ?? 0,
+      portName: port.name,
+      portType: meta?.portType ?? toLivePortType(port),
+    };
     children.push(outlet);
     outputPorts.push({ name: port.name, type: outlet.portType });
     if (port.childReference) {
@@ -165,7 +197,14 @@ function valuesOf(node: Node): Record<string, LiveParameterValue> | undefined {
   const values: Record<string, LiveParameterValue> = {};
   const changed = (node.meta.liveValueNames as string[] | undefined) ?? undefined;
   for (const port of node.inputs) {
-    if (port.type === "table" || port.type === "shape" || port.type === "spec" || port.type === "list" || port.type === "geometry") continue;
+    if (
+      port.type === "table" ||
+      port.type === "shape" ||
+      port.type === "spec" ||
+      port.type === "list" ||
+      port.type === "geometry"
+    )
+      continue;
     if (port.expression !== undefined) {
       values[port.name] = { type: "EXPRESSION", expression: port.expression };
     } else if (changed === undefined || changed.includes(port.name)) {
@@ -188,7 +227,20 @@ function colorToLive(c: Color): LiveColor {
 }
 
 function portToParameter(port: Port): LiveParameter {
-  const type = port.type === "float" || port.type === "int" ? "NUMBER" : port.type === "boolean" ? "BOOLEAN" : port.type === "point" ? "POINT" : port.type === "color" ? "COLOR" : port.widget === "file" ? "FILE" : port.menuItems.length > 0 ? "CHOICE" : "STRING";
+  const type =
+    port.type === "float" || port.type === "int"
+      ? "NUMBER"
+      : port.type === "boolean"
+        ? "BOOLEAN"
+        : port.type === "point"
+          ? "POINT"
+          : port.type === "color"
+            ? "COLOR"
+            : port.widget === "file"
+              ? "FILE"
+              : port.menuItems.length > 0
+                ? "CHOICE"
+                : "STRING";
   return {
     name: port.name,
     type,

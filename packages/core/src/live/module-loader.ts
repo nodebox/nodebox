@@ -16,7 +16,8 @@ export interface ModuleLoaderOptions {
   resolveProjectImport?: (projectKey: string, itemName: string) => string | undefined;
 }
 
-const BARE_IMPORT_RE = /(\bimport\s*(?:[\w*{}\s,$]+\s*from\s*)?|\bexport\s*(?:[\w*{}\s,$]+\s*from\s*))(["'])([^"']+)\2/g;
+const BARE_IMPORT_RE =
+  /(\bimport\s*(?:[\w*{}\s,$]+\s*from\s*)?|\bexport\s*(?:[\w*{}\s,$]+\s*from\s*))(["'])([^"']+)\2/g;
 const DYNAMIC_IMPORT_RE = /\bimport\(\s*(["'])([^"']+)\1\s*\)/g;
 
 function defaultResolveBareImport(specifier: string): string {
@@ -119,7 +120,12 @@ export class LiveModuleLoader {
 }
 
 function toDataUrl(source: string): string {
-  if (typeof Blob !== "undefined" && typeof URL !== "undefined" && typeof URL.createObjectURL === "function" && isBrowser()) {
+  if (
+    typeof Blob !== "undefined" &&
+    typeof URL !== "undefined" &&
+    typeof URL.createObjectURL === "function" &&
+    isBrowser()
+  ) {
     return URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
   }
   return `data:text/javascript;charset=utf-8,${encodeURIComponent(source)}`;

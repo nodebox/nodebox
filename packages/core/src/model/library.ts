@@ -93,7 +93,10 @@ export class NodeRepository {
       const parts = identifier.split("/");
       if (parts.length < 3) return undefined;
       const library = this.libraries.get(`${parts[0]}/${parts[1]}`);
-      return library ? getChild(library.root, parts.slice(2).join("/")) : undefined;
+      if (library) return getChild(library.root, parts.slice(2).join("/"));
+      // "nodebox/<library>/<node>" is how Live projects name the built-in NodeBox 3 nodes.
+      if (parts[0] === "nodebox") return this.getNode(`${parts[1]}.${parts.slice(2).join("/")}`);
+      return undefined;
     }
     const i = identifier.indexOf(".");
     if (i < 0) return undefined;

@@ -11,6 +11,8 @@ import {
   NodeRepository,
   builtinFunctionRepository,
   builtinNodeRepository,
+  getFontProvider,
+  installOpenTypeFonts,
   isNativeItem,
   liveFunctions,
   nativeLibraryProjects,
@@ -25,8 +27,9 @@ import { Item, Project } from "./types";
 /** Whether the project must run on the core engine (native NodeBox 3 items or subnetwork calls). */
 export function needsCoreEngine(project: Project): boolean {
   if (Object.keys(project.dependencies ?? {}).some((key) => key.startsWith("nodebox/"))) return true;
-  const networkNames = new Set(project.items.filter((item) => item.type === "NETWORK").map((item) => item.name));
-  return project.items.some(
+  const items = project.items ?? [];
+  const networkNames = new Set(items.filter((item) => item.type === "NETWORK").map((item) => item.name));
+  return items.some(
     (item) =>
       item.type === "NETWORK" &&
       item.children.some((child) => {
@@ -84,8 +87,34 @@ export function coreLibraries(cx: Context): { main: Library; all: Library[]; rep
   return { main, all, repository };
 }
 
+let fontsReady: Promise<void> | null = null;
+
+/**
+ * Text nodes need outlines: in a browser, fetch the fonts the web app ships (DejaVu Sans, the same
+ * fallback face the Java engine ended up with) once and install them as the core's font provider.
+ * Node hosts install their own provider (see @ndbx/core/fonts/node).
+ */
+export function ensureCoreFonts(): Promise<void> {
+  if (fontsReady) return fontsReady;
+  fontsReady = (async () => {
+    if (getFontProvider() || typeof window === "undefined" || typeof fetch !== "function") return;
+    try {
+      const buffers: { buffer: ArrayBuffer }[] = [];
+      for (const file of ["DejaVuSans.ttf", "DejaVuSans-Bold.ttf"]) {
+        const response = await fetch(`/fonts/${file}`);
+        if (response.ok) buffers.push({ buffer: await response.arrayBuffer() });
+      }
+      if (buffers.length > 0) installOpenTypeFonts(buffers);
+    } catch (e) {
+      console.warn("Could not load the bundled fonts; text nodes will render without outlines.", e);
+    }
+  })();
+  return fontsReady;
+}
+
 /** Render one item of the project with the core engine and return its primary result. */
 export async function renderItemWithCore(cx: Context, item: Item, data: Record<string, unknown> = {}): Promise<unknown> {
+  await ensureCoreFonts();
   const { main, all } = coreLibraries(cx);
   const functions = builtinFunctionRepository().combine(
     liveFunctions(all, {

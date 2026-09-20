@@ -46,7 +46,9 @@ export class LiveFunctionLibrary implements FunctionLibrary {
     const projectKey = String(library.meta.projectKey ?? library.name);
     for (const link of library.functionLinks) {
       if (link.language !== "javascript" || link.source === undefined) continue;
-      const itemName = link.href.startsWith("module:") ? link.href.slice("module:".length).split("/").slice(2).join("/") : link.href;
+      const itemName = link.href.startsWith("module:")
+        ? link.href.slice("module:".length).split("/").slice(2).join("/")
+        : link.href;
       this.addSource(projectKey, itemName, link.source);
     }
   }
@@ -89,7 +91,11 @@ export class LiveFunctionLibrary implements FunctionLibrary {
     };
   }
 
-  private runtimeNodeFor(invocation: Invocation, initializer: ((node: unknown) => void) | undefined, id: string): LiveRuntimeNode {
+  private runtimeNodeFor(
+    invocation: Invocation,
+    initializer: ((node: unknown) => void) | undefined,
+    id: string,
+  ): LiveRuntimeNode {
     const key = `live-node:${invocation.nodePath}`;
     const existing = invocation.context.persistent.get(key) as { id: string; node: LiveRuntimeNode } | undefined;
     if (existing && existing.id === id) {
@@ -155,14 +161,16 @@ function toLiveValue(value: unknown, portType: string): unknown {
   if (value === null || value === undefined) return null;
   if (portType === "shape") {
     if (isGShape(value)) return value;
-    if (value instanceof Path || value instanceof Geometry || value instanceof Text || value instanceof Contour) return toG(value);
+    if (value instanceof Path || value instanceof Geometry || value instanceof Text || value instanceof Contour)
+      return toG(value);
     if (Array.isArray(value)) return toG(value);
     return value;
   }
   if (portType === "table") {
     if (!Array.isArray(value)) return [value];
     // Scalars become rows with a `value` column so expressions like `value` work on them.
-    if (value.length > 0 && value.every((v) => v === null || typeof v !== "object")) return value.map((v) => ({ value: v }));
+    if (value.length > 0 && value.every((v) => v === null || typeof v !== "object"))
+      return value.map((v) => ({ value: v }));
     return value;
   }
   return value;

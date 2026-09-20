@@ -190,6 +190,12 @@ function CanvasViewer({ item, result, showAttributes, drawPoints, drawBounds }: 
     }
 
   let svgSize: CanvasSize = { left: 0, top: 0, width: item.width ?? 1000, height: item.height ?? 1000 };
+  // Documents converted from NodeBox 3 draw around the origin, not from the top-left corner.
+  const origin = (item as Network & { __ndbx?: { origin?: string } }).__ndbx?.origin;
+  if (origin === "center") {
+    svgSize.left = -svgSize.width / 2;
+    svgSize.top = -svgSize.height / 2;
+  }
   if (result && result.getBounds && (item as Network).canvasSize === "auto") {
     const autoSize: Bounds = result.getBounds();
     svgSize.left = autoSize.left;

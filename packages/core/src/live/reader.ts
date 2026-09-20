@@ -19,6 +19,7 @@ import {
   LiveFunctionItem,
   LiveInlet,
   LiveNetwork,
+  LiveNode,
   LiveOutlet,
   LiveParameter,
   LiveParameterValue,
@@ -69,7 +70,8 @@ export function parseLiveProject(json: string | LiveProject, options: LiveReadOp
     assets: { ...(project.assets ?? {}) },
     title: project.title,
     description: project.description,
-    color: typeof project.color === "string" ? project.color : project.color ? toColor(project.color).toString() : undefined,
+    color:
+      typeof project.color === "string" ? project.color : project.color ? toColor(project.color).toString() : undefined,
     sourceFormat: "live",
     meta: {
       projectKey,
@@ -100,12 +102,30 @@ export function parseLiveProject(json: string | LiveProject, options: LiveReadOp
   const resolvePrototype = (fn: string): Node | undefined => {
     const [userId, projectId, ...rest] = fn.split("/");
     const itemName = rest.join("/");
-    if ((userId === "self" && projectId === "self") || `${userId}/${projectId}` === projectKey) return itemNodes.get(itemName);
+    if ((userId === "self" && projectId === "self") || `${userId}/${projectId}` === projectKey)
+      return itemNodes.get(itemName);
     return repository.getNode(fn);
   };
-  for (const item of project.items ?? []) {
-    if (item.type !== "NETWORK") continue;
-    fillNetwork(itemNodes.get(item.name)!, item, resolvePrototype, warnings);
+  // Instances copy their prototype's children, so a network is filled only after the networks it
+  // uses; a cycle (a network calling itself through another) falls back to file order.
+  const networkNames = new Set((project.items ?? []).filter((i) => i.type === "NETWORK").map((i) => i.name));
+  const localNetworkRefs = (item: LiveNetwork): string[] =>
+    (item.children ?? [])
+      .filter((c): c is LiveNode => c.type === "NODE")
+      .map((c) => c.fn)
+      .filter((fn) => fn.startsWith("self/self/") || fn.startsWith(`${projectKey}/`))
+      .map((fn) => fn.split("/").slice(2).join("/"))
+      .filter((name) => networkNames.has(name) && name !== item.name);
+  const pending = (project.items ?? []).filter((i): i is LiveNetwork => i.type === "NETWORK");
+  const filled = new Set<string>();
+  while (pending.length > 0) {
+    const ready = pending.filter((item) => localNetworkRefs(item).every((name) => filled.has(name)));
+    const batch = ready.length > 0 ? ready : [pending[0]];
+    for (const item of batch) {
+      fillNetwork(itemNodes.get(item.name)!, item, resolvePrototype, warnings);
+      filled.add(item.name);
+      pending.splice(pending.indexOf(item), 1);
+    }
   }
   const mainItem = (project.items ?? []).find((i) => i.type === "NETWORK");
   if (mainItem) root.renderedChild = mainItem.name;
@@ -252,7 +272,12 @@ function literalToValue(type: PortType, value: unknown): Port["value"] {
   }
 }
 
-function fillNetwork(node: Node, item: LiveNetwork, resolvePrototype: (fn: string) => Node | undefined, warnings: string[]): void {
+function fillNetwork(
+  node: Node,
+  item: LiveNetwork,
+  resolvePrototype: (fn: string) => Node | undefined,
+  warnings: string[],
+): void {
   node.category = item.category ?? "";
   node.description = item.description ?? "";
   node.meta.liveId = item.id;
@@ -277,7 +302,9 @@ function fillNetwork(node: Node, item: LiveNetwork, resolvePrototype: (fn: strin
         instance = createRootNode();
         instance.name = child.name;
         instance.prototype = child.fn;
-        instance.function = child.fn.includes("/") ? liveFunctionId(child.fn.split("/").slice(0, 2).join("/"), child.fn.split("/").slice(2).join("/")) : child.fn;
+        instance.function = child.fn.includes("/")
+          ? liveFunctionId(child.fn.split("/").slice(0, 2).join("/"), child.fn.split("/").slice(2).join("/"))
+          : child.fn;
         instance.meta.missingPrototype = true;
       }
       instance.position = new Point(child.x, child.y);
@@ -327,7 +354,11 @@ function fillNetwork(node: Node, item: LiveNetwork, resolvePrototype: (fn: strin
       const { type, range } = livePortType(inlet.portType);
       const child = node.children.find((n) => n.name === inNode);
       const childPort = child ? getInput(child, c.inPort) : undefined;
-      const port = createPort(inlet.portName, childPort?.type ?? type, { range: childPort?.range ?? range, widget: "none", childReference: reference });
+      const port = createPort(inlet.portName, childPort?.type ?? type, {
+        range: childPort?.range ?? range,
+        widget: "none",
+        childReference: reference,
+      });
       if (childPort) port.value = childPort.value;
       if (existing) Object.assign(existing, port);
       else node.inputs.push(port);
@@ -340,7 +371,11 @@ function fillNetwork(node: Node, item: LiveNetwork, resolvePrototype: (fn: strin
       }
       const { type, range } = livePortType(outlet.portType);
       const existing = node.outputs.find((p) => p.name === outlet.portName);
-      const port = createPort(outlet.portName, type, { range, widget: "none", childReference: `${outNode}.${c.outPort}` });
+      const port = createPort(outlet.portName, type, {
+        range,
+        widget: "none",
+        childReference: `${outNode}.${c.outPort}`,
+      });
       if (existing) Object.assign(existing, port);
       else node.outputs.push(port);
     }
@@ -352,17 +387,47 @@ function fillNetwork(node: Node, item: LiveNetwork, resolvePrototype: (fn: strin
       node.inputs.push(createPort(inlet.portName, type, { range, widget: "none" }));
     }
   }
+  // Ports converted from NodeBox 3 keep their exact type and range (a Live SHAPE port cannot say
+  // "list of geometry").
+  for (const port of item.inputPorts ?? []) {
+    const original = port.__ndbx;
+    const target = original && node.inputs.find((p) => p.name === port.name);
+    if (original && target) {
+      target.type = original.type as PortType;
+      target.range = original.range as PortRange;
+    }
+  }
   for (const outlet of outlets.values()) {
     if (!node.outputs.some((p) => p.name === outlet.portName)) {
       const { type, range } = livePortType(outlet.portType);
       node.outputs.push(createPort(outlet.portName, type, { range, widget: "none" }));
     }
   }
-  node.meta.liveInlets = [...inlets.values()].map((i) => ({ id: i.id, x: i.x, y: i.y, portName: i.portName, portType: i.portType }));
-  node.meta.liveOutlets = [...outlets.values()].map((o) => ({ id: o.id, x: o.x, y: o.y, portName: o.portName, portType: o.portType }));
+  node.meta.liveInlets = [...inlets.values()].map((i) => ({
+    id: i.id,
+    x: i.x,
+    y: i.y,
+    portName: i.portName,
+    portType: i.portType,
+  }));
+  node.meta.liveOutlets = [...outlets.values()].map((o) => ({
+    id: o.id,
+    x: o.x,
+    y: o.y,
+    portName: o.portName,
+    portType: o.portType,
+  }));
   if (node.outputs.length > 0) {
     node.outputType = node.outputs[0].type;
     node.outputRange = node.outputs[0].range;
+  }
+  if (item.__ndbx) {
+    node.outputType = item.__ndbx.outputType as PortType;
+    node.outputRange = item.__ndbx.outputRange as PortRange;
+    for (const output of node.outputs) {
+      output.type = node.outputType;
+      output.range = node.outputRange;
+    }
   }
   if (item.renderedNode) {
     const rendered = nameOf(item.renderedNode);
@@ -404,7 +469,8 @@ function stickyFrom(s: LiveSticky) {
 /** The NodeBox Live format upgrades (packages/runtime/src/upgrades.ts). */
 export function upgradeLiveProject(project: LiveProject, warnings: string[] = []): LiveProject {
   let version = project.formatVersion ?? 1;
-  if (version > LIVE_FORMAT_VERSION) throw new LiveLoadError("Invalid project format version. You might want to retry later on.");
+  if (version > LIVE_FORMAT_VERSION)
+    throw new LiveLoadError("Invalid project format version. You might want to retry later on.");
   const p = structuredClone(project);
   const renameNodes = (from: string, to: string, renameName?: (name: string) => string) => {
     for (const item of p.items ?? []) {
@@ -422,7 +488,8 @@ export function upgradeLiveProject(project: LiveProject, warnings: string[] = []
       renameNodes("core/g/load-csv", "core/g/import-data", (n) => n.replace(/load-csv/i, "import-data"));
       warnings.push("Renamed load-csv nodes to import-data.");
     } else if (version === 2) {
-      for (const item of p.items ?? []) if (item.type === "NETWORK" && !Array.isArray(item.outputPorts)) item.outputPorts = [];
+      for (const item of p.items ?? [])
+        if (item.type === "NETWORK" && !Array.isArray(item.outputPorts)) item.outputPorts = [];
     } else if (version === 3) {
       for (const item of p.items ?? []) {
         if (item.type !== "NETWORK") continue;
@@ -452,7 +519,11 @@ export function slugToTitle(slug: string): string {
 }
 
 /** Build a library (e.g. "core/g") from a set of function sources keyed by slug. */
-export function libraryFromFunctionSources(projectKey: string, sources: Record<string, string>, title = projectKey): Library {
+export function libraryFromFunctionSources(
+  projectKey: string,
+  sources: Record<string, string>,
+  title = projectKey,
+): Library {
   const items: LiveFunctionItem[] = Object.keys(sources)
     .sort((a, b) => a.localeCompare(b))
     .map((slug, i) => ({ type: "FUNCTION", id: `0:${i + 1}`, name: slugToTitle(slug), source: sources[slug] }));

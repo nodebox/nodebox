@@ -2,7 +2,15 @@
 // NodeBox Live does at load time (packages/runtime/src/lexer.ts and loaders.ts). The statements
 // `node.numberIn({...})` etc. are found by a small tokenizer that skips strings and comments.
 
-import { LiveChoice, LiveParameter, LiveParameterType, LivePort, LivePortType, LiveSection, LiveWidgetType } from "./types";
+import {
+  LiveChoice,
+  LiveParameter,
+  LiveParameterType,
+  LivePort,
+  LivePortType,
+  LiveSection,
+  LiveWidgetType,
+} from "./types";
 
 enum TokenType {
   String,
@@ -84,7 +92,11 @@ export function findNodeStatements(source: string): string[] {
     let text = "node." + method.value;
     for (let j = i + 3; j < tokens.length; j++) {
       const t = tokens[j];
-      text += t.type === TokenType.Punctuation ? t.value : (j > i + 3 && tokens[j - 1].type === TokenType.Identifier && t.type === TokenType.Identifier ? " " : "") + t.value;
+      text +=
+        t.type === TokenType.Punctuation
+          ? t.value
+          : (j > i + 3 && tokens[j - 1].type === TokenType.Identifier && t.type === TokenType.Identifier ? " " : "") +
+            t.value;
       if (t.value === "(" || t.value === "{" || t.value === "[") depth++;
       else if (t.value === ")" || t.value === "}" || t.value === "]") {
         depth--;
@@ -133,8 +145,18 @@ export function analyzeFunctionSource(source: string): FunctionSignature {
     const argsText = statement.slice(statement.indexOf("(") + 1, statement.lastIndexOf(")"));
     const args = parseArguments(argsText);
     if (PARAMETER_TYPES[method]) parameters.push(createParameter(PARAMETER_TYPES[method], args, currentSection?.name));
-    else if (INPUT_TYPES[method]) inputPorts.push({ name: String(args.name ?? ""), type: INPUT_TYPES[method], label: args.label as string | undefined });
-    else if (OUTPUT_TYPES[method]) outputPorts.push({ name: String(args.name ?? ""), type: OUTPUT_TYPES[method], label: args.label as string | undefined });
+    else if (INPUT_TYPES[method])
+      inputPorts.push({
+        name: String(args.name ?? ""),
+        type: INPUT_TYPES[method],
+        label: args.label as string | undefined,
+      });
+    else if (OUTPUT_TYPES[method])
+      outputPorts.push({
+        name: String(args.name ?? ""),
+        type: OUTPUT_TYPES[method],
+        label: args.label as string | undefined,
+      });
     else if (method === "pushSection") {
       currentSection = { name: String(args.name ?? ""), collapsed: Boolean(args.collapsed) };
       sections.push(currentSection);

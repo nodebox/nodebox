@@ -39,7 +39,13 @@ export class LiveParameter {
   step = 1;
   binding: ParameterBinding = {};
 
-  constructor(node: LiveRuntimeNode, name: string, type: LiveParameterType, defaultValue?: unknown, choices?: LiveChoice[]) {
+  constructor(
+    node: LiveRuntimeNode,
+    name: string,
+    type: LiveParameterType,
+    defaultValue?: unknown,
+    choices?: LiveChoice[],
+  ) {
     this.node = node;
     this.name = name;
     this.type = type;
@@ -147,7 +153,14 @@ export class LiveRuntimeNode {
     return p;
   }
 
-  numberIn(args: { name: string; value?: unknown; min?: number; max?: number; step?: number; label?: string }): LiveParameter {
+  numberIn(args: {
+    name: string;
+    value?: unknown;
+    min?: number;
+    max?: number;
+    step?: number;
+    label?: string;
+  }): LiveParameter {
     const p = new LiveParameter(this, args.name, "NUMBER", args.value);
     if (args.min !== undefined) p.min = args.min;
     if (args.max !== undefined) p.max = args.max;
@@ -156,7 +169,13 @@ export class LiveRuntimeNode {
     return this.addParameter(p);
   }
 
-  stringIn(args: { name: string; value?: unknown; widget?: LiveWidgetType; choices?: unknown; label?: string }): LiveParameter {
+  stringIn(args: {
+    name: string;
+    value?: unknown;
+    widget?: LiveWidgetType;
+    choices?: unknown;
+    label?: string;
+  }): LiveParameter {
     const p = new LiveParameter(this, args.name, "STRING", args.value);
     if (args.widget) p.widget = args.widget;
     if (args.choices) p.choices = parseChoices(args.choices);
