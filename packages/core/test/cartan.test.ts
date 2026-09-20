@@ -4,6 +4,7 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import { createContext, openNdbx, setTextFileReader } from "../src";
+import { installBundledFonts } from "../src/fonts/node";
 
 const file = process.env.NODEBOX_CARTAN_LIBRARY;
 const present = file !== undefined && fs.existsSync(file);
@@ -13,6 +14,7 @@ describe("Cartan Node Library", () => {
     "loads with every prototype resolved and renders its pure subnetworks",
     async () => {
       setTextFileReader((f) => fs.readFileSync(f, "utf-8"));
+      installBundledFonts();
       const { library, warnings } = openNdbx(fs.readFileSync(file!, "utf-8"), { file });
       expect(warnings.filter((w) => w.includes("could not be found"))).toEqual([]);
       expect(library.root.children.length).toBeGreaterThan(400);

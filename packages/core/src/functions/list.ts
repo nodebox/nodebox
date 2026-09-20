@@ -172,9 +172,44 @@ export function keys(list: unknown): string[] {
   const result = new Set<string>();
   for (const o of toArray(list)) {
     if (o instanceof Map) for (const k of o.keys()) result.add(String(k));
-    else if (o !== null && typeof o === "object" && !Array.isArray(o)) for (const k of Object.keys(o)) result.add(k);
+    else if (o !== null && o !== undefined) for (const k of javaProperties(o)) result.add(k);
   }
   return Array.from(result);
+}
+
+// Java's keys() lists the bean properties of anything that isn't a map (java.beans.Introspector on
+// a JDK 11). Third-party networks probe them ("is this a map with two keys?"), so mirror the lists.
+const JAVA_PROPERTIES: Record<string, string[]> = {
+  string: ["blank", "bytes", "class", "empty"],
+  float: ["class", "infinite", "naN"],
+  int: ["class"],
+  boolean: ["class"],
+  Point: ["class", "curveData", "curveTo", "lineTo", "offCurve", "onCurve", "type", "x", "y"],
+  Path: ["bounds", "class", "closed", "contours", "empty", "fill", "fillColor", "generalPath", "length", "pointCount",
+    "points", "stroke", "strokeColor", "strokeWidth", "transformDelegate"],
+  Geometry: ["bounds", "class", "closed", "empty", "fill", "fillColor", "length", "paths", "pointCount", "points",
+    "stroke", "strokeColor", "strokeWidth", "transformDelegate"],
+  Contour: ["bounds", "class", "closed", "empty", "length", "pointCount", "points", "transformDelegate"],
+  Color: ["a", "alpha", "awtColor", "b", "blue", "brightness", "class", "g", "green", "h", "hue", "r", "red", "s",
+    "saturation", "v", "visible"],
+  Text: ["align", "baseLineX", "baseLineY", "bounds", "class", "empty", "fillColor", "font", "fontName", "fontSize",
+    "height", "lineHeight", "metrics", "path", "text", "transform", "transformDelegate", "width"],
+  Rect: ["centroid", "class", "empty", "height", "position", "rectangle2D", "width", "x", "y"],
+};
+
+function javaProperties(o: unknown): string[] {
+  if (typeof o === "string") return JAVA_PROPERTIES.string;
+  // Numbers are doubles unless they came from an int port, which the value alone cannot tell;
+  // NodeBox numbers are floats far more often than not.
+  if (typeof o === "number") return JAVA_PROPERTIES.float;
+  if (typeof o === "boolean") return JAVA_PROPERTIES.boolean;
+  if (typeof o === "object") {
+    if (Array.isArray(o)) return ["class", "empty"];
+    const name = (o as object).constructor?.name ?? "Object";
+    if (name === "Object") return Object.keys(o as object);
+    return JAVA_PROPERTIES[name] ?? ["class"];
+  }
+  return [];
 }
 
 export function zipMap(keyList: unknown, valueList: unknown): Record<string, unknown> {

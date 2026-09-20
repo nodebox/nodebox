@@ -13,8 +13,14 @@ export function string(s: string): string {
 
 export function makeStrings(s: string, separator: string): string[] {
   if (s === null || s === undefined) return [];
-  if (!separator) return Array.from(s);
+  // Guava's Splitter always yields at least one piece: "" splits into [""].
+  if (!separator) return fixedLengthPieces(s);
   return s.split(separator);
+}
+
+/** Splitter.fixedLength(1): one piece per UTF-16 unit, and [""] for the empty string. */
+function fixedLengthPieces(s: string): string[] {
+  return s.length === 0 ? [""] : s.split("");
 }
 
 export function length(s: string): number {
@@ -146,7 +152,7 @@ export function formatNumber(value: number, format: string): string {
 }
 
 export function characters(s: string): string[] {
-  return s === null || s === undefined ? [] : Array.from(s);
+  return s === null || s === undefined ? [] : fixedLengthPieces(s);
 }
 
 export function randomCharacter(characterSet: string, amount: number, seed: number): string[] {

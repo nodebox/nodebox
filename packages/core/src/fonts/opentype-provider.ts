@@ -6,6 +6,13 @@ import * as opentype from "opentype.js";
 import { Path } from "../graphics/path";
 import { FontProvider, setFontProvider } from "../graphics/text";
 
+// Node's ESM loader hands us the CommonJS build under "default"; bundlers give the namespace itself.
+type OpenTypeModule = { parse: (buffer: ArrayBuffer) => opentype.Font };
+const opentypeApi: OpenTypeModule =
+  (opentype as unknown as { parse?: unknown }).parse !== undefined
+    ? (opentype as unknown as OpenTypeModule)
+    : (opentype as unknown as { default: OpenTypeModule }).default;
+
 export interface RegisteredFont {
   family: string;
   style: string;
@@ -29,7 +36,7 @@ export class OpenTypeFontProvider implements FontProvider {
 
   /** Parse a TrueType/OpenType file (ArrayBuffer) and register it. */
   registerBuffer(buffer: ArrayBuffer, family?: string, style?: string): opentype.Font {
-    const font = opentype.parse(buffer);
+    const font = opentypeApi.parse(buffer);
     this.register(font, family, style);
     return font;
   }
@@ -96,41 +103,157 @@ export class OpenTypeFontProvider implements FontProvider {
     return path;
   }
 
+  ascent(fontName: string, fontSize: number): number {
+    const font = this.lookup(fontName);
+    if (!font) return fontSize * 0.93;
+    return (font.ascender / font.unitsPerEm) * fontSize;
+  }
+
   width(text: string, fontName: string, fontSize: number): number {
     const font = this.lookup(fontName);
     if (!font) return text.length * fontSize * 0.5;
-    try {
-      return font.getAdvanceWidth(text, fontSize);
-    } catch {
-      return advanceWidth(font, text, fontSize);
-    }
+    return advanceWidth(font, text, fontSize, true);
+  }
+
+  measure(text: string, fontName: string, fontSize: number): number {
+    const font = this.lookup(fontName);
+    if (!font) return text.length * fontSize * 0.5;
+    return advanceWidth(font, text, fontSize, false);
   }
 }
 
 /**
- * The outline commands for a string. opentype.js's shaping fails on some GSUB tables; fall back
- * to laying out the glyphs one by one without substitutions.
+ * The outline commands for a string, laid out glyph by glyph without kerning or substitutions,
+ * the way AWT's TextLayout did for NodeBox 3. TrueType outlines are walked exactly as FreeType's
+ * FT_Outline_Decompose does (same start point, implied midpoints, closing line), in 26.6 fixed
+ * point, so coordinates agree with the Java engine to the 1/64 pixel.
  */
 function glyphCommands(font: opentype.Font, text: string, fontSize: number): opentype.PathCommand[] {
+  const commands: opentype.PathCommand[] = [];
+  const scale = fixedSize(fontSize) / font.unitsPerEm;
+  let x = 0;
+  let previous: opentype.Glyph | null = null;
+  for (const char of text) {
+    const glyph = font.charToGlyph(char);
+    if (previous) x += kerning(font, previous, glyph) * scale;
+    if (glyph.points && glyph.points.length > 0) commands.push(...trueTypeCommands(glyph.points, scale, x));
+    else for (const cmd of glyph.getPath(0, 0, fontSize).commands) commands.push(shifted(quantized(cmd), x));
+    x += (glyph.advanceWidth ?? 0) * scale;
+    previous = glyph;
+  }
+  return commands;
+}
+
+/**
+ * Pair kerning in font units. HarfBuzz (behind AWT since JDK 9) applies the kern feature by
+ * default; opentype.js only reads simple GPOS pairs, so the legacy kern table comes first.
+ */
+function kerning(font: opentype.Font, left: opentype.Glyph, right: opentype.Glyph): number {
+  const pair = font.kerningPairs?.[`${left.index},${right.index}`];
+  if (pair !== undefined) return pair;
   try {
-    return font.getPath(text, 0, 0, fontSize).commands;
+    return font.getKerningValue(left, right) || 0;
   } catch {
-    const commands: opentype.PathCommand[] = [];
-    const scale = fontSize / font.unitsPerEm;
-    let x = 0;
-    for (const char of text) {
-      const glyph = font.charToGlyph(char);
-      commands.push(...glyph.getPath(x, 0, fontSize).commands);
-      x += (glyph.advanceWidth ?? 0) * scale;
-    }
-    return commands;
+    return 0;
   }
 }
 
-function advanceWidth(font: opentype.Font, text: string, fontSize: number): number {
-  const scale = fontSize / font.unitsPerEm;
+interface FixedPoint {
+  x: number;
+  y: number;
+  on: boolean;
+}
+
+/** Walk TrueType contours like FT_Outline_Decompose, in 26.6 units; emit pixel commands (y down). */
+function trueTypeCommands(points: opentype.GlyphPoint[], scale: number, dx: number): opentype.PathCommand[] {
+  const out: opentype.PathCommand[] = [];
+  const fixed = (v: number) => Math.sign(v) * Math.round(Math.abs(v) * scale * 64);
+  const px = (p: { x: number; y: number }) => ({ x: dx + p.x / 64, y: -p.y / 64 });
+  const contours: FixedPoint[][] = [];
+  let current: FixedPoint[] = [];
+  for (const p of points) {
+    current.push({ x: fixed(p.x), y: fixed(p.y), on: p.onCurve });
+    if (p.lastPointOfContour) {
+      contours.push(current);
+      current = [];
+    }
+  }
+  if (current.length > 0) contours.push(current);
+
+  for (const contour of contours) {
+    if (contour.length === 0) continue;
+    let limit = contour.length;
+    let index = 0;
+    let vStart = contour[0];
+    const vLast = contour[contour.length - 1];
+    if (!vStart.on) {
+      // A contour that starts off-curve begins at its last point (if on-curve) or the midpoint.
+      if (vLast.on) {
+        vStart = vLast;
+        limit--;
+      } else {
+        vStart = { x: Math.trunc((vStart.x + vLast.x) / 2), y: Math.trunc((vStart.y + vLast.y) / 2), on: true };
+      }
+      index = -1;
+    }
+    const s = px(vStart);
+    out.push({ type: "M", x: s.x, y: s.y } as opentype.PathCommand);
+    let control: FixedPoint | null = null;
+    for (index++; index < limit; index++) {
+      const p = contour[index];
+      if (p.on) {
+        if (control === null) {
+          const q = px(p);
+          out.push({ type: "L", x: q.x, y: q.y } as opentype.PathCommand);
+        } else {
+          out.push(quad(px(control), px(p)));
+          control = null;
+        }
+      } else if (control === null) {
+        control = p;
+      } else {
+        const mid = { x: Math.trunc((control.x + p.x) / 2), y: Math.trunc((control.y + p.y) / 2), on: true };
+        out.push(quad(px(control), px(mid)));
+        control = p;
+      }
+    }
+    if (control !== null) out.push(quad(px(control), s));
+    else out.push({ type: "L", x: s.x, y: s.y } as opentype.PathCommand);
+    out.push({ type: "Z" } as opentype.PathCommand);
+  }
+  return out;
+}
+
+function quad(c: { x: number; y: number }, p: { x: number; y: number }): opentype.PathCommand {
+  return { type: "Q", x1: c.x, y1: c.y, x: p.x, y: p.y } as opentype.PathCommand;
+}
+
+function shifted(cmd: opentype.PathCommand, dx: number): opentype.PathCommand {
+  const s = (v: number | undefined) => (v === undefined ? v : v + dx);
+  return { ...cmd, x: s(cmd.x)!, x1: s(cmd.x1), x2: s(cmd.x2) } as opentype.PathCommand;
+}
+
+// Outlines without point data (CFF) are still snapped to the 1/64 pixel grid FreeType used.
+function quantized(cmd: opentype.PathCommand): opentype.PathCommand {
+  const q = (v: number | undefined) => (v === undefined ? v : Math.sign(v) * Math.round(Math.abs(v) * 64) / 64);
+  return { ...cmd, x: q(cmd.x)!, y: q(cmd.y)!, x1: q(cmd.x1), y1: q(cmd.y1), x2: q(cmd.x2), y2: q(cmd.y2) } as opentype.PathCommand;
+}
+
+/** FT_Set_Char_Size takes the size in 26.6 fixed point, so fractional sizes truncate to 1/64. */
+function fixedSize(fontSize: number): number {
+  return Math.floor(fontSize * 64) / 64;
+}
+
+function advanceWidth(font: opentype.Font, text: string, fontSize: number, kerned: boolean): number {
+  const scale = fixedSize(fontSize) / font.unitsPerEm;
   let width = 0;
-  for (const char of text) width += (font.charToGlyph(char).advanceWidth ?? 0) * scale;
+  let previous: opentype.Glyph | null = null;
+  for (const char of text) {
+    const glyph = font.charToGlyph(char);
+    if (previous && kerned) width += kerning(font, previous, glyph) * scale;
+    width += (glyph.advanceWidth ?? 0) * scale;
+    previous = glyph;
+  }
   return width;
 }
 

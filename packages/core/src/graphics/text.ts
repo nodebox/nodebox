@@ -18,6 +18,14 @@ export interface FontProvider {
   width(text: string, fontName: string, fontSize: number): number;
   /** Whether the font can be resolved by this provider. */
   hasFont?(fontName: string): boolean;
+  /** Ascent of the font at this size (the line advance is ascent * lineHeight, as in AWT). */
+  ascent?(fontName: string, fontSize: number): number;
+  /** Advance width without kerning: what AWT's LineBreakMeasurer compares against the box width. */
+  measure?(text: string, fontName: string, fontSize: number): number;
+}
+
+function ascentOf(fontName: string, fontSize: number): number {
+  return fontProvider?.ascent?.(fontName, fontSize) ?? fontSize * 0.93;
 }
 
 let fontProvider: FontProvider | null = null;
@@ -82,22 +90,39 @@ export class Text {
     return this.text.length === 0;
   }
 
-  /** The lines of text after wrapping at the box width (0 means no wrapping). */
+  /**
+   * The lines of text after wrapping at the box width (0 means no wrapping). Like AWT's
+   * LineBreakMeasurer: break after spaces, and inside a word only when the word alone is too wide.
+   */
   lines(): string[] {
     const paragraphs = this.text.split(/\r?\n/);
     if (this.width <= 0 || !fontProvider) return paragraphs;
+    const provider = fontProvider;
+    const measure = provider.measure?.bind(provider) ?? provider.width.bind(provider);
+    const fits = (s: string) => measure(s.replace(/ +$/, ""), this.fontName, this.fontSize) <= this.width;
+    // Lines keep their trailing spaces: the layout's advance (used for centering) includes them.
     const lines: string[] = [];
     for (const paragraph of paragraphs) {
-      const words = paragraph.split(" ");
+      const chunks = paragraph.match(/[^ ]* */g)?.filter((c) => c.length > 0) ?? [];
       let line = "";
-      for (const word of words) {
-        const candidate = line ? `${line} ${word}` : word;
-        if (line && fontProvider.width(candidate, this.fontName, this.fontSize) > this.width) {
-          lines.push(line);
-          line = word;
-        } else {
-          line = candidate;
+      for (const chunk of chunks) {
+        if (fits(line + chunk)) {
+          line += chunk;
+          continue;
         }
+        if (line !== "") {
+          lines.push(line);
+          line = "";
+        }
+        // The chunk alone is too wide: take as many characters as fit, at least one per line.
+        let rest = chunk;
+        while (!fits(rest)) {
+          let n = 1;
+          while (n < rest.length && fits(rest.slice(0, n + 1))) n++;
+          lines.push(rest.slice(0, n));
+          rest = rest.slice(n);
+        }
+        line = rest;
       }
       lines.push(line);
     }
@@ -106,7 +131,8 @@ export class Text {
 
   /** Horizontal offset of a line's start relative to the baseline x, following the alignment. */
   private lineOffset(lineWidth: number): number {
-    const boxWidth = this.width > 0 ? this.width : lineWidth;
+    // Without a box the text hangs from its origin: centered or right-aligned around x (as in Java).
+    const boxWidth = this.width > 0 ? this.width : 0;
     switch (this.align) {
       case "RIGHT":
         return boxWidth - lineWidth;
@@ -129,7 +155,7 @@ export class Text {
       const x = this.baseLineX + this.lineOffset(lineWidth);
       const outline = fontProvider.outline(line, this.fontName, this.fontSize);
       path.extend(outline.transformed(Transform.translated(x, y)));
-      y += this.fontSize * this.lineHeight;
+      y += ascentOf(this.fontName, this.fontSize) * this.lineHeight;
     }
     path.newContour();
     return this.transform.isIdentity() ? path : path.transformed(this.transform);
@@ -139,18 +165,25 @@ export class Text {
     return this.getPath();
   }
 
-  /** The metrics as NodeBox 3 reports them: the union of the line boxes, before the transform. */
+  /**
+   * The metrics as NodeBox 3 reports them: the union of each line's ink bounds relative to the
+   * line's own origin (Java unions TextLayout.getBounds() without compensating x and y).
+   */
   getMetrics(): Rect {
     const lines = this.lines();
+    if (lines.length === 0 || lines.every((line) => line === "")) return new Rect();
     let width = this.width;
     if (fontProvider) {
-      for (const line of lines) width = Math.max(width, fontProvider.width(line, this.fontName, this.fontSize));
+      // TextLayout.getBounds() spans from the layout origin to the ink, so include x = 0.
+      let union = new Rect(0, 0, 0, 0);
+      for (const line of lines) union = union.united(fontProvider.outline(line, this.fontName, this.fontSize).getBounds());
+      return union;
     } else {
       // Rough estimate: an average glyph is about half an em wide.
       for (const line of lines) width = Math.max(width, line.length * this.fontSize * 0.5);
     }
-    const ascent = this.fontSize * 0.8;
-    const height = lines.length * this.fontSize * this.lineHeight;
+    const ascent = ascentOf(this.fontName, this.fontSize);
+    const height = lines.length * ascent * this.lineHeight;
     return new Rect(this.baseLineX, this.baseLineY - ascent, width, height);
   }
 

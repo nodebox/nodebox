@@ -129,16 +129,13 @@ export function colorize(shape: unknown, fill: Color, stroke: Color, strokeWidth
 }
 
 export function connect(points: unknown, closed: boolean): Path | Geometry | null {
+  if (points === null || points === undefined) return null;
   const list = toArray(points);
-  if (list.length === 0) return null;
   const firstItem = list[0];
   if (isShape(firstItem)) {
     if (list.length === 1) return connectPoints(pointsOf(firstItem), closed);
     const g = new Geometry();
-    for (const el of list) {
-      const p = connectPoints(pointsOf(el), closed);
-      if (p) g.add(p);
-    }
+    for (const el of list) g.add(connectPoints(pointsOf(el), closed));
     return g;
   }
   return connectPoints(list.filter((p): p is Point => p instanceof Point), closed);
@@ -152,11 +149,10 @@ function pointsOf(shape: unknown): Point[] {
   return [];
 }
 
-function connectPoints(points: Point[], closed: boolean): Path | null {
-  if (points.length < 2) return null;
+function connectPoints(points: Point[], closed: boolean): Path {
   const p = new Path();
-  p.moveto(points[0].x, points[0].y);
-  for (const pt of points.slice(1)) p.lineto(pt.x, pt.y);
+  // Points keep their type, so connecting the points of a curve gives the curve back (as in Java).
+  for (const pt of points) p.addPoint(pt);
   if (closed) p.close();
   p.fillColor = null;
   p.strokeColor = Color.BLACK;

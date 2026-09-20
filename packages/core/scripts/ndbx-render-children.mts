@@ -7,6 +7,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createContext, openNdbx, setTextFileReader, toG } from "../src/index.ts";
+import { installBundledFonts } from "../src/fonts/node.ts";
 
 const args = process.argv.slice(2);
 const file = args[0];
@@ -14,6 +15,7 @@ const pattern = new RegExp(args[1] && !args[1].startsWith("--") ? args[1] : "_$"
 const limitIndex = args.indexOf("--limit");
 const limit = limitIndex >= 0 ? parseInt(args[limitIndex + 1], 10) : Infinity;
 setTextFileReader((f) => fs.readFileSync(f, "utf-8"));
+installBundledFonts();
 
 const { library } = openNdbx(fs.readFileSync(file, "utf-8"), { file: path.resolve(file) });
 const names = library.root.children

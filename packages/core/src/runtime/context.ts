@@ -209,12 +209,45 @@ export class NodeContext {
         const outputName = connection.outputPort ?? primaryOutputName(outputNode);
         let values = outputResults.get(outputName) ?? [];
         if (isFileWidget(childPort)) values = values.map((v) => this.resolvePath(String(v)));
-        const outputPort = outputPorts(outputNode).find((p) => p.name === outputName);
-        return { values, sourceType: outputPort?.type };
+        return { values, sourceType: this.sourceTypeOf(networkPath, outputNode, outputName) };
       }
     }
     const value = this.getPortValue(childPath(networkPath, child.name), child, childPort);
     return { values: value === null || value === undefined ? [] : [value], sourceType: childPort.type };
+  }
+
+  /**
+   * The declared type of a node's output, followed through list nodes and networks: JavaScript has
+   * one number type, so whether a value was a Java Long or Double (which decides how it converts to
+   * a string) has to be read off the node that produced it.
+   */
+  private sourceTypeOf(networkPath: string, node: Node, outputName: string, depth = 0): string | undefined {
+    const outputPort = outputPorts(node).find((p) => p.name === outputName);
+    const type = outputPort?.type;
+    if (depth > 24) return type;
+    // A network's declared output type is a default ("float"); its rendered child knows better.
+    if (node.isNetwork) {
+      const child = getChild(node, node.renderedChild);
+      if (!child) return type;
+      return this.sourceTypeOf(childPath(networkPath, node.name), child, primaryOutputName(child), depth + 1) ?? type;
+    }
+    // List nodes and "null" pass their elements through; look at what feeds them.
+    if (node.function.startsWith("list/") || node.function === "corevector/doNothing") {
+      const network = this.nodeMap.get(networkPath);
+      if (!network) return type;
+      for (const port of node.inputs) {
+        if (port.type !== "list" && port.type !== "geometry" && port.type !== "data") continue;
+        const connection = network.connections.find((c) => c.inputNode === node.name && c.inputPort === port.name);
+        if (!connection) continue;
+        const upstream = getChild(network, connection.outputNode);
+        if (!upstream) continue;
+        const resolved = this.sourceTypeOf(networkPath, upstream, connection.outputPort ?? primaryOutputName(upstream), depth + 1);
+        if (resolved !== undefined) return resolved;
+      }
+      // Fed through a published port of the enclosing network: unknown here.
+      return undefined;
+    }
+    return type;
   }
 
   private findConnection(network: Node, inputNode: Node, inputPort: Port) {
@@ -267,7 +300,14 @@ export class NodeContext {
 
   private convertResultsForPort(port: Port, values: unknown[], sourceType: string | undefined): unknown[] {
     if (values.length === 0) return values;
-    const numberHint = sourceType === "int" ? "int" : "float";
+    // A numeric source says whether its numbers were integers; otherwise integral values count as such.
+    // A declared "int" port can still hand out doubles (a network whose child computes floats),
+    // and a Java Long never has a fraction, so the values themselves get the last word.
+    const allIntegers = values.every((v) => typeof v !== "number" || Number.isInteger(v));
+    let numberHint: "int" | "float";
+    if (sourceType === "float") numberHint = "float";
+    else if (sourceType === "int") numberHint = allIntegers ? "int" : "float";
+    else numberHint = allIntegers ? "int" : "float";
     const type = listType(values, numberHint);
     // A list of points going into a value-range geometry port is one argument: the point list.
     if (type === "point" && port.type === "geometry" && hasValueRange(port)) return [values];

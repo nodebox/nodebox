@@ -9,10 +9,15 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./fonts/node": {
+      "types": "./dist/fonts/node.d.ts",
+      "import": "./dist/fonts/node.js"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "fonts"
   ],
   "scripts": {
     "generate": "node scripts/embed-libraries.mjs",

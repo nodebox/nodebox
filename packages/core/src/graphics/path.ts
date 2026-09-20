@@ -4,6 +4,7 @@ import { Contour } from "./contour";
 import { Point } from "./point";
 import { Rect } from "./rect";
 import { Transform } from "./transform";
+import { curvePoint } from "./math";
 import type { Text } from "./text";
 
 const KAPPA = 0.5522847498;
@@ -28,7 +29,8 @@ export class Path {
     } else {
       this.fillColor = Color.BLACK;
       this.strokeColor = null;
-      this.strokeWidth = 1;
+      // A fresh path has no stroke: width 0, as in Java's Path(). Nodes that stroke set the width.
+      this.strokeWidth = 0;
       this.contours = [];
     }
   }
@@ -173,24 +175,27 @@ export class Path {
   }
 
   cornerRoundedRect(x: number, y: number, width: number, height: number, rx: number, ry = rx): void {
-    // Java's Path.roundedRect uses java.awt.geom.RoundRectangle2D: rx/ry are the corner diameters.
-    const dx = Math.min(Math.abs(rx), Math.abs(width)) / 2;
-    const dy = Math.min(Math.abs(ry), Math.abs(height)) / 2;
+    // Mirrors Java's Path.roundedRect: rx/ry are corner radii, capped at half the size (SVG rule),
+    // with the curve handles at 0.448 of the radius.
+    const ONE_MINUS_QUARTER = 1.0 - 0.552;
+    const dx = Math.min(rx, width * 0.5);
+    const dy = Math.min(ry, height * 0.5);
     const left = x;
     const right = x + width;
     const top = y;
     const bottom = y + height;
     this.moveto(left + dx, top);
-    this.lineto(right - dx, top);
-    this.curveto(right - dx + dx * KAPPA, top, right, top + dy - dy * KAPPA, right, top + dy);
-    this.lineto(right, bottom - dy);
-    this.curveto(right, bottom - dy + dy * KAPPA, right - dx + dx * KAPPA, bottom, right - dx, bottom);
-    this.lineto(left + dx, bottom);
-    this.curveto(left + dx - dx * KAPPA, bottom, left, bottom - dy + dy * KAPPA, left, bottom - dy);
-    this.lineto(left, top + dy);
-    this.curveto(left, top + dy - dy * KAPPA, left + dx - dx * KAPPA, top, left + dx, top);
+    if (dx < width * 0.5) this.lineto(right - rx, top);
+    this.curveto(right - dx * ONE_MINUS_QUARTER, top, right, top + dy * ONE_MINUS_QUARTER, right, top + dy);
+    if (dy < height * 0.5) this.lineto(right, bottom - dy);
+    this.curveto(right, bottom - dy * ONE_MINUS_QUARTER, right - dx * ONE_MINUS_QUARTER, bottom, right - dx, bottom);
+    if (dx < width * 0.5) this.lineto(left + dx, bottom);
+    this.curveto(left + dx * ONE_MINUS_QUARTER, bottom, left, bottom - dy * ONE_MINUS_QUARTER, left, bottom - dy);
+    if (dy < height * 0.5) this.lineto(left, top + dy);
+    this.curveto(left, top + dy * ONE_MINUS_QUARTER, left + dx * ONE_MINUS_QUARTER, top, left + dx, top);
     this.close();
   }
+
 
   /** An ellipse centered at (cx, cy). */
   ellipse(cx: number, cy: number, width: number, height: number): void {
@@ -472,18 +477,18 @@ export class Path {
     return !this.intersected(other).isEmpty();
   }
 
-  //// Boolean operations (on the flattened outlines) ////
+  //// Boolean operations ////
 
   intersected(p: Path): Path {
-    return fromPolygons(polygonClipping.intersection(toPolygons(this), toPolygons(p)), this);
+    return booleanOp(this, p, "intersected");
   }
 
   subtracted(p: Path): Path {
-    return fromPolygons(polygonClipping.difference(toPolygons(this), toPolygons(p)), this);
+    return booleanOp(this, p, "subtracted");
   }
 
   united(p: Path): Path {
-    return fromPolygons(polygonClipping.union(toPolygons(this), toPolygons(p)), this);
+    return booleanOp(this, p, "united");
   }
 
   get bounds(): Rect {
@@ -784,36 +789,275 @@ function cross(p0: Point, p1: Point, x: number, y: number): number {
 type Ring = [number, number][];
 type Polygon = Ring[];
 type MultiPolygon = Polygon[];
+type BooleanOperation = "united" | "subtracted" | "intersected";
+
+/**
+ * A closed contour as a cycle of anchors and the segments between them. Java's Area closes every
+ * subpath, so an open contour is treated as closed by a straight line.
+ */
+interface Loop {
+  anchors: { x: number; y: number }[];
+  /** segments[i] runs from anchors[i] to anchors[(i + 1) % n]. */
+  segments: LoopSegment[];
+}
+
+type LoopSegment = { kind: "L" } | { kind: "C"; c1: { x: number; y: number }; c2: { x: number; y: number } };
+
+/**
+ * Boolean operations as java.awt.geom.Area did them, as far as a polygon clipper allows: shapes that
+ * do not cross keep their curves (only their orientation and start point are normalized); shapes
+ * that do cross are clipped on their flattened outlines.
+ */
+function booleanOp(a: Path, b: Path, op: BooleanOperation): Path {
+  const polygonsA = toPolygons(a);
+  const polygonsB = toPolygons(b);
+  const loopsA = () => loopsOf(a);
+  const loopsB = () => loopsOf(b);
+  let loops: Loop[] | null = null;
+  if (polygonsA.length === 0 || polygonsB.length === 0) {
+    if (op === "united") loops = [...loopsA(), ...loopsB()];
+    else if (op === "subtracted") loops = loopsA();
+    else loops = [];
+  } else if (polygonClipping.intersection(polygonsA, polygonsB).length === 0) {
+    if (op === "united") loops = [...loopsA(), ...loopsB()];
+    else if (op === "subtracted") loops = loopsA();
+    else loops = [];
+  } else if (polygonClipping.difference(polygonsB, polygonsA).length === 0) {
+    // b lies inside a.
+    if (op === "united") loops = loopsA();
+    else if (op === "intersected") loops = loopsB();
+    else loops = [...loopsA(), ...loopsB()];
+  } else if (polygonClipping.difference(polygonsA, polygonsB).length === 0) {
+    // a lies inside b.
+    if (op === "united") loops = loopsB();
+    else if (op === "intersected") loops = loopsA();
+    else loops = [];
+  }
+  if (loops === null) {
+    const clip = op === "united" ? polygonClipping.union : op === "subtracted" ? polygonClipping.difference : polygonClipping.intersection;
+    return fromPolygons(clip(polygonsA, polygonsB));
+  }
+  return areaPath(loops.map((loop) => ({ loop, hole: false })), true);
+}
+
+function loopsOf(path: Path): Loop[] {
+  const loops: Loop[] = [];
+  for (const c of path.contours) {
+    const loop = loopFromContour(c);
+    if (loop) loops.push(loop);
+  }
+  return loops;
+}
+
+function loopFromContour(c: Contour): Loop | null {
+  const pts = c.points;
+  if (pts.length === 0) return null;
+  const anchors: { x: number; y: number }[] = [{ x: pts[0].x, y: pts[0].y }];
+  const segments: LoopSegment[] = [];
+  let i = 1;
+  while (i < pts.length) {
+    const p = pts[i];
+    if (p.isCurveData() && i + 2 < pts.length && pts[i + 2].isCurveTo()) {
+      segments.push({ kind: "C", c1: { x: p.x, y: p.y }, c2: { x: pts[i + 1].x, y: pts[i + 1].y } });
+      anchors.push({ x: pts[i + 2].x, y: pts[i + 2].y });
+      i += 3;
+    } else if (p.isLineTo() || p.isCurveTo()) {
+      segments.push({ kind: "L" });
+      anchors.push({ x: p.x, y: p.y });
+      i++;
+    } else {
+      i++;
+    }
+  }
+  if (anchors.length < 2) return null;
+  const first = anchors[0];
+  const last = anchors[anchors.length - 1];
+  // An explicit segment back to the start closes the loop; otherwise a straight line does.
+  if (Math.abs(first.x - last.x) < 1e-9 && Math.abs(first.y - last.y) < 1e-9) anchors.pop();
+  else segments.push({ kind: "L" });
+  if (anchors.length < 2) return null;
+  return { anchors, segments };
+}
+
+/** Points along the loop (curves sampled) for orientation, containment and bounds. */
+function flattenLoop(loop: Loop, samples = 8): [number, number][] {
+  const out: [number, number][] = [];
+  const n = loop.anchors.length;
+  for (let i = 0; i < n; i++) {
+    const from = loop.anchors[i];
+    const to = loop.anchors[(i + 1) % n];
+    const seg = loop.segments[i];
+    out.push([from.x, from.y]);
+    if (seg.kind === "C") {
+      for (let s = 1; s < samples; s++) {
+        const p = curvePoint(s / samples, from.x, from.y, seg.c1.x, seg.c1.y, seg.c2.x, seg.c2.y, to.x, to.y);
+        out.push([p.x, p.y]);
+      }
+    }
+  }
+  return out;
+}
+
+function reversedLoop(loop: Loop): Loop {
+  const n = loop.anchors.length;
+  const anchors = [...loop.anchors].reverse();
+  const segments: LoopSegment[] = [];
+  // The reversed segment i runs from anchors[i] (old n-1-i) back along old segment n-2-i.
+  for (let i = 0; i < n; i++) {
+    const seg = loop.segments[(2 * n - 2 - i) % n];
+    segments.push(seg.kind === "C" ? { kind: "C", c1: seg.c2, c2: seg.c1 } : seg);
+  }
+  return { anchors, segments };
+}
+
+function rotatedLoop(loop: Loop, start: number): Loop {
+  const n = loop.anchors.length;
+  return {
+    anchors: loop.anchors.map((_, i) => loop.anchors[(start + i) % n]),
+    segments: loop.segments.map((_, i) => loop.segments[(start + i) % n]),
+  };
+}
+
+function contourFromLoop(loop: Loop): Contour {
+  const c = new Contour();
+  const n = loop.anchors.length;
+  c.addPoint(new Point(loop.anchors[0].x, loop.anchors[0].y, Point.LINE_TO));
+  for (let i = 0; i < n; i++) {
+    const seg = loop.segments[i];
+    const to = loop.anchors[(i + 1) % n];
+    if (seg.kind === "C") {
+      c.addPoint(new Point(seg.c1.x, seg.c1.y, Point.CURVE_DATA));
+      c.addPoint(new Point(seg.c2.x, seg.c2.y, Point.CURVE_DATA));
+      c.addPoint(new Point(to.x, to.y, Point.CURVE_TO));
+    } else if (i < n - 1) {
+      c.addPoint(new Point(to.x, to.y, Point.LINE_TO));
+    }
+  }
+  c.close();
+  return c;
+}
+
+/** Shoelace sum in screen coordinates: negative means counter-clockwise as seen on screen. */
+function shoelace(pts: [number, number][]): number {
+  let sum = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const [x0, y0] = pts[i];
+    const [x1, y1] = pts[(i + 1) % pts.length];
+    sum += x0 * y1 - x1 * y0;
+  }
+  return sum;
+}
+
+function pointInRing(x: number, y: number, ring: [number, number][]): boolean {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+/**
+ * Assemble contours the way Area's path iterator hands them out: outer rings counter-clockwise
+ * on screen starting at their top-left anchor, holes clockwise starting top-right, contours
+ * ordered from the rightmost to the leftmost. With classify, holes are found by containment.
+ */
+function areaPath(entries: { loop: Loop; hole: boolean }[], classify: boolean): Path {
+  const flat = entries.map((e) => flattenLoop(e.loop));
+  const roles = entries.map((e, i) => {
+    if (!classify) return e.hole;
+    const [x, y] = flat[i][0];
+    let depth = 0;
+    for (let j = 0; j < entries.length; j++) if (j !== i && pointInRing(x, y, flat[j])) depth++;
+    return depth % 2 === 1;
+  });
+  const contours = entries.map((e, i) => {
+    const hole = roles[i];
+    const ccwOnScreen = shoelace(flat[i]) < 0;
+    let loop = ccwOnScreen === !hole ? e.loop : reversedLoop(e.loop);
+    loop = rotatedLoop(loop, startAnchor(loop, hole));
+    const c = contourFromLoop(loop);
+    const b = flat[i];
+    let minY = Infinity;
+    let minX = Infinity;
+    for (const [x, y] of b) {
+      if (y < minY) minY = y;
+      if (x < minX) minX = x;
+    }
+    return { c, minY, minX };
+  });
+  // Area hands the rightmost subpath out first (its edges are sorted, and the walk runs backwards).
+  contours.sort((p, q) => q.minX - p.minX || p.minY - q.minY);
+  const path = new Path();
+  for (const { c } of contours) path.add(c);
+  path.newContour();
+  return path;
+}
+
+/** The topmost anchor; ties go to the leftmost for outer rings and the rightmost for holes. */
+function startAnchor(loop: Loop, hole: boolean): number {
+  let best = 0;
+  for (let i = 1; i < loop.anchors.length; i++) {
+    const a = loop.anchors[i];
+    const b = loop.anchors[best];
+    if (a.y < b.y || (a.y === b.y && (hole ? a.x > b.x : a.x < b.x))) best = i;
+  }
+  return best;
+}
 
 function toPolygons(path: Path): MultiPolygon {
-  // Each contour becomes its own polygon; the clipping library unions overlapping rings, which
-  // matches the non-zero fill of java.awt.geom.Area closely enough for NodeBox documents.
+  // Flattened rings; holes (by containment parity) are attached to the outer ring around them.
+  const loops = loopsOf(path);
+  const rings = loops.map((loop) => flattenLoop(loop, 16));
+  const depth = rings.map((ring, i) => {
+    let d = 0;
+    for (let j = 0; j < rings.length; j++) if (j !== i && pointInRing(ring[0][0], ring[0][1], rings[j])) d++;
+    return d;
+  });
   const polygons: MultiPolygon = [];
-  for (const c of path.contours) {
-    const pts = c.flattened().points;
-    if (pts.length < 3) continue;
-    const ring: Ring = pts.map((p) => [p.x, p.y]);
-    ring.push([pts[0].x, pts[0].y]);
-    polygons.push([ring]);
-  }
+  const outerIndex = new Map<number, number>();
+  rings.forEach((ring, i) => {
+    if (ring.length < 3 || depth[i] % 2 === 1) return;
+    outerIndex.set(i, polygons.length);
+    polygons.push([closedRing(ring)]);
+  });
+  rings.forEach((ring, i) => {
+    if (ring.length < 3 || depth[i] % 2 === 0) return;
+    for (const [j, polygonIndex] of outerIndex) {
+      if (pointInRing(ring[0][0], ring[0][1], rings[j])) {
+        polygons[polygonIndex].push(closedRing(ring));
+        break;
+      }
+    }
+  });
   return polygons;
 }
 
-function fromPolygons(polygons: MultiPolygon, template: Path): Path {
-  const p = template.cloneAndClear();
+function closedRing(pts: [number, number][]): Ring {
+  return [...pts, pts[0]];
+}
+
+function fromPolygons(polygons: MultiPolygon): Path {
+  const entries: { loop: Loop; hole: boolean }[] = [];
   for (const polygon of polygons) {
-    for (const ring of polygon) {
-      const c = new Contour();
-      const n = ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
-        ? ring.length - 1
-        : ring.length;
-      for (let i = 0; i < n; i++) c.addPoint(ring[i][0], ring[i][1]);
-      c.close();
-      p.add(c);
-    }
+    polygon.forEach((ring, ringIndex) => {
+      const pts = openRing(ring);
+      if (pts.length < 3) return;
+      entries.push({
+        loop: { anchors: pts.map(([x, y]) => ({ x, y })), segments: pts.map(() => ({ kind: "L" as const })) },
+        hole: ringIndex > 0,
+      });
+    });
   }
-  p.newContour();
-  return p;
+  return areaPath(entries, false);
+}
+
+function openRing(ring: Ring): [number, number][] {
+  const n = ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
+    ? ring.length - 1
+    : ring.length;
+  return ring.slice(0, n) as [number, number][];
 }
 
 export { Contour };

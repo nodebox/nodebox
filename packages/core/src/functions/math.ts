@@ -122,14 +122,25 @@ export function floor(n: number): number {
   return Math.floor(n);
 }
 
+/** Double.compare: NaN sorts above everything (and equals itself), -0 sorts below +0. */
+function compareDoubles(a: number, b: number): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  const aNaN = Number.isNaN(a);
+  const bNaN = Number.isNaN(b);
+  if (aNaN || bNaN) return aNaN === bNaN ? 0 : aNaN ? 1 : -1;
+  if (a === 0 && b === 0) return Object.is(a, -0) === Object.is(b, -0) ? 0 : Object.is(a, -0) ? -1 : 1;
+  return 0;
+}
+
 function compareValues(o1: unknown, o2: unknown): number {
-  if (typeof o1 === "number" && typeof o2 === "number") return o1 < o2 ? -1 : o1 > o2 ? 1 : 0;
+  if (typeof o1 === "number" && typeof o2 === "number") return compareDoubles(o1, o2);
   if (typeof o1 === "string" && typeof o2 === "string") return o1 < o2 ? -1 : o1 > o2 ? 1 : 0;
   if (typeof o1 === "boolean" && typeof o2 === "boolean") return o1 === o2 ? 0 : o1 ? 1 : -1;
   // Mixed types: Java would throw a ClassCastException; compare numerically when both parse.
   const n1 = Number(o1);
   const n2 = Number(o2);
-  if (!Number.isNaN(n1) && !Number.isNaN(n2)) return n1 < n2 ? -1 : n1 > n2 ? 1 : 0;
+  if (!Number.isNaN(n1) && !Number.isNaN(n2)) return compareDoubles(n1, n2);
   const s1 = String(o1);
   const s2 = String(o2);
   return s1 < s2 ? -1 : s1 > s2 ? 1 : 0;

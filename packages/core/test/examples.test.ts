@@ -4,7 +4,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { JSDOM } from "jsdom";
-import { openNdbx, renderLibrary, setDomParser, setTextFileReader, toG } from "../src";
+import { openNdbx, renderLibrary, setDomParser, setFontProvider, setTextFileReader, toG } from "../src";
+import { installBundledFonts } from "../src/fonts/node";
 
 const root = path.resolve(__dirname, "..", "..", "..");
 const NEEDS_NETWORK = ["02 Topics/Web/Twitter API/Twitter API.ndbx"];
@@ -28,11 +29,13 @@ function collect(dir: string): string[] {
 beforeAll(() => {
   setTextFileReader((file) => fs.readFileSync(file, "utf-8"));
   setDomParser(new JSDOM("").window.DOMParser);
+  installBundledFonts();
 });
 
 afterAll(() => {
   setTextFileReader(null);
   setDomParser(null);
+  setFontProvider(null);
 });
 
 describe("NodeBox 3 examples", () => {
