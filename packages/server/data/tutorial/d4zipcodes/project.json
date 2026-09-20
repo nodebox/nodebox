@@ -1,0 +1,312 @@
+{
+    "title": "d4zipcodes",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "zipcodes_1000.csv": "49b360c44c0a028b1b34e9bd3936c667536fb1bb",
+        "zipcodes_5000.csv": "473b2b0a1540eba12f6a8f500351179c1b846d4b",
+        "zipcodes_all.csv": "2ddd0096cd45e8d9d5913b6db692024a76b89683"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "align1",
+            "nodes": [
+                {
+                    "name": "import1",
+                    "x": 26,
+                    "y": 84,
+                    "fn": "g.import",
+                    "values": {
+                        "file": "zipcodes_5000.csv"
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 19,
+                    "y": 203,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "lon"
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 126,
+                    "y": 201,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "lat"
+                    }
+                },
+                {
+                    "name": "negate1",
+                    "x": 20,
+                    "y": 263,
+                    "fn": "g.negate",
+                    "values": {}
+                },
+                {
+                    "name": "negate2",
+                    "x": 133,
+                    "y": 265,
+                    "fn": "g.negate",
+                    "values": {}
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 22,
+                    "y": 394,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "multiply1",
+                    "x": 22,
+                    "y": 312,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 8
+                    }
+                },
+                {
+                    "name": "multiply2",
+                    "x": 132,
+                    "y": 314,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 8
+                    }
+                },
+                {
+                    "name": "zipMap1",
+                    "x": 300,
+                    "y": 364,
+                    "fn": "g.zipMap",
+                    "values": {}
+                },
+                {
+                    "name": "lookup3",
+                    "x": 256,
+                    "y": 202,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "state"
+                    }
+                },
+                {
+                    "name": "distinct1",
+                    "x": 257,
+                    "y": 279,
+                    "fn": "g.distinct",
+                    "values": {}
+                },
+                {
+                    "name": "sample1",
+                    "x": 378,
+                    "y": 278,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 1
+                    }
+                },
+                {
+                    "name": "lookup4",
+                    "x": 300,
+                    "y": 419,
+                    "fn": "g.lookup",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 123,
+                    "y": 507,
+                    "fn": "g.colorize",
+                    "values": {}
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 123,
+                    "y": 432,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 5,
+                        "height": 5
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 123,
+                    "y": 562,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "align1",
+                    "x": 124,
+                    "y": 616,
+                    "fn": "g.align",
+                    "values": {
+                        "position": {
+                            "x": -150,
+                            "y": -50
+                        }
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 380,
+                    "y": 231,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "resizer",
+                    "x": 251,
+                    "y": 82,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 14
+                    }
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 378,
+                    "y": 320,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.5,
+                        "saturation": 0.8
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "import1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "import1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "negate1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "negate2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "negate1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "negate2",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "import1",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "distinct1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "zipMap1",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "zipMap1",
+                    "input": "lookup4",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "lookup4",
+                    "parameter": "key"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "resizer",
+                    "input": "multiply2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "resizer",
+                    "input": "multiply1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "zipMap1",
+                    "parameter": "vals"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "d4zipcodes"
+}

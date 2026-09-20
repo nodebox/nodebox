@@ -1,0 +1,14 @@
+{
+    "login": "core",
+    "email": "core@emrg.be",
+    "projects": [
+        {
+            "id": "g",
+            "title": "Graphics",
+            "color": "teal"
+        }
+    ],
+    "prefs": {
+        "guideVisible": false
+    }
+}

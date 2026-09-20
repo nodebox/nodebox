@@ -1,0 +1,731 @@
+name,club,type,country
+Julio Cesar,Toronto FC,Goalkeeper,Brazil
+Jefferson,Botafogo,Goalkeeper,Brazil
+Victor,Atletico Mineiro,Goalkeeper,Brazil
+Marcelo,Real Madrid,Defender,Brazil
+Daniel Alves,Barcelona,Defender,Brazil
+Maicon,AS Roma,Defender,Brazil
+Maxwell,Paris St-Germain,Defender,Brazil
+Thiago Silva,Paris St-Germain,Defender,Brazil
+David Luiz,Chelsea,Defender,Brazil
+Dante,Bayern Munich,Defender,Brazil
+Henrique,Napoli,Defender,Brazil
+Paulinho,Tottenham Hotspur,Midfielder,Brazil
+Ramires,Chelsea,Midfielder,Brazil
+Willian,Chelsea,Midfielder,Brazil
+Oscar,Chelsea,Midfielder,Brazil
+Hernanes,Inter Milan,Midfielder,Brazil
+Luiz Gustavo,Wolfsburg,Midfielder,Brazil
+Fernandinho,Manchester City,Midfielder,Brazil
+Bernard,Shakhtar Donetsk,Forward,Brazil
+Neymar,Barcelona,Forward,Brazil
+Fred,Fluminense,Forward,Brazil
+Jo,Atletico Mineiro,Forward,Brazil
+Hulk,Zenit St Petersburg,Forward,Brazil
+Stipe Pletikosa,Rostov,Goalkeeper,Croatia
+Danijel Subasic,Monaco,Goalkeeper,Croatia
+Oliver Zelenika,Dinamo Zagreb,Goalkeeper,Croatia
+Darijo Srna,Shakhtar Donetsk,Defender,Croatia
+Dejan Lovren,Southampton,Defender,Croatia
+Vedran Corluka,Lokomotiv Moscow,Defender,Croatia
+Gordon Schildenfeld,Panathinaikos,Defender,Croatia
+Danijel Pranjic,Panathinaikos,Defender,Croatia
+Domagoj Vida,Dynamo Kiev,Defender,Croatia
+Sime Vrsaljko,Genoa,Defender,Croatia
+Luka Modric,Real Madrid,Midfielder,Croatia
+Ivan Rakitic,Sevilla,Midfielder,Croatia
+Ognjen Vukojevic,Dynamo Kiev,Midfielder,Croatia
+Ivan Perisic,Wolfsburg,Midfielder,Croatia
+Mateo Kovacic,Inter Milan,Midfielder,Croatia
+Marcelo Brozovic,Dinamo Zagreb,Midfielder,Croatia
+Milan Badelj,Hamburg,Midfielder,Croatia
+Sammir,Getafe,Midfielder,Croatia
+Mario Mandzukic,Bayern Munich,Forward,Croatia
+Ivica Olic,Wolfsburg,Forward,Croatia
+Eduardo,Shakhtar Donetsk,Forward,Croatia
+Nikica Jelavic,Hull City,Forward,Croatia
+Ante Rebic,Fiorentina,Forward,Croatia
+Jose de Jesus Corona,Cruz Azul,Goalkeeper,Mexico
+Guillermo Ochoa,Ajaccio,Goalkeeper,Mexico
+Alfredo Talavera,Toluca,Goalkeeper,Mexico
+Miguel Layun,America,Defender,Mexico
+Carlos Salcido,Tigres,Defender,Mexico
+Paul Aguilar,America,Defender,Mexico
+Andres Guardado,Bayer Leverkusen,Defender,Mexico
+Hector Moreno,Espanyol,Defender,Mexico
+Francisco Javier Rodriguez,America,Defender,Mexico
+Diego Reyes,Porto,Defender,Mexico
+Rafael Marquez,Leon,Defender,Mexico
+Miguel Angel Ponce,Toluca,Midfielder,Mexico
+Jose Juan Vazquez,Leon,Midfielder,Mexico
+Luis Montes,Leon,Midfielder,Mexico
+Hector Herrera,Porto,Midfielder,Mexico
+Isaac Brizuela,Toluca,Midfielder,Mexico
+Marco Fabian,Cruz Azul,Midfielder,Mexico
+Carlos Pena,Leon,Midfielder,Mexico
+Oribe Peralta,Santos,Forward,Mexico
+Javier Hernandez,Manchester United,Forward,Mexico
+Giovani dos Santos,Villarreal,Forward,Mexico
+Raul Jimenez,America,Forward,Mexico
+Alan Pulido,Tigres,Forward,Mexico
+Loic Feudjou,Coton Sport,Goalkeeper,Cameroon
+Charles Itandje,Konyaspor,Goalkeeper,Cameroon
+Sammy Ndjock,Fethiyespor,Goalkeeper,Cameroon
+Benoit Assou-Ekotto,QPR,Defender,Cameroon
+Henri Bedimo,Lyon,Defender,Cameroon
+Aurelien Chedjou,Galatasaray,Defender,Cameroon
+Cedric Djeugou,Coton Sport,Defender,Cameroon
+Nicolas Nkoulou,Marseille,Defender,Cameroon
+Dany Nounkeu,Besiktas,Defender,Cameroon
+Allan Nyom,Granada,Defender,Cameroon
+Enoh Eyong,Antalyaspor,Midfielder,Cameroon
+Jean Makoun,Rennes,Midfielder,Cameroon
+Joel Matip,Schalke,Midfielder,Cameroon
+Stephane Mbia,Sevilla,Midfielder,Cameroon
+Benjamin Moukandjo,Nancy,Midfielder,Cameroon
+Landry Nguemo,Bordeaux,Midfielder,Cameroon
+Edgar Salli,Lens,Midfielder,Cameroon
+Alex Song,Barcelona,Midfielder,Cameroon
+Vincent Aboubakar,Lorient,Forward,Cameroon
+Eric-Maxim Choupo Moting,Mainz,Forward,Cameroon
+Samuel Eto'o,Chelsea,Forward,Cameroon
+Fabrice Olinga,Malaga,Forward,Cameroon
+Achille Webo,Fenerbahce,Forward,Cameroon
+Iker Casillas,Real Madrid,Goalkeeper,Spain
+Pepe Reina,Napoli,Goalkeeper,Spain
+David De Gea,Manchester United,Goalkeeper,Spain
+Sergio Ramos,Real Madrid,Defender,Spain
+Gerard Pique,Barcelona,Defender,Spain
+Raul Albiol,Napoli,Defender,Spain
+Cesar Azpilicueta,Chelsea,Defender,Spain
+Juanfran,Atletico Madrid,Defender,Spain
+Jordi Alba,Barcelona,Defender,Spain
+Xavi,Barcelona,Midfielder,Spain
+Xabi Alonso,Real Madrid,Midfielder,Spain
+Sergio Busquets,Barcelona,Midfielder,Spain
+Andres Iniesta,Barcelona,Midfielder,Spain
+Cesc Fabregas,Barcelona,Midfielder,Spain
+Santi Cazorla,Arsenal,Midfielder,Spain
+Koke,Atletico Madrid,Midfielder,Spain
+Javi Martinez,Bayern Munich,Midfielder,Spain
+David Silva,Manchester City,Forward,Spain
+Diego Costa,Atletico Madrid,Forward,Spain
+Fernando Torres,Chelsea,Forward,Spain
+Pedro,Barcelona,Forward,Spain
+Juan Mata,Manchester United,Forward,Spain
+David Villa,Atletico Madrid,Forward,Spain
+Jasper Cillessen,Ajax,Goalkeeper,Netherlands
+Tim Krul,Newcastle,Goalkeeper,Netherlands
+Michel Vorm,Swansea,Goalkeeper,Netherlands
+Daley Blind,Ajax,Defender,Netherlands
+Joel Veltman,Ajax,Defender,Netherlands
+Stefan de Vrij,Feyenoord,Defender,Netherlands
+Daryl Janmaat,Feyenoord,Defender,Netherlands
+Terence Kongolo,Feyenoord,Defender,Netherlands
+Bruno Martins Indi,Feyenoord,Defender,Netherlands
+Paul Verhaegh,FC Augsburg,Defender,Netherlands
+Ron Vlaar,Aston Villa,Defender,Netherlands
+Jordy Clasie,Feyenoord,Midfielder,Netherlands
+Jonathan de Guzman,Swansea,Midfielder,Netherlands
+Nigel de Jong,AC Milan,Midfielder,Netherlands
+Leroy Fer,Norwich,Midfielder,Netherlands
+Arjen Robben,Bayern Munich,Midfielder,Netherlands
+Wesley Sneijder,Galatasaray,Midfielder,Netherlands
+Georginio Wijnaldum,PSV Eindhoven,Midfielder,Netherlands
+Memphis Depay,PSV Eindhoven,Forward,Netherlands
+Klaas-Jan Huntelaar,Schalke 04,Forward,Netherlands
+Dirk Kuyt,Fenerbahce,Forward,Netherlands
+Jeremain Lens,Dynamo Kiev,Forward,Netherlands
+Robin van Persie,Manchester United,Forward,Netherlands
+Claudio Bravo,Real Sociedad,Goalkeeper,Chile
+Johnny Herrera,Universidad de Chile,Goalkeeper,Chile
+Cristopher Toselli,Universidad Catolica,Goalkeeper,Chile
+Gary Medel,Cardiff City,Defender,Chile
+Gonzalo Jara,Nottingham Forest,Defender,Chile
+Jose Rojas,Universidad de Chile,Defender,Chile
+Eugenio Mena,Santos,Defender,Chile
+Mauricio Isla,Juventus,Defender,Chile
+Jorge Valdivia,Palmeiras,Midfielder,Chile
+Felipe Gutierrez,Twente,Midfielder,Chile
+Jose Pedro Fuenzalida,Colo Colo,Midfielder,Chile
+Francisco Silva,Osasuna,Midfielder,Chile
+Arturo Vidal,Juventus,Midfielder,Chile
+Charles Aranguiz,Internacional,Midfielder,Chile
+Marcelo Diaz,Basel,Midfielder,Chile
+Carlos Carmona,Atalanta,Midfielder,Chile
+Miiko Albornoz,Malmo,Midfielder,Chile
+Alexis Sanchez,Barcelona,Forward,Chile
+Esteban Paredes,Valencia,Forward,Chile
+Colo Colo Eduardo Vargas,Valencia,Forward,Chile
+Jean Beausejour,Wigan Athletic,Forward,Chile
+Mauricio Pinilla,Cagliari,Forward,Chile
+Fabian Orellana,Celta,Forward,Chile
+Eugene Galekovic,Adelaide United,Goalkeeper,Australia
+Mitchell Langerak,Borussia Dortmund,Goalkeeper,Australia
+Mat Ryan,Club Brugge,Goalkeeper,Australia
+Jason Davidson,Heracles Almelo,Defender,Australia
+Ivan Franjic,Brisbane Roar,Defender,Australia
+Ryan McGowan,Shandong Luneng Taishan,Defender,Australia
+Matthew Spiranovic,Western Sydney Wanderers,Defender,Australia
+Alex Wilkinson,Jeonbuk Hyundai,Defender,Australia
+Bailey Wright,Preston North End,Defender,Australia
+Oliver Bozanic,Luzern,Midfielder,Australia
+Mark Bresciano,Al Gharafa,Midfielder,Australia
+James Holland,Austria Vienna,Midfielder,Australia
+Mile Jedinak,Crystal Palace,Midfielder,Australia
+Massimo Luongo,Swindon Town,Midfielder,Australia
+Matthew McKay,Brisbane Roar,Midfielder,Australia
+Mark Milligan,Melbourne Victory,Midfielder,Australia
+Tommy Oar,Utrecht,Midfielder,Australia
+James Troisi,Melbourne Victory,Midfielder,Australia
+Dario Vidosic,Sion,Midfielder,Australia
+Tim Cahill,New York Red Bulls,Forward,Australia
+Ben Halloran,Fortuna Dusseldorf,Forward,Australia
+Matthew Leckie,FSV Frankfurt 1899,Forward,Australia
+Adam Taggart,Newcastle Jets,Forward,Australia
+David Ospina,Nice,Goalkeeper,Colombia
+Faryd Mondragon,Deportivo Cali,Goalkeeper,Colombia
+Camilo Vargas,Independiente Santa Fe,Goalkeeper,Colombia
+Mario Yepes,AC Milan,Defender,Colombia
+Cristian Zapata,AC Milan,Defender,Colombia
+Pablo Armero,West Ham,Defender,Colombia
+Camilo Zuniga,Napoli,Defender,Colombia
+Santiago Arias,PSV Eindhoven,Defender,Colombia
+Eder Alvarez Balanta,River Plate,Defender,Colombia
+Carlos Valdes,San Lorenzo,Defender,Colombia
+Fredy Guarin,Inter Milan,Midfielder,Colombia
+Juan Cuadrado,Fiorentina,Midfielder,Colombia
+James Rodriguez,Monaco,Midfielder,Colombia
+Abel Aguilar,Toulouse,Midfielder,Colombia
+Juan Fernando Quintero,Porto,Midfielder,Colombia
+Carlos Sanchez,Elche,Midfielder,Colombia
+Carlos Carbonero,River Plate,Midfielder,Colombia
+Alexander Mejia,Atletico Nacional,Midfielder,Colombia
+Victor Ibarbo,Cagliari,Forward,Colombia
+Jackson Martinez,Porto,Forward,Colombia
+Carlos Bacca,Sevilla,Forward,Colombia
+Adrian Ramos,Hertha Berlin,Forward,Colombia
+Teofilo Gutierrez,River Plate,Forward,Colombia
+Orestis Karnezis,Granada,Goalkeeper,Greece
+Panagiotis Glykos,PAOK,Goalkeeper,Greece
+Stefanos Kapino,Panathinaikos,Goalkeeper,Greece
+Kostas Manolas,Olympiakos,Defender,Greece
+Giannis Maniatis,Olympiakos,Defender,Greece
+Jose Holebas,Olympiakos,Defender,Greece
+Sokratis Papastathopoulos,Borussia Dortmund,Defender,Greece
+Giorgios Tzavellas,PAOK,Defender,Greece
+Loukas Vyntra,Levante,Defender,Greece
+Vasilis Torosidis,Roma,Defender,Greece
+Vangelis Moras,Verona,Defender,Greece
+Alexandros Tziolis,Kayserispor,Midfielder,Greece
+Andreas Samaris,Olympiakos,Midfielder,Greece
+Kostas Katsouranis,PAOK,Midfielder,Greece
+Giorgos Karagounis,Fulham,Midfielder,Greece
+Panagiotis Tachtsidis,Torino,Midfielder,Greece
+Ioannis Fetfatzidis,Genoa,Midfielder,Greece
+Lazaros Christodoulopoulos,Bologna,Midfielder,Greece
+Panagiotis Kone,Bologna,Midfielder,Greece
+Dimitris Salpingidis,PAOK,Forward,Greece
+Giorgios Samaras,Celtic,Forward,Greece
+Konstantinos Mitroglou,Fulham,Forward,Greece
+Theofanis Gekas,Konyaspor,Forward,Greece
+Boubacar Barry,Lokeren,Goalkeeper,Ivory Coast
+Sylvain Gbohouo,Sewe Sport,Goalkeeper,Ivory Coast
+Sayouba Sande,Stabaek,Goalkeeper,Ivory Coast
+Kolo Toure,Liverpool,Defender,Ivory Coast
+Sol Bamba,Trabzonspor,Defender,Ivory Coast
+Didier Zokora,Trabzonspor,Defender,Ivory Coast
+Serge Aurier,Toulouse,Defender,Ivory Coast
+Arthur Boka,Stuttgart,Defender,Ivory Coast
+Ousmane Viera Diarrassouba,Caykur Rizespor,Defender,Ivory Coast
+Constant Djakpa,Frankfurt,Defender,Ivory Coast
+Jean-Daniel Akpa-Akpro,Toulouse,Defender,Ivory Coast
+Yaya Toure,Manchester City,Midfielder,Ivory Coast
+Cheick Tiote,Newcastle,Midfielder,Ivory Coast
+Serey Die,Basel,Midfielder,Ivory Coast
+Max Gradel,Saint Etienne,Midfielder,Ivory Coast
+Diomande Ismael,Saint Etienne,Midfielder,Ivory Coast
+Didier Ya Konan,Hannover,Midfielder,Ivory Coast
+Mathis Bolly,Dusseldorf,Midfielder,Ivory Coast
+Gervinho,Roma,Forward,Ivory Coast
+Didier Drogba,Galatasaray,Forward,Ivory Coast
+Salomon Kalou,Lille,Forward,Ivory Coast
+Wilfried Bony,Swansea,Forward,Ivory Coast
+Giovanni Sio,Basel,Forward,Ivory Coast
+Eiji Kawashima,Standard Liege,Goalkeeper,Japan
+Shusaku Nishikawa,Urawa Reds,Goalkeeper,Japan
+Shuichi Gonda,FC Tokyo,Goalkeeper,Japan
+Masato Morishige,FC Tokyo,Defender,Japan
+Yasuyuki Konno,Gamba Osaka,Defender,Japan
+Yuto Nagatomo,Inter Milan,Defender,Japan
+Maya Yoshida,Southampton,Defender,Japan
+Masahiko Inoha,Jubilo Iwata,Defender,Japan
+Atsuto Uchida,Schalke 04,Defender,Japan
+Hiroki Sakai,Hannover 96,Defender,Japan
+Gotoku Sakai,VfB Stuttgart,Defender,Japan
+Yasuhito Endo,Gamba Osaka,Midfielder,Japan
+Keisuke Honda,AC Milan,Midfielder,Japan
+Shinji Kagawa,Manchester United,Midfielder,Japan
+Makoto Hasebe,FC Nuremberg,Midfielder,Japan
+Hiroshi Kiyotake,FC Nuremberg,Midfielder,Japan
+Hotaru Yamaguchi,Cerezo Osaka,Midfielder,Japan
+Toshihiro Aoyama,Sanfrecce Hiroshima,Midfielder,Japan
+Manabu Saito,Yokohama F Marinos,Midfielder,Japan
+Shinji Okazaki,Mainz,Forward,Japan
+Yoichiro Kakitani,Cerezo Osaka,Forward,Japan
+Yuya Osako,TSV Munich 1860,Forward,Japan
+Yoshito Okubo,Kawasaki Frontale,Forward,Japan
+Fernando Muslera,Galatasaray,Goalkeeper,Uruguay
+Martin Silva,Vasco da Gama,Goalkeeper,Uruguay
+Rodrigo Munoz,Libertad,Goalkeeper,Uruguay
+Maximiliano Pereira,Benfica,Defender,Uruguay
+Diego Lugano,West Bromwich Albion,Defender,Uruguay
+Diego Godin,Atletico Madrid,Defender,Uruguay
+Jose Maria Gimenez,Atletico Madrid,Defender,Uruguay
+Sebastian Coates,Liverpool,Defender,Uruguay
+Martin Caceres,Juventus,Defender,Uruguay
+Jorge Fucile,Porto,Defender,Uruguay
+Alvaro Gonzalez,Lazio,Midfielder,Uruguay
+Alvaro Pereira,Sao Paulo,Midfielder,Uruguay
+Walter Gargano,Parma,Midfielder,Uruguay
+Egidio Arevalo Rios,Morelia,Midfielder,Uruguay
+Diego Perez,Bologna,Midfielder,Uruguay
+Cristian Rodriguez,Atletico Madrid,Midfielder,Uruguay
+Gaston Ramirez,Southampton,Midfielder,Uruguay
+Nicolas Lodeiro,Botafogo,Midfielder,Uruguay
+Luis Suarez,Liverpool,Forward,Uruguay
+Edinson Cavani,Paris St-Germain,Forward,Uruguay
+Abel Hernandez,Palermo,Forward,Uruguay
+Diego Forlan,Cerezo Osaka,Forward,Uruguay
+Christian Stuani,Espanyol,Forward,Uruguay
+Keylor Navas,Levante,Goalkeeper,Costa Rica
+Patrick Pemberton,Alajuelense,Goalkeeper,Costa Rica
+Daniel Cambronero,Herediano,Goalkeeper,Costa Rica
+Johnny Acosta,Alajuelense,Defender,Costa Rica
+Giancarlo Gonzalez,Columbus Crew,Defender,Costa Rica
+Michael Umana,Saprissa,Defender,Costa Rica
+Oscar Duarte,Bruges,Defender,Costa Rica
+Waylon Francis,Columbus Crew,Defender,Costa Rica
+Dave Myrie,Herediano,Defender,Costa Rica
+Junior Diaz,Mainz 05,Defender,Costa Rica
+Christian Gamboa,Rosenborg,Defender,Costa Rica
+Roy Miller,New York Red Bulls,Defender,Costa Rica
+Celso Borges,AIK,Midfielder,Costa Rica
+Christian Bolanos,Copenhagen,Midfielder,Costa Rica
+Esteban Granados,Herediano,Midfielder,Costa Rica
+Michael Barrantes,Aalesund,Midfielder,Costa Rica
+Yeltsin Tejeda,Saprissa,Midfielder,Costa Rica
+Diego Calvo,Valerenga,Midfielder,Costa Rica
+Jose Miguel Cubero,Herediano,Midfielder,Costa Rica
+Bryan Ruiz,PSV Eindhoven,Forward,Costa Rica
+Joel Campbell,Olympiakos,Forward,Costa Rica
+Randall Brenes,Cartagines,Forward,Costa Rica
+Marco Urena,FC Kuban Krasnodar,Forward,Costa Rica
+Fraser Forster,Celtic,Goalkeeper,England
+Ben Foster,West Bromwich Albion,Goalkeeper,England
+Joe Hart,Manchester City,Goalkeeper,England
+Leighton Baines,Everton,Defender,England
+Gary Cahill,Chelsea,Defender,England
+Phil Jagielka,Everton,Defender,England
+Glen Johnson,Liverpool,Defender,England
+Phil Jones,Manchester United,Defender,England
+Luke Shaw,Southampton,Defender,England
+Chris Smalling,Manchester United,Defender,England
+Ross Barkley,Everton,Midfielder,England
+Steven Gerrard,Liverpool,Midfielder,England
+Jordan Henderson,Liverpool,Midfielder,England
+Adam Lallana,Southampton,Midfielder,England
+Frank Lampard,Chelsea,Midfielder,England
+James Milner,Manchester City,Midfielder,England
+Alex Oxlade-Chamberlain,Arsenal,Midfielder,England
+Raheem Sterling,Liverpool,Midfielder,England
+Jack Wilshere,Arsenal,Midfielder,England
+Rickie Lambert,Southampton,Forward,England
+Wayne Rooney,Manchester United,Forward,England
+Daniel Sturridge,Liverpool,Forward,England
+Danny Welbeck,Manchester United,Forward,England
+Gianluigi Buffon,Juventus,Goalkeeper,Italy
+Salvatore Sirigu,Paris St-Germain,Goalkeeper,Italy
+Mattia Perin,Genoa,Goalkeeper,Italy
+Andrea Barzagli,Juventus,Defender,Italy
+Leonardo Bonucci,Juventus,Defender,Italy
+Giorgio Chiellini,Juventus,Defender,Italy
+Gabriel Paletta,Parma,Defender,Italy
+Ignazio Abate,AC Milan,Defender,Italy
+Mattia De Sciglio,AC Milan,Defender,Italy
+Matteo Darmian,Torino,Defender,Italy
+Andrea Pirlo,Juventus,Midfielder,Italy
+Claudio Marchisio,Juventus,Midfielder,Italy
+Thiago Motta,Paris St-Germain,Midfielder,Italy
+Marco Verratti,Paris St-Germain,Midfielder,Italy
+Daniele De Rossi,AS Roma,Midfielder,Italy
+Antonio Candreva,Lazio,Midfielder,Italy
+Marco Parolo,Parma,Midfielder,Italy
+Alberto Aquilani,Fiorentina,Midfielder,Italy
+Mario Balotelli,AC Milan,Forward,Italy
+Antonio Cassano,Parma,Forward,Italy
+Alessio Cerci,Torino,Forward,Italy
+Ciro Immobile,Torino,Forward,Italy
+Lorenzo Insigne,Napoli,Forward,Italy
+Diego Benaglio,Wolfsburg,Goalkeeper,Switzerland
+Roman Buerki,Grasshopper,Goalkeeper,Switzerland
+Yann Sommer,Basel,Goalkeeper,Switzerland
+Johan Djourou,Hamburg,Defender,Switzerland
+Michael Lang,Grasshopper,Defender,Switzerland
+Stephan Lichtsteiner,Juventus,Defender,Switzerland
+Ricardo Rodriguez,Wolfsburg,Defender,Switzerland
+Fabian Schaer,Basel,Defender,Switzerland
+Philippe Senderos,Valencia,Defender,Switzerland
+Steve von Bergen,Young Boys,Defender,Switzerland
+Reto Ziegler,Sassuolo,Defender,Switzerland
+Tranquillo Barnetta,Eintracht Frankfurt,Midfielder,Switzerland
+Valon Behrami,Napoli,Midfielder,Switzerland
+Blerim Dzemaili,Napoli,Midfielder,Switzerland
+Gelson Fernandes,Freiburg,Midfielder,Switzerland
+Gokhan Inler,Napoli,Midfielder,Switzerland
+Xherdan Shaqiri,Bayern Munich,Midfielder,Switzerland
+Valentin Stocker,Basel,Midfielder,Switzerland
+Josip Drmic,Nuremberg,Forward,Switzerland
+Mario Gavranovic,Zurich,Forward,Switzerland
+Admir Mehmedi,Freiburg,Forward,Switzerland
+Haris Seferovic,Real Sociedad,Forward,Switzerland
+Granit Xhaka,Borussia Monchengladbach,Forward,Switzerland
+Maximo Banguera,Barcelona SC,Goalkeeper,Ecuador
+Alexander Dominguez,LDU Quito,Goalkeeper,Ecuador
+Adrian Bone,El Nacional,Goalkeeper,Ecuador
+Frickson Erazo,Flamengo,Defender,Ecuador
+Jorge Guagua,Emelec,Defender,Ecuador
+Oscar Bagui,Emelec,Defender,Ecuador
+Gabriel Achilier,Emelec,Defender,Ecuador
+Walter Ayovi,Pachuca,Defender,Ecuador
+Juan Carlos Paredes,Barcelona SC,Defender,Ecuador
+Oswaldo Minda,Chivas USA,Midfielder,Ecuador
+Carlos Gruezo,Stuttgart,Midfielder,Ecuador
+Renato Ibarra,Vitesse Arnhem,Midfielder,Ecuador
+Cristian Noboa,Dynamo Moscow,Midfielder,Ecuador
+Luis Saritama,Barcelona SC,Midfielder,Ecuador
+Antonio Valencia,Manchester United,Midfielder,Ecuador
+Edison Mendez,Independiente Santa Fe,Midfielder,Ecuador
+Fidel Martinez,Tijuana,Midfielder,Ecuador
+Michael Arroyo,Atlante,Midfielder,Ecuador
+Felipe Caicedo,Al-Jazira,Forward,Ecuador
+Jefferson Montero,Morelia,Forward,Ecuador
+Joao Rojas,Cruz Azul,Forward,Ecuador
+Jaime Ayovi,Tijuana,Forward,Ecuador
+Enner Valencia,Pachuca,Forward,Ecuador
+Hugo Lloris,Tottenham Hotspur,Goalkeeper,France
+Stephane Ruffier,Marseille,Goalkeeper,France
+Mickael Landreau,Bastia,Goalkeeper,France
+Mathieu Debuchy,Newcastle,Defender,France
+Lucas Digne,Paris St-Germain,Defender,France
+Patrice Evra,Manchester United,Defender,France
+Laurent Koscielny,Arsenal,Defender,France
+Bacary Sagna,Arsenal,Defender,France
+Eliaquim Mangala,Porto,Defender,France
+Mamadou Sakho,Liverpool,Defender,France
+Raphael Varane,Real Madrid,Defender,France
+Yohan Cabaye,Paris St-Germain,Midfielder,France
+Blaise Matuidi,Paris St-Germain,Midfielder,France
+Rio Mavuba,Lille,Midfielder,France
+Paul Pogba,Juventus,Midfielder,France
+Morgan Schneiderlin,Southampton,Midfielder,France
+Moussa Sissoko,Newcastle,Midfielder,France
+Mathieu Valbuena,Marseille,Midfielder,France
+Karim Benzema,Real Madrid,Forward,France
+Remy Cabella,Montpellier,Forward,France
+Olivier Giroud,Arsenal,Forward,France
+Antoine Griezmann,Real Sociedad,Forward,France
+Loic Remy,Newcastle,Forward,France
+Noel Valladares,Olimpia,Goalkeeper,Honduras
+Donis Escober,Olimpia,Goalkeeper,Honduras
+Luis Lopez,Real Espana,Goalkeeper,Honduras
+Brayan Beckeles,Olimpia,Defender,Honduras
+Emilio Izaguirre,Celtic,Defender,Honduras
+Juan Carlos Garcia,Wigan,Defender,Honduras
+Maynor Figueroa,Hull,Defender,Honduras
+Victor Bernardez,San Jose Earthquakes,Defender,Honduras
+Osman Chavez,Qingdao Janoon,Defender,Honduras
+Juan Pablo Montes,Motagua,Defender,Honduras
+Edder Delgado,Real Espana,Midfielder,Honduras
+Luis Garrido,Olimpia,Midfielder,Honduras
+Roger Espinoza,Wigan,Midfielder,Honduras
+Jorge Claros,Motagua,Midfielder,Honduras
+Wilson Palacios,Stoke,Midfielder,Honduras
+Oscar Garcia,Houston Dynamo,Midfielder,Honduras
+Andy Najar,Anderlecht,Midfielder,Honduras
+Mario Martinez,Real Espana,Midfielder,Honduras
+Marvin Chavez,Chivas USA,Midfielder,Honduras
+Jerry Bengtson,New England Revolution,Forward,Honduras
+Jerry Palacios,Alajuelense,Forward,Honduras
+Carlo Costly,Real Espana,Forward,Honduras
+Rony Martinez,Real Sociedad,Forward,Honduras
+Sergio Romero,Sampdoria,Goalkeeper,Argentina
+Mariano Andujar,Catania,Goalkeeper,Argentina
+Agustin Orion,Boca Juniors,Goalkeeper,Argentina
+Pablo Zabaleta,Manchester City,Defender,Argentina
+Federico Fernandez,Napoli,Defender,Argentina
+Ezequiel Garay,Benfica,Defender,Argentina
+Marcos Rojo,Sporting Lisbon,Defender,Argentina
+Hugo Campagnaro,Inter Milan,Defender,Argentina
+Martin Demichelis,Manchester City,Defender,Argentina
+Jose Basanta,Monterrey,Defender,Argentina
+Javier Mascherano,Barcelona,Midfielder,Argentina
+Fernando Gago,Boca Juniors,Midfielder,Argentina
+Lucas Biglia,Lazio,Midfielder,Argentina
+Ricardo Alvarez,Inter Milan,Midfielder,Argentina
+Augusto Fernandez,Celta Vigo,Midfielder,Argentina
+Angel Di Maria,Real Madrid,Midfielder,Argentina
+Maxi Rodriguez,Newell's Old Boys,Midfielder,Argentina
+Enzo Perez,Benfica,Midfielder,Argentina
+Lionel Messi,Barcelona,Forward,Argentina
+Gonzalo Higuain,Napoli,Forward,Argentina
+Sergio Aguero,Manchester City,Forward,Argentina
+Rodrigo Palacio,Inter Milan,Forward,Argentina
+Ezequiel Lavezzi,Paris St-Germain,Forward,Argentina
+Asmir Begovic,Stoke City,Goalkeeper,Bosnia-Hercegovina
+Asmir Avdukic,Borac Banja Luka,Goalkeeper,Bosnia-Hercegovina
+Jasmin Fejzic,VFR Aalen,Goalkeeper,Bosnia-Hercegovina
+Emir Spahic,Bayer Leverkusen,Defender,Bosnia-Hercegovina
+Toni Sunjic,Zorya Lugansk,Defender,Bosnia-Hercegovina
+Sead Kolasinac,Schalke,Defender,Bosnia-Hercegovina
+Ognjen Vranjes,Elazigspor,Defender,Bosnia-Hercegovina
+Ermin Bicakcic,Eintracht Braunschweig,Defender,Bosnia-Hercegovina
+Muhamed Besic,Ferencvaros,Defender,Bosnia-Hercegovina
+Mensur Mujdza,Freiburg,Defender,Bosnia-Hercegovina
+Miralem Pjanic,Roma,Midfielder,Bosnia-Hercegovina
+Izet Hajrovic,Galatasaray,Midfielder,Bosnia-Hercegovina
+Haris Medunjanin,Gaziantepspor,Midfielder,Bosnia-Hercegovina
+Senad Lulic,Lazio,Midfielder,Bosnia-Hercegovina
+Anel Hadzic,Sturm,Midfielder,Bosnia-Hercegovina
+Tino Susic,Hajduk,Midfielder,Bosnia-Hercegovina
+Sejad Salihovic,Hoffenheim,Midfielder,Bosnia-Hercegovina
+Zvjezdan Misimovic,Guizhour Renhe,Midfielder,Bosnia-Hercegovina
+Senijad Ibricic,Erciyesspor,Midfielder,Bosnia-Hercegovina
+Avdija Vrsaljevic,Hajduk,Midfielder,Bosnia-Hercegovina
+Daniel Davari,Eintracht Braunschweig,Goalkeeper,Iran
+Alireza Haghighi,Sporting Covilha,Goalkeeper,Iran
+Rahman Ahmadi,Sepahan,Goalkeeper,Iran
+Hossein Mahini,Persepolis,Defender,Iran
+Steven Beitashour,Vancouver Whitecaps,Defender,Iran
+Pejman Montazeri,Umm Salal,Defender,Iran
+Jalal Hosseini,Persepolis,Defender,Iran
+Amir-Hossein Sadeghi,Esteghlal,Defender,Iran
+Ahmad Alenemeh,Naft,Defender,Iran
+Hashem Beikzadeh,Esteghlal,Defender,Iran
+Mehrdad Pouladi,Persepolis,Defender,Iran
+Javad Nekounam,Kuwait SC,Midfielder,Iran
+Andranik Teymourian,Esteghlal,Midfielder,Iran
+Reza Haghighi,Persepolis,Midfielder,Iran
+Ghasem Haddadifar,Zob Ahan,Midfielder,Iran
+Bakhtiar Rahmani,Foolad,Midfielder,Iran
+Ehsan Hajsafi,Sepahan,Midfielder,Iran
+Ashkan Dejagah,Fulham,Forward,Iran
+Masoud Shojaei,Las Palmas,Forward,Iran
+Alireza Jahanbakhsh,NEC Nijmegen,Forward,Iran
+Reza Ghoochannejhad,Charlton,Forward,Iran
+Karim Ansarifard,Tractor Saz,Forward,Iran
+Khosro Heydari,Esteghlal,Forward,Iran
+Vincent Enyeama,Lille,Goalkeeper,Nigeria
+Austin Ejide,Hapoel Be'er Sheva,Goalkeeper,Nigeria
+Chigozie Agbim,Gombe United,Goalkeeper,Nigeria
+Efe Ambrose,Celtic,Defender,Nigeria
+Godfrey Oboabona,Rizespor,Defender,Nigeria
+Azubuike Egwuekwe,Warri Wolves,Defender,Nigeria
+Kenneth Omeruo,Middlesbrough,Defender,Nigeria
+Juwon Oshaniwa,Ashdod,Defender,Nigeria
+Joseph Yobo,Norwich,Defender,Nigeria
+Kunle Odunlami,Sunshine Stars,Defender,Nigeria
+John Mikel Obi,Chelsea,Midfielder,Nigeria
+Ramon Azeez,Almeria,Midfielder,Nigeria
+Ogenyi Onazi,Lazio,Midfielder,Nigeria
+Reuben Gabriel,Waasland-Beveren,Midfielder,Nigeria
+Michael Babatunde,Volyn Lutsk,Midfielder,Nigeria
+Ejike Uzoenyi,Enugu Rangers,Midfielder,Nigeria
+Ahmed Musa,CSKA Moscow,Forward,Nigeria
+Shola Ameobi,Newcastle,Forward,Nigeria
+Emmanuel Emenike,Fenerbahce,Forward,Nigeria
+Michael Uchebo,Cercle Brugge,Forward,Nigeria
+Peter Odemwingie,Stoke,Forward,Nigeria
+Victor Moses,Liverpool,Forward,Nigeria
+Uche Nwofor,Heerenveen,Forward,Nigeria
+Manuel Neuer,Bayern Munich,Goalkeeper,Germany
+Roman Weidenfeller,Borussia Dortmund,Goalkeeper,Germany
+Ron-Robert Zieler,Hannover,Goalkeeper,Germany
+Jerome Boateng,Bayern Munich,Defender,Germany
+Erik Durm,Borussia Dortmund,Defender,Germany
+Kevin Grosskreutz,Borussia Dortmund,Defender,Germany
+Benedikt Howedes,Schalke,Defender,Germany
+Mats Hummels,Borussia Dortmund,Defender,Germany
+Philipp Lahm,Bayern Munich,Defender,Germany
+Per Mertesacker,Arsenal,Defender,Germany
+Shkodran Mustafi,Sampdoria,Defender,Germany
+Julian Draxler,Schalke,Midfielder,Germany
+Matthias Ginter,Freiburg,Midfielder,Germany
+Mario Gotze,Bayern Munich,Midfielder,Germany
+Christoph Kramer,Borussia Monchengladbach,Midfielder,Germany
+Sami Khedira,Real Madrid,Midfielder,Germany
+Toni Kroos,Bayern Munich,Midfielder,Germany
+Thomas Muller,Bayern Munich,Midfielder,Germany
+Mesut Ozil,Arsenal,Midfielder,Germany
+Andre Schurrle,Chelsea,Midfielder,Germany
+Bastian Schweinsteiger,Bayern Munich,Midfielder,Germany
+Miroslav Klose,Lazio,Forward,Germany
+Lukas Podolski,Arsenal,Forward,Germany
+Beto,Sevilla,Goalkeeper,Portugal
+Eduardo si,Braga,Goalkeeper,Portugal
+Rui Patricio,Sporting,Goalkeeper,Portugal
+Andre Almeida,Benfica,Defender,Portugal
+Bruno Alves,Fenerbahce,Defender,Portugal
+Fabio Coentrao,Real Madrid,Defender,Portugal
+Joao Pereira,Valencia,Defender,Portugal
+Neto,Zenit,Defender,Portugal
+Pepe,Real Madrid,Defender,Portugal
+Ricardo Costa,Valencia,Defender,Portugal
+Joao Moutinho,Monaco,Midfielder,Portugal
+Miguel Veloso,Dinamo Kiev,Midfielder,Portugal
+Raul Meireles,Fenerbahce,Midfielder,Portugal
+Ruben Amorim,Benfica,Midfielder,Portugal
+William Carvalho,Sporting,Midfielder,Portugal
+Cristiano Ronaldo,Real Madrid,Forward,Portugal
+Eder,SC Braga,Forward,Portugal
+Helder Postiga,Lazio,Forward,Portugal
+Hugo Almeida,Besiktas,Forward,Portugal
+Nani,Manchester United,Forward,Portugal
+Rafa,Braga,Forward,Portugal
+Varela,FC Porto,Forward,Portugal
+Vieirinha,Wolfsburg,Forward,Portugal
+Fatau Dauda,Orlando Pirates,Goalkeeper,Ghana
+Adam Kwarasey,Stromsgodset,Goalkeeper,Ghana
+Stephen Adams,Aduana Stars,Goalkeeper,Ghana
+Samuel Inkoom,Platanias,Defender,Ghana
+Daniel Opare,Standard Liege,Defender,Ghana
+Harrison Afful,Esperance,Defender,Ghana
+John Boye,Rennes,Defender,Ghana
+Jonathan Mensah,Evian,Defender,Ghana
+Rashid Sumalia,Mamelodi Sundowns,Defender,Ghana
+Michael Essien,AC Milan,Midfielder,Ghana
+Sulley Muntari,AC Milan,Midfielder,Ghana
+Rabiu Mohammed,Kuban Krasnodar,Midfielder,Ghana
+Kwadwo Asamoah,Juventus,Midfielder,Ghana
+Emmanuel Agyemang-Badu,Udinese,Midfielder,Ghana
+Afriyie Acquah,Parma,Midfielder,Ghana
+Christian Atsu,Vitesse,Midfielder,Ghana
+Albert Adomah,Middlesbrough,Midfielder,Ghana
+Andre Ayew,Marseille,Midfielder,Ghana
+Mubarak Wakaso,Rubin Kazan,Midfielder,Ghana
+Asamoah Gyan,Al Ain,Forward,Ghana
+Kevin-Prince Boateng,Schalke 04,Forward,Ghana
+Abdul Majeed Waris,Valenciennes,Forward,Ghana
+Jordan Ayew,Sochaux,Forward,Ghana
+Brad Guzan,Aston Villa,Goalkeeper,United States
+Tim Howard,Everton,Goalkeeper,United States
+Nick Rimando,Real Salt Lake,Goalkeeper,United States
+DaMarcus Beasley,Puebla,Defender,United States
+Matt Besler,Sporting Kansas City,Defender,United States
+John Brooks,Hertha Berlin,Defender,United States
+Geoff Cameron,Stoke City,Defender,United States
+Timmy Chandler,Nuremberg,Defender,United States
+Omar Gonzalez,LA Galaxy,Defender,United States
+Fabian Johnson,Hoffenheim,Defender,United States
+DeAndre Yedlin,Seattle Sounders,Defender,United States
+Kyle Beckerman,Real Salt Lake,Midfielder,United States
+Alejandro Bedoya,Nantes,Midfielder,United States
+Michael Bradley,Toronto FC,Midfielder,United States
+Brad Davis,Houston Dynamo,Midfielder,United States
+Mix Diskerud,Rosenborg,Midfielder,United States
+Julian Green,Bayern Munich,Midfielder,United States
+Jermaine Jones,Besiktas,Midfielder,United States
+Graham Zusi,Sporting Kansas City,Midfielder,United States
+Jozy Altidore,Sunderland,Forward,United States
+Clint Dempsey,Seattle Sounders,Forward,United States
+Aron Johannsson,AZ Alkmaar,Forward,United States
+Chris Wondolowski,San Jose Earthquakes,Forward,United States
+Thibaut Courtois,Atletico Madrid,Goalkeeper,Belgium
+Simon Mignolet,Liverpool,Goalkeeper,Belgium
+Sammy Bossut,Zulte Waregem,Goalkeeper,Belgium
+Toby Alderweireld,Atletico Madrid,Defender,Belgium
+Laurent Ciman,Standard Liege,Defender,Belgium
+Nicolas Lombaerts,Zenit St Petersburg,Defender,Belgium
+Vincent Kompany,Manchester City,Defender,Belgium
+Daniel Van Buyten,Bayern Munich,Defender,Belgium
+Anthony Vanden Borre,Anderlecht,Defender,Belgium
+Thomas Vermaelen,Arsenal,Defender,Belgium
+Jan Vertonghen,Tottenham,Defender,Belgium
+Nacer Chadli,Tottenham,Midfielder,Belgium
+Mousa Dembele,Tottenham,Midfielder,Belgium
+Steven Defour,Porto,Midfielder,Belgium
+Kevin De Bruyne,Wolfsburg,Midfielder,Belgium
+Marouane Fellaini,Manchester United,Midfielder,Belgium
+Adnan Januzaj,Manchester United,Midfielder,Belgium
+Eden Hazard,Chelsea,Midfielder,Belgium
+Kevin Mirallas,Everton,Midfielder,Belgium
+Divock Origi,Lille,Midfielder,Belgium
+Axel Witsel,Zenit St Petersburg,Midfielder,Belgium
+Romelu Lukaku,Everton,Forward,Belgium
+Dries Mertens,Napoli,Forward,Belgium
+Rais Mbolhi,CSKA Sofia,Goalkeeper,Algeria
+Cedric Si Mohamed,CS Constantine,Goalkeeper,Algeria
+Mohamed Lamine Zemmamouche,USM Alger,Goalkeeper,Algeria
+Essaid Belkalem,Watford,Defender,Algeria
+Madjid Bougherra,Lekhwya Club,Defender,Algeria
+Liassine Cadamuro,Mallorca,Defender,Algeria
+Faouzi Ghoualm,Napoli,Defender,Algeria
+Rafik Halliche,Academica Coimbra,Defender,Algeria
+Aissa Mandi,Stade Reims,Defender,Algeria
+Carl Medjani,Valenciennes,Defender,Algeria
+Djamel Mesbah,Livorno,Defender,Algeria
+Mehdi Mostefa,AC Ajaccio,Defender,Algeria
+Nabil Bentaleb,Tottenham,Midfielder,Algeria
+Yasine Brahimi,Granada,Midfielder,Algeria
+Medhi Lacen,Getafe,Midfielder,Algeria
+Saphir Taider,Inter Milan,Midfielder,Algeria
+Hassan Yebda,Udinese,Midfielder,Algeria
+Abdelmoumene Djabou,Club Africain,Forward,Algeria
+Sofiane Feghouli,Valencia,Forward,Algeria
+Nabil Ghilas,Porto,Forward,Algeria
+Riyad Mahrez,Leicester City,Forward,Algeria
+Islam Slimani,Sporting Lisbon,Forward,Algeria
+Hilal Soudani,Dinamo Zagreb,Forward,Algeria
+Igor Akinfeev,CSKA Moscow,Goalkeeper,Russia
+Yury Lodygin,Zenit St Petersburg,Goalkeeper,Russia
+Sergey Ryzhikov,Rubin Kazan,Goalkeeper,Russia
+Vasili Berezutskiy,CSKA Moscow,Defender,Russia
+Vladimir Granat,Dynamo Moscow,Defender,Russia
+Andrey Eshchenko,Anzhi Makhachkala,Defender,Russia
+Sergey Ignashevich,CSKA Moscow,Defender,Russia
+Alexey Kozlov,Dynamo Moscow,Defender,Russia
+Dmitry Kombarov,Spartak Moscow,Defender,Russia
+Andrey Semenov,Terek Grozny,Defender,Russia
+Georgi Schennikov,CSKA Moscow,Defender,Russia
+Denis Glushakov,Spartak Moscow,Midfielder,Russia
+Igor Denisov,Dynamo Moscow,Midfielder,Russia
+Alan Dzagoev,CSKA Moscow,Midfielder,Russia
+Yury Zhirkov,Dynamo Moscow,Midfielder,Russia
+Alexey Ionov,Dynamo Moscow,Midfielder,Russia
+Pavel Mogilevets,Rubin Kazan,Midfielder,Russia
+Alexander Samedov,Lokomotiv Moscow,Midfielder,Russia
+Victor Faizulin,Zenit St Petersburg,Midfielder,Russia
+Oleg Shatov,Zenit St Petersburg,Midfielder,Russia
+Jung Sung-ryeong,Suwon Bluewings,Goalkeeper,South Korea
+Kim Seung-gyu,Ulsan Horang-i,Goalkeeper,South Korea
+Lee Bum-young,Busan I'Park,Goalkeeper,South Korea
+Yun Suk-young,QPR,Defender,South Korea
+Kim Young-kwon,Guangzhou Evergrande,Defender,South Korea
+Hwang Seok-ho,Sanfrecce Hiroshima,Defender,South Korea
+Hong Jeong-ho,Augsburg,Defender,South Korea
+Kwak Tae-hwi,Al Hilal,Defender,South Korea
+Lee Yong,Ulsan Horang-i,Defender,South Korea
+Kim Chang-soo,Kashiwa Reysol,Defender,South Korea
+Park Joo-ho,Mainz,Defender,South Korea
+Ki Seung-yueng,Sunderland,Midfielder,South Korea
+Ha Dae-sung,Beijing Guoan,Midfielder,South Korea
+Han Kook-young,Kashiwa Reysol,Midfielder,South Korea
+Park Jung-woo,Guangzhou R&F,Midfielder,South Korea
+Son Heung-min,Bayer Leverkusen,Midfielder,South Korea
+Kim Bo-kyung,Cardiff City,Midfielder,South Korea
+Lee Chung-yong,Bolton Wanderers,Midfielder,South Korea
+Ji Dong-won,Augsburg,Midfielder,South Korea
+Koo Ja-cheol,Mainz,Forward,South Korea
+Lee Keun-ho,Sangju Sangmu,Forward,South Korea
+Park Chu-young,Arsenal,Forward,South Korea
+Kim Shin-wook,Ulsan Horang-i,Forward,South Korea

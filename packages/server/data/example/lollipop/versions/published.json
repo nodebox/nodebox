@@ -1,0 +1,1444 @@
+{
+  "title": "Lollipop",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Basic lollipop plot",
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eSN7MMZK6ma:1",
+          "x": 240,
+          "y": 177,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "plotType": {
+              "type": "VALUE",
+              "value": "lollipop"
+            },
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "TX_DAY_OF_WEEK_DESCR_NL"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "MS_ACCT_sum"
+            },
+            "groupBy": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "strokeColor": {
+              "type": "VALUE",
+              "value": "orange"
+            },
+            "fillColor": {
+              "type": "VALUE",
+              "value": "red"
+            },
+            "strokeWidth": {
+              "type": "VALUE",
+              "value": 2
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eV8T69rFM3r:0",
+          "x": 240,
+          "y": 237,
+          "name": "Set Plot Scale 1",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "sizeScale"
+            },
+            "domain": {
+              "type": "EXPRESSION",
+              "expression": "MS_ACCT_WITH_DEAD_30_DAYS_pct"
+            },
+            "range": {
+              "type": "VALUE",
+              "value": "100,1000"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eV8fveDsUeu:0",
+          "x": 240,
+          "y": 357,
+          "name": "Set Axis 1",
+          "fn": "core/plot/Set Axis",
+          "values": {
+            "offset": {
+              "type": "VALUE",
+              "value": 26
+            },
+            "scale": {
+              "type": "VALUE",
+              "value": "yScale"
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "left"
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "Totaal aantal ongevallen"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eV8fveDsUeu:1",
+          "x": 240,
+          "y": 417,
+          "name": "Set Axis 2",
+          "fn": "core/plot/Set Axis",
+          "values": {
+            "titlePadding": {
+              "type": "VALUE",
+              "value": 0
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eV8fveDsUeu:2",
+          "x": 240,
+          "y": 477,
+          "name": "Set Plot Title 1",
+          "fn": "core/plot/Set Plot Title",
+          "values": {
+            "titleText": {
+              "type": "VALUE",
+              "value": "Verkeersongevallen in Vlaanderen (2023)"
+            },
+            "align": {
+              "type": "VALUE",
+              "value": "center"
+            },
+            "anchor": {
+              "type": "VALUE",
+              "value": "middle"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWFvkpxFDrX:6",
+          "x": 240,
+          "y": 537,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "id": "eaCqgPfSk1v:3",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A lollipop plot displays data points as symbols (like a scatter plot), and connects them to a baseline by vertical or horizontal segments. Lollipop plots are often used as a visually cleaner alternative to bar plots. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCqgPfSk1v:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. Aggregated from original source: https://statbel.fgov.be/nl/themas/\nmobiliteit/verkeer/verkeersongevallen",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCqgPfSk1v:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Specify which data attributes you want to map to the X- and the Y-position. Set a fixed fill and stroke color using a valid CSS color string. F.ex. #f304d3, #ccc, rgb(253, 12, 134), steelblue.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCqgPfSk1v:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 540,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCqgPfSk1v:7",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Basic Lollipop Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "easuLA0niGs:0",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/TF_ACCIDENTS_2023_dayofweek.json"
+            }
+          }
+        },
+        {
+          "id": "easvpQjulOb:0",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Set a size scale with a custom size range. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "easvpQjulOb:1",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Add a legend for the size scale. Set the title and custom visible tick values. Increase the title limit to make longer titles visible. Finally customize the XY position, the title angle and alignment.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "easvpQjulOb:3",
+          "x": 240,
+          "y": 297,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "title": {
+              "type": "VALUE",
+              "value": "% dodelijke ongevallen (30 dagen)"
+            },
+            "values": {
+              "type": "VALUE",
+              "value": "1,1.5"
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "none"
+            },
+            "legendX": {
+              "type": "VALUE",
+              "value": 226
+            },
+            "legendY": {
+              "type": "VALUE",
+              "value": -10
+            },
+            "titleLimit": {
+              "type": "VALUE",
+              "value": 200
+            },
+            "titleAlign": {
+              "type": "VALUE",
+              "value": "right"
+            },
+            "titleAnchor": {
+              "type": "VALUE",
+              "value": "end"
+            },
+            "gridAlign": {
+              "type": "VALUE",
+              "value": "each"
+            }
+          }
+        },
+        {
+          "id": "easvpQjulOb:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Set the title of the Y-axis. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "easvpQjulOb:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 420,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Delete the title of the X-axis. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "easvpQjulOb:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 480,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a plot title. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSN7MMZK6ma:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eV8T69rFM3r:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eV8fveDsUeu:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eV8fveDsUeu:1",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eV8fveDsUeu:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eV8fveDsUeu:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eV8fveDsUeu:2",
+          "outPort": "plotSpecOut",
+          "inNode": "eSN7MMZK6ma:3",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "easuLA0niGs:0",
+          "outPort": "out",
+          "inNode": "eSN7MMZK6ma:1",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eV8T69rFM3r:0",
+          "outPort": "plotSpecOut",
+          "inNode": "easvpQjulOb:3",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "easvpQjulOb:3",
+          "outPort": "plotSpecOut",
+          "inNode": "eV8fveDsUeu:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eV8fveDsUeu:2",
+          "outPort": "plotSpecOut",
+          "inNode": "eWFvkpxFDrX:6",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eWFvkpxFDrX:6",
+      "outputPorts": [],
+      "description": "A lollipop plot displays data points as symbols (like a scatter plot), and connects them to a baseline by vertical or horizontal segments. Lollipop plots are often used as a visually cleaner alternative to bar plots. ",
+      "background": {
+        "r": 0.13333333333333333,
+        "g": 0.13333333333333333,
+        "b": 0.13333333333333333,
+        "a": 1
+      },
+      "width": 550,
+      "height": 500
+    },
+    {
+      "type": "NETWORK",
+      "id": "eV4CScQSVYy:2",
+      "name": "Lollipop with custom baseline",
+      "category": "",
+      "description": "",
+      "width": 550,
+      "height": 800,
+      "background": {
+        "r": 0.13333333333333333,
+        "g": 0.13333333333333333,
+        "b": 0.13333333333333333,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eWEWWgScTuN:6",
+          "x": 240,
+          "y": 287,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "plotType": {
+              "type": "VALUE",
+              "value": "lollipop"
+            },
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "MS_MAJ_ACCT_PER_POP"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "TX_MUNTY_DESCR_NL"
+            },
+            "strokeColor": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "fillColor": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "strokeWidth": {
+              "type": "VALUE",
+              "value": 2
+            },
+            "strokeOpacity": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "opacity": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "groupBy": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWEWWgScTuN:7",
+          "x": 240,
+          "y": 767,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eWEWWgScTuN:8",
+          "x": 240,
+          "y": 347,
+          "name": "Set Plot Type 1",
+          "fn": "core/plot/Set Plot Type",
+          "values": {
+            "plotType": {
+              "type": "VALUE",
+              "value": "lollipop"
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "X"
+            },
+            "baseline": {
+              "type": "VALUE",
+              "value": 0.37371
+            },
+            "shape": {
+              "type": "VALUE",
+              "value": "circle"
+            },
+            "order": {
+              "type": "VALUE",
+              "value": "ascending"
+            },
+            "sortAttribute": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWEWWgScTuN:9",
+          "x": 240,
+          "y": 167,
+          "name": "Set Plot Figure 1",
+          "fn": "core/plot/Set Plot Figure",
+          "values": {
+            "height": {
+              "type": "VALUE",
+              "value": 675
+            },
+            "width": {
+              "type": "VALUE",
+              "value": 390
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWEWWgScTuN:13",
+          "x": 240,
+          "y": 227,
+          "name": "Set Plot Title 1",
+          "fn": "core/plot/Set Plot Title",
+          "values": {
+            "titleText": {
+              "type": "VALUE",
+              "value": "Ongevallen met zwaargewonden of dodelijke slachtoffers"
+            },
+            "subtitle": {
+              "type": "VALUE",
+              "value": "Provincie Antwerpen - 2023"
+            },
+            "align": {
+              "type": "VALUE",
+              "value": "center"
+            },
+            "baseline": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "anchor": {
+              "type": "VALUE",
+              "value": "middle"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWEWWgScTuN:14",
+          "x": 240,
+          "y": 647,
+          "name": "Set Axis 1",
+          "fn": "core/plot/Set Axis",
+          "values": {
+            "title": {
+              "type": "VALUE",
+              "value": "Aantal per 1000 inwoners"
+            },
+            "customScale": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "grid": {
+              "type": "VALUE",
+              "value": false
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWFvkpxFDrX:2",
+          "x": 240,
+          "y": 587,
+          "name": "Set Mark 1",
+          "fn": "core/plot/Set Mark",
+          "values": {
+            "markName": {
+              "type": "VALUE",
+              "value": "lollipop_symbol"
+            },
+            "fill": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 25
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWFvkpxFDrX:5",
+          "x": 240,
+          "y": 707,
+          "name": "Set Axis 2",
+          "fn": "core/plot/Set Axis",
+          "values": {
+            "scale": {
+              "type": "VALUE",
+              "value": "yScale"
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "left"
+            },
+            "ticks": {
+              "type": "VALUE",
+              "value": true
+            },
+            "grid": {
+              "type": "VALUE",
+              "value": false
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWGLPUj6aZO:0",
+          "x": 260,
+          "y": 927,
+          "name": "Text 1",
+          "fn": "core/g/Text",
+          "values": {
+            "text": {
+              "type": "VALUE",
+              "value": "Gemiddelde:  0.3737"
+            },
+            "fill": {
+              "type": "VALUE",
+              "value": {
+                "r": 0,
+                "g": 0,
+                "b": 0,
+                "a": 1
+              }
+            },
+            "x": {
+              "type": "VALUE",
+              "value": 275
+            },
+            "y": {
+              "type": "VALUE",
+              "value": 359
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWGLPUj6aZO:2",
+          "x": 280,
+          "y": 987,
+          "name": "Text 2",
+          "fn": "core/g/Text",
+          "values": {
+            "text": {
+              "type": "VALUE",
+              "value": "Boven gemiddelde"
+            },
+            "fill": {
+              "type": "VALUE",
+              "value": {
+                "r": 1,
+                "g": 0,
+                "b": 0,
+                "a": 1
+              }
+            },
+            "y": {
+              "type": "VALUE",
+              "value": 208
+            },
+            "x": {
+              "type": "VALUE",
+              "value": 196
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWGLPUj6aZO:3",
+          "x": 280,
+          "y": 1037,
+          "name": "Transform 1",
+          "fn": "core/g/Transform",
+          "values": {
+            "rotate": {
+              "type": "VALUE",
+              "value": 90
+            },
+            "translate y": {
+              "type": "VALUE",
+              "value": 0
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWGLPUj6aZO:4",
+          "x": 450,
+          "y": 987,
+          "name": "Text 3",
+          "fn": "core/g/Text",
+          "values": {
+            "text": {
+              "type": "VALUE",
+              "value": "Onder gemiddelde"
+            },
+            "fill": {
+              "type": "VALUE",
+              "value": {
+                "r": 1,
+                "g": 0.5764705882352941,
+                "b": 0.2235294117647059,
+                "a": 1
+              }
+            },
+            "y": {
+              "type": "VALUE",
+              "value": 492
+            },
+            "x": {
+              "type": "VALUE",
+              "value": 293
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "easZxOGGlUu:0",
+          "x": 260,
+          "y": 107,
+          "name": "Parse Data 1",
+          "fn": "core/g/Parse Data",
+          "values": {
+            "source": {
+              "type": "VALUE",
+              "value": "[\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11052\",\n    \"TX_MUNTY_DESCR_NL\": \"Wommelgem\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 14,\n    \"CD_REFNIS\": \"11052\",\n    \"MS_POPULATION_sum\": 13230,\n    \"MS_MAJ_ACCT_PER_POP\": 1.0582010582010581,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13021\",\n    \"TX_MUNTY_DESCR_NL\": \"Meerhout\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 10,\n    \"CD_REFNIS\": \"13021\",\n    \"MS_POPULATION_sum\": 10348,\n    \"MS_MAJ_ACCT_PER_POP\": 0.9663703131039815,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11024\",\n    \"TX_MUNTY_DESCR_NL\": \"Kontich\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 17,\n    \"CD_REFNIS\": \"11024\",\n    \"MS_POPULATION_sum\": 21624,\n    \"MS_MAJ_ACCT_PER_POP\": 0.7861635220125787,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11035\",\n    \"TX_MUNTY_DESCR_NL\": \"Ranst\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 14,\n    \"CD_REFNIS\": \"11035\",\n    \"MS_POPULATION_sum\": 19609,\n    \"MS_MAJ_ACCT_PER_POP\": 0.7649548676628078,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13014\",\n    \"TX_MUNTY_DESCR_NL\": \"Hoogstraten\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 3,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 14,\n    \"CD_REFNIS\": \"13014\",\n    \"MS_POPULATION_sum\": 22245,\n    \"MS_MAJ_ACCT_PER_POP\": 0.7642166779051472,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13036\",\n    \"TX_MUNTY_DESCR_NL\": \"Retie\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 9,\n    \"CD_REFNIS\": \"13036\",\n    \"MS_POPULATION_sum\": 11841,\n    \"MS_MAJ_ACCT_PER_POP\": 0.7600709399543958,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13035\",\n    \"TX_MUNTY_DESCR_NL\": \"Ravels\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 10,\n    \"CD_REFNIS\": \"13035\",\n    \"MS_POPULATION_sum\": 15338,\n    \"MS_MAJ_ACCT_PER_POP\": 0.7171730342939105,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11009\",\n    \"TX_MUNTY_DESCR_NL\": \"Brecht\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 3,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 17,\n    \"CD_REFNIS\": \"11009\",\n    \"MS_POPULATION_sum\": 30387,\n    \"MS_MAJ_ACCT_PER_POP\": 0.6581761937670715,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12026\",\n    \"TX_MUNTY_DESCR_NL\": \"Nijlen\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 13,\n    \"CD_REFNIS\": \"12026\",\n    \"MS_POPULATION_sum\": 23409,\n    \"MS_MAJ_ACCT_PER_POP\": 0.5980605749925243,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11001\",\n    \"TX_MUNTY_DESCR_NL\": \"Aartselaar\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 8,\n    \"CD_REFNIS\": \"11001\",\n    \"MS_POPULATION_sum\": 14752,\n    \"MS_MAJ_ACCT_PER_POP\": 0.5422993492407809,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12021\",\n    \"TX_MUNTY_DESCR_NL\": \"Lier\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 4,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 16,\n    \"CD_REFNIS\": \"12021\",\n    \"MS_POPULATION_sum\": 37909,\n    \"MS_MAJ_ACCT_PER_POP\": 0.5275792028278246,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11054\",\n    \"TX_MUNTY_DESCR_NL\": \"Zandhoven\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 2,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 5,\n    \"CD_REFNIS\": \"11054\",\n    \"MS_POPULATION_sum\": 13352,\n    \"MS_MAJ_ACCT_PER_POP\": 0.524266027561414,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12014\",\n    \"TX_MUNTY_DESCR_NL\": \"Heist-op-den-Berg\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 4,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 19,\n    \"CD_REFNIS\": \"12014\",\n    \"MS_POPULATION_sum\": 44226,\n    \"MS_MAJ_ACCT_PER_POP\": 0.5200560756116311,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11056\",\n    \"TX_MUNTY_DESCR_NL\": \"Zwijndrecht\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 3,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 7,\n    \"CD_REFNIS\": \"11056\",\n    \"MS_POPULATION_sum\": 19547,\n    \"MS_MAJ_ACCT_PER_POP\": 0.511587455875582,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13006\",\n    \"TX_MUNTY_DESCR_NL\": \"Dessel\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 4,\n    \"CD_REFNIS\": \"13006\",\n    \"MS_POPULATION_sum\": 9805,\n    \"MS_MAJ_ACCT_PER_POP\": 0.5099439061703213,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13008\",\n    \"TX_MUNTY_DESCR_NL\": \"Geel\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 4,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 17,\n    \"CD_REFNIS\": \"13008\",\n    \"MS_POPULATION_sum\": 41828,\n    \"MS_MAJ_ACCT_PER_POP\": 0.5020560390169264,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12007\",\n    \"TX_MUNTY_DESCR_NL\": \"Bornem\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 11,\n    \"CD_REFNIS\": \"12007\",\n    \"MS_POPULATION_sum\": 21982,\n    \"MS_MAJ_ACCT_PER_POP\": 0.5004094258939132,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11050\",\n    \"TX_MUNTY_DESCR_NL\": \"Wijnegem\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 5,\n    \"CD_REFNIS\": \"11050\",\n    \"MS_POPULATION_sum\": 10432,\n    \"MS_MAJ_ACCT_PER_POP\": 0.47929447852760737,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13037\",\n    \"TX_MUNTY_DESCR_NL\": \"Rijkevorsel\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 2,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 4,\n    \"CD_REFNIS\": \"13037\",\n    \"MS_POPULATION_sum\": 12531,\n    \"MS_MAJ_ACCT_PER_POP\": 0.4788125448886761,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13025\",\n    \"TX_MUNTY_DESCR_NL\": \"Mol\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 18,\n    \"CD_REFNIS\": \"13025\",\n    \"MS_POPULATION_sum\": 38159,\n    \"MS_MAJ_ACCT_PER_POP\": 0.47171047459314974,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13023\",\n    \"TX_MUNTY_DESCR_NL\": \"Merksplas\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 3,\n    \"CD_REFNIS\": \"13023\",\n    \"MS_POPULATION_sum\": 8799,\n    \"MS_MAJ_ACCT_PER_POP\": 0.45459711330833047,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12041\",\n    \"TX_MUNTY_DESCR_NL\": \"Puurs-Sint-Amands\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 11,\n    \"CD_REFNIS\": \"12041\",\n    \"MS_POPULATION_sum\": 26772,\n    \"MS_MAJ_ACCT_PER_POP\": 0.44822949350067237,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13019\",\n    \"TX_MUNTY_DESCR_NL\": \"Lille\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 6,\n    \"CD_REFNIS\": \"13019\",\n    \"MS_POPULATION_sum\": 16871,\n    \"MS_MAJ_ACCT_PER_POP\": 0.41491316460197974,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11022\",\n    \"TX_MUNTY_DESCR_NL\": \"Kalmthout\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 8,\n    \"CD_REFNIS\": \"11022\",\n    \"MS_POPULATION_sum\": 19422,\n    \"MS_MAJ_ACCT_PER_POP\": 0.4119040263618577,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11013\",\n    \"TX_MUNTY_DESCR_NL\": \"Edegem\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 2,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 7,\n    \"CD_REFNIS\": \"11013\",\n    \"MS_POPULATION_sum\": 22761,\n    \"MS_MAJ_ACCT_PER_POP\": 0.39541320680110714,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12009\",\n    \"TX_MUNTY_DESCR_NL\": \"Duffel\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 7,\n    \"CD_REFNIS\": \"12009\",\n    \"MS_POPULATION_sum\": 17982,\n    \"MS_MAJ_ACCT_PER_POP\": 0.3892781670559448,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11037\",\n    \"TX_MUNTY_DESCR_NL\": \"Rumst\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 5,\n    \"CD_REFNIS\": \"11037\",\n    \"MS_POPULATION_sum\": 15417,\n    \"MS_MAJ_ACCT_PER_POP\": 0.3891807744697412,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12005\",\n    \"TX_MUNTY_DESCR_NL\": \"Bonheiden\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 6,\n    \"CD_REFNIS\": \"12005\",\n    \"MS_POPULATION_sum\": 15458,\n    \"MS_MAJ_ACCT_PER_POP\": 0.38814853150472245,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13004\",\n    \"TX_MUNTY_DESCR_NL\": \"Beerse\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 6,\n    \"CD_REFNIS\": \"13004\",\n    \"MS_POPULATION_sum\": 18416,\n    \"MS_MAJ_ACCT_PER_POP\": 0.38010425716768026,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13001\",\n    \"TX_MUNTY_DESCR_NL\": \"Arendonk\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 5,\n    \"CD_REFNIS\": \"13001\",\n    \"MS_POPULATION_sum\": 13344,\n    \"MS_MAJ_ACCT_PER_POP\": 0.3747002398081535,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"above\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13044\",\n    \"TX_MUNTY_DESCR_NL\": \"Vorselaar\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 3,\n    \"CD_REFNIS\": \"13044\",\n    \"MS_POPULATION_sum\": 8044,\n    \"MS_MAJ_ACCT_PER_POP\": 0.37294878170064644,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12040\",\n    \"TX_MUNTY_DESCR_NL\": \"Willebroek\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 9,\n    \"CD_REFNIS\": \"12040\",\n    \"MS_POPULATION_sum\": 27773,\n    \"MS_MAJ_ACCT_PER_POP\": 0.36006193065207215,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13017\",\n    \"TX_MUNTY_DESCR_NL\": \"Kasterlee\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 6,\n    \"CD_REFNIS\": \"13017\",\n    \"MS_POPULATION_sum\": 19478,\n    \"MS_MAJ_ACCT_PER_POP\": 0.35937981312249717,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11039\",\n    \"TX_MUNTY_DESCR_NL\": \"Schilde\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 6,\n    \"CD_REFNIS\": \"11039\",\n    \"MS_POPULATION_sum\": 20293,\n    \"MS_MAJ_ACCT_PER_POP\": 0.3449465332873405,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13031\",\n    \"TX_MUNTY_DESCR_NL\": \"Oud-Turnhout\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 4,\n    \"CD_REFNIS\": \"13031\",\n    \"MS_POPULATION_sum\": 14734,\n    \"MS_MAJ_ACCT_PER_POP\": 0.3393511605809692,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13046\",\n    \"TX_MUNTY_DESCR_NL\": \"Vosselaar\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 4,\n    \"CD_REFNIS\": \"13046\",\n    \"MS_POPULATION_sum\": 11802,\n    \"MS_MAJ_ACCT_PER_POP\": 0.3389256058295204,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12025\",\n    \"TX_MUNTY_DESCR_NL\": \"Mechelen\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 2,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 28,\n    \"CD_REFNIS\": \"12025\",\n    \"MS_POPULATION_sum\": 88614,\n    \"MS_MAJ_ACCT_PER_POP\": 0.3385469564628614,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11008\",\n    \"TX_MUNTY_DESCR_NL\": \"Brasschaat\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 13,\n    \"CD_REFNIS\": \"11008\",\n    \"MS_POPULATION_sum\": 38575,\n    \"MS_MAJ_ACCT_PER_POP\": 0.3370058327932599,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12002\",\n    \"TX_MUNTY_DESCR_NL\": \"Berlaar\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 4,\n    \"CD_REFNIS\": \"12002\",\n    \"MS_POPULATION_sum\": 11949,\n    \"MS_MAJ_ACCT_PER_POP\": 0.3347560465310905,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11002\",\n    \"TX_MUNTY_DESCR_NL\": \"Antwerpen\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 11,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 161,\n    \"CD_REFNIS\": \"11002\",\n    \"MS_POPULATION_sum\": 538910,\n    \"MS_MAJ_ACCT_PER_POP\": 0.31916275444879477,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11005\",\n    \"TX_MUNTY_DESCR_NL\": \"Boom\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 5,\n    \"CD_REFNIS\": \"11005\",\n    \"MS_POPULATION_sum\": 19062,\n    \"MS_MAJ_ACCT_PER_POP\": 0.3147623544224111,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11040\",\n    \"TX_MUNTY_DESCR_NL\": \"Schoten\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 9,\n    \"CD_REFNIS\": \"11040\",\n    \"MS_POPULATION_sum\": 34360,\n    \"MS_MAJ_ACCT_PER_POP\": 0.2910360884749709,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12035\",\n    \"TX_MUNTY_DESCR_NL\": \"Sint-Katelijne-Waver\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 5,\n    \"CD_REFNIS\": \"12035\",\n    \"MS_POPULATION_sum\": 21595,\n    \"MS_MAJ_ACCT_PER_POP\": 0.27784209307710117,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11030\",\n    \"TX_MUNTY_DESCR_NL\": \"Niel\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 2,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 1,\n    \"CD_REFNIS\": \"11030\",\n    \"MS_POPULATION_sum\": 10799,\n    \"MS_MAJ_ACCT_PER_POP\": 0.27780350032410406,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13013\",\n    \"TX_MUNTY_DESCR_NL\": \"Herselt\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 4,\n    \"CD_REFNIS\": \"13013\",\n    \"MS_POPULATION_sum\": 14805,\n    \"MS_MAJ_ACCT_PER_POP\": 0.2701789935832489,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11044\",\n    \"TX_MUNTY_DESCR_NL\": \"Stabroek\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 2,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 3,\n    \"CD_REFNIS\": \"11044\",\n    \"MS_POPULATION_sum\": 18837,\n    \"MS_MAJ_ACCT_PER_POP\": 0.2654350480437437,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11007\",\n    \"TX_MUNTY_DESCR_NL\": \"Borsbeek\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 3,\n    \"CD_REFNIS\": \"11007\",\n    \"MS_POPULATION_sum\": 11309,\n    \"MS_MAJ_ACCT_PER_POP\": 0.26527544433636924,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13003\",\n    \"TX_MUNTY_DESCR_NL\": \"Balen\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 2,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 4,\n    \"CD_REFNIS\": \"13003\",\n    \"MS_POPULATION_sum\": 23308,\n    \"MS_MAJ_ACCT_PER_POP\": 0.25742234425948174,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11023\",\n    \"TX_MUNTY_DESCR_NL\": \"Kapellen (Antwerpen)\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 7,\n    \"CD_REFNIS\": \"11023\",\n    \"MS_POPULATION_sum\": 27743,\n    \"MS_MAJ_ACCT_PER_POP\": 0.2523158995061817,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11057\",\n    \"TX_MUNTY_DESCR_NL\": \"Malle\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 3,\n    \"CD_REFNIS\": \"11057\",\n    \"MS_POPULATION_sum\": 16007,\n    \"MS_MAJ_ACCT_PER_POP\": 0.2498906728306366,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13011\",\n    \"TX_MUNTY_DESCR_NL\": \"Herentals\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 7,\n    \"CD_REFNIS\": \"13011\",\n    \"MS_POPULATION_sum\": 28575,\n    \"MS_MAJ_ACCT_PER_POP\": 0.24496937882764655,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11021\",\n    \"TX_MUNTY_DESCR_NL\": \"Hove (Antwerpen)\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 2,\n    \"CD_REFNIS\": \"11021\",\n    \"MS_POPULATION_sum\": 8444,\n    \"MS_MAJ_ACCT_PER_POP\": 0.23685457129322596,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11053\",\n    \"TX_MUNTY_DESCR_NL\": \"Wuustwezel\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 5,\n    \"CD_REFNIS\": \"11053\",\n    \"MS_POPULATION_sum\": 21644,\n    \"MS_MAJ_ACCT_PER_POP\": 0.23101090371465532,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11038\",\n    \"TX_MUNTY_DESCR_NL\": \"Schelle\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 2,\n    \"CD_REFNIS\": \"11038\",\n    \"MS_POPULATION_sum\": 8662,\n    \"MS_MAJ_ACCT_PER_POP\": 0.23089355806972986,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11004\",\n    \"TX_MUNTY_DESCR_NL\": \"Boechout\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 2,\n    \"CD_REFNIS\": \"11004\",\n    \"MS_POPULATION_sum\": 13806,\n    \"MS_MAJ_ACCT_PER_POP\": 0.21729682746631898,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13040\",\n    \"TX_MUNTY_DESCR_NL\": \"Turnhout\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 8,\n    \"CD_REFNIS\": \"13040\",\n    \"MS_POPULATION_sum\": 46923,\n    \"MS_MAJ_ACCT_PER_POP\": 0.19180359312064446,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11029\",\n    \"TX_MUNTY_DESCR_NL\": \"Mortsel\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 4,\n    \"CD_REFNIS\": \"11029\",\n    \"MS_POPULATION_sum\": 26391,\n    \"MS_MAJ_ACCT_PER_POP\": 0.18945852752832404,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13053\",\n    \"TX_MUNTY_DESCR_NL\": \"Laakdal\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 3,\n    \"CD_REFNIS\": \"13053\",\n    \"MS_POPULATION_sum\": 16707,\n    \"MS_MAJ_ACCT_PER_POP\": 0.1795654516071108,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11055\",\n    \"TX_MUNTY_DESCR_NL\": \"Zoersel\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 3,\n    \"CD_REFNIS\": \"11055\",\n    \"MS_POPULATION_sum\": 22427,\n    \"MS_MAJ_ACCT_PER_POP\": 0.17835644535604406,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13010\",\n    \"TX_MUNTY_DESCR_NL\": \"Grobbendonk\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 2,\n    \"CD_REFNIS\": \"13010\",\n    \"MS_POPULATION_sum\": 11519,\n    \"MS_MAJ_ACCT_PER_POP\": 0.17362618282837053,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11016\",\n    \"TX_MUNTY_DESCR_NL\": \"Essen\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 3,\n    \"CD_REFNIS\": \"11016\",\n    \"MS_POPULATION_sum\": 19629,\n    \"MS_MAJ_ACCT_PER_POP\": 0.1528350909368791,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13049\",\n    \"TX_MUNTY_DESCR_NL\": \"Westerlo\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 2,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 1,\n    \"CD_REFNIS\": \"13049\",\n    \"MS_POPULATION_sum\": 25466,\n    \"MS_MAJ_ACCT_PER_POP\": 0.11780413099819367,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11025\",\n    \"TX_MUNTY_DESCR_NL\": \"Lint\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 1,\n    \"CD_REFNIS\": \"11025\",\n    \"MS_POPULATION_sum\": 8548,\n    \"MS_MAJ_ACCT_PER_POP\": 0.1169864295741694,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"12029\",\n    \"TX_MUNTY_DESCR_NL\": \"Putte\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 2,\n    \"CD_REFNIS\": \"12029\",\n    \"MS_POPULATION_sum\": 18631,\n    \"MS_MAJ_ACCT_PER_POP\": 0.10734796843969728,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13012\",\n    \"TX_MUNTY_DESCR_NL\": \"Herenthout\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 1,\n    \"CD_REFNIS\": \"13012\",\n    \"MS_POPULATION_sum\": 9417,\n    \"MS_MAJ_ACCT_PER_POP\": 0.10619093129446745,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13016\",\n    \"TX_MUNTY_DESCR_NL\": \"Hulshout\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 1,\n    \"CD_REFNIS\": \"13016\",\n    \"MS_POPULATION_sum\": 10564,\n    \"MS_MAJ_ACCT_PER_POP\": 0.09466111321469141,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"11018\",\n    \"TX_MUNTY_DESCR_NL\": \"Hemiksem\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 1,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 0,\n    \"CD_REFNIS\": \"11018\",\n    \"MS_POPULATION_sum\": 12105,\n    \"MS_MAJ_ACCT_PER_POP\": 0.08261049153242461,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13029\",\n    \"TX_MUNTY_DESCR_NL\": \"Olen\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 1,\n    \"CD_REFNIS\": \"13029\",\n    \"MS_POPULATION_sum\": 12689,\n    \"MS_MAJ_ACCT_PER_POP\": 0.07880841673890772,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  },\n  {\n    \"CD_PROV_REFNIS\": \"10000\",\n    \"TX_PROV_DESCR_NL\": \"Provincie Antwerpen\",\n    \"CD_MUNTY_REFNIS\": \"13002\",\n    \"TX_MUNTY_DESCR_NL\": \"Baarle-Hertog\",\n    \"MS_ACCT_WITH_DEAD_30_DAYS_sum\": 0,\n    \"MS_ACCT_WITH_SERLY_INJ_sum\": 0,\n    \"CD_REFNIS\": \"13002\",\n    \"MS_POPULATION_sum\": 3012,\n    \"MS_MAJ_ACCT_PER_POP\": 0,\n    \"MS_MAJ_ACCT_PER_POP_mean\": 0.37371013048536667,\n    \"COMP_MEAN\": \"below\"\n  }\n]\n"
+            },
+            "format": {
+              "type": "VALUE",
+              "value": "json"
+            }
+          }
+        },
+        {
+          "id": "eashX4AuokT:3",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Custom baselines allow to set a starting point other than zero, which can highlight deviations from a reference value. This is useful for comparing against targets or emphasizing relative changes.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eashX4AuokT:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 110,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Copy, paste and parse the results of the data preparation steps in a separate network. http://new.nodebox.live/example/data-manipulation",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eashX4AuokT:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 170,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Create a custom sized plot figure. NodeBox Plot nodes do not require a specific order. Changing the plot figure can be done before or after plotting the data. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eashX4AuokT:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 470,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Set a fill color scale to show if values are above or below mean. Use a custom range. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eashX4AuokT:7",
+          "type": "STICKY",
+          "x": 50,
+          "y": 30,
+          "width": 150,
+          "height": 70,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Lollipop with custom baseline",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eashX4AuokT:8",
+          "type": "STICKY",
+          "x": 400,
+          "y": 10,
+          "width": 380,
+          "height": 90,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "It is good practice to keep data visualizations up to date by connecting directly to online sources. However, since NodeBox executes every node at runtime in the browser, larger data files and computation-heavy manipulations can slow down your network. In such cases, it is better to perform the data preparation in a separate network. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eas3E8nHfaE:1",
+          "type": "STICKY",
+          "x": 400,
+          "y": 230,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add the plot title.  ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eas4abON2YR:0",
+          "type": "STICKY",
+          "x": 400,
+          "y": 290,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Plot the data in the custom plot figure. When plot type is set to lollipop, the segments are not showing because there are no numeric values in the default Y-direction. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eas4abON2YR:3",
+          "type": "STICKY",
+          "x": 400,
+          "y": 350,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Change the direction to X and set the baseline on the calculated mean of major accidents per 1000 habitants. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eas4abON2YR:7",
+          "type": "STICKY",
+          "x": 400,
+          "y": 530,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Do the same for the stroke color. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eas4abON2YR:8",
+          "type": "STICKY",
+          "x": 400,
+          "y": 590,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Update the mark with the name lollipop_symbol. Change the size. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eas4abON2YR:9",
+          "type": "STICKY",
+          "x": 400,
+          "y": 650,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Set the title of the X-axis. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eas4abON2YR:10",
+          "type": "STICKY",
+          "x": 400,
+          "y": 710,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Delete the title of the Y-axis. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eas4abON2YR:11",
+          "type": "STICKY",
+          "x": 400,
+          "y": 770,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eas4abON2YR:12",
+          "type": "STICKY",
+          "x": 400,
+          "y": 860,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "The graphical objects of the plot can be combined and manipulated like any other NodeBox graphic. Create text annotations and merge them with the plot. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eas4abON2YR:16",
+          "x": 240,
+          "y": 407,
+          "name": "Set Plot Scale 1",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "yScale"
+            },
+            "domain": {
+              "type": "EXPRESSION",
+              "expression": "TX_MUNTY_DESCR_NL"
+            },
+            "range": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "order": {
+              "type": "VALUE",
+              "value": "ascending"
+            },
+            "sortAttribute": {
+              "type": "EXPRESSION",
+              "expression": "MS_MAJ_ACCT_PER_POP"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eas4abON2YR:20",
+          "x": 240,
+          "y": 527,
+          "name": "Set Plot Scale 3",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "strokeColorScale"
+            },
+            "domain": {
+              "type": "EXPRESSION",
+              "expression": "COMP_MEAN"
+            },
+            "range": {
+              "type": "VALUE",
+              "value": "red,orange"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eas4abON2YR:21",
+          "x": 240,
+          "y": 467,
+          "name": "Set Plot Scale 2",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "fillColorScale"
+            },
+            "domain": {
+              "type": "EXPRESSION",
+              "expression": "COMP_MEAN"
+            },
+            "range": {
+              "type": "VALUE",
+              "value": "red,orange"
+            }
+          }
+        },
+        {
+          "id": "eas4abON2YR:22",
+          "type": "STICKY",
+          "x": 400,
+          "y": 410,
+          "width": 380,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Update the default Y scale. Add a sort attribute. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eas4abON2YR:23",
+          "x": 450,
+          "y": 1037,
+          "name": "Transform 2",
+          "fn": "core/g/Transform",
+          "values": {
+            "rotate": {
+              "type": "VALUE",
+              "value": 90
+            },
+            "translate y": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "translate x": {
+              "type": "VALUE",
+              "value": -66
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eas4abON2YR:24",
+          "x": 240,
+          "y": 1117,
+          "name": "Merge Shapes 1",
+          "fn": "core/g/Merge Shapes",
+          "values": {}
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWEWWgScTuN:14",
+          "outPort": "plotSpecOut",
+          "inNode": "eWFvkpxFDrX:5",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWFvkpxFDrX:5",
+          "outPort": "plotSpecOut",
+          "inNode": "eWEWWgScTuN:7",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWFvkpxFDrX:2",
+          "outPort": "plotSpecOut",
+          "inNode": "eWEWWgScTuN:14",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWGLPUj6aZO:2",
+          "outPort": "Out",
+          "inNode": "eWGLPUj6aZO:3",
+          "inPort": "shapes"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "easZxOGGlUu:0",
+          "outPort": "out",
+          "inNode": "eWEWWgScTuN:6",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWEWWgScTuN:9",
+          "outPort": "plotSpecOut",
+          "inNode": "eWEWWgScTuN:13",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWEWWgScTuN:13",
+          "outPort": "plotSpecOut",
+          "inNode": "eWEWWgScTuN:6",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eas4abON2YR:21",
+          "outPort": "plotSpecOut",
+          "inNode": "eas4abON2YR:20",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eas4abON2YR:20",
+          "outPort": "plotSpecOut",
+          "inNode": "eWFvkpxFDrX:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWEWWgScTuN:8",
+          "outPort": "plotSpecOut",
+          "inNode": "eas4abON2YR:16",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWEWWgScTuN:6",
+          "outPort": "plotSpecOut",
+          "inNode": "eWEWWgScTuN:8",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eas4abON2YR:16",
+          "outPort": "plotSpecOut",
+          "inNode": "eas4abON2YR:21",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWGLPUj6aZO:4",
+          "outPort": "Out",
+          "inNode": "eas4abON2YR:23",
+          "inPort": "shapes"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWEWWgScTuN:7",
+          "outPort": "Out",
+          "inNode": "eas4abON2YR:24",
+          "inPort": "shape 1"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWGLPUj6aZO:0",
+          "outPort": "Out",
+          "inNode": "eas4abON2YR:24",
+          "inPort": "shape 2"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWGLPUj6aZO:3",
+          "outPort": "out",
+          "inNode": "eas4abON2YR:24",
+          "inPort": "shape 3"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eas4abON2YR:23",
+          "outPort": "out",
+          "inNode": "eas4abON2YR:24",
+          "inPort": "shape 4"
+        }
+      ],
+      "renderedNode": "eas4abON2YR:24",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": []
+    }
+  ],
+  "id": "lollipop",
+  "formatVersion": 4,
+  "__gallery": {}
+}

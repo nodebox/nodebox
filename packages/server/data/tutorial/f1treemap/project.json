@@ -1,0 +1,439 @@
+{
+    "title": "f1treemap",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "align2",
+            "nodes": [
+                {
+                    "name": "shape1",
+                    "x": 118,
+                    "y": 259,
+                    "fn": "f1treemap.func",
+                    "values": {
+                        "d": 22,
+                        "w": 500,
+                        "h": 550
+                    }
+                },
+                {
+                    "name": "takeEvery1",
+                    "x": 110,
+                    "y": 424,
+                    "fn": "g.takeEvery",
+                    "values": {
+                        "n": 4
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": 283,
+                    "y": 315,
+                    "fn": "g.shift",
+                    "values": {}
+                },
+                {
+                    "name": "takeEvery2",
+                    "x": 275,
+                    "y": 395,
+                    "fn": "g.takeEvery",
+                    "values": {
+                        "n": 4
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 108,
+                    "y": 486,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "shift2",
+                    "x": 417,
+                    "y": 319,
+                    "fn": "g.shift",
+                    "values": {
+                        "amount": 2
+                    }
+                },
+                {
+                    "name": "shift3",
+                    "x": 541,
+                    "y": 320,
+                    "fn": "g.shift",
+                    "values": {
+                        "amount": 3
+                    }
+                },
+                {
+                    "name": "takeEvery3",
+                    "x": 412,
+                    "y": 396,
+                    "fn": "g.takeEvery",
+                    "values": {
+                        "n": 4
+                    }
+                },
+                {
+                    "name": "takeEvery4",
+                    "x": 543,
+                    "y": 402,
+                    "fn": "g.takeEvery",
+                    "values": {
+                        "n": 4
+                    }
+                },
+                {
+                    "name": "subtract1",
+                    "x": 344,
+                    "y": 522,
+                    "fn": "g.subtract",
+                    "values": {}
+                },
+                {
+                    "name": "subtract2",
+                    "x": 505,
+                    "y": 524,
+                    "fn": "g.subtract",
+                    "values": {}
+                },
+                {
+                    "name": "rect1",
+                    "x": 245,
+                    "y": 604,
+                    "fn": "g.rect",
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 427,
+                    "y": 617,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "sample1",
+                    "x": 427,
+                    "y": 661,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 0.7
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 209,
+                    "y": 854,
+                    "fn": "g.colorize",
+                    "values": {}
+                },
+                {
+                    "name": "align1",
+                    "x": 245,
+                    "y": 655,
+                    "fn": "g.align",
+                    "values": {
+                        "hAlign": "left",
+                        "vAlign": "top"
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 209,
+                    "y": 790,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 68,
+                    "y": 129,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "seed": 25,
+                        "amount": 40,
+                        "end": 500
+                    }
+                },
+                {
+                    "name": "floor1",
+                    "x": 65,
+                    "y": 180,
+                    "fn": "g.floor"
+                },
+                {
+                    "name": "shuffle1",
+                    "x": 428,
+                    "y": 706,
+                    "fn": "g.shuffle"
+                },
+                {
+                    "name": "func1",
+                    "x": 236.80310223286534,
+                    "y": 179.95745790599025,
+                    "fn": "f1treemap.func",
+                    "values": {
+                        "h": 550
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 209,
+                    "y": 901,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "align2",
+                    "x": 209,
+                    "y": 942,
+                    "fn": "g.align"
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 428,
+                    "y": 761,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.5
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "shape1",
+                    "input": "takeEvery1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shape1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift1",
+                    "input": "takeEvery2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "takeEvery1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "takeEvery2",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "shape1",
+                    "input": "shift2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shape1",
+                    "input": "shift3",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift2",
+                    "input": "takeEvery3",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift3",
+                    "input": "takeEvery4",
+                    "parameter": "l"
+                },
+                {
+                    "output": "takeEvery3",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "takeEvery1",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "takeEvery4",
+                    "input": "subtract2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "takeEvery2",
+                    "input": "subtract2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "rect1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "rect1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "count1",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "rect1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "translate2",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "translate2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "floor1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "floor1",
+                    "input": "shape1",
+                    "parameter": "d"
+                },
+                {
+                    "output": "sample1",
+                    "input": "shuffle1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "amount",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "inlet": "size",
+                    "input": "shape1",
+                    "parameter": "w"
+                },
+                {
+                    "inlet": "seed",
+                    "input": "randomNumbers1",
+                    "parameter": "seed"
+                },
+                {
+                    "inlet": "rounding",
+                    "input": "rect1",
+                    "parameter": "roundness"
+                },
+                {
+                    "output": "floor1",
+                    "input": "func1",
+                    "parameter": "d"
+                },
+                {
+                    "inlet": "size",
+                    "input": "func1",
+                    "parameter": "w"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "shuffle1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "amount",
+                    "type": "float",
+                    "value": 40
+                },
+                {
+                    "name": "size",
+                    "type": "float",
+                    "value": 400
+                },
+                {
+                    "name": "seed",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "rounding",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "func",
+            "source": "f1treemap.func = function (d, w, h) {\n     var data = d;//[6000,60000,40000,30000,40000,50000,20000,10000];\n     var nodes = Treemap.generate(data, w, h);\n     var out = []\n for (var i = 0; i < nodes.length; i++) {\nout.push(nodes[i][0],nodes[i][1],nodes[i][2],nodes[i][3]);\n}\n\nreturn out;\n};\n \nvar Treemap = {};\n\n(function() {\n    \"use strict\";\n    Treemap.generate = function(){\n\n        function Container(xoffset, yoffset, width, height) {\n            this.xoffset = xoffset; // offset from the the top left hand corner\n            this.yoffset = yoffset; // ditto \n            this.height = height;\n            this.width = width;\n\n            this.shortestEdge = function () {\n                return Math.min(this.height, this.width);\n            };\n\n            // getCoordinates - for a row of boxes which we've placed \n            //                  return an array of their cartesian coordinates\n            this.getCoordinates = function (row) {\n                var coordinates = [];\n                var subxoffset = this.xoffset, subyoffset = this.yoffset; //our offset within the container\n                var areawidth = sumArray(row) / this.height;\n                var areaheight = sumArray(row) / this.width;\n                var i;\n\n                if (this.width >= this.height) {\n                    for (i = 0; i < row.length; i++) {\n                        coordinates.push([subxoffset, subyoffset, subxoffset + areawidth, subyoffset + row[i] / areawidth]);\n                        subyoffset = subyoffset + row[i] / areawidth;\n                    }\n                } else {\n                    for (i = 0; i < row.length; i++) {\n                        coordinates.push([subxoffset, subyoffset, subxoffset + row[i] / areaheight, subyoffset + areaheight]);\n                        subxoffset = subxoffset + row[i] / areaheight;\n                    }\n                }\n                return coordinates;\n            };\n\n            // cutArea - once we've placed some boxes into an row we then need to identify the remaining area, \n            //           this function takes the area of the boxes we've placed and calculates the location and\n            //           dimensions of the remaining space and returns a container box defined by the remaining area\n            this.cutArea = function (area) {\n                var newcontainer;\n\n                if (this.width >= this.height) {\n                    var areawidth = area / this.height;\n                    var newwidth = this.width - areawidth;\n                    newcontainer = new Container(this.xoffset + areawidth, this.yoffset, newwidth, this.height);\n                } else {\n                    var areaheight = area / this.width;\n                    var newheight = this.height - areaheight;\n                    newcontainer = new Container(this.xoffset, this.yoffset + areaheight, this.width, newheight);\n                }\n                return newcontainer;\n            };\n        }\n\n\n\n        // normalize - the Bruls algorithm assumes we're passing in areas that nicely fit into our \n        //             container box, this method takes our raw data and normalizes the data values into  \n        //             area values so that this assumption is valid.\n        function normalize(data, area) {\n            var normalizeddata = [];\n            var sum = sumArray(data);\n            var multiplier = area / sum;\n            var i;\n\n            for (i = 0; i < data.length; i++) {\n                normalizeddata[i] = data[i] * multiplier;\n            }\n            return normalizeddata;\n        }\n\n        // treemapMultidimensional - takes multidimensional data (aka [[23,11],[11,32]] - nested array)\n        //                           and recursively calls itself using treemapSingledimensional\n        //                           to create a patchwork of treemaps and merge them\n        function treemapMultidimensional(data, width, height, xoffset, yoffset) {\n            xoffset = (typeof xoffset === \"undefined\") ? 0 : xoffset;\n            yoffset = (typeof yoffset === \"undefined\") ? 0 : yoffset;\n            \n            var mergeddata = [];\n            var mergedtreemap;\n            var results = [];\n            var i;\n\n            if(isArray(data[0])) { // if we've got more dimensions of depth\n                for(i=0; i<data.length; i++) {\n                    mergeddata[i] = sumMultidimensionalArray(data[i]);\n                }\n                mergedtreemap = treemapSingledimensional(mergeddata, width, height, xoffset, yoffset);\n                \n                for(i=0; i<data.length; i++) {\n                    results.push(treemapMultidimensional(data[i], mergedtreemap[i][2] - mergedtreemap[i][0], mergedtreemap[i][3] - mergedtreemap[i][1], mergedtreemap[i][0], mergedtreemap[i][1]));\n                }\n            } else {\n                results = treemapSingledimensional(data,width,height, xoffset, yoffset);\n            }\n            return results;\n        }\n\n\n\n        // treemapSingledimensional - simple wrapper around squarify\n        function treemapSingledimensional(data, width, height, xoffset, yoffset) {\n            xoffset = (typeof xoffset === \"undefined\") ? 0 : xoffset;\n            yoffset = (typeof yoffset === \"undefined\") ? 0 : yoffset;\n\n            var rawtreemap = squarify(normalize(data, width * height), [], new Container(xoffset, yoffset, width, height), []);\n            return flattenTreemap(rawtreemap);\n        }\n\n        // flattenTreemap - squarify implementation returns an array of arrays of coordinates\n        //                  because we have a new array everytime we switch to building a new row\n        //                  this converts it into an array of coordinates.\n        function flattenTreemap(rawtreemap) {\n            var flattreemap = [];\n            var i, j;\n\n            for (i = 0; i < rawtreemap.length; i++) {\n                for (j = 0; j < rawtreemap[i].length; j++) {\n                    flattreemap.push(rawtreemap[i][j]);\n                }\n            }\n            return flattreemap;\n        }\n\n        // squarify  - as per the Bruls paper \n        //             plus coordinates stack and containers so we get \n        //             usable data out of it \n        function squarify(data, currentrow, container, stack) {\n            var length;\n            var nextdatapoint;\n            var newcontainer;\n\n            if (data.length === 0) {\n                stack.push(container.getCoordinates(currentrow));\n                return;\n            }\n\n            length = container.shortestEdge();\n            nextdatapoint = data[0];\n            \n            if (improvesRatio(currentrow, nextdatapoint, length)) {\n                currentrow.push(nextdatapoint);\n                squarify(data.slice(1), currentrow, container, stack);\n            } else {\n                newcontainer = container.cutArea(sumArray(currentrow), stack);\n                stack.push(container.getCoordinates(currentrow));\n                squarify(data, [], newcontainer, stack);\n            }\n            return stack;\n        }\n\n        // improveRatio - implements the worse calculation and comparision as given in Bruls\n        //                (note the error in the original paper; fixed here) \n        function improvesRatio(currentrow, nextnode, length) {\n            var newrow; \n\n            if (currentrow.length === 0) {\n                return true;\n            }\n            \n            newrow = currentrow.slice();\n            newrow.push(nextnode);\n            \n            var currentratio = calculateRatio(currentrow, length);\n            var newratio = calculateRatio(newrow, length);\n            \n            // the pseudocode in the Bruls paper has the direction of the comparison\n            // wrong, this is the correct one.\n            return currentratio >= newratio; \n        }\n\n        // calculateRatio - calculates the maximum width to height ratio of the\n        //                  boxes in this row\n        function calculateRatio(row, length) {\n            var min = Math.min.apply(Math, row);\n            var max = Math.max.apply(Math, row);\n            var sum = sumArray(row);\n            return Math.max(Math.pow(length, 2) * max / Math.pow(sum, 2), Math.pow(sum, 2) / (Math.pow(length, 2) * min));\n        }\n\n        // isArray - checks if arr is an array\n        function isArray(arr) {\n            return arr && arr.constructor === Array; \n        }\n\n        // sumArray - sums a single dimensional array \n        function sumArray(arr) {\n            var sum = 0;\n            var i;\n\n            for (i = 0; i < arr.length; i++) {\n                sum += arr[i];\n            }\n            return sum;\n        }\n\n        // sumMultidimensionalArray - sums the values in a nested array (aka [[0,1],[[2,3]]])\n        function sumMultidimensionalArray(arr) {\n            var i, total = 0;\n\n            if(isArray(arr[0])) {\n                for(i=0; i<arr.length; i++) {\n                    total += sumMultidimensionalArray(arr[i]);\n                }\n            } else {\n                total = sumArray(arr);\n            }\n            return total;\n        }\n\n        return treemapMultidimensional; \n    }();\n})();",
+            "parameters": [
+                {
+                    "name": "d",
+                    "type": "float",
+                    "value": true,
+                    "takesList": true
+                },
+                {
+                    "name": "w",
+                    "type": "float",
+                    "value": 200
+                },
+                {
+                    "name": "h",
+                    "type": "float",
+                    "value": 200
+                }
+            ],
+            "returnsList": true,
+            "stateful": false
+        }
+    ],
+    "id": "f1treemap"
+}

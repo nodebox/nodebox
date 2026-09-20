@@ -1,0 +1,283 @@
+{
+    "title": "h0wanted",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "fidel-urbina.jpg": "5ec2d5b0eff9f441ac5e65e2459a5489b5157699",
+        "jason-derek-brown.jpg": "bff925905f9f5be3c8a65863b4f26ea286e7ca17",
+        "victor-manuel-genera.jpg": "02f649af318ba130eb40d645c5250add5df3bd8d",
+        "william-bradford.jpg": "8b9be2079dc1aad3872b1aee6dda60972f527432",
+        "yaser-abdel-said.jpg": "1fa23147581d55a6136096a027a8d9577a8d4d5e"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "headSection1",
+            "nodes": [
+                {
+                    "name": "concatenate1",
+                    "x": 38,
+                    "y": 143,
+                    "fn": "g.concatenate",
+                    "values": {
+                        "s2": ".jpg"
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 182,
+                    "y": 154,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "sample1",
+                    "x": 182,
+                    "y": 199,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 300,
+                        "circular": true
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 182,
+                    "y": 272,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "headSection1",
+                    "x": 39,
+                    "y": 352,
+                    "fn": "h0wanted.headSection",
+                    "values": {
+                        "index": 0
+                    }
+                },
+                {
+                    "name": "stringSplit2",
+                    "x": 38,
+                    "y": 31,
+                    "fn": "g.stringSplit",
+                    "values": {
+                        "s": "fidel-urbina,jason-derek-brown,victor-manuel-genera,william-bradford,yaser-abdel-said",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "shuffle1",
+                    "x": 38,
+                    "y": 86,
+                    "fn": "g.shuffle",
+                    "values": {
+                        "seed": 9
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "concatenate1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "sample1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "concatenate1",
+                    "input": "headSection1",
+                    "parameter": "image"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "headSection1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "stringSplit2",
+                    "input": "shuffle1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shuffle1",
+                    "input": "concatenate1",
+                    "parameter": "s1"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "headSection",
+            "type": "network",
+            "renderedNode": "mask1",
+            "nodes": [
+                {
+                    "name": "open1",
+                    "x": 101,
+                    "y": 326,
+                    "fn": "img.open",
+                    "values": {
+                        "image": "yaser-abdel-said.jpg",
+                        "x": -433,
+                        "y": 54
+                    }
+                },
+                {
+                    "name": "shapeImage1",
+                    "x": 229,
+                    "y": 235,
+                    "fn": "img.shapeImage",
+                    "values": {
+                        "height": 400
+                    }
+                },
+                {
+                    "name": "mask1",
+                    "x": 159,
+                    "y": 465,
+                    "fn": "img.mask"
+                },
+                {
+                    "name": "translate2",
+                    "x": 229,
+                    "y": 330,
+                    "fn": "img.translate",
+                    "values": {
+                        "t": {
+                            "x": 35,
+                            "y": -22
+                        }
+                    }
+                },
+                {
+                    "name": "bounds1",
+                    "x": 253,
+                    "y": 150,
+                    "fn": "g.bounds",
+                    "values": {
+                        "selector": "w"
+                    }
+                },
+                {
+                    "name": "bounds2",
+                    "x": 362,
+                    "y": 150,
+                    "fn": "g.bounds",
+                    "values": {
+                        "selector": "h"
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 231,
+                    "y": 91,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 55,
+                        "height": 350,
+                        "roundness": {
+                            "x": 10,
+                            "y": 10
+                        }
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 145,
+                    "y": 150,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "black"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "shapeImage1",
+                    "input": "translate2",
+                    "parameter": "image"
+                },
+                {
+                    "output": "bounds1",
+                    "input": "shapeImage1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "bounds2",
+                    "input": "shapeImage1",
+                    "parameter": "height"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate2",
+                    "parameter": "t"
+                },
+                {
+                    "inlet": "image",
+                    "input": "open1",
+                    "parameter": "image"
+                },
+                {
+                    "output": "rect1",
+                    "input": "bounds1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "bounds2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "shapeImage1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate2",
+                    "input": "mask1",
+                    "parameter": "image"
+                },
+                {
+                    "output": "open1",
+                    "input": "mask1",
+                    "parameter": "mask"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": false
+                },
+                {
+                    "name": "image",
+                    "type": "list",
+                    "value": "",
+                    "takesList": false
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "h0wanted"
+}

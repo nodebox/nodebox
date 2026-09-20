@@ -1,0 +1,43 @@
+name = "nodeboxlive"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# The public address. Wrangler manages the DNS record for it.
+[[routes]]
+pattern = "new.nodebox.live"
+custom_domain = true
+
+# Templates are imported as text modules (see src/types.ts).
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
+
+[vars]
+# Public base URL of the assets bucket, without trailing slash.
+# Leave empty to serve assets through the worker (/api/assets/...).
+ASSETS_URL = ""
+
+# The web app build plus the guide markdown and media, assembled by scripts/build-static.mjs.
+[assets]
+directory = "./static"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*", "/guide", "/guide/*", "!/guide/media/*", "/embed/*", "/admin", "/admin/*"]
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "nodeboxlive"
+
+# Transactional email (password reset). The sender domain nodebox.live must be onboarded
+# under Compute > Email Service > Email Sending. "remote = true" makes wrangler dev send real mail.
+# The worker can only ever send as the support address, whatever the code asks for.
+[[send_email]]
+name = "EMAIL"
+allowed_sender_addresses = ["info@nodebox.live"]
+remote = true
+
+# Secrets (wrangler secret put ... / .dev.vars locally):
+#   JWT_SECRET       - signing key for auth tokens

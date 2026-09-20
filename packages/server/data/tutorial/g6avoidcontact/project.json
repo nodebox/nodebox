@@ -1,0 +1,172 @@
+{
+    "title": "g6avoidcontact",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "ellipse1",
+            "nodes": [
+                {
+                    "name": "init1",
+                    "x": 45,
+                    "y": 125,
+                    "fn": "g6avoidcontact.init"
+                },
+                {
+                    "name": "noOverlap1",
+                    "x": 45,
+                    "y": 245,
+                    "fn": "g6avoidcontact.noOverlap"
+                },
+                {
+                    "name": "addN1",
+                    "x": 45,
+                    "y": 285,
+                    "fn": "g6avoidcontact.addN",
+                    "values": {
+                        "time": 10
+                    }
+                },
+                {
+                    "name": "pointSize",
+                    "x": 205,
+                    "y": 165,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 30
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 165,
+                    "y": 445,
+                    "fn": "g.ellipse"
+                },
+                {
+                    "name": "stateLoad1",
+                    "x": 45,
+                    "y": 165,
+                    "fn": "g.stateLoad",
+                    "values": {
+                        "key": "points"
+                    }
+                },
+                {
+                    "name": "stateSave1",
+                    "x": 45,
+                    "y": 365,
+                    "fn": "g.stateSave",
+                    "values": {
+                        "key": "points"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "noOverlap1",
+                    "input": "addN1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "pointSize",
+                    "input": "noOverlap1",
+                    "parameter": "limit"
+                },
+                {
+                    "output": "pointSize",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "pointSize",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "init1",
+                    "input": "stateLoad1",
+                    "parameter": "initial"
+                },
+                {
+                    "output": "stateLoad1",
+                    "input": "noOverlap1",
+                    "parameter": "n"
+                },
+                {
+                    "output": "addN1",
+                    "input": "stateSave1",
+                    "parameter": "state"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 225,
+                    "y": 25,
+                    "width": 133,
+                    "height": 55,
+                    "text": "Press play - wait - change pointSize."
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "init",
+            "source": "g6avoidcontact.init = function () {\n    var n = [];\n    return n;\n};",
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "noOverlap",
+            "source": "g6avoidcontact.noOverlap = function (n,limit) {\n    for (var i = 0; i < n.length; i++) {\n        var np = n[i];\n        for (var j = 0; j < n.length; j++) {\n            var np2 = n[j];\n            var d = g.distance(np, np2);\n            if ((np != np2) && d < limit) {\n                np.x += (Math.random()-0.5)*5.0;\n                np.y += (Math.random()-0.5)*5.0;\n            }\n        }\n    }\n    return n;\n};",
+            "parameters": [
+                {
+                    "name": "n",
+                    "type": "",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "limit",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true,
+            "stateful": true
+        },
+        {
+            "type": "code",
+            "name": "addN",
+            "source": "g6avoidcontact.addN = function (l,time) {\n    if (ndbx._currentFrame % time == 1) {\n        var np = new g.Point((Math.random()-0.5)*350, (Math.random()-0.5)*250);\n        l.push(np);\n    }\n    return l\n};",
+            "parameters": [
+                {
+                    "name": "l",
+                    "type": "",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "time",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true,
+            "stateful": true
+        }
+    ],
+    "id": "g6avoidcontact"
+}

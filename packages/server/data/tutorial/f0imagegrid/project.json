@@ -1,0 +1,476 @@
+{
+    "title": "f0imagegrid",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "carlos.jpg": "f05d6bed454f98d4ce529785e3b873158790e18c",
+        "sunset.jpg": "8dbc4b732e5d5b0e7da489a51c33ea60409aaa61",
+        "atom.png": "2316c433483b34bbc6c5d42799210997e38ed699",
+        "eifel.jpg": "f0abd55b3b9ed482de886881c6188385ec4b88bb",
+        "vermeer.png": "35fffe07872bb7a44f746b3c05f52313504e3b6b",
+        "gogh.png": "0a602186846509d8ee35eda39d74456a424c4134"
+    },
+    "functions": [
+        {
+            "type": "code",
+            "name": "getpoint",
+            "source": "f0imagegrid.getpoint = function (v) {\n    var x, y;\n    x = v.x === undefined ? 0 : v.x;\n    y = v.y === undefined ? 0 : v.y;\n    return new g.Point(x, y);\n};",
+            "example": "f0imagegrid.getpoint(42)",
+            "parameters": [
+                {
+                    "name": "v",
+                    "type": "float",
+                    "value": 42
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "getred",
+            "source": "f0imagegrid.getred = function (rgb) {\n    var r, g, b, c;\n       r = rgb.r;\n       g = rgb.g;\n       b = rgb.b;\n       c = (r+g+b)/3\n \n    return c;\n}",
+            "example": "f0imagegrid.getred(42)",
+            "parameters": [
+                {
+                    "name": "rgb",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "pixels1",
+                    "x": 167,
+                    "y": 32,
+                    "fn": "f0imagegrid.pixels",
+                    "values": {
+                        "imageName": "gogh.png",
+                        "step": 4
+                    }
+                },
+                {
+                    "name": "first1",
+                    "x": 241,
+                    "y": 85,
+                    "fn": "g.first",
+                    "values": {}
+                },
+                {
+                    "name": "slice1",
+                    "x": 54,
+                    "y": 87,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 1000
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 119,
+                    "y": -10,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "getred1",
+                    "x": 64,
+                    "y": 130,
+                    "fn": "f0imagegrid.getred",
+                    "values": {}
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 117,
+                    "y": 230,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 64,
+                    "y": 174,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 20
+                    }
+                },
+                {
+                    "name": "getpoint1",
+                    "x": 8,
+                    "y": 231,
+                    "fn": "f0imagegrid.getpoint",
+                    "values": {}
+                },
+                {
+                    "name": "mix1",
+                    "x": 87,
+                    "y": 302,
+                    "fn": "f0imagegrid.mix",
+                    "values": {
+                        "t": 2
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": 221,
+                    "y": 187,
+                    "fn": "g.shift",
+                    "values": {
+                        "amount": 58
+                    }
+                },
+                {
+                    "name": "line1",
+                    "x": 87,
+                    "y": 370,
+                    "fn": "g.line",
+                    "values": {}
+                },
+                {
+                    "name": "ceil1",
+                    "x": 241,
+                    "y": 131,
+                    "fn": "g.ceil",
+                    "values": {}
+                },
+                {
+                    "name": "lookup1",
+                    "x": 108,
+                    "y": 419,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "bounds.height"
+                    }
+                },
+                {
+                    "name": "compare1",
+                    "x": 107,
+                    "y": 469,
+                    "fn": "g.compare",
+                    "values": {
+                        "v2": 60
+                    }
+                },
+                {
+                    "name": "cull1",
+                    "x": 87,
+                    "y": 523,
+                    "fn": "g.cull",
+                    "values": {}
+                },
+                {
+                    "name": "shift2",
+                    "x": 250,
+                    "y": 318,
+                    "fn": "g.shift",
+                    "values": {}
+                },
+                {
+                    "name": "line2",
+                    "x": 231,
+                    "y": 364,
+                    "fn": "g.line",
+                    "values": {}
+                },
+                {
+                    "name": "lookup2",
+                    "x": 258,
+                    "y": 409,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "bounds.width"
+                    }
+                },
+                {
+                    "name": "compare2",
+                    "x": 259,
+                    "y": 453,
+                    "fn": "g.compare",
+                    "values": {
+                        "v2": 50
+                    }
+                },
+                {
+                    "name": "cull2",
+                    "x": 231,
+                    "y": 525,
+                    "fn": "g.cull",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 144,
+                    "y": 674,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 87,
+                    "y": 568,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "blue",
+                        "fill": ""
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 231,
+                    "y": 572,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "",
+                        "stroke": "red"
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 86,
+                    "y": 616,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": -150,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 231,
+                    "y": 618,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": 150,
+                            "y": 0
+                        }
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "pixels1",
+                    "input": "first1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "pixels1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "pixels1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "slice1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "slice1",
+                    "input": "getred1",
+                    "parameter": "rgb"
+                },
+                {
+                    "output": "getred1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "divide1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "getpoint1",
+                    "input": "mix1",
+                    "parameter": "pt1"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "mix1",
+                    "parameter": "pt2"
+                },
+                {
+                    "output": "mix1",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "shift1",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "mix1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "first1",
+                    "input": "ceil1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "shift1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "slice1",
+                    "input": "getpoint1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "line1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "compare1",
+                    "parameter": "v1"
+                },
+                {
+                    "output": "line1",
+                    "input": "cull1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "compare1",
+                    "input": "cull1",
+                    "parameter": "booleans"
+                },
+                {
+                    "output": "mix1",
+                    "input": "shift2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift2",
+                    "input": "line2",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "mix1",
+                    "input": "line2",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "line2",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "compare2",
+                    "parameter": "v1"
+                },
+                {
+                    "output": "compare2",
+                    "input": "cull2",
+                    "parameter": "booleans"
+                },
+                {
+                    "output": "line2",
+                    "input": "cull2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "cull1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "cull2",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "source": "",
+            "ref": ""
+        },
+        {
+            "type": "code",
+            "name": "mix",
+            "source": "f0imagegrid.mix = function (pt1, pt2, t) {\n    var x1, y1, x2, y2;\n    x1 = pt1.x;\n    y1 = pt1.y;\n    x2 = pt2.x;\n    y2 = pt2.y;\n    return new g.Point((x1+x2), (y1+y2));\n};",
+            "example": "f0imagegrid.mix(42)",
+            "parameters": [
+                {
+                    "name": "pt1",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "pt2",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "t",
+                    "type": "float",
+                    "value": 1
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "pixels",
+            "source": "f0imagegrid.pixels = function (imageName, step) {\n    var image, imgWidth, imgHeight, canvas, ctx, pixels, stride, y, x, offset, r, g, b, a, outPixels;\n    image = ndbx.assets[imageName];\n    imgWidth = image.width;\n    imgHeight = image.height;\n    canvas = document.createElement('canvas');\n    canvas.width = image.width;\n    canvas.height = image.height;\n    ctx = canvas.getContext('2d');\n    ctx.drawImage(image, 0, 0, image.width, image.height);\n    pixels = ctx.getImageData(0, 0, image.width, image.height).data;\n    stride = image.width * 4;\n    outPixels = [];\n    outPixels.push(imgWidth/step);\n    for (y = 0; y < imgHeight; y += step) {\n        for (x = 0; x < imgWidth; x += step) {\n            offset = y * stride + x * 4;\n            r = pixels[offset];\n            g = pixels[offset + 1];\n            b = pixels[offset + 2];\n            a = pixels[offset + 3];\n            outPixels.push({x: x - imgWidth / 2, y: y - imgHeight / 2, \n                            r: r, g: g, b: b, a: a});\n        } \n    }\n    return outPixels;\n};",
+            "example": "f0imagegrid.pixels(42)",
+            "parameters": [
+                {
+                    "name": "imageName",
+                    "type": "string",
+                    "value": "8-carlos.jpeg"
+                },
+                {
+                    "name": "step",
+                    "type": "float",
+                    "value": 20
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "f0imagegrid"
+}

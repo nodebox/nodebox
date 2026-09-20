@@ -1,0 +1,251 @@
+{
+    "title": "Node / Code",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "FiraMono-Bold.otf": "a5d69a31a5b68bb7e380f5281c4dd3ec69dcb2cb"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "textPath1",
+                    "x": 13,
+                    "y": 109,
+                    "fn": "g.textPath",
+                    "values": {
+                        "text": "NODE",
+                        "fontSize": 220,
+                        "fontFamily": "FiraMono-Bold.otf"
+                    }
+                },
+                {
+                    "name": "resampleByLength1",
+                    "x": 14,
+                    "y": 156,
+                    "fn": "g.resampleByLength",
+                    "values": {}
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 18,
+                    "y": 312,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 40,
+                        "height": 40
+                    }
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 13,
+                    "y": 206,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 99,
+                    "y": 577,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(255, 0, 0, 0.5)"
+                    }
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 239,
+                    "y": 425,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "red": 0,
+                        "green": 0,
+                        "blue": 0.46
+                    }
+                },
+                {
+                    "name": "rgbColor2",
+                    "x": 377,
+                    "y": 431,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "blue": 1,
+                        "green": 0.4,
+                        "red": 0.83
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 235,
+                    "y": 505,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "textPath2",
+                    "x": 277,
+                    "y": 113,
+                    "fn": "g.textPath",
+                    "values": {
+                        "text": "CODE",
+                        "fontSize": 220,
+                        "position": {
+                            "x": 0,
+                            "y": 190
+                        },
+                        "fontFamily": "FiraMono-Bold.otf"
+                    }
+                },
+                {
+                    "name": "resampleByLength2",
+                    "x": 273,
+                    "y": 162,
+                    "fn": "g.resampleByLength"
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 273,
+                    "y": 295,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 40,
+                        "height": 40
+                    }
+                },
+                {
+                    "name": "toPoints2",
+                    "x": 272,
+                    "y": 212,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "combine3",
+                    "x": 104,
+                    "y": 423,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "frame1",
+                    "x": 144,
+                    "y": 128,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "shift1",
+                    "x": 17,
+                    "y": 259,
+                    "fn": "g.shift"
+                },
+                {
+                    "name": "multiply1",
+                    "x": 143,
+                    "y": 174,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "shift2",
+                    "x": 270,
+                    "y": 254,
+                    "fn": "g.shift"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "textPath1",
+                    "input": "resampleByLength1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByLength1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "rgbColor2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "resampleByLength2",
+                    "input": "toPoints2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "combine3",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "combine3",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine3",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "textPath2",
+                    "input": "resampleByLength2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "frame1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "shift1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "shift2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "shift2",
+                    "input": "ellipse2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "toPoints2",
+                    "input": "shift2",
+                    "parameter": "l"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "background": "#45b"
+        }
+    ],
+    "id": "nodeCode"
+}

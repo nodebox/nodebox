@@ -1,0 +1,750 @@
+{
+    "title": "g1balloon",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine4",
+            "nodes": [
+                {
+                    "name": "sineWave1",
+                    "x": 335,
+                    "y": 75,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "max": 0,
+                        "speed": 3.5,
+                        "min": 10,
+                        "period": 80
+                    }
+                },
+                {
+                    "name": "compare1",
+                    "x": 175,
+                    "y": 105,
+                    "fn": "g.compare",
+                    "values": {
+                        "v2": 0.05
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 465,
+                    "y": 365,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.1
+                    }
+                },
+                {
+                    "name": "number1",
+                    "x": 55,
+                    "y": 105,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 10
+                    }
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 95,
+                    "y": 435,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 95,
+                    "y": 515,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "fill": "rgba(255,130,0,.5)"
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 435,
+                    "y": 595,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 20
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": 435,
+                    "y": 645,
+                    "fn": "g.align",
+                    "values": {
+                        "vAlign": "bottom"
+                    }
+                },
+                {
+                    "name": "rect2",
+                    "x": 345,
+                    "y": 315,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 3
+                    }
+                },
+                {
+                    "name": "align2",
+                    "x": 345,
+                    "y": 455,
+                    "fn": "g.align",
+                    "values": {
+                        "vAlign": "top"
+                    }
+                },
+                {
+                    "name": "combine2",
+                    "x": 325,
+                    "y": 765,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "align3",
+                    "x": 95,
+                    "y": 475,
+                    "fn": "g.align",
+                    "values": {
+                        "vAlign": "bottom",
+                        "position": {
+                            "x": 0,
+                            "y": -100
+                        }
+                    }
+                },
+                {
+                    "name": "multiply2",
+                    "x": 175,
+                    "y": 315,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2.15
+                    }
+                },
+                {
+                    "name": "multiply3",
+                    "x": 55,
+                    "y": 315,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "rect3",
+                    "x": 465,
+                    "y": 315,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 20,
+                        "height": 5,
+                        "roundness": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "position": {
+                            "x": 0,
+                            "y": 50
+                        }
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 345,
+                    "y": 365,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "scale1",
+                    "x": 365,
+                    "y": 525,
+                    "fn": "g.scale"
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 465,
+                    "y": 415,
+                    "fn": "g.makePoint",
+                    "values": {
+                        "x": 100
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 345,
+                    "y": 415,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "mod1",
+                    "x": 175,
+                    "y": 355,
+                    "fn": "g.mod",
+                    "values": {
+                        "b": 215
+                    }
+                },
+                {
+                    "name": "mod2",
+                    "x": 55,
+                    "y": 355,
+                    "fn": "g.mod",
+                    "values": {
+                        "b": 200
+                    }
+                },
+                {
+                    "name": "centerPoint1",
+                    "x": 185,
+                    "y": 635,
+                    "fn": "g.centerPoint"
+                },
+                {
+                    "name": "eye1",
+                    "x": 115,
+                    "y": 675,
+                    "fn": "g1balloon.eye"
+                },
+                {
+                    "name": "divide1",
+                    "x": 115,
+                    "y": 595,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 5
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 335,
+                    "y": 35,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "stateCounter1",
+                    "x": 135,
+                    "y": 185,
+                    "fn": "g1balloon.stateCounter",
+                    "values": {
+                        "key": "balloonSize"
+                    }
+                },
+                {
+                    "name": "combine3",
+                    "x": 45,
+                    "y": 765,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "combine4",
+                    "x": 165,
+                    "y": 845,
+                    "fn": "g.combine"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "sineWave1",
+                    "input": "compare1",
+                    "parameter": "v1"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "rect1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "align3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align3",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect2",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "rect3",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "scale1",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "align2",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "mod1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "mod1",
+                    "input": "ellipse2",
+                    "parameter": "height"
+                },
+                {
+                    "output": "multiply3",
+                    "input": "mod2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "mod2",
+                    "input": "ellipse2",
+                    "parameter": "width"
+                },
+                {
+                    "output": "centerPoint1",
+                    "input": "eye1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "align3",
+                    "input": "centerPoint1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "mod2",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "eye1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "frame1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "number1",
+                    "input": "stateCounter1",
+                    "parameter": "initial"
+                },
+                {
+                    "output": "compare1",
+                    "input": "stateCounter1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "stateCounter1",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "stateCounter1",
+                    "input": "multiply3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine3",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "eye1",
+                    "input": "combine3",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "scale1",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "align1",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine3",
+                    "input": "combine4",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "combine2",
+                    "input": "combine4",
+                    "parameter": "list2"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stateful": false,
+            "stickies": [
+                {
+                    "x": 325,
+                    "y": 15,
+                    "width": 205,
+                    "height": 95,
+                    "text": "Create a smooth, wavy animation."
+                },
+                {
+                    "x": 45,
+                    "y": 65,
+                    "width": 245,
+                    "height": 155,
+                    "text": "Add a value each time the sine wave makes a loop."
+                },
+                {
+                    "x": 45,
+                    "y": 285,
+                    "width": 255,
+                    "height": 265,
+                    "text": "Draw the face."
+                },
+                {
+                    "x": 95,
+                    "y": 575,
+                    "width": 205,
+                    "height": 135,
+                    "text": "Draw the eyes."
+                },
+                {
+                    "x": 335,
+                    "y": 285,
+                    "width": 335,
+                    "height": 435,
+                    "text": "Draw the \"pump\"."
+                }
+            ]
+        },
+        {
+            "name": "eye",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "ellipse1",
+                    "x": 145,
+                    "y": 155,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 20,
+                        "height": 20
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": 145,
+                    "y": 345,
+                    "fn": "g.align",
+                    "values": {
+                        "position": {
+                            "x": -10,
+                            "y": 0
+                        },
+                        "hAlign": "right"
+                    }
+                },
+                {
+                    "name": "number1",
+                    "x": 275,
+                    "y": 85,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 39
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 265,
+                    "y": 285,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "divide1",
+                    "x": 265,
+                    "y": 245,
+                    "fn": "g.divide"
+                },
+                {
+                    "name": "translate1",
+                    "x": 145,
+                    "y": 455,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "mirror1",
+                    "x": 145,
+                    "y": 395,
+                    "fn": "g.mirror"
+                },
+                {
+                    "name": "negate1",
+                    "x": 265,
+                    "y": 185,
+                    "fn": "g.negate"
+                },
+                {
+                    "name": "scale1",
+                    "x": 45,
+                    "y": 205,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.2,
+                            "y": 0.2
+                        },
+                        "origin": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 45,
+                    "y": 245,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "white"
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 155,
+                    "y": 225,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "group1",
+                    "x": 155,
+                    "y": 285,
+                    "fn": "g.group"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "number1",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "number1",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "divide1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "align1",
+                    "input": "mirror1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "number1",
+                    "input": "negate1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "negate1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "align1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "mirror1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "size",
+                    "input": "number1",
+                    "parameter": "v"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "size",
+                    "type": "float",
+                    "value": 10
+                }
+            ],
+            "returnsList": true,
+            "outputType": "shape"
+        },
+        {
+            "name": "stateCounter",
+            "type": "network",
+            "renderedNode": "stateSave1",
+            "nodes": [
+                {
+                    "name": "stateLoad1",
+                    "x": 45,
+                    "y": 125,
+                    "fn": "g.stateLoad"
+                },
+                {
+                    "name": "add1",
+                    "x": 45,
+                    "y": 205,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "stateSave1",
+                    "x": 45,
+                    "y": 285,
+                    "fn": "g.stateSave"
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "key",
+                    "input": "stateLoad1",
+                    "parameter": "key"
+                },
+                {
+                    "inlet": "initial",
+                    "input": "stateLoad1",
+                    "parameter": "initial"
+                },
+                {
+                    "output": "stateLoad1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "inlet": "v",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "add1",
+                    "input": "stateSave1",
+                    "parameter": "state"
+                },
+                {
+                    "inlet": "key",
+                    "input": "stateSave1",
+                    "parameter": "key"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "initial",
+                    "type": "float",
+                    "value": 0
+                },
+                {
+                    "name": "v",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "key",
+                    "type": "string",
+                    "value": "myNumber"
+                }
+            ],
+            "returnsList": true,
+            "outputType": "float",
+            "stickies": [
+                {
+                    "x": 215,
+                    "y": 45,
+                    "width": 205,
+                    "height": 85,
+                    "text": "This network builds a stateful counter: each \"v\" you add in will increase the total while the animation is running."
+                }
+            ]
+        }
+    ],
+    "id": "g1balloon"
+}

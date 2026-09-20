@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "esnext", // Specify ECMAScript target version
+    "module": "esnext", // Specify module code generation
+    "moduleResolution": "node", // Specify module resolution strategy
+    "strict": true, // Enable all strict type-checking options
+    "esModuleInterop": true, // Enable interoperability between CommonJS and ES Modules
+    "outDir": "./dist", // Directory for compiled files
+    "sourceMap": true, // Generate source maps
+    "declaration": true // Generate declaration files
+  },
+  "include": ["src/**/*"] // Files to be included
+}

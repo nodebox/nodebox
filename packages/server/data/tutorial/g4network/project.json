@@ -1,0 +1,252 @@
+{
+    "title": "g4network",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "init1",
+                    "x": 205,
+                    "y": 5,
+                    "fn": "g4network.init"
+                },
+                {
+                    "name": "structure1",
+                    "x": 205,
+                    "y": 85,
+                    "fn": "g4network.structure",
+                    "values": {
+                        "s": 10,
+                        "move": 5
+                    }
+                },
+                {
+                    "name": "addN1",
+                    "x": 205,
+                    "y": 125,
+                    "fn": "g4network.addN"
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 325,
+                    "y": 325,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 10,
+                        "height": 10
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 125,
+                    "y": 445,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 205,
+                    "y": 325,
+                    "fn": "g.connectPoints"
+                },
+                {
+                    "name": "slice1",
+                    "x": 45,
+                    "y": 245,
+                    "fn": "g.slice",
+                    "values": {
+                        "startIndex": 25
+                    }
+                },
+                {
+                    "name": "line1",
+                    "x": 45,
+                    "y": 285,
+                    "fn": "g.line",
+                    "masterList": "point1"
+                },
+                {
+                    "name": "range1",
+                    "x": 45,
+                    "y": 205,
+                    "fn": "g.range",
+                    "values": {
+                        "max": 5,
+                        "includeMax": true
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 45,
+                    "y": 325,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 0.4
+                    }
+                },
+                {
+                    "name": "stateLoad1",
+                    "x": 205,
+                    "y": 45,
+                    "fn": "g.stateLoad",
+                    "values": {
+                        "key": "points"
+                    }
+                },
+                {
+                    "name": "stateSave1",
+                    "x": 205,
+                    "y": 165,
+                    "fn": "g.stateSave",
+                    "values": {
+                        "key": "points"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "structure1",
+                    "input": "addN1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "range1",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                },
+                {
+                    "output": "line1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "init1",
+                    "input": "stateLoad1",
+                    "parameter": "initial"
+                },
+                {
+                    "output": "stateLoad1",
+                    "input": "structure1",
+                    "parameter": "n"
+                },
+                {
+                    "output": "addN1",
+                    "input": "stateSave1",
+                    "parameter": "state"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "connectPoints1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "combine1",
+                    "parameter": "list3"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "init",
+            "source": "g4network.init = function () {\n    var n = [];\n    return n;\n};",
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "structure",
+            "source": "g4network.structure = function (n, move) {\n    for (var i = 0; i < n.length; i++) {\n        var np = n[i];\n        np.x += (Math.random() - 0.5) * move;\n        np.y += (Math.random() - 0.5) * move;\n    }\n    return n;\n};\n",
+            "parameters": [
+                {
+                    "name": "n",
+                    "type": "",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "move",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true,
+            "stateful": true
+        },
+        {
+            "type": "code",
+            "name": "addN",
+            "source": "g4network.addN = function (l) {\n    if (ndbx._currentFrame % 60 == 1) {\n        var np = new g.Point((Math.random()-0.5)*200, (Math.random()-0.5)*200);\n        l.push(np);\n    }\n    return l\n};",
+            "parameters": [
+                {
+                    "name": "l",
+                    "type": "",
+                    "value": 1,
+                    "takesList": true
+                }
+            ],
+            "returnsList": true,
+            "stateful": true
+        },
+        {
+            "type": "code",
+            "name": "structuretoo",
+            "source": "g4network.structuretoo = function (n,limit) {\n    for (var i = 0; i < n.length; i++) {\n        var np = n[i];\n        for (var j = 0; j < n.length; j++) {\n            var np2 = n[j];\n            var d = g.distance(np, np2);\n            if ((np != np2) && d < limit) {\n                np.x += (Math.random()-0.5)*5.0;\n                np.y += (Math.random()-0.5)*5.0;\n            }\n        }\n    }\n    return n;\n};",
+            "parameters": [
+                {
+                    "name": "n",
+                    "type": "",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "limit",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true,
+            "stateful": true
+        }
+    ],
+    "id": "g4network"
+}

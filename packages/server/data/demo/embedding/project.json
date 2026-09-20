@@ -1,0 +1,87 @@
+{
+    "title": "embedding",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 33,
+                    "y": 109,
+                    "fn": "g.rect",
+                    "values": {}
+                },
+                {
+                    "name": "rotate1",
+                    "x": 33,
+                    "y": 163,
+                    "fn": "g.rotate"
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 184,
+                    "y": 163,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "saturation": 0.5,
+                        "lightness": 0.5,
+                        "hue": 0.5
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 29,
+                    "y": 217,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "frame1",
+                    "x": 188,
+                    "y": 108,
+                    "fn": "g.frame"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "rect1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "frame1",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 31,
+                    "y": 32,
+                    "width": 255,
+                    "height": 57,
+                    "text": "This project shows how to do embedding. Visit https://nodebox.live/help/embedding to see the example."
+                }
+            ]
+        }
+    ],
+    "id": "embedding"
+}

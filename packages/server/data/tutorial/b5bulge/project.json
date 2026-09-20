@@ -1,0 +1,427 @@
+{
+    "title": "b5bulge",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "Dekar.otf": "cddad80af4ef19496128aa7792c69c4929da2e6c"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "bulger",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 42,
+                    "y": 72,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 172
+                    }
+                },
+                {
+                    "name": "bulger",
+                    "x": 45,
+                    "y": 276,
+                    "fn": "b5bulge.fx",
+                    "values": {
+                        "center": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "factor": 120,
+                        "resampl_amount": 10
+                    }
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 77,
+                    "y": 196,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "max": 200,
+                        "min": -50,
+                        "period": 200
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 167,
+                    "y": 112,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "mix1",
+                    "x": 249,
+                    "y": 292,
+                    "fn": "g.mix"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "sineWave1",
+                    "input": "bulger",
+                    "parameter": "factor"
+                },
+                {
+                    "output": "frame1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "rect1",
+                    "input": "bulger",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "returnType": "float",
+            "stickies": [
+                {
+                    "x": 310,
+                    "y": 15,
+                    "width": 71,
+                    "height": 44,
+                    "text": "Press Play"
+                }
+            ]
+        },
+        {
+            "name": "fx",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "resample1",
+                    "x": -64,
+                    "y": 95,
+                    "fn": "g.resampleByLength",
+                    "values": {
+                        "length": 2
+                    }
+                },
+                {
+                    "name": "topoints1",
+                    "x": 38,
+                    "y": 150,
+                    "fn": "g.toPoints",
+                    "values": {}
+                },
+                {
+                    "name": "lookup1",
+                    "x": -89,
+                    "y": 204,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 40,
+                    "y": 207,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "lookup3",
+                    "x": 165,
+                    "y": 207,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "lookup4",
+                    "x": 281,
+                    "y": 208,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "subtract1",
+                    "x": -20,
+                    "y": 286,
+                    "fn": "g.subtract",
+                    "values": {}
+                },
+                {
+                    "name": "subtract2",
+                    "x": 177,
+                    "y": 286,
+                    "fn": "g.subtract",
+                    "values": {}
+                },
+                {
+                    "name": "distance1",
+                    "x": 423,
+                    "y": 85,
+                    "fn": "g.distance",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 388,
+                    "y": 266,
+                    "fn": "g.divide",
+                    "values": {
+                        "a": 10
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": -11,
+                    "y": 344,
+                    "fn": "g.multiply",
+                    "values": {}
+                },
+                {
+                    "name": "multiply2",
+                    "x": 181,
+                    "y": 357,
+                    "fn": "g.multiply",
+                    "values": {}
+                },
+                {
+                    "name": "add1",
+                    "x": -17,
+                    "y": 446,
+                    "fn": "g.add",
+                    "values": {}
+                },
+                {
+                    "name": "divide2",
+                    "x": -16,
+                    "y": 508,
+                    "fn": "g.divide",
+                    "values": {}
+                },
+                {
+                    "name": "add2",
+                    "x": 182,
+                    "y": 450,
+                    "fn": "g.add",
+                    "values": {}
+                },
+                {
+                    "name": "divide3",
+                    "x": 181,
+                    "y": 511,
+                    "fn": "g.divide",
+                    "values": {}
+                },
+                {
+                    "name": "makePoint2",
+                    "x": 42,
+                    "y": 581,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "connect1",
+                    "x": 42,
+                    "y": 645,
+                    "fn": "g.connectPoints",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 43,
+                    "y": 698,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "resample1",
+                    "input": "topoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "subtract2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "subtract2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "distance1",
+                    "input": "divide1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "multiply2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "divide1",
+                    "input": "multiply1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "add1",
+                    "input": "divide2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "add2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "add2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "add2",
+                    "input": "divide3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide2",
+                    "input": "makePoint2",
+                    "parameter": "x"
+                },
+                {
+                    "output": "divide3",
+                    "input": "makePoint2",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint2",
+                    "input": "connect1",
+                    "parameter": "points"
+                },
+                {
+                    "inlet": "shape",
+                    "input": "resample1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "center",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "inlet": "center",
+                    "input": "lookup4",
+                    "parameter": "table"
+                },
+                {
+                    "inlet": "factor",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "connect1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "fill",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "distance1",
+                    "parameter": "point1"
+                },
+                {
+                    "inlet": "center",
+                    "input": "distance1",
+                    "parameter": "point2"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "shape",
+                    "type": "shape",
+                    "value": ""
+                },
+                {
+                    "name": "center",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "factor",
+                    "type": "float",
+                    "value": 10
+                },
+                {
+                    "name": "fill",
+                    "type": "string",
+                    "value": "rgba(0,0,0,.5)"
+                },
+                {
+                    "name": "resampl_amount",
+                    "type": "float",
+                    "value": 20
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "b5bulge"
+}

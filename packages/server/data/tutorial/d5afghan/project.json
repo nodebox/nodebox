@@ -1,0 +1,525 @@
+{
+    "title": "d5afghan",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "afghanistan.csv": "1620236bf4b8c509068fdfe84294d075239cce3d",
+        "afghanistanSDB.csv": "7d849e0b5fe5a48ee5acc1b790f9ff40ace79d13",
+        "building.svg": "f46acc8d0a95b6578d8462909d8f771963c82aa6"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "lookup1",
+                    "x": -37,
+                    "y": 208,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "Type"
+                    }
+                },
+                {
+                    "name": "import1",
+                    "x": -50,
+                    "y": 134,
+                    "fn": "g.import",
+                    "values": {
+                        "file": "afghanistanSDB.csv"
+                    }
+                },
+                {
+                    "name": "eachtype1",
+                    "x": -51,
+                    "y": 369,
+                    "fn": "d5afghan.eachtype",
+                    "values": {
+                        "index": 1
+                    },
+                    "masterList": "index"
+                },
+                {
+                    "name": "count2",
+                    "x": 133,
+                    "y": 206,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "slice1",
+                    "x": 71,
+                    "y": 311,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 1,
+                        "startIndex": 0
+                    },
+                    "masterList": "startIndex"
+                },
+                {
+                    "name": "distinct1",
+                    "x": 102,
+                    "y": 164,
+                    "fn": "g.distinct",
+                    "values": {}
+                },
+                {
+                    "name": "sum1",
+                    "x": 63,
+                    "y": 421,
+                    "fn": "g.total",
+                    "values": {}
+                },
+                {
+                    "name": "convert1",
+                    "x": -54,
+                    "y": 555,
+                    "fn": "g.convert",
+                    "values": {
+                        "outMax": 360,
+                        "inMax": 100
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": -50,
+                    "y": 468,
+                    "fn": "g.divide",
+                    "values": {}
+                },
+                {
+                    "name": "multiply1",
+                    "x": -50,
+                    "y": 516,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 100
+                    }
+                },
+                {
+                    "name": "arc1",
+                    "x": 34,
+                    "y": 672,
+                    "fn": "g.arc",
+                    "values": {
+                        "width": 250,
+                        "height": 250,
+                        "position": {
+                            "x": -60,
+                            "y": -40
+                        }
+                    }
+                },
+                {
+                    "name": "accumulate1",
+                    "x": 92,
+                    "y": 597,
+                    "fn": "g.accumulate",
+                    "values": {}
+                },
+                {
+                    "name": "centerPoint1",
+                    "x": 54,
+                    "y": 713,
+                    "fn": "g.centerPoint",
+                    "values": {}
+                },
+                {
+                    "name": "text1",
+                    "x": 292,
+                    "y": 511,
+                    "fn": "g.text",
+                    "values": {
+                        "fontSize": 14,
+                        "align": "left"
+                    }
+                },
+                {
+                    "name": "link1",
+                    "x": 348,
+                    "y": 609,
+                    "fn": "g.link",
+                    "values": {}
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 399,
+                    "y": 452,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 8,
+                        "height": 8,
+                        "position": {
+                            "x": -5,
+                            "y": -5
+                        }
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 399,
+                    "y": 511,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": -10,
+                            "y": 0
+                        }
+                    },
+                    "masterList": "translate"
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 111,
+                    "y": 774,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 2,
+                        "height": 2
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 218,
+                    "y": 834,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": -55,
+                    "y": 712,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 0.2
+                    }
+                },
+                {
+                    "name": "sample1",
+                    "x": 275,
+                    "y": 185,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 0.8
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 354,
+                    "y": 666,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 0.2
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 277,
+                    "y": 400,
+                    "fn": "g.makePoint",
+                    "values": {
+                        "x": 108
+                    }
+                },
+                {
+                    "name": "multiply2",
+                    "x": 263,
+                    "y": 303,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 15
+                    }
+                },
+                {
+                    "name": "add1",
+                    "x": 285,
+                    "y": 343,
+                    "fn": "g.add",
+                    "values": {
+                        "b": -180
+                    }
+                },
+                {
+                    "name": "range2",
+                    "x": 147,
+                    "y": 259,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 323,
+                    "y": 236,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.5
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "import1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "eachtype1",
+                    "parameter": "list"
+                },
+                {
+                    "output": "slice1",
+                    "input": "eachtype1",
+                    "parameter": "index"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "distinct1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "eachtype1",
+                    "input": "sum1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "eachtype1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "sum1",
+                    "input": "divide1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "divide1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "convert1",
+                    "input": "arc1",
+                    "parameter": "degrees"
+                },
+                {
+                    "output": "convert1",
+                    "input": "accumulate1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "accumulate1",
+                    "input": "arc1",
+                    "parameter": "startAngle"
+                },
+                {
+                    "output": "arc1",
+                    "input": "centerPoint1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "text1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "centerPoint1",
+                    "input": "ellipse2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "link1",
+                    "parameter": "shape2"
+                },
+                {
+                    "output": "count2",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "arc1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "link1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "text1",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "text1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "translate1",
+                    "input": "link1",
+                    "parameter": "shape1"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "count2",
+                    "input": "range2",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range2",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "range2",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize2",
+                    "parameter": "fill"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "eachtype",
+            "type": "network",
+            "renderedNode": "count1",
+            "nodes": [
+                {
+                    "name": "cull1",
+                    "x": 53,
+                    "y": 238,
+                    "fn": "g.cull",
+                    "values": {},
+                    "masterList": "l"
+                },
+                {
+                    "name": "count1",
+                    "x": 53,
+                    "y": 276,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "stringEquals1",
+                    "x": 45,
+                    "y": 177,
+                    "fn": "g.stringEquals",
+                    "values": {
+                        "ignoreCase": true
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "list",
+                    "input": "cull1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "cull1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "list",
+                    "input": "stringEquals1",
+                    "parameter": "string1"
+                },
+                {
+                    "inlet": "index",
+                    "input": "stringEquals1",
+                    "parameter": "string2"
+                },
+                {
+                    "output": "stringEquals1",
+                    "input": "cull1",
+                    "parameter": "booleans"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "list",
+                    "type": "float",
+                    "value": true,
+                    "takesList": true
+                },
+                {
+                    "name": "index",
+                    "type": "string",
+                    "value": 0
+                }
+            ],
+            "returnsList": true,
+            "returnType": "float"
+        }
+    ],
+    "id": "d5afghan"
+}

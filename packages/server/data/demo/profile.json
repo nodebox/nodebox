@@ -1,0 +1,90 @@
+{
+	"login": "demo",
+	"email": "demo@emrg.be",
+	"password": "$2a$10$0DwMBBMpCAneTcbQVSj80evx3XET8pmJyqQAcc5VD.WteGKXiXmW6",
+	"projects": [
+		{
+				"id": "nodeCode",
+				"title": "Node / Code",
+				"color": "#45b"
+		},
+		{
+				"id": "edm",
+				"title": "EDM",
+				"color": "#373"
+		},
+		{
+			"id": "embedding",
+			"title": "Embedding",
+			"color": "#373"
+				},
+		{
+			"id": "mixels",
+			"title": "Mixels (Mixing Pixels)",
+			"color": "#d80"
+				},
+		{
+			"id": "life",
+			"title": "Game of Life",
+			"color": "#222"
+				},
+		{
+			"id": "maze",
+			"title": "Word Maze",
+			"color": "#28a"
+				},
+		{
+			"id": "ships",
+			"title": "Shipwrecks",
+			"color": "#48d2eb"
+				},
+		{
+			"id": "sim",
+			"title": "Particle Simulation",
+			"color": "#89a"
+				},
+		{
+			"id": "simple",
+			"title": "Simple Example",
+			"color": "#d5b400"
+				},
+		{
+			"id": "supr",
+			"title": "Metashape",
+			"color": "#0a2050"
+				},
+		{
+			"id": "guys",
+			"title": "Waiting for something ..",
+			"color": "#28a"
+				},
+		{
+			"id": "soccer",
+			"title": "World champion 2014",
+			"color": "#28a"
+				},
+		{
+			"id": "metallica",
+			"title": "Word up",
+			"color": "#28a"
+				},
+		{
+			"id": "squids",
+			"title": "Ocean life",
+			"color": "#28a"
+		 	},
+		{
+			"id": "lsystem",
+			"title": "L-systems",
+			"color": "#aabbaa"
+		 	},
+		{
+			"id": "flocking",
+			"title": "Flocking",
+			"color": "#929999"
+		 	}
+		],
+	"prefs": {
+		"guideVisible": false
+	}
+}

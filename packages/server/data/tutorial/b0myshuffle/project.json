@@ -1,0 +1,73 @@
+{
+    "title": "b0myshuffle",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "randomSample1",
+            "nodes": [
+                {
+                    "name": "sample1",
+                    "x": 79,
+                    "y": 152,
+                    "fn": "g.sample",
+                    "values": {
+                        "amount": 20,
+                        "max": 1
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 151,
+                    "y": 292,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 78,
+                    "y": 232,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "blue": 0.99
+                    }
+                },
+                {
+                    "name": "randomSample1",
+                    "x": 77,
+                    "y": 365,
+                    "fn": "g.randomSample"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "sample1",
+                    "input": "rgbColor1",
+                    "parameter": "red"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "randomSample1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomSample1",
+                    "parameter": "amount"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "b0myshuffle"
+}

@@ -1,0 +1,153 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    avenir next,
+    avenir,
+    segoe ui,
+    helvetica neue,
+    helvetica,
+    Cantarell,
+    Ubuntu,
+    roboto,
+    noto,
+    arial,
+    sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.app__main {
+  margin: 40px auto;
+  padding: 0 20px;
+  max-width: 800px;
+}
+
+.app__title {
+  color: #333;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.config-section {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.config-section h2 {
+  margin: 0 0 20px 0;
+  color: #495057;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.input-group:last-child {
+  margin-bottom: 0;
+}
+
+.input-group label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 4px;
+  font-size: 0.875rem;
+}
+
+.input-group input {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.input-group input + button {
+  margin-top: 8px;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.input-group input::placeholder {
+  color: #6c757d;
+}
+
+.input-group button,
+.actions-group button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.input-group button:hover,
+.actions-group button:hover {
+  background: #0056b3;
+}
+
+.input-group button:active,
+.actions-group button:active {
+  background: #004085;
+}
+
+.advanced-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0;
+  cursor: pointer;
+  user-select: none;
+  color: #495057;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.advanced-toggle:hover {
+  color: #007bff;
+}
+
+.triangle {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+.triangle.expanded {
+  transform: rotate(90deg);
+}
+
+.advanced-section {
+  border-top: 1px solid #dee2e6;
+  padding-top: 16px;
+  margin-top: 8px;
+}
+
+.actions-group {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  margin-bottom: 16px;
+}

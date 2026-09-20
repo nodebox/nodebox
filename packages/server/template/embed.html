@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body style="margin: 0">
+    <div id="root"></div>
+    <script type="module">
+      import React from "https://esm.sh/react@18";
+      import ReactDOM from "https://esm.sh/react-dom@18";
+      import { config, NodeBoxPlayer } from "https://esm.sh/@ndbx/runtime";
+
+      if (document.location.hostname === "localhost") {
+        config.apiRoot = document.location.origin;
+      }
+
+      ReactDOM.render(
+        React.createElement(NodeBoxPlayer, {
+          userId: "{{ userId }}",
+          projectId: "{{ projectId }}",
+          item: "{{ item }}" === "__undefined__" ? undefined : "{{ item }}",
+          onProjectError: (error) => {
+            console.error(error);
+          },
+        }),
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>

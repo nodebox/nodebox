@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-base: #3e4c80;
+  --color-base-dark: #17203c;
+  --color-base-light: #eef1fc;
+  --color-base-text: #f5f5f5;
+  --color-base-light-text: var(--color-base);
+  --color-accent: #e8aa00;
+  --color-accent-dark: #73643a;
+  --color-accent-text: #f5f5f5;
+
+  --header-height: 35px;
+  --toolbar-height: 30px;
+
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-monospace:
+    ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace",
+    "Source Code Pro", "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/inter-v13-latin_latin-ext-regular.woff2") format("woff2");
+}
+/* inter-700 - latin_latin-ext */
+@font-face {
+  font-display: swap;
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 700;
+  src: url("/fonts/inter-v13-latin_latin-ext-700.woff2") format("woff2");
+}
+
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  -moz-tab-size: 4;
+  tab-size: 4;
+  font-family: var(--font-sans);
+  font-feature-settings: normal;
+  font-variation-settings: normal;
+}
+
+body {
+  height: 100%;
+  background-color: #18181b;
+  color: #f4f4f5;
+  user-select: none;
+}
+
+button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.2;
+}
+
+input[disabled] {
+  cursor: not-allowed;
+  opacity: 0.2;
+}
+
+select.menu-widget {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjNzE3MTdBIiBkPSJNMTYuMjkzIDkuMjkzIDEyIDEzLjU4NiA3LjcwNyA5LjI5M2wtMS40MTQgMS40MTRMMTIgMTYuNDE0bDUuNzA3LTUuNzA3eiIvPjwvc3ZnPg==")
+    no-repeat 95% 50%;
+}
+
+.cm-editor,
+.cm-theme-dark {
+  height: 100%;
+  overflow: hidden;
+}
+
+.markdown p {
+  margin-bottom: 1.5rem;
+}
+.markdown pre {
+  font-family: var(--font-monospace);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+/* General scrollbar styling for Firefox */
+* {
+  scrollbar-width: thin; /* Makes the scrollbar thinner */
+  scrollbar-color: #71717a #2a2a2a; /* Thumb color, Track color */
+}
+
+/* WebKit browsers (Chrome, Safari, Edge) scrollbar styling */
+::-webkit-scrollbar {
+  width: 12px; /* For vertical scrollbars */
+  height: 12px; /* For horizontal scrollbars */
+}
+
+/* Scrollbar track (background) */
+::-webkit-scrollbar-track {
+  background: #2a2a2a; /* Dark background to match your specified color */
+  border-radius: 10px; /* Optional rounded corners */
+}
+
+/* Scrollbar thumb (the draggable part) */
+::-webkit-scrollbar-thumb {
+  background-color: #71717a; /* Your specified thumb color */
+  border-radius: 10px; /* Optional rounded corners */
+  border: 3px solid #2a2a2a; /* Padding around the thumb for better visibility */
+}
+
+/* Scrollbar thumb hover state for WebKit */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #888888; /* Slightly lighter on hover */
+}
+
+.inline-message {
+  transition: opacity 0.5s ease-in-out;
+  opacity: 1;
+}
+
+.inline-message-hidden {
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.progress-bar {
+  transition: width 0.3s linear;
+}
+
+.__nodebox_svg_hover {
+  stroke: #888888;
+  stroke-width: 4;
+  stroke-opacity: 0.8;
+}
+
+.disabled-textarea {
+  pointer-events: none;
+  user-select: none;
+}

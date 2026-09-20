@@ -1,0 +1,324 @@
+{
+    "title": "a9compound",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "ellipse1",
+                    "x": 49,
+                    "y": 105,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 250,
+                        "height": 250
+                    }
+                },
+                {
+                    "name": "scatter1",
+                    "x": 68,
+                    "y": 191,
+                    "fn": "g.scatterPoints",
+                    "values": {
+                        "amount": 12,
+                        "seed": 3
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 194,
+                    "y": 122,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 142,
+                    "y": 242,
+                    "fn": "g.ellipse"
+                },
+                {
+                    "name": "compound1",
+                    "x": 49,
+                    "y": 370,
+                    "fn": "g.compound",
+                    "values": {
+                        "method": "difference"
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 110,
+                    "y": 293,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "scale1",
+                    "x": 67,
+                    "y": 148,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 1.1,
+                            "y": 1.1
+                        }
+                    }
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 192,
+                    "y": 180,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "min": 20,
+                        "max": 80
+                    }
+                },
+                {
+                    "name": "ellipse3",
+                    "x": 303,
+                    "y": 369,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 15,
+                        "height": 15
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 112,
+                    "y": 584,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 49,
+                    "y": 417,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 5,
+                        "fill": "orange"
+                    }
+                },
+                {
+                    "name": "pick1",
+                    "x": 302,
+                    "y": 415,
+                    "fn": "g.pick",
+                    "values": {
+                        "method": "shuffle",
+                        "amount": 2,
+                        "seed": 0
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": 275,
+                    "y": 252,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 3
+                    }
+                },
+                {
+                    "name": "compound2",
+                    "x": 167,
+                    "y": 371,
+                    "fn": "g.compound",
+                    "values": {
+                        "method": "xor"
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 167,
+                    "y": 464,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(230,130,0,.6)",
+                        "stroke": "black"
+                    }
+                },
+                {
+                    "name": "scale2",
+                    "x": 167,
+                    "y": 418,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 1.2,
+                            "y": 1.2
+                        },
+                        "origin": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "line1",
+                    "x": -2,
+                    "y": 481,
+                    "fn": "g.line",
+                    "values": {
+                        "point1": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "point2": {
+                            "x": 0,
+                            "y": -500
+                        }
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": -2,
+                    "y": 522,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 4
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "scatter1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "scatter1",
+                    "input": "ellipse2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "compound1",
+                    "parameter": "shape1"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "scatter1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "group1",
+                    "input": "compound1",
+                    "parameter": "shape2"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "ellipse2",
+                    "parameter": "width"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "ellipse2",
+                    "parameter": "height"
+                },
+                {
+                    "output": "compound1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "ellipse3",
+                    "parameter": "width"
+                },
+                {
+                    "output": "divide1",
+                    "input": "ellipse3",
+                    "parameter": "height"
+                },
+                {
+                    "output": "scatter1",
+                    "input": "ellipse3",
+                    "parameter": "position"
+                },
+                {
+                    "output": "ellipse3",
+                    "input": "pick1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "group1",
+                    "input": "compound2",
+                    "parameter": "shape2"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "compound2",
+                    "parameter": "shape1"
+                },
+                {
+                    "output": "compound2",
+                    "input": "scale2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale2",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "pick1",
+                    "input": "combine1",
+                    "parameter": "list4"
+                },
+                {
+                    "output": "line1",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine1",
+                    "parameter": "list1"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "a9compound"
+}

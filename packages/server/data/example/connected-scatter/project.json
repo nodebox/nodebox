@@ -1,0 +1,773 @@
+{
+  "title": "Connected scatter plot",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Basic connected scatter",
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eSHSvnzctqk:0",
+          "x": 240,
+          "y": 177,
+          "name": "Filter Data 1",
+          "fn": "core/g/Filter Data",
+          "values": {
+            "leftValue": {
+              "type": "EXPRESSION",
+              "expression": "country"
+            },
+            "rightValue": {
+              "type": "VALUE",
+              "value": "India"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSHSvnzctqk:1",
+          "x": 240,
+          "y": 297,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "year"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "pop"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSHSvnzctqk:2",
+          "x": 240,
+          "y": 417,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eSHSvnzctqk:3",
+          "x": 240,
+          "y": 357,
+          "name": "Set Mark 1",
+          "fn": "core/plot/Set Mark",
+          "values": {
+            "markType": {
+              "type": "VALUE",
+              "value": "line"
+            },
+            "markName": {
+              "type": "VALUE",
+              "value": "line"
+            },
+            "interpolate": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "mode": {
+              "type": "VALUE",
+              "value": "upsert"
+            },
+            "x": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "y": {
+              "type": "EXPRESSION",
+              "expression": "pop"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSIh5euLMuA:1",
+          "x": 240,
+          "y": 237,
+          "name": "Apply Expression 1",
+          "fn": "core/g/Apply Expression",
+          "values": {
+            "source": {
+              "type": "VALUE",
+              "value": "return { ...d, year:d.year.toString()};"
+            }
+          }
+        },
+        {
+          "id": "eZS45SwKfp7:5",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A connected scatter plot is a scatter plot where data points are connected by a line. It is often used to show the variation of a data attribute over time or as a sequence.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS45SwKfp7:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS45SwKfp7:7",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Define which data records to keep. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS45SwKfp7:8",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Change the numbers in attribute 'year' to strings. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS45SwKfp7:9",
+          "type": "STICKY",
+          "x": 50,
+          "y": 30,
+          "width": 150,
+          "height": 70,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Basic connected scatter",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS45SwKfp7:10",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Create a scatter plot. Specify which data attributes you want to map to the X- and the Y-position. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS45SwKfp7:11",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Insert an additional mark of type 'line'. If not specified, the properties (like X- and Y-position) of the existing symbol marks will be reused. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZS7qGICK67:0",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/gapminder.csv"
+            },
+            "delimiter": {
+              "type": "VALUE",
+              "value": ","
+            }
+          }
+        },
+        {
+          "id": "eZS7qGICK67:1",
+          "type": "STICKY",
+          "x": 400,
+          "y": 420,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHSvnzctqk:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eSHSvnzctqk:3",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHSvnzctqk:0",
+          "outPort": "dataOut",
+          "inNode": "eSIh5euLMuA:1",
+          "inPort": "table"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHSvnzctqk:3",
+          "outPort": "plotSpecOut",
+          "inNode": "eSHSvnzctqk:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIh5euLMuA:1",
+          "outPort": "out",
+          "inNode": "eSHSvnzctqk:1",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZS7qGICK67:0",
+          "outPort": "out",
+          "inNode": "eSHSvnzctqk:0",
+          "inPort": "dataIn"
+        }
+      ],
+      "renderedNode": "eSHSvnzctqk:2",
+      "outputPorts": [],
+      "description": "A connected scatter plot is a scatter plot where data points are connected by a line. It is often used to show the variation of a data attribute over time or as a sequence.",
+      "__gallery": {
+        "keyword": "connected-scatter",
+        "subKeyword": "Basic connected scatter plot"
+      },
+      "background": {
+        "r": 0.1607843137254902,
+        "g": 0.1607843137254902,
+        "b": 0.1607843137254902,
+        "a": 1
+      },
+      "width": 550,
+      "height": 500
+    },
+    {
+      "type": "NETWORK",
+      "id": "eSHSvnzctqk:4",
+      "name": "Grouped connected scatter",
+      "category": "",
+      "description": "A grouped connected scatter plot is a scatter plot where groups of data points are connected by lines. It is used to compare trends or relationships between groups.",
+      "width": 550,
+      "height": 500,
+      "background": {
+        "r": 0.15,
+        "g": 0.15,
+        "b": 0.15,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eSHSvnzctqk:7",
+          "x": 240,
+          "y": 297,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "year"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "pop"
+            },
+            "plotType": {
+              "type": "VALUE",
+              "value": "line"
+            },
+            "groupBy": {
+              "type": "EXPRESSION",
+              "expression": "country"
+            },
+            "fillColor": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "strokeColor": {
+              "type": "EXPRESSION",
+              "expression": "continent"
+            },
+            "shape": {
+              "type": "EXPRESSION",
+              "expression": "continent"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSHSvnzctqk:8",
+          "x": 240,
+          "y": 477,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eSHSvnzctqk:9",
+          "x": 240,
+          "y": 177,
+          "name": "Filter Data 1",
+          "fn": "core/g/Filter Data",
+          "values": {
+            "leftValue": {
+              "type": "EXPRESSION",
+              "expression": "country"
+            },
+            "operator": {
+              "type": "VALUE",
+              "value": "in"
+            },
+            "rightValue": {
+              "type": "VALUE",
+              "value": "India,China,Brazil,United States,Germany,Turkey,Nigeria,Ethiopia"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSHSvnzctqk:10",
+          "x": 240,
+          "y": 357,
+          "name": "Set Mark 1",
+          "fn": "core/plot/Set Mark",
+          "values": {
+            "dataName": {
+              "type": "VALUE",
+              "value": "table"
+            },
+            "markType": {
+              "type": "VALUE",
+              "value": "symbol"
+            },
+            "insertIdx": {
+              "type": "VALUE",
+              "value": -1
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSIh5euLMuA:0",
+          "x": 240,
+          "y": 417,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "orient": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "offset": {
+              "type": "VALUE",
+              "value": -89
+            },
+            "symbolFillColor": {
+              "type": "VALUE",
+              "value": {
+                "r": 0.2980392156862745,
+                "g": 0.47058823529411764,
+                "b": 0.6588235294117647,
+                "a": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSIh5euLMuA:2",
+          "x": 240,
+          "y": 237,
+          "name": "Apply Expression 1",
+          "fn": "core/g/Apply Expression",
+          "values": {
+            "source": {
+              "type": "VALUE",
+              "value": "return { ...d, year:d.year.toString()};"
+            }
+          }
+        },
+        {
+          "id": "eZS7qGICK67:8",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A grouped connected scatter plot is a scatter plot where groups of data points are connected by lines. It is used to compare trends or relationships between groups.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS7qGICK67:9",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 390,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS7qGICK67:10",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 390,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Define which data records to keep. Use a comma separated list for multiple values. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS7qGICK67:11",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 390,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Change the numbers in attribute 'year' to strings. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS7qGICK67:12",
+          "type": "STICKY",
+          "x": 50,
+          "y": 30,
+          "width": 150,
+          "height": 70,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Grouped connected scatter",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS7qGICK67:13",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 390,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Create a line plot. Use the Group by parameters to group data points with the same value in separate lines. The shape scale will not show on line marks, but will be reused on the symbol marks. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS7qGICK67:14",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 390,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Insert an additional mark of type 'symbol'. If not specified, the properties (like X- and Y-position and stroke color) of the existing line marks will be reused. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZS7qGICK67:15",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/gapminder.csv"
+            }
+          }
+        },
+        {
+          "id": "eZS7qGICK67:16",
+          "type": "STICKY",
+          "x": 400,
+          "y": 480,
+          "width": 390,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZS7qGICK67:17",
+          "type": "STICKY",
+          "x": 400,
+          "y": 420,
+          "width": 390,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Add a legend to clarify the color and the shape scale. Set the default symbol fill color to transparent. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHSvnzctqk:7",
+          "outPort": "plotSpecOut",
+          "inNode": "eSHSvnzctqk:10",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHSvnzctqk:10",
+          "outPort": "plotSpecOut",
+          "inNode": "eSIh5euLMuA:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIh5euLMuA:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eSHSvnzctqk:8",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHSvnzctqk:9",
+          "outPort": "dataOut",
+          "inNode": "eSIh5euLMuA:2",
+          "inPort": "table"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIh5euLMuA:2",
+          "outPort": "out",
+          "inNode": "eSHSvnzctqk:7",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZS7qGICK67:15",
+          "outPort": "out",
+          "inNode": "eSHSvnzctqk:9",
+          "inPort": "dataIn"
+        }
+      ],
+      "renderedNode": "eSHSvnzctqk:8",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": [],
+      "__gallery": {
+        "keyword": "connected-scatter",
+        "subKeyword": "Grouped connected scatter plot"
+      }
+    }
+  ],
+  "id": "connected-scatter",
+  "formatVersion": 4,
+  "__gallery": {}
+}

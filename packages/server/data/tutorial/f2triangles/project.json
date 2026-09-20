@@ -1,0 +1,475 @@
+{
+    "title": "f2triangles",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "triangles",
+                    "x": 81,
+                    "y": 304,
+                    "fn": "f2triangles.delaunay",
+                    "values": {
+                        "amount": 250
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 127,
+                    "y": 128,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 400,
+                        "height": 600
+                    }
+                },
+                {
+                    "name": "scatterPoints1",
+                    "x": 127,
+                    "y": 176,
+                    "fn": "g.scatterPoints",
+                    "values": {
+                        "seed": 1,
+                        "amount": 45
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 217,
+                    "y": 376,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "count2",
+                    "x": 193,
+                    "y": 229,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "triangle1",
+                    "x": 127,
+                    "y": 534,
+                    "fn": "f2triangles.triangle",
+                    "values": {
+                        "index": 6
+                    },
+                    "masterList": "index"
+                },
+                {
+                    "name": "count3",
+                    "x": 364,
+                    "y": 385,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "sample1",
+                    "x": 352,
+                    "y": 497,
+                    "fn": "g.sample",
+                    "values": {
+                        "min": 0.3,
+                        "max": 0.6
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 127,
+                    "y": 666,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black"
+                    },
+                    "masterList": "fill"
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 428,
+                    "y": 439,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "start": 0.2,
+                        "end": 2,
+                        "max": 2,
+                        "min": 1,
+                        "seed": 9
+                    }
+                },
+                {
+                    "name": "text1",
+                    "x": 291,
+                    "y": 681,
+                    "fn": "g.text",
+                    "values": {
+                        "fontSize": 10
+                    },
+                    "masterList": "text"
+                },
+                {
+                    "name": "centerPoint1",
+                    "x": 311,
+                    "y": 618,
+                    "fn": "g.centerPoint",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 127,
+                    "y": 792,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "range3",
+                    "x": 193,
+                    "y": 455,
+                    "fn": "g.range",
+                    "values": {
+                        "step": 3
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 416,
+                    "y": 618,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 346,
+                    "y": 560,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.5
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "ellipse1",
+                    "input": "scatterPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "triangles",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "triangles",
+                    "parameter": "points"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count2",
+                    "input": "triangles",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "triangles",
+                    "input": "triangle1",
+                    "parameter": "list"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "triangle1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "triangle1",
+                    "input": "count3",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count3",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "triangle1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count3",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "colorize1",
+                    "parameter": "strokeWidth"
+                },
+                {
+                    "output": "triangle1",
+                    "input": "centerPoint1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "centerPoint1",
+                    "input": "text1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "count1",
+                    "input": "range3",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range3",
+                    "input": "triangle1",
+                    "parameter": "index"
+                },
+                {
+                    "output": "count3",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range1",
+                    "input": "text1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "text1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "delaunay",
+            "source": "// see https://github.com/ironwallaby/delaunay/\n\nf2triangles.delaunay = function (points, amount) {\n  var vertices = new Array(amount);\n  var i, x, y;\n  var out = [];\n\n      for(i = vertices.length; i--; ) {\n        x = points[i].x;\n        y = points[i].y;\n        vertices[i] = [x, y];\n      }\n      \n      var triangles = Delaunay.triangulate(vertices);\n      return triangles;\n};\n\n\n\nvar Delaunay;\n\n(function() {\n  \"use strict\";\n\n  var EPSILON = 1.0 / 1048576.0;\n\n  function supertriangle(vertices) {\n    var xmin = Number.POSITIVE_INFINITY,\n        ymin = Number.POSITIVE_INFINITY,\n        xmax = Number.NEGATIVE_INFINITY,\n        ymax = Number.NEGATIVE_INFINITY,\n        i, dx, dy, dmax, xmid, ymid;\n\n    for(i = vertices.length; i--; ) {\n      if(vertices[i][0] < xmin) xmin = vertices[i][0];\n      if(vertices[i][0] > xmax) xmax = vertices[i][0];\n      if(vertices[i][1] < ymin) ymin = vertices[i][1];\n      if(vertices[i][1] > ymax) ymax = vertices[i][1];\n    }\n\n    dx = xmax - xmin;\n    dy = ymax - ymin;\n    dmax = Math.max(dx, dy);\n    xmid = xmin + dx * 0.5;\n    ymid = ymin + dy * 0.5;\n\n    return [\n      [xmid - 20 * dmax, ymid -      dmax],\n      [xmid            , ymid + 20 * dmax],\n      [xmid + 20 * dmax, ymid -      dmax]\n    ];\n  }\n\n  function circumcircle(vertices, i, j, k) {\n    var x1 = vertices[i][0],\n        y1 = vertices[i][1],\n        x2 = vertices[j][0],\n        y2 = vertices[j][1],\n        x3 = vertices[k][0],\n        y3 = vertices[k][1],\n        fabsy1y2 = Math.abs(y1 - y2),\n        fabsy2y3 = Math.abs(y2 - y3),\n        xc, yc, m1, m2, mx1, mx2, my1, my2, dx, dy;\n\n    /* Check for coincident points */\n    if(fabsy1y2 < EPSILON && fabsy2y3 < EPSILON)\n      throw new Error(\"Eek! Coincident points!\");\n\n    if(fabsy1y2 < EPSILON) {\n      m2  = -((x3 - x2) / (y3 - y2));\n      mx2 = (x2 + x3) / 2.0;\n      my2 = (y2 + y3) / 2.0;\n      xc  = (x2 + x1) / 2.0;\n      yc  = m2 * (xc - mx2) + my2;\n    }\n\n    else if(fabsy2y3 < EPSILON) {\n      m1  = -((x2 - x1) / (y2 - y1));\n      mx1 = (x1 + x2) / 2.0;\n      my1 = (y1 + y2) / 2.0;\n      xc  = (x3 + x2) / 2.0;\n      yc  = m1 * (xc - mx1) + my1;\n    }\n\n    else {\n      m1  = -((x2 - x1) / (y2 - y1));\n      m2  = -((x3 - x2) / (y3 - y2));\n      mx1 = (x1 + x2) / 2.0;\n      mx2 = (x2 + x3) / 2.0;\n      my1 = (y1 + y2) / 2.0;\n      my2 = (y2 + y3) / 2.0;\n      xc  = (m1 * mx1 - m2 * mx2 + my2 - my1) / (m1 - m2);\n      yc  = (fabsy1y2 > fabsy2y3) ?\n        m1 * (xc - mx1) + my1 :\n        m2 * (xc - mx2) + my2;\n    }\n\n    dx = x2 - xc;\n    dy = y2 - yc;\n    return {i: i, j: j, k: k, x: xc, y: yc, r: dx * dx + dy * dy};\n  }\n\n  function dedup(edges) {\n    var i, j, a, b, m, n;\n\n    for(j = edges.length; j; ) {\n      b = edges[--j];\n      a = edges[--j];\n\n      for(i = j; i; ) {\n        n = edges[--i];\n        m = edges[--i];\n\n        if((a === m && b === n) || (a === n && b === m)) {\n          edges.splice(j, 2);\n          edges.splice(i, 2);\n          break;\n        }\n      }\n    }\n  }\n\n  Delaunay = {\n    triangulate: function(vertices, key) {\n      var n = vertices.length,\n          i, j, indices, st, open, closed, edges, dx, dy, a, b, c;\n\n      /* Bail if there aren't enough vertices to form any triangles. */\n      if(n < 3)\n        return [];\n\n      /* Slice out the actual vertices from the passed objects. (Duplicate the\n       * array even if we don't, though, since we need to make a supertriangle\n       * later on!) */\n      vertices = vertices.slice(0);\n\n      if(key)\n        for(i = n; i--; )\n          vertices[i] = vertices[i][key];\n\n      /* Make an array of indices into the vertex array, sorted by the\n       * vertices' x-position. */\n      indices = new Array(n);\n\n      for(i = n; i--; )\n        indices[i] = i;\n\n      indices.sort(function(i, j) {\n        return vertices[j][0] - vertices[i][0];\n      });\n\n      /* Next, find the vertices of the supertriangle (which contains all other\n       * triangles), and append them onto the end of a (copy of) the vertex\n       * array. */\n      st = supertriangle(vertices);\n      vertices.push(st[0], st[1], st[2]);\n      \n      /* Initialize the open list (containing the supertriangle and nothing\n       * else) and the closed list (which is empty since we havn't processed\n       * any triangles yet). */\n      open   = [circumcircle(vertices, n + 0, n + 1, n + 2)];\n      closed = [];\n      edges  = [];\n\n      /* Incrementally add each vertex to the mesh. */\n      for(i = indices.length; i--; edges.length = 0) {\n        c = indices[i];\n\n        /* For each open triangle, check to see if the current point is\n         * inside it's circumcircle. If it is, remove the triangle and add\n         * it's edges to an edge list. */\n        for(j = open.length; j--; ) {\n          /* If this point is to the right of this triangle's circumcircle,\n           * then this triangle should never get checked again. Remove it\n           * from the open list, add it to the closed list, and skip. */\n          dx = vertices[c][0] - open[j].x;\n          if(dx > 0.0 && dx * dx > open[j].r) {\n            closed.push(open[j]);\n            open.splice(j, 1);\n            continue;\n          }\n\n          /* If we're outside the circumcircle, skip this triangle. */\n          dy = vertices[c][1] - open[j].y;\n          if(dx * dx + dy * dy - open[j].r > EPSILON)\n            continue;\n\n          /* Remove the triangle and add it's edges to the edge list. */\n          edges.push(\n            open[j].i, open[j].j,\n            open[j].j, open[j].k,\n            open[j].k, open[j].i\n          );\n          open.splice(j, 1);\n        }\n\n        /* Remove any doubled edges. */\n        dedup(edges);\n\n        /* Add a new triangle for each edge. */\n        for(j = edges.length; j; ) {\n          b = edges[--j];\n          a = edges[--j];\n          open.push(circumcircle(vertices, a, b, c));\n        }\n      }\n\n      /* Copy any remaining open triangles to the closed list, and then\n       * remove any triangles that share a vertex with the supertriangle,\n       * building a list of triplets that represent triangles. */\n      for(i = open.length; i--; )\n        closed.push(open[i]);\n      open.length = 0;\n\n      for(i = closed.length; i--; )\n        if(closed[i].i < n && closed[i].j < n && closed[i].k < n)\n          open.push(closed[i].i, closed[i].j, closed[i].k);\n\n      /* Yay, we're done! */\n      return open;\n    },\n    contains: function(tri, p) {\n      /* Bounding box test first, for quick rejections. */\n      if((p[0] < tri[0][0] && p[0] < tri[1][0] && p[0] < tri[2][0]) ||\n         (p[0] > tri[0][0] && p[0] > tri[1][0] && p[0] > tri[2][0]) ||\n         (p[1] < tri[0][1] && p[1] < tri[1][1] && p[1] < tri[2][1]) ||\n         (p[1] > tri[0][1] && p[1] > tri[1][1] && p[1] > tri[2][1]))\n        return null;\n\n      var a = tri[1][0] - tri[0][0],\n          b = tri[2][0] - tri[0][0],\n          c = tri[1][1] - tri[0][1],\n          d = tri[2][1] - tri[0][1],\n          i = a * d - b * c;\n\n      /* Degenerate tri. */\n      if(i === 0.0)\n        return null;\n\n      var u = (d * (p[0] - tri[0][0]) - b * (p[1] - tri[0][1])) / i,\n          v = (a * (p[1] - tri[0][1]) - c * (p[0] - tri[0][0])) / i;\n\n      /* If we're outside the tri, fail. */\n      if(u < 0.0 || v < 0.0 || (u + v) > 1.0)\n        return null;\n\n      return [u, v];\n    }\n  };\n\n})();",
+            "parameters": [
+                {
+                    "name": "points",
+                    "type": "point",
+                    "value": true,
+                    "takesList": true
+                },
+                {
+                    "name": "amount",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "triangle",
+            "type": "network",
+            "renderedNode": "connectPoints1",
+            "nodes": [
+                {
+                    "name": "slice1",
+                    "x": 81,
+                    "y": 112,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 3
+                    }
+                },
+                {
+                    "name": "slice2",
+                    "x": 306,
+                    "y": 198,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 1,
+                        "startIndex": 2
+                    }
+                },
+                {
+                    "name": "first1",
+                    "x": 81,
+                    "y": 194,
+                    "fn": "g.first",
+                    "values": {}
+                },
+                {
+                    "name": "second1",
+                    "x": 197,
+                    "y": 198,
+                    "fn": "g.second",
+                    "values": {}
+                },
+                {
+                    "name": "slice3",
+                    "x": 81,
+                    "y": 293,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 1
+                    }
+                },
+                {
+                    "name": "slice4",
+                    "x": 202,
+                    "y": 296,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 1
+                    }
+                },
+                {
+                    "name": "slice5",
+                    "x": 324,
+                    "y": 295,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 1
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 82,
+                    "y": 387,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 82,
+                    "y": 488,
+                    "fn": "g.connectPoints",
+                    "values": {
+                        "closed": true
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "list",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "index",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                },
+                {
+                    "output": "slice1",
+                    "input": "first1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "second1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "slice2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "first1",
+                    "input": "slice3",
+                    "parameter": "startIndex"
+                },
+                {
+                    "inlet": "points",
+                    "input": "slice3",
+                    "parameter": "l"
+                },
+                {
+                    "output": "second1",
+                    "input": "slice4",
+                    "parameter": "startIndex"
+                },
+                {
+                    "inlet": "points",
+                    "input": "slice4",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice2",
+                    "input": "slice5",
+                    "parameter": "startIndex"
+                },
+                {
+                    "inlet": "points",
+                    "input": "slice5",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice3",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "slice4",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "slice5",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "combine1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "list",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "index",
+                    "type": "float",
+                    "value": 0
+                },
+                {
+                    "name": "points",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": true
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "f2triangles"
+}

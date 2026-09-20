@@ -1,0 +1,419 @@
+{
+    "title": "f4projection",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "pixie-bold.otf": "b57796eae6cb5404de166f90c05986aa97cfebb3",
+        "Musket bold.otf": "208c20c3f658896fc470a8bcd2a95d5ddabc4c72"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine3",
+            "nodes": [
+                {
+                    "name": "pointcloud4",
+                    "x": 156,
+                    "y": 285,
+                    "fn": "f4projection.pointcloud",
+                    "values": {
+                        "persp": {
+                            "x": 0.25,
+                            "y": 0.25
+                        },
+                        "rotZ": -180,
+                        "z": 11,
+                        "rotY": 361,
+                        "rotX": 529
+                    }
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 177,
+                    "y": 124,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "frame3",
+                    "x": 291,
+                    "y": 170,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "lookup1",
+                    "x": 60,
+                    "y": 169,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 177,
+                    "y": 170,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "resampleByLength1",
+                    "x": 177,
+                    "y": 82,
+                    "fn": "g.resampleByLength",
+                    "values": {
+                        "points": 16,
+                        "length": 5,
+                        "maxLength": 3
+                    }
+                },
+                {
+                    "name": "textPath1",
+                    "x": 177,
+                    "y": 38,
+                    "fn": "g.textPath",
+                    "values": {
+                        "font": "Musket bold.otf",
+                        "text": "display",
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "fontFamily": "Musket bold.otf",
+                        "fontSize": 103
+                    }
+                },
+                {
+                    "name": "shift2",
+                    "x": 300,
+                    "y": 340,
+                    "fn": "g.shift"
+                },
+                {
+                    "name": "distance1",
+                    "x": 265,
+                    "y": 392,
+                    "fn": "g.distance"
+                },
+                {
+                    "name": "compare1",
+                    "x": 265,
+                    "y": 436,
+                    "fn": "g.compare",
+                    "values": {
+                        "v2": 21
+                    }
+                },
+                {
+                    "name": "line1",
+                    "x": 256,
+                    "y": 521,
+                    "fn": "g.line"
+                },
+                {
+                    "name": "colorize4",
+                    "x": 256,
+                    "y": 564,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "red"
+                    }
+                },
+                {
+                    "name": "slice1",
+                    "x": 111,
+                    "y": 483,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 100
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 131,
+                    "y": 343,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "mod1",
+                    "x": 154,
+                    "y": 395,
+                    "fn": "g.mod"
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 110,
+                    "y": 524,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 10,
+                        "height": 10
+                    }
+                },
+                {
+                    "name": "combine3",
+                    "x": 145,
+                    "y": 616,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "repeat2",
+                    "x": 111,
+                    "y": 439,
+                    "fn": "g.repeat",
+                    "values": {
+                        "amount": 2
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 111,
+                    "y": 566,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "tranparent",
+                        "fill": "tomato",
+                        "strokeWidth": 0
+                    }
+                },
+                {
+                    "name": "count2",
+                    "x": 26,
+                    "y": 286,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "convert1",
+                    "x": 174,
+                    "y": 228,
+                    "fn": "g.convert",
+                    "values": {
+                        "inMax": 200,
+                        "inMin": -200,
+                        "outMin": -100
+                    }
+                },
+                {
+                    "name": "convert2",
+                    "x": 51,
+                    "y": 222,
+                    "fn": "g.convert",
+                    "values": {
+                        "inMax": 200,
+                        "outMax": 50,
+                        "inMin": -200,
+                        "outMin": 20
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "toPoints1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "resampleByLength1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "pointcloud4",
+                    "input": "shift2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "distance1",
+                    "input": "compare1",
+                    "parameter": "v1"
+                },
+                {
+                    "output": "pointcloud4",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "shift2",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "line1",
+                    "input": "colorize4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "compare1",
+                    "input": "colorize4",
+                    "parameter": "strokeWidth"
+                },
+                {
+                    "output": "pointcloud4",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "frame3",
+                    "input": "mod1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "count1",
+                    "input": "mod1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "mod1",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                },
+                {
+                    "output": "slice1",
+                    "input": "ellipse2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "colorize4",
+                    "input": "combine3",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "pointcloud4",
+                    "input": "repeat2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "repeat2",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "textPath1",
+                    "input": "resampleByLength1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine3",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "pointcloud4",
+                    "input": "distance1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "shift2",
+                    "input": "distance1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "pointcloud4",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "convert1",
+                    "input": "pointcloud4",
+                    "parameter": "y"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "convert2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "convert2",
+                    "input": "pointcloud4",
+                    "parameter": "x"
+                },
+                {
+                    "output": "frame3",
+                    "input": "pointcloud4",
+                    "parameter": "rotY"
+                },
+                {
+                    "output": "frame3",
+                    "input": "pointcloud4",
+                    "parameter": "rotZ"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 412,
+                    "y": 11,
+                    "width": 74,
+                    "height": 44,
+                    "text": "Press Play"
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "pointcloud",
+            "source": "f4projection.pointcloud = function (x, y, z, rotX, rotY, rotZ, persp) {\n\n    var Sx = g.sin(g.radians(rotX))\n    var Cx = g.cos(g.radians(rotX))\n    var Sy = g.sin(g.radians(rotY))\n    var Cy = g.cos(g.radians(rotY))\n    var Sz = g.sin(g.radians(rotZ))\n    var Cz = g.cos(g.radians(rotZ))\n\n    var x1 = Cy * (Sz * y + Cz * x) - Sy * z\n    var y1 = Sx * (Cy * z + Sy * (Sz * y + Cz * x)) + Cx * (Cz * y - Sz * x)\n    var z1 = Cx * (Cy * z + Sy * (Sz * y + Cz * x)) - Sx * (Cz * y - Sz * x)\n\n    var sca = persp.x\n    var fov = persp.y\n\n    var factor = sca / fov + z1\n\n    var x2 = factor * x1 * fov\n    var y2 = factor * y1 * -fov\n\n    return new g.Point(x2,y2);\n};",
+            "parameters": [
+                {
+                    "name": "x",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "y",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "z",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "rotX",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "rotY",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "rotZ",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "persp",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                }
+            ]
+        }
+    ],
+    "id": "f4projection"
+}

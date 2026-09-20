@@ -1,0 +1,315 @@
+{
+    "title": "b4closest",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 45,
+                    "y": 45,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 400,
+                        "height": 400,
+                        "roundness": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "scatter1",
+                    "x": 45,
+                    "y": 85,
+                    "fn": "g.scatterPoints",
+                    "values": {
+                        "amount": 172,
+                        "seed": 86
+                    }
+                },
+                {
+                    "name": "search",
+                    "x": 85,
+                    "y": 445,
+                    "fn": "b4closest.search",
+                    "values": {
+                        "index": 5
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 85,
+                    "y": 125,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "line1",
+                    "x": 45,
+                    "y": 525,
+                    "fn": "g.line",
+                    "values": {}
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 165,
+                    "y": 525,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 5,
+                        "height": 5
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 45,
+                    "y": 605,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "range2",
+                    "x": 85,
+                    "y": 405,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 85,
+                    "y": 165,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "max": 1,
+                        "min": -1
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 85,
+                    "y": 245,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "frame1",
+                    "x": 205,
+                    "y": 165,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "multiply1",
+                    "x": 85,
+                    "y": 205,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "translate1",
+                    "x": 45,
+                    "y": 325,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "count2",
+                    "x": 85,
+                    "y": 365,
+                    "fn": "g.count"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "rect1",
+                    "input": "scatter1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scatter1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "search",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "line1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "range2",
+                    "input": "search",
+                    "parameter": "index"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "frame1",
+                    "input": "multiply1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "scatter1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "translate1",
+                    "input": "search",
+                    "parameter": "points"
+                },
+                {
+                    "output": "translate1",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "translate1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "translate1",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count2",
+                    "input": "range2",
+                    "parameter": "max"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 315,
+                    "y": 15,
+                    "width": 75,
+                    "height": 36,
+                    "text": "Press Play"
+                }
+            ]
+        },
+        {
+            "name": "search",
+            "type": "network",
+            "renderedNode": "second1",
+            "nodes": [
+                {
+                    "name": "slice1",
+                    "x": 67,
+                    "y": 130,
+                    "fn": "g.slice",
+                    "values": {
+                        "startIndex": 0,
+                        "size": 1
+                    }
+                },
+                {
+                    "name": "second1",
+                    "x": -1,
+                    "y": 253,
+                    "fn": "g.second",
+                    "values": {}
+                },
+                {
+                    "name": "shapeSort1",
+                    "x": 1,
+                    "y": 195,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "distance"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "points",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "index",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                },
+                {
+                    "inlet": "points",
+                    "input": "shapeSort1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "slice1",
+                    "input": "shapeSort1",
+                    "parameter": "point"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "second1",
+                    "parameter": "l"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "points",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": true
+                },
+                {
+                    "name": "index",
+                    "type": "float",
+                    "value": 0
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "b4closest"
+}

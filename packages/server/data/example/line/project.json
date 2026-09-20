@@ -1,0 +1,811 @@
+{
+  "title": "Line plot",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Basic line plot",
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eSIlIBGhZV7:1",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/bitcoin.csv"
+            },
+            "delimiter": {
+              "type": "VALUE",
+              "value": ","
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSIvDzjRWYI:2",
+          "x": 240,
+          "y": 237,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eSIvDzjRWYI:8",
+          "x": 240,
+          "y": 177,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "Start"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "Open"
+            },
+            "groupBy": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "plotType": {
+              "type": "VALUE",
+              "value": "line"
+            },
+            "strokeColor": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "strokeOpacity": {
+              "type": "VALUE",
+              "value": 0
+            }
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:3",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A line plot displays a line connecting data points. It is often used to show the variation of a data attribute over time or as a sequence.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Select the plot type and specify which data attributes you want to map to the X- and the Y-position.  ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:7",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Basic Line Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIlIBGhZV7:1",
+          "outPort": "out",
+          "inNode": "eSIvDzjRWYI:0",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIvDzjRWYI:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eSIvDzjRWYI:3",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIvDzjRWYI:0",
+          "outPort": "dataOut",
+          "inNode": "eSIvDzjRWYI:6",
+          "inPort": "table"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIvDzjRWYI:6",
+          "outPort": "out",
+          "inNode": "eSIvDzjRWYI:1",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIvDzjRWYI:7",
+          "outPort": "out",
+          "inNode": "eSIvDzjRWYI:9",
+          "inPort": "table"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIvDzjRWYI:7",
+          "outPort": "out",
+          "inNode": "eSIvDzjRWYI:10",
+          "inPort": "table"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIlIBGhZV7:1",
+          "outPort": "out",
+          "inNode": "eSNMM6niy8W:2",
+          "inPort": "table"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIlIBGhZV7:1",
+          "outPort": "out",
+          "inNode": "eSIvDzjRWYI:8",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIvDzjRWYI:8",
+          "outPort": "plotSpecOut",
+          "inNode": "eWAQz410706:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSIvDzjRWYI:8",
+          "outPort": "plotSpecOut",
+          "inNode": "eSIvDzjRWYI:2",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eSIvDzjRWYI:2",
+      "outputPorts": [],
+      "description": "A line plot displays a line connecting data points. It is often used to show the variation of a data attribute over time or as a sequence.",
+      "__gallery": {
+        "keyword": "line",
+        "subKeyword": "Basic line plot"
+      },
+      "background": {
+        "r": 0.13333333333333333,
+        "g": 0.13333333333333333,
+        "b": 0.13333333333333333,
+        "a": 1
+      },
+      "width": 500,
+      "height": 500
+    },
+    {
+      "type": "NETWORK",
+      "id": "eSI5SEQkv3e:0",
+      "name": "Grouped line plot",
+      "category": "",
+      "description": "A grouped line plot displays a separate line for each group of data points. It is used to compare trends or relationships between groups.",
+      "width": 600,
+      "height": 380,
+      "background": {
+        "r": 0.15,
+        "g": 0.15,
+        "b": 0.15,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eSNMM6niy8W:0",
+          "x": 240,
+          "y": 297,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "Year"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "Count"
+            },
+            "plotType": {
+              "type": "VALUE",
+              "value": "line"
+            },
+            "groupBy": {
+              "type": "EXPRESSION",
+              "expression": "Name"
+            },
+            "fillColor": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "strokeColor": {
+              "type": "EXPRESSION",
+              "expression": "Name"
+            },
+            "strokeDash": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSNMM6niy8W:1",
+          "x": 240,
+          "y": 597,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eSNTkzPYJOO:0",
+          "x": 240,
+          "y": 477,
+          "name": "Set Plot Title 1",
+          "fn": "core/plot/Set Plot Title",
+          "values": {
+            "titleText": {
+              "type": "VALUE",
+              "value": "Supremacy of female first names"
+            },
+            "subtitle": {
+              "type": "VALUE",
+              "value": "United States 1880-2014"
+            },
+            "anchor": {
+              "type": "VALUE",
+              "value": "middle"
+            },
+            "align": {
+              "type": "VALUE",
+              "value": "center"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWEchmxf57m:0",
+          "x": 240,
+          "y": 537,
+          "name": "Set Plot Figure 1",
+          "fn": "core/plot/Set Plot Figure",
+          "values": {
+            "height": {
+              "type": "VALUE",
+              "value": 240
+            },
+            "padLeft": {
+              "type": "VALUE",
+              "value": 0
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZ7cvsNdLGG:8",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/us-national-names.csv"
+            },
+            "delimiter": {
+              "type": "VALUE",
+              "value": ","
+            }
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:12",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A grouped line plot displays a separate line for each group of data points. It is used to compare trends or relationships between groups.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:13",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:14",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Create a line plot. Use the Group by parameter to group data points with the same value in separate lines. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:15",
+          "type": "STICKY",
+          "x": 400,
+          "y": 600,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:16",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Grouped Line Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:19",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Define which the names to keep. Use a comma separated list for multiple values. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:20",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Select only female names. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZ7cvsNdLGG:23",
+          "x": 240,
+          "y": 177,
+          "name": "Filter Data 1",
+          "fn": "core/g/Filter Data",
+          "values": {
+            "rightValue": {
+              "type": "VALUE",
+              "value": "F"
+            },
+            "leftValue": {
+              "type": "EXPRESSION",
+              "expression": "Gender"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZ7cvsNdLGG:24",
+          "x": 240,
+          "y": 237,
+          "name": "Filter Data 2",
+          "fn": "core/g/Filter Data",
+          "values": {
+            "operator": {
+              "type": "VALUE",
+              "value": "in"
+            },
+            "leftValue": {
+              "type": "EXPRESSION",
+              "expression": "Name"
+            },
+            "rightValue": {
+              "type": "VALUE",
+              "value": "Ashley,Linda,Emily,Mary,Lisa,Jennifer,Jessica,Sophia,Emma,Isabella"
+            }
+          }
+        },
+        {
+          "id": "eZ7cvsNdLGG:25",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Format the numeric labels of the X-axis as text, using d3 format syntax (https://d3js.org/d3-format). Rotate and position the label using angle, padding an baseline. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZ7pOswdM5t:2",
+          "x": 240,
+          "y": 357,
+          "name": "Set Axis 1",
+          "fn": "core/plot/Set Axis",
+          "values": {
+            "title": {
+              "type": "VALUE",
+              "value": "Year"
+            },
+            "format": {
+              "type": "VALUE",
+              "value": "d"
+            },
+            "labelAngle": {
+              "type": "VALUE",
+              "value": 90
+            },
+            "labelPadding": {
+              "type": "VALUE",
+              "value": 15
+            },
+            "labelBaseline": {
+              "type": "VALUE",
+              "value": "middle"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZ7tFUn1Dc2:1",
+          "x": 240,
+          "y": 417,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "offset": {
+              "type": "VALUE",
+              "value": -75
+            }
+          }
+        },
+        {
+          "id": "eZ7tFUn1Dc2:2",
+          "type": "STICKY",
+          "x": 400,
+          "y": 420,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a legend to clarify the color scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7tFUn1Dc2:3",
+          "type": "STICKY",
+          "x": 400,
+          "y": 480,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Set a plot title and a subtitle. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7tFUn1Dc2:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 540,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Customize the width and height of the plot figure. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSI5SEQkv3e:3",
+          "outPort": "out",
+          "inNode": "eSI5SEQkv3e:5",
+          "inPort": "data3"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSNMM6niy8W:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eSNSvRNlcI8:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSNTkzPYJOO:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eWEchmxf57m:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ7cvsNdLGG:8",
+          "outPort": "out",
+          "inNode": "eZ7cvsNdLGG:23",
+          "inPort": "dataIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ7cvsNdLGG:23",
+          "outPort": "dataOut",
+          "inNode": "eZ7cvsNdLGG:24",
+          "inPort": "dataIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ7cvsNdLGG:24",
+          "outPort": "dataOut",
+          "inNode": "eSNMM6niy8W:0",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSNMM6niy8W:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eZ7pOswdM5t:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ7tFUn1Dc2:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eSNTkzPYJOO:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ7pOswdM5t:2",
+          "outPort": "plotSpecOut",
+          "inNode": "eZ7tFUn1Dc2:1",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWEchmxf57m:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eSNMM6niy8W:1",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eSNMM6niy8W:1",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": [],
+      "__gallery": {
+        "keyword": "line",
+        "subKeyword": "Grouped line plot"
+      }
+    }
+  ],
+  "id": "line",
+  "formatVersion": 4,
+  "__gallery": {}
+}

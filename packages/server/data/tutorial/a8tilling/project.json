@@ -1,0 +1,347 @@
+{
+    "title": "a8tilling",
+    "color": "black",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "scale1",
+            "nodes": [
+                {
+                    "name": "copy1",
+                    "x": 32,
+                    "y": 180,
+                    "fn": "g.copy",
+                    "values": {
+                        "copies": 6,
+                        "rotate": 60
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 33,
+                    "y": 228,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "fill": "rgba(1,1,1,0)",
+                        "strokeWidth": 0.5
+                    },
+                    "masterList": "shape"
+                },
+                {
+                    "name": "fit1",
+                    "x": 33,
+                    "y": 325,
+                    "fn": "g.fit",
+                    "values": {
+                        "width": 100,
+                        "height": 100
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 33,
+                    "y": 275,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "copy2",
+                    "x": 33,
+                    "y": 377,
+                    "fn": "g.copy",
+                    "values": {
+                        "translate": {
+                            "x": 80,
+                            "y": 0
+                        },
+                        "order": "trs",
+                        "rotate": 0
+                    }
+                },
+                {
+                    "name": "copy3",
+                    "x": 34,
+                    "y": 433,
+                    "fn": "g.copy",
+                    "values": {
+                        "order": "trs",
+                        "rotate": 0,
+                        "translate": {
+                            "x": -40,
+                            "y": 80
+                        }
+                    }
+                },
+                {
+                    "name": "group2",
+                    "x": 34,
+                    "y": 487,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "align1",
+                    "x": 34,
+                    "y": 541,
+                    "fn": "g.align",
+                    "values": {}
+                },
+                {
+                    "name": "deletePoints1",
+                    "x": 34,
+                    "y": 601,
+                    "fn": "g.deletePoints",
+                    "values": {
+                        "scope": "paths",
+                        "deleteSelected": false,
+                        "invert": true
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 149,
+                    "y": 535,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 500,
+                        "height": 500
+                    }
+                },
+                {
+                    "name": "makeNumbers1",
+                    "x": 174,
+                    "y": 128,
+                    "fn": "g.makeNumbers",
+                    "values": {
+                        "s": ".2,.5,.7",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "align2",
+                    "x": 32,
+                    "y": 83,
+                    "fn": "g.align",
+                    "values": {
+                        "hAlign": "left",
+                        "vAlign": "bottom"
+                    }
+                },
+                {
+                    "name": "polygon2",
+                    "x": 32,
+                    "y": 9,
+                    "fn": "g.polygon",
+                    "values": {
+                        "radius": 30,
+                        "sides": 5
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 32,
+                    "y": 870,
+                    "fn": "g.scale"
+                },
+                {
+                    "name": "distance1",
+                    "x": 200,
+                    "y": 683,
+                    "fn": "g.distance",
+                    "values": {
+                        "p2": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "centroid1",
+                    "x": 153,
+                    "y": 639,
+                    "fn": "g.centerPoint"
+                },
+                {
+                    "name": "ungroup1",
+                    "x": 153,
+                    "y": 594,
+                    "fn": "g.ungroup"
+                },
+                {
+                    "name": "divide1",
+                    "x": 154,
+                    "y": 770,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 220
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 154,
+                    "y": 817,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "add1",
+                    "x": 153,
+                    "y": 726,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 50
+                    }
+                },
+                {
+                    "name": "wigglePoints1",
+                    "x": 34,
+                    "y": 124,
+                    "fn": "g.wigglePoints",
+                    "values": {
+                        "offset": {
+                            "x": 40,
+                            "y": 30
+                        },
+                        "seed": 21
+                    }
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 174,
+                    "y": 186,
+                    "fn": "g.hslColor"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "copy1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "fit1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "fit1",
+                    "input": "copy2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "copy2",
+                    "input": "copy3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "copy3",
+                    "input": "group2",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group2",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "deletePoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "deletePoints1",
+                    "parameter": "bounding"
+                },
+                {
+                    "output": "deletePoints1",
+                    "input": "ungroup1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ungroup1",
+                    "input": "centroid1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "divide1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "divide1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "scale1",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "ungroup1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "centroid1",
+                    "input": "scale1",
+                    "parameter": "origin"
+                },
+                {
+                    "output": "distance1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "polygon2",
+                    "input": "align2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align2",
+                    "input": "wigglePoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "wigglePoints1",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "centroid1",
+                    "input": "distance1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "makeNumbers1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "a8tilling"
+}

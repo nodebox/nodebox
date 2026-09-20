@@ -1,0 +1,378 @@
+{
+    "title": "a7lists",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "connectPoints1",
+            "nodes": [
+                {
+                    "name": "sample1",
+                    "x": 68,
+                    "y": 34,
+                    "fn": "g.sample",
+                    "values": {
+                        "amount": 4,
+                        "max": 1,
+                        "min": 0.1
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 45,
+                    "y": 254,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "count1",
+                    "x": 202,
+                    "y": 316,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "repeat1",
+                    "x": 112,
+                    "y": 169,
+                    "fn": "g.repeat",
+                    "values": {
+                        "amount": 2
+                    }
+                },
+                {
+                    "name": "slice1",
+                    "x": 112,
+                    "y": 125,
+                    "fn": "g.slice",
+                    "values": {
+                        "startIndex": 0
+                    }
+                },
+                {
+                    "name": "first1",
+                    "x": 40,
+                    "y": 363,
+                    "fn": "g.first",
+                    "values": {}
+                },
+                {
+                    "name": "second1",
+                    "x": 69,
+                    "y": 403,
+                    "fn": "g.second",
+                    "values": {}
+                },
+                {
+                    "name": "last1",
+                    "x": 39,
+                    "y": 443,
+                    "fn": "g.last",
+                    "values": {}
+                },
+                {
+                    "name": "rest1",
+                    "x": 70,
+                    "y": 483,
+                    "fn": "g.rest",
+                    "values": {}
+                },
+                {
+                    "name": "slice2",
+                    "x": 200,
+                    "y": 362,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 6,
+                        "startIndex": 0
+                    }
+                },
+                {
+                    "name": "pick2",
+                    "x": 230,
+                    "y": 402,
+                    "fn": "g.pick",
+                    "values": {
+                        "seed": 2
+                    }
+                },
+                {
+                    "name": "takeEvery1",
+                    "x": 199,
+                    "y": 443,
+                    "fn": "g.takeEvery",
+                    "values": {
+                        "n": 2
+                    }
+                },
+                {
+                    "name": "distinct1",
+                    "x": 180,
+                    "y": 595,
+                    "fn": "g.distinct",
+                    "values": {}
+                },
+                {
+                    "name": "reverse1",
+                    "x": 180,
+                    "y": 551,
+                    "fn": "g.reverse",
+                    "values": {}
+                },
+                {
+                    "name": "shuffle1",
+                    "x": 125,
+                    "y": 727,
+                    "fn": "g.shuffle",
+                    "values": {}
+                },
+                {
+                    "name": "shift1",
+                    "x": 125,
+                    "y": 640,
+                    "fn": "g.shift",
+                    "values": {
+                        "amount": 25
+                    }
+                },
+                {
+                    "name": "sort1",
+                    "x": 126,
+                    "y": 683,
+                    "fn": "g.sort",
+                    "values": {}
+                },
+                {
+                    "name": "lookup1",
+                    "x": 352,
+                    "y": 522,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "topoints1",
+                    "x": 352,
+                    "y": 474,
+                    "fn": "g.toPoints",
+                    "values": {}
+                },
+                {
+                    "name": "compare1",
+                    "x": 387,
+                    "y": 586,
+                    "fn": "g.compare",
+                    "values": {
+                        "v2": 5
+                    }
+                },
+                {
+                    "name": "cull1",
+                    "x": 350,
+                    "y": 653,
+                    "fn": "g.cull",
+                    "values": {}
+                },
+                {
+                    "name": "star1",
+                    "x": 352,
+                    "y": 378,
+                    "fn": "g.star",
+                    "values": {
+                        "outer": 350,
+                        "inner": 200
+                    }
+                },
+                {
+                    "name": "resampleByLength1",
+                    "x": 353,
+                    "y": 428,
+                    "fn": "g.resampleByLength"
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 349,
+                    "y": 704,
+                    "fn": "g.connectPoints",
+                    "values": {
+                        "closed": true
+                    }
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 283,
+                    "y": 100,
+                    "fn": "g.hslColor"
+                },
+                {
+                    "name": "hslAdjust1",
+                    "x": 360,
+                    "y": 246,
+                    "fn": "g.hslAdjust"
+                },
+                {
+                    "name": "hslColor2",
+                    "x": 255,
+                    "y": 181,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "saturation": 0.46,
+                        "hue": 0.83
+                    }
+                },
+                {
+                    "name": "hslColor3",
+                    "x": 62,
+                    "y": 80,
+                    "fn": "g.hslColor"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "combine1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "repeat1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "repeat1",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "combine1",
+                    "input": "first1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "combine1",
+                    "input": "second1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "combine1",
+                    "input": "last1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "combine1",
+                    "input": "rest1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "combine1",
+                    "input": "slice2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "combine1",
+                    "input": "pick2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "combine1",
+                    "input": "takeEvery1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "combine1",
+                    "input": "reverse1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "reverse1",
+                    "input": "distinct1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift1",
+                    "input": "sort1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "sort1",
+                    "input": "shuffle1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "compare1",
+                    "parameter": "v1"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "cull1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "compare1",
+                    "input": "cull1",
+                    "parameter": "booleans"
+                },
+                {
+                    "output": "star1",
+                    "input": "resampleByLength1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByLength1",
+                    "input": "topoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "cull1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "hslColor2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor3",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor3",
+                    "input": "slice1",
+                    "parameter": "l"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "a7lists"
+}

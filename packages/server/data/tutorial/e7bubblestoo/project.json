@@ -1,0 +1,394 @@
+{
+    "title": "e7bubblestoo",
+    "color": "teal",
+    "dependencies": {
+        "core/anim": "dev",
+        "core/g": "dev",
+        "core/list": "dev",
+        "core/math": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "randomNumbers1",
+                    "x": 44,
+                    "y": 124,
+                    "fn": "math.randomNumbers",
+                    "values": {
+                        "end": 200,
+                        "amount": 1,
+                        "start": -200,
+                        "seed": 2,
+                        "max": 256
+                    }
+                },
+                {
+                    "name": "randomNumbers2",
+                    "x": 151,
+                    "y": 126,
+                    "fn": "math.randomNumbers",
+                    "values": {
+                        "end": 200,
+                        "seed": 10,
+                        "amount": 1,
+                        "start": -200,
+                        "max": 226
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 118,
+                    "y": 294,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 62,
+                    "y": 229,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "frame1",
+                    "x": 586,
+                    "y": 88,
+                    "fn": "anim.frame",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 586,
+                    "y": 176,
+                    "fn": "math.divide",
+                    "values": {
+                        "b": 13
+                    }
+                },
+                {
+                    "name": "randomNumbers3",
+                    "x": 258,
+                    "y": 126,
+                    "fn": "math.randomNumbers",
+                    "values": {
+                        "end": 150,
+                        "seed": 25,
+                        "start": 50
+                    }
+                },
+                {
+                    "name": "randomNumbers4",
+                    "x": 363,
+                    "y": 126,
+                    "fn": "math.randomNumbers",
+                    "values": {
+                        "end": 255,
+                        "seed": 44
+                    }
+                },
+                {
+                    "name": "rgb1",
+                    "x": 338,
+                    "y": 313,
+                    "fn": "g.rgb",
+                    "values": {
+                        "green": 0,
+                        "alpha": 180,
+                        "red": 0,
+                        "blue": 200
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 78,
+                    "y": 388,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black"
+                    }
+                },
+                {
+                    "name": "slice1",
+                    "x": 138,
+                    "y": 734,
+                    "fn": "list.slice",
+                    "values": {
+                        "size": 5
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 131,
+                    "y": 435,
+                    "fn": "list.count",
+                    "values": {}
+                },
+                {
+                    "name": "number1",
+                    "x": 242,
+                    "y": 558,
+                    "fn": "math.number",
+                    "values": {
+                        "v": 10
+                    }
+                },
+                {
+                    "name": "randomNumbers5",
+                    "x": 471,
+                    "y": 129,
+                    "fn": "math.randomNumbers",
+                    "values": {
+                        "start": 2,
+                        "seed": 6,
+                        "end": 4
+                    }
+                },
+                {
+                    "name": "wave1",
+                    "x": 553,
+                    "y": 253,
+                    "fn": "math.wave",
+                    "values": {
+                        "max": 100,
+                        "min": 20
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 507,
+                    "y": 346,
+                    "fn": "math.multiply",
+                    "values": {}
+                },
+                {
+                    "name": "divide2",
+                    "x": 517,
+                    "y": 402,
+                    "fn": "math.divide",
+                    "values": {
+                        "b": 100
+                    }
+                },
+                {
+                    "name": "centroid1",
+                    "x": 306,
+                    "y": 652,
+                    "fn": "g.centroid",
+                    "values": {}
+                },
+                {
+                    "name": "connect1",
+                    "x": 307,
+                    "y": 750,
+                    "fn": "g.connect",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 217,
+                    "y": 829,
+                    "fn": "list.combine",
+                    "values": {}
+                },
+                {
+                    "name": "sort1",
+                    "x": 322,
+                    "y": 692,
+                    "fn": "g.sort",
+                    "values": {}
+                },
+                {
+                    "name": "translate1",
+                    "x": 79,
+                    "y": 346,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "number3",
+                    "x": 421,
+                    "y": 19,
+                    "fn": "math.number",
+                    "values": {
+                        "v": 500
+                    }
+                },
+                {
+                    "name": "repeat1",
+                    "x": 89,
+                    "y": 516,
+                    "fn": "list.repeat",
+                    "values": {
+                        "amount": 200
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "randomNumbers1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "randomNumbers2",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "frame1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "rgb1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "number1",
+                    "input": "slice1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "randomNumbers4",
+                    "input": "rgb1",
+                    "parameter": "green"
+                },
+                {
+                    "output": "randomNumbers5",
+                    "input": "wave1",
+                    "parameter": "period"
+                },
+                {
+                    "output": "divide1",
+                    "input": "wave1",
+                    "parameter": "t"
+                },
+                {
+                    "output": "wave1",
+                    "input": "multiply1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "randomNumbers3",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "divide2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide2",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "divide2",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "slice1",
+                    "input": "centroid1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "connect1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "slice1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "centroid1",
+                    "input": "sort1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "sort1",
+                    "input": "connect1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "number3",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "number3",
+                    "input": "randomNumbers2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "number3",
+                    "input": "randomNumbers3",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "number3",
+                    "input": "randomNumbers4",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "number3",
+                    "input": "randomNumbers5",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "frame1",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "repeat1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "repeat1",
+                    "input": "slice1",
+                    "parameter": "l"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "ref": ""
+        }
+    ],
+    "id": "e7bubblestoo"
+}

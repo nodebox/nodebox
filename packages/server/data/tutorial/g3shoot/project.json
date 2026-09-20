@@ -1,0 +1,284 @@
+{
+    "title": "g3shoot",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "init1",
+                    "x": 45,
+                    "y": 45,
+                    "fn": "g3shoot.init",
+                    "values": {
+                        "amount": 250
+                    }
+                },
+                {
+                    "name": "update1",
+                    "x": 45,
+                    "y": 125,
+                    "fn": "g3shoot.update"
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 45,
+                    "y": 485,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 20,
+                        "height": 20
+                    }
+                },
+                {
+                    "name": "distance1",
+                    "x": 205,
+                    "y": 245,
+                    "fn": "g.distance",
+                    "values": {
+                        "p1": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": 205,
+                    "y": 365,
+                    "fn": "g.divide",
+                    "values": {}
+                },
+                {
+                    "name": "subtract1",
+                    "x": 205,
+                    "y": 325,
+                    "fn": "g.subtract"
+                },
+                {
+                    "name": "average1",
+                    "x": 205,
+                    "y": 285,
+                    "fn": "g.average"
+                },
+                {
+                    "name": "rect1",
+                    "x": 205,
+                    "y": 605,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 420,
+                        "height": 420,
+                        "roundness": {
+                            "x": 20,
+                            "y": 20
+                        }
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 45,
+                    "y": 725,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 205,
+                    "y": 645,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "rgba(210, 210, 210, 1)",
+                        "strokeWidth": 2
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 45,
+                    "y": 565,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "transparent",
+                        "fill": "rgba(255,0,0,.5)"
+                    }
+                },
+                {
+                    "name": "abs1",
+                    "x": 205,
+                    "y": 405,
+                    "fn": "g.abs"
+                },
+                {
+                    "name": "hslColor2",
+                    "x": 205,
+                    "y": 485,
+                    "fn": "g.hslColor"
+                },
+                {
+                    "name": "divide2",
+                    "x": 205,
+                    "y": 445,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 100
+                    }
+                },
+                {
+                    "name": "stateLoad1",
+                    "x": 45,
+                    "y": 85,
+                    "fn": "g.stateLoad",
+                    "values": {
+                        "key": "points"
+                    }
+                },
+                {
+                    "name": "stateSave1",
+                    "x": 45,
+                    "y": 165,
+                    "fn": "g.stateSave",
+                    "values": {
+                        "key": "points"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "distance1",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "distance1",
+                    "input": "average1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "average1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "divide1",
+                    "input": "abs1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "abs1",
+                    "input": "divide2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide2",
+                    "input": "hslColor2",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "init1",
+                    "input": "stateLoad1",
+                    "parameter": "initial"
+                },
+                {
+                    "output": "stateLoad1",
+                    "input": "update1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "update1",
+                    "input": "stateSave1",
+                    "parameter": "state"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "distance1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "hslColor2",
+                    "input": "colorize2",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list1"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 315,
+                    "y": 15,
+                    "width": 73,
+                    "height": 44,
+                    "text": "Press Play"
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "init",
+            "source": "g3shoot.init = function (amount) {\n    var all = [];\n    for (var i = 0; i < amount; i++) {\n        var x = 360.0*(Math.random()-0.5);\n        var y = 360.0*(Math.random()-0.5);\n        var pt = new g.Point(x, y);\n        pt.speedx = 5.0*(Math.random()-0.5);\n        pt.speedy = 5.0*(Math.random()-0.5);\n        all.push(pt);\n    }\n    return all;\n};",
+            "parameters": [
+                {
+                    "name": "amount",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true,
+            "outputType": "point"
+        },
+        {
+            "type": "code",
+            "name": "update",
+            "source": "g3shoot.update = function (points) {\n    var tp = [];\n    for (var i = 0; i < points.length; i++) {\n        var tx = points[i].x + points[i].speedx;\n        var ty = points[i].y + points[i].speedy;\n        var pt = new g.Point(tx, ty);\n        if (tx > 200 || tx < -200) {\n            pt.speedx = -points[i].speedx;\n        } else {\n            pt.speedx = points[i].speedx;\n        }\n        if (ty > 200 || ty < -200) {\n            pt.speedy = -points[i].speedy;\n        } else {\n            pt.speedy = points[i].speedy;\n        }\n\n        tp.push(pt);\n    }\n    return tp;\n};",
+            "parameters": [
+                {
+                    "name": "points",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": true
+                }
+            ],
+            "returnsList": true,
+            "stateful": false
+        }
+    ],
+    "id": "g3shoot"
+}

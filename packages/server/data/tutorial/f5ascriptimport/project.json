@@ -1,0 +1,81 @@
+{
+    "title": "f5ascriptimport",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "mymath.js": "5b4e35b6b3d7a61fe7b84e31f040a4f4ae9537a5"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "scriptTest1",
+            "nodes": [
+                {
+                    "name": "scriptTest1",
+                    "x": 90,
+                    "y": 256,
+                    "fn": "f5ascriptimport.scriptTest"
+                },
+                {
+                    "name": "number1",
+                    "x": 90,
+                    "y": 178,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 30
+                    }
+                },
+                {
+                    "name": "number2",
+                    "x": 196,
+                    "y": 178,
+                    "fn": "g.number"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "number1",
+                    "input": "scriptTest1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "number2",
+                    "input": "scriptTest1",
+                    "parameter": "b"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 3,
+                    "y": 36,
+                    "width": 200,
+                    "height": 50,
+                    "text": "<---  Open scriptTest on how to use your own js files"
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "scriptTest",
+            "source": "/*/////////////////////////\n\nUpload your script to the Assets folder.\nFor this example it stores a file called mymath.js.\n\nit contains this code:\n\n   var mymath = {};\n\n   mymath.add = function (a, b) {\n       return (a + b);\n   };\n\n/////////////////////////*/\n\n\nf5ascriptimport.scriptTest = function (a, b) {\n\n    return mymath.add(a, b);\n\n};",
+            "parameters": [
+                {
+                    "name": "a",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "b",
+                    "type": "float",
+                    "value": 1
+                }
+            ]
+        }
+    ],
+    "id": "f5ascriptimport"
+}
