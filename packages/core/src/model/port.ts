@@ -1,6 +1,16 @@
 import { Color } from "../graphics/color";
 import { Point } from "../graphics/point";
-import { DEFAULT_VALUES, LiteralValue, MenuItem, Port, PortRange, PortType, PortValue, PortWidget, isStandardType } from "./types";
+import {
+  DEFAULT_VALUES,
+  LiteralValue,
+  MenuItem,
+  Port,
+  PortRange,
+  PortType,
+  PortValue,
+  PortWidget,
+  isStandardType,
+} from "./types";
 
 export const WIDGETS: PortWidget[] = [
   "none",
@@ -198,6 +208,26 @@ export function withValue(port: Port, value: unknown): Port {
   return { ...port, value: clampValue(port, convertValue(port.type, value)) };
 }
 
+/**
+ * Classic NodeBox Live keeps its declared types as "classic:<type>". Those ports are untyped at
+ * run time: no value is converted, and null is a value like any other rather than "no value".
+ */
+export const CLASSIC_TYPE_PREFIX = "classic:";
+
+export function isClassicPort(port: Port): boolean {
+  return port.type.startsWith(CLASSIC_TYPE_PREFIX);
+}
+
+/** The classic type of a port, or undefined when the port did not come from a classic project. */
+export function classicTypeOf(port: Port): string | undefined {
+  return isClassicPort(port) ? port.type.slice(CLASSIC_TYPE_PREFIX.length) : undefined;
+}
+
+/** A classic `shape` port: the one classic type the evaluator itself has a rule for. */
+export function isClassicShapePort(port: Port): boolean {
+  return port.type === `${CLASSIC_TYPE_PREFIX}shape`;
+}
+
 export function isPublishedPort(port: Port): boolean {
   return port.childReference !== undefined && port.childReference !== "";
 }
@@ -209,6 +239,18 @@ export function childNodeName(port: Port): string | undefined {
 export function childPortName(port: Port): string | undefined {
   const parts = port.childReference?.split(".");
   return parts && parts.length > 1 ? parts.slice(1).join(".") : undefined;
+}
+
+/** Every child port a published port feeds: its childReference first, then any childReferences. */
+export function publishedTargets(port: Port): { node: string; port: string }[] {
+  const targets: { node: string; port: string }[] = [];
+  for (const reference of [port.childReference, ...(port.childReferences ?? [])]) {
+    if (!reference) continue;
+    const dot = reference.indexOf(".");
+    if (dot < 0) continue;
+    targets.push({ node: reference.slice(0, dot), port: reference.slice(dot + 1) });
+  }
+  return targets;
 }
 
 export function isFileWidget(port: Port): boolean {

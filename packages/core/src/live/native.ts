@@ -11,7 +11,7 @@ import { Color } from "../graphics/color";
 import { Point } from "../graphics/point";
 import { NodeRepository } from "../model/library";
 import { getChild, uniqueName } from "../model/node";
-import { isPublishedPort, portLabel } from "../model/port";
+import { CLASSIC_TYPE_PREFIX, classicTypeOf, isPublishedPort, portLabel } from "../model/port";
 import { Library, Node, Port } from "../model/types";
 import { builtinNodeRepository } from "../libraries";
 import {
@@ -110,6 +110,12 @@ function isDataPort(port: Port): boolean {
 }
 
 function livePortTypeFor(port: Port): LivePortType {
+  // A classic port keeps its own type, which the editor shows through the port's widget.
+  const classic = classicTypeOf(port);
+  if (classic !== undefined) {
+    if (classic === "shape" || classic === "geometry") return "SHAPE";
+    return port.range === "list" ? "TABLE" : "SERIES";
+  }
   if (port.type === "geometry" || port.type === "shape") return "SHAPE";
   if (port.type === "spec") return "SPEC";
   if (port.range === "list" || port.type === "list" || port.type === "data" || port.type === "table") return "TABLE";
@@ -117,12 +123,15 @@ function livePortTypeFor(port: Port): LivePortType {
 }
 
 function outputTypeFor(type: string): LivePortType {
-  if (type === "geometry" || type === "shape") return "SHAPE";
+  if (type === "geometry" || type === "shape" || type === `${CLASSIC_TYPE_PREFIX}shape`) return "SHAPE";
   if (type === "spec") return "SPEC";
   return "SERIES";
 }
 
 export function portToLiveParameter(port: Port): LiveParameter {
+  // A classic parameter's widget is the only record of the type it was declared with.
+  const classic = classicTypeOf(port);
+  if (classic !== undefined) return classicToLiveParameter(port, classic);
   const type =
     port.type === "float" || port.type === "int"
       ? "NUMBER"
@@ -152,11 +161,43 @@ export function portToLiveParameter(port: Port): LiveParameter {
   };
 }
 
+/** The classic parameter types, as the editor's own parameter types. */
+function classicToLiveParameter(port: Port, classic: string): LiveParameter {
+  const type: LiveParameter["type"] =
+    port.menuItems.length > 0
+      ? "CHOICE"
+      : classic === "int" || classic === "float" || classic === "ratio"
+        ? "NUMBER"
+        : classic === "boolean"
+          ? "BOOLEAN"
+          : classic === "point" || classic === "pointRatio"
+            ? "POINT"
+            : classic === "color"
+              ? "COLOR"
+              : classic === "file" || classic === "image"
+                ? "FILE"
+                : "STRING";
+  return {
+    name: port.name,
+    type,
+    widget: classic === "html" ? "TEXT" : type === "CHOICE" ? "CHOICE" : (type as LiveParameter["widget"]),
+    label: portLabel(port),
+    section: port.section,
+    defaultValue: toLiveLiteral(port),
+    choices: port.menuItems.length > 0 ? port.menuItems.map((m) => ({ name: m.key, label: m.label })) : undefined,
+    min: port.min ?? -Infinity,
+    max: port.max ?? Infinity,
+    step: classic === "int" ? 1 : classic === "ratio" ? 0.01 : 1,
+  };
+}
+
 function toLiveLiteral(port: Port): LiveParameter["defaultValue"] {
   const v = port.value;
   if (v instanceof Color) return { r: v.r, g: v.g, b: v.b, a: v.a };
   if (v instanceof Point) return { x: v.x, y: v.y };
   if (v === null || v === undefined) return "";
+  // Classic NodeBox Live values are already plain JSON; a point is a {x, y}.
+  if (typeof v === "object") return v as unknown as LiveParameter["defaultValue"];
   return v;
 }
 

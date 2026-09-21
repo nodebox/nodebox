@@ -39,4 +39,6 @@ specs/
 *.nsi
 *.nsh
 packages/core/src/libraries/builtin-ndbx.ts
+packages/core/src/live/classic-g.ts
+packages/core/libraries/classic-g.json
 packages/desktop/release/

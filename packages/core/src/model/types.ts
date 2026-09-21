@@ -12,7 +12,8 @@ import { Point } from "../graphics/point";
 export const STANDARD_TYPES = ["int", "float", "string", "boolean", "point", "color"] as const;
 export type StandardType = (typeof STANDARD_TYPES)[number];
 
-export type PortType = StandardType | "list" | "geometry" | "context" | "state" | "data" | "table" | "shape" | "spec" | string;
+export type PortType =
+  StandardType | "list" | "geometry" | "context" | "state" | "data" | "table" | "shape" | "spec" | string;
 
 export type PortRange = "value" | "list";
 
@@ -36,7 +37,9 @@ export type PortWidget =
   | "point";
 
 export type LiteralValue = number | string | boolean | Point | Color;
-export type PortValue = LiteralValue | null;
+/** Classic NodeBox Live keeps raw JSON in its parameters (a point is a plain `{x, y}`). */
+export type ClassicValue = { readonly [key: string]: unknown };
+export type PortValue = LiteralValue | ClassicValue | null;
 
 export interface MenuItem {
   key: string;
@@ -56,6 +59,11 @@ export interface Port {
   expression?: string;
   /** "childNode.childPort" when this port forwards to a child of a network (a published port). */
   childReference?: string;
+  /**
+   * The further children a published port feeds, as "childNode.childPort". NodeBox 3 publishes a
+   * port to exactly one child; a classic NodeBox Live inlet can feed several at once.
+   */
+  childReferences?: string[];
   min?: number;
   max?: number;
   step?: number;
@@ -113,6 +121,11 @@ export interface Node {
   stickies: Sticky[];
   /** Format-specific extras that must survive a round trip (Live ids, canvas settings, …). */
   meta: Record<string, unknown>;
+  /**
+   * The input whose length decides how many times the node runs, instead of the longest input
+   * (classic NodeBox Live's `masterList`). A value that is not a list means a single run.
+   */
+  masterInput?: string;
 }
 
 export interface Device {
@@ -152,7 +165,7 @@ export interface Library {
   description?: string;
   color?: string;
   /** Which format the document came from; the writer of that format keeps its extras. */
-  sourceFormat: "ndbx" | "live" | "memory";
+  sourceFormat: "ndbx" | "live" | "classic" | "memory";
   meta: Record<string, unknown>;
 }
 

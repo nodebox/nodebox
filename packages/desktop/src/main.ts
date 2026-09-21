@@ -53,6 +53,10 @@ async function createWindow(): Promise<BrowserWindow> {
     if (!url.startsWith(local.url)) void shell.openExternal(url);
     return { action: "deny" };
   });
+  window.webContents.on("did-fail-load", (_event, code, description, url) => {
+    console.error(`NodeBox could not load ${url}: ${description} (${code})`);
+  });
+  console.log(`NodeBox local server at ${local.url}`);
   await window.loadURL(`${local.url}/${LOCAL_USER_ID}`);
   mainWindow = window;
   return window;

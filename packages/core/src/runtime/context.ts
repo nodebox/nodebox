@@ -11,9 +11,27 @@
 
 import { Point } from "../graphics/point";
 import { Library, Node, Port, PortValue } from "../model/types";
-import { childPath, getChild, getInput, hasListOutputRange, hasRenderedChild, outputPorts, primaryOutputName, splitReference } from "../model/node";
+import {
+  childPath,
+  getChild,
+  getInput,
+  hasListOutputRange,
+  hasRenderedChild,
+  outputPorts,
+  primaryOutputName,
+  splitReference,
+} from "../model/node";
 import { flattenedNodeMap } from "../model/library";
-import { clampValue, hasListRange, hasValueRange, isFileWidget, isPublishedPort } from "../model/port";
+import {
+  clampValue,
+  hasListRange,
+  hasValueRange,
+  isClassicPort,
+  isClassicShapePort,
+  isFileWidget,
+  isPublishedPort,
+  publishedTargets,
+} from "../model/port";
 import { evaluateExpression } from "./expression";
 import { FunctionRepository, NodeFunction } from "./function-repository";
 import { convertValues, listType, valueType } from "./values";
@@ -88,6 +106,19 @@ export class NodeContext {
   }
 
   /**
+   * Render a network as the thing being shown, and return its rendered child's results unchanged.
+   * Rendering the network node itself would apply the network's own output range, which is what
+   * happens when it is used as a node inside another network, not when it is the entry point.
+   */
+  async renderEntryPoint(nodePath = "/"): Promise<unknown[]> {
+    const node = this.nodeMap.get(nodePath);
+    if (!node || !node.isNetwork || !hasRenderedChild(node)) return this.render(nodePath);
+    const child = getChild(node, node.renderedChild)!;
+    const childResults = await this.renderChild(nodePath, child, new Map());
+    return childResults.get(primaryOutputName(child)) ?? [];
+  }
+
+  /**
    * Render the node: a network renders its rendered child (and the children behind its outputs),
    * anything else invokes its function.
    */
@@ -144,7 +175,11 @@ export class NodeContext {
   }
 
   /** Render a child of a network, applying list matching over its evaluated inputs. */
-  async renderChild(networkPath: string, child: Node, networkArgumentMap: ArgumentMap = new Map()): Promise<NodeResults> {
+  async renderChild(
+    networkPath: string,
+    child: Node,
+    networkArgumentMap: ArgumentMap = new Map(),
+  ): Promise<NodeResults> {
     const network = this.nodeMap.get(networkPath)!;
     const memoKey = memoKeyFor(networkPath, child.name, networkArgumentMap);
     const stored = this.memo.get(memoKey);
@@ -158,13 +193,27 @@ export class NodeContext {
     }
 
     const portArguments = new Map<Port, unknown[]>();
+    // A classic list parameter that is not connected receives its stored value as it is, not a
+    // one-element list: only a connection hands such a parameter a list.
+    const scalarPorts = new Set<Port>();
+    // A list of points reaching a classic shape parameter is one argument, not one point per
+    // invocation: g.js functions such as wigglePoints take the points of a shape as a whole.
+    const wholeListPorts = new Set<Port>();
     for (const port of child.inputs) {
       const raw = await this.evaluatePort(networkPath, child, port, networkArgumentMap);
+      if (!raw.connected && isClassicPort(port) && hasListRange(port)) scalarPorts.add(port);
+      if (raw.connected && isClassicShapePort(port) && hasValueRange(port) && isPointLike(raw.values[0])) {
+        wholeListPorts.add(port);
+      }
       let values: unknown[];
       try {
         values = this.convertResultsForPort(port, raw.values, raw.sourceType);
       } catch (e) {
-        throw new NodeRenderError(childNodePath, child, new Error(`Cannot convert the value for port ${port.name}: ${e instanceof Error ? e.message : e}`));
+        throw new NodeRenderError(
+          childNodePath,
+          child,
+          new Error(`Cannot convert the value for port ${port.name}: ${e instanceof Error ? e.message : e}`),
+        );
       }
       values = clampResultsForPort(port, values);
       portArguments.set(port, values);
@@ -174,14 +223,19 @@ export class NodeContext {
     for (const [portName, value] of networkArgumentMap) {
       const networkPort = getInput(network, portName);
       if (!networkPort || !isPublishedPort(networkPort)) continue;
-      const [childName, childPortName] = splitReference(networkPort.childReference!);
-      if (childName !== child.name) continue;
-      const childPort = getInput(child, childPortName);
-      if (childPort) portArguments.set(childPort, Array.isArray(value) ? value : [value]);
+      for (const target of publishedTargets(networkPort)) {
+        if (target.node !== child.name) continue;
+        const childPort = getInput(child, target.port);
+        if (!childPort) continue;
+        portArguments.set(childPort, Array.isArray(value) ? value : [value]);
+        // The value now comes from outside the network, so it is no longer the port's own default.
+        scalarPorts.delete(childPort);
+      }
     }
 
     const results: NodeResults = new Map();
-    for (const argumentMap of buildArgumentMaps(portArguments)) {
+    const masterPort = child.masterInput ? getInput(child, child.masterInput) : undefined;
+    for (const argumentMap of buildArgumentMaps(portArguments, { masterPort, scalarPorts, wholeListPorts })) {
       const invocationResults = await this.renderNode(childNodePath, argumentMap);
       for (const [name, list] of invocationResults) {
         const existing = results.get(name);
@@ -190,6 +244,13 @@ export class NodeContext {
       }
     }
     if (results.size === 0) for (const port of outputPorts(child)) results.set(port.name, []);
+    // Classic NodeBox Live: when a value-range shape node returns a list of points from each
+    // invocation, the node's result is the first of those lists rather than all of them joined.
+    for (const port of outputPorts(child)) {
+      if (!isClassicShapePort(port) || !hasValueRange(port)) continue;
+      const list = results.get(port.name);
+      if (list && Array.isArray(list[0]) && isPointLike(list[0][0])) results.set(port.name, list[0]);
+    }
     this.memo.set(memoKey, results);
     return results;
   }
@@ -199,7 +260,7 @@ export class NodeContext {
     child: Node,
     childPort: Port,
     networkArgumentMap: ArgumentMap,
-  ): Promise<{ values: unknown[]; sourceType: string | undefined }> {
+  ): Promise<{ values: unknown[]; sourceType: string | undefined; connected: boolean }> {
     const network = this.nodeMap.get(networkPath)!;
     const connection = this.findConnection(network, child, childPort);
     if (connection) {
@@ -209,11 +270,14 @@ export class NodeContext {
         const outputName = connection.outputPort ?? primaryOutputName(outputNode);
         let values = outputResults.get(outputName) ?? [];
         if (isFileWidget(childPort)) values = values.map((v) => this.resolvePath(String(v)));
-        return { values, sourceType: this.sourceTypeOf(networkPath, outputNode, outputName) };
+        return { values, sourceType: this.sourceTypeOf(networkPath, outputNode, outputName), connected: true };
       }
     }
     const value = this.getPortValue(childPath(networkPath, child.name), child, childPort);
-    return { values: value === null || value === undefined ? [] : [value], sourceType: childPort.type };
+    // A classic port's null is a value the function receives; a NodeBox 3 port's null is no value.
+    if (isClassicPort(childPort)) return { values: [value ?? null], sourceType: childPort.type, connected: false };
+    const empty = value === null || value === undefined;
+    return { values: empty ? [] : [value], sourceType: childPort.type, connected: false };
   }
 
   /**
@@ -241,7 +305,12 @@ export class NodeContext {
         if (!connection) continue;
         const upstream = getChild(network, connection.outputNode);
         if (!upstream) continue;
-        const resolved = this.sourceTypeOf(networkPath, upstream, connection.outputPort ?? primaryOutputName(upstream), depth + 1);
+        const resolved = this.sourceTypeOf(
+          networkPath,
+          upstream,
+          connection.outputPort ?? primaryOutputName(upstream),
+          depth + 1,
+        );
         if (resolved !== undefined) return resolved;
       }
       // Fed through a published port of the enclosing network: unknown here.
@@ -254,7 +323,8 @@ export class NodeContext {
     let lookup = this.outputNodeCache.get(network);
     if (!lookup) {
       lookup = new Map();
-      for (const c of network.connections) lookup.set(`${c.inputNode} ${c.inputPort}`, getChild(network, c.outputNode)!);
+      for (const c of network.connections)
+        lookup.set(`${c.inputNode} ${c.inputPort}`, getChild(network, c.outputNode)!);
       this.outputNodeCache.set(network, lookup);
     }
     if (!lookup.has(`${inputNode.name} ${inputPort.name}`)) return undefined;
@@ -282,7 +352,12 @@ export class NodeContext {
   }
 
   evaluatePortExpression(nodePath: string, port: Port): unknown {
-    const scope: Record<string, unknown> = { ...this.data, frame: this.frame, $FRAME: this.frame, $TIME: this.data.time ?? 0 };
+    const scope: Record<string, unknown> = {
+      ...this.data,
+      frame: this.frame,
+      $FRAME: this.frame,
+      $TIME: this.data.time ?? 0,
+    };
     // Published values of the enclosing network, as NodeBox Live's `network.<param>`.
     const parentPath = nodePath.slice(0, nodePath.lastIndexOf("/")) || "/";
     const parent = this.nodeMap.get(parentPath);
@@ -377,6 +452,16 @@ function postProcess(node: Node, port: Port, raw: unknown[] | undefined): unknow
   return out;
 }
 
+/** Anything with an x and a y: the duck typing classic NodeBox Live used to spot a point. */
+function isPointLike(value: unknown): boolean {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as { x?: unknown }).x !== undefined &&
+    (value as { y?: unknown }).y !== undefined
+  );
+}
+
 function clampResultsForPort(port: Port, values: unknown[]): unknown[] {
   if (port.min === undefined && port.max === undefined) return values;
   return values.map((v) => clampValue(port, v as PortValue));
@@ -386,19 +471,42 @@ function clampResultsForPort(port: Port, values: unknown[]): unknown[] {
  * The list-matching rule. Given {alpha: [1 2 3 4 5], beta: ["a" "b"], gamma: [true]} yields five
  * argument maps, beta cycling. A list-range port always contributes its whole list.
  */
-export function* buildArgumentMaps(argumentsPerPort: Map<Port, unknown[]>): Generator<ArgumentMap> {
+/**
+ * One argument map per invocation: the longest input decides how many there are, shorter inputs
+ * cycle, a list-range port gets its whole list, and an empty input means no invocation at all.
+ * A master port (classic NodeBox Live's `masterList`) sets the count instead of the longest input.
+ */
+export interface ArgumentMapOptions {
+  /** The port whose length sets the number of invocations (classic NodeBox Live's `masterList`). */
+  masterPort?: Port;
+  /** List ports that receive their single value as it is, rather than as a list. */
+  scalarPorts?: ReadonlySet<Port>;
+  /** Value ports that receive their whole list as one argument, like a list port. */
+  wholeListPorts?: ReadonlySet<Port>;
+}
+
+export function* buildArgumentMaps(
+  argumentsPerPort: Map<Port, unknown[]>,
+  options: ArgumentMapOptions = {},
+): Generator<ArgumentMap> {
+  const { masterPort, scalarPorts, wholeListPorts } = options;
   let minSize = Number.MAX_SAFE_INTEGER;
   let maxSize = 0;
+  const whole = (port: Port) => hasListRange(port) || wholeListPorts?.has(port) === true;
   for (const [port, values] of argumentsPerPort) {
-    const size = hasListRange(port) ? 1 : values.length;
+    const size = whole(port) ? 1 : values.length;
     minSize = Math.min(minSize, size);
     maxSize = Math.max(maxSize, size);
   }
   if (minSize === 0 || argumentsPerPort.size === 0) return;
+  if (masterPort && argumentsPerPort.has(masterPort)) {
+    maxSize = whole(masterPort) ? 1 : argumentsPerPort.get(masterPort)!.length;
+  }
   for (let i = 0; i < maxSize; i++) {
     const map: ArgumentMap = new Map();
     for (const [port, values] of argumentsPerPort) {
-      map.set(port.name, hasListRange(port) ? values : values[i % values.length]);
+      if (scalarPorts?.has(port)) map.set(port.name, values[0]);
+      else map.set(port.name, whole(port) ? values : values[i % values.length]);
     }
     yield map;
   }

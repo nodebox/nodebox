@@ -12,3 +12,8 @@ export type { LiveContextLike, LiveGlobals, ParameterBinding } from "./runtime-n
 export * from "./module-loader";
 export * from "./library";
 export * from "./native";
+export * from "./classic-types";
+export * from "./classic-reader";
+export * from "./classic-runtime";
+export * from "./classic-document";
+export { classicCoreG } from "./classic-g";
