@@ -11,7 +11,7 @@ let repository: NodeRepository | undefined;
 const libraries = new Map<string, Library>();
 
 /** Load order matters: core first (node, network, frame), then the libraries that extend it. */
-const LOAD_ORDER = ["core", "math", "list", "string", "color", "corevector", "data", "network", "device"];
+const LOAD_ORDER = ["core", "math", "list", "string", "color", "corevector", "data", "network", "device", "image"];
 
 export function builtinLibraryNames(): string[] {
   return Object.keys(builtinLibrarySources);

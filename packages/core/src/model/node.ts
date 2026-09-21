@@ -172,7 +172,11 @@ export function splitReference(reference: string): [string, string] {
 
 export function addChild(node: Node, child: Node): Node {
   if (child.name === "root") throw new Error("A child node cannot be named 'root'.");
-  if (hasChild(node, child.name)) child.name = uniqueName(child.name, node.children.map((c) => c.name));
+  if (hasChild(node, child.name))
+    child.name = uniqueName(
+      child.name,
+      node.children.map((c) => c.name),
+    );
   node.isNetwork = true;
   node.children.push(child);
   return child;
@@ -218,14 +222,23 @@ export function getConnectionsFrom(node: Node, childName: string): Connection[] 
 }
 
 /** Connect an output of one child to an input of another. Inputs take a single connection. */
-export function connect(network: Node, outputNode: string, inputNode: string, inputPort: string, outputPort?: string): Connection {
+export function connect(
+  network: Node,
+  outputNode: string,
+  inputNode: string,
+  inputPort: string,
+  outputPort?: string,
+): Connection {
   if (!hasChild(network, outputNode)) throw new Error(`Node ${outputNode} does not exist.`);
   const input = getChild(network, inputNode);
   if (!input) throw new Error(`Node ${inputNode} does not exist.`);
   if (!hasInput(input, inputPort)) throw new Error(`Node ${inputNode} has no input ${inputPort}.`);
   if (network.inputs.some((p) => p.childReference === `${inputNode}.${inputPort}`))
     throw new Error(`Port ${inputNode}.${inputPort} is published and cannot be connected.`);
-  network.connections = network.connections.filter((c) => !(c.inputNode === inputNode && c.inputPort === inputPort));
+  // A value port takes one connection; a list port collects them in the order they were made.
+  const port = getInput(input, inputPort);
+  if (!port || port.range !== "list")
+    network.connections = network.connections.filter((c) => !(c.inputNode === inputNode && c.inputPort === inputPort));
   const connection: Connection = { outputNode, inputNode, inputPort };
   if (outputPort !== undefined && outputPort !== "output") connection.outputPort = outputPort;
   network.connections.push(connection);
@@ -275,7 +288,13 @@ export function getPortByChildReference(node: Node, childName: string, childPort
 }
 
 /** Add an output port to a network that forwards a child's output (a NodeBox Live outlet). */
-export function addOutput(node: Node, name: string, type: PortType, range: PortRange = "value", childReference?: string): Port {
+export function addOutput(
+  node: Node,
+  name: string,
+  type: PortType,
+  range: PortRange = "value",
+  childReference?: string,
+): Port {
   const port = createPort(name, type, { range, childReference });
   node.outputs.push(port);
   return port;

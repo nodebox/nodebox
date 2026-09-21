@@ -262,16 +262,24 @@ export class NodeContext {
     networkArgumentMap: ArgumentMap,
   ): Promise<{ values: unknown[]; sourceType: string | undefined; connected: boolean }> {
     const network = this.nodeMap.get(networkPath)!;
-    const connection = this.findConnection(network, child, childPort);
-    if (connection) {
-      const outputNode = getChild(network, connection.outputNode);
-      if (outputNode) {
+    // A value port takes one connection; a list port takes as many as are wired, in order.
+    const connections = this.findConnections(network, child, childPort);
+    if (connections.length > 0) {
+      const values: unknown[] = [];
+      let sourceType: string | undefined;
+      let connected = false;
+      for (const connection of connections) {
+        const outputNode = getChild(network, connection.outputNode);
+        if (!outputNode) continue;
         const outputResults = await this.renderChild(networkPath, outputNode, networkArgumentMap);
         const outputName = connection.outputPort ?? primaryOutputName(outputNode);
-        let values = outputResults.get(outputName) ?? [];
-        if (isFileWidget(childPort)) values = values.map((v) => this.resolvePath(String(v)));
-        return { values, sourceType: this.sourceTypeOf(networkPath, outputNode, outputName), connected: true };
+        let part = outputResults.get(outputName) ?? [];
+        if (isFileWidget(childPort)) part = part.map((v) => this.resolvePath(String(v)));
+        values.push(...part);
+        sourceType ??= this.sourceTypeOf(networkPath, outputNode, outputName);
+        connected = true;
       }
+      if (connected) return { values, sourceType, connected: true };
     }
     const value = this.getPortValue(childPath(networkPath, child.name), child, childPort);
     // A classic port's null is a value the function receives; a NodeBox 3 port's null is no value.
@@ -319,7 +327,7 @@ export class NodeContext {
     return type;
   }
 
-  private findConnection(network: Node, inputNode: Node, inputPort: Port) {
+  private findConnections(network: Node, inputNode: Node, inputPort: Port) {
     let lookup = this.outputNodeCache.get(network);
     if (!lookup) {
       lookup = new Map();
@@ -327,8 +335,9 @@ export class NodeContext {
         lookup.set(`${c.inputNode} ${c.inputPort}`, getChild(network, c.outputNode)!);
       this.outputNodeCache.set(network, lookup);
     }
-    if (!lookup.has(`${inputNode.name} ${inputPort.name}`)) return undefined;
-    return network.connections.find((c) => c.inputNode === inputNode.name && c.inputPort === inputPort.name);
+    if (!lookup.has(`${inputNode.name} ${inputPort.name}`)) return [];
+    const matches = network.connections.filter((c) => c.inputNode === inputNode.name && c.inputPort === inputPort.name);
+    return hasListRange(inputPort) ? matches : matches.slice(0, 1);
   }
 
   /**

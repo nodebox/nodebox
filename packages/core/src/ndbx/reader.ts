@@ -63,7 +63,7 @@ export function parseNdbx(xml: string, options: ReadOptions = {}): ReadResult {
   }
   const name = options.name ?? libraryNameFromFile(options.file) ?? "untitled";
   const repository = options.repository ?? defaultRepository();
-  const state: ParseState = { repository, warnings, strict: options.strict ?? false };
+  const state: ParseState = { repository, warnings, strict: options.strict ?? false, name };
 
   const library: Library = {
     name,
@@ -125,6 +125,9 @@ interface ParseState {
   repository: NodeRepository;
   warnings: string[];
   strict: boolean;
+  /** The library being parsed, so a node can extend one defined earlier in the same file. */
+  name: string;
+  root?: Node;
 }
 
 export function parseLink(e: XmlElement): FunctionLink {
@@ -177,11 +180,23 @@ const NODE_ATTRIBUTES = [
 ];
 
 function lookupPrototype(id: string, parent: Node, state: ParseState): Node | undefined {
-  if (id.includes(".")) return state.repository.getNode(id);
-  return getChild(parent, id);
+  if (!id.includes(".")) return getChild(parent, id);
+  const found = state.repository.getNode(id);
+  if (found) return found;
+  // The library is not in the repository while it is being read, so a node that extends one
+  // defined earlier in the same file resolves against the root built so far.
+  const dot = id.indexOf(".");
+  if (state.root && id.slice(0, dot) === state.name) return getChild(state.root, id.slice(dot + 1));
+  return undefined;
 }
 
-function createNode(e: XmlElement, extendFrom: Node, extendFromId: string | null, parent: Node, state: ParseState): Node {
+function createNode(
+  e: XmlElement,
+  extendFrom: Node,
+  extendFromId: string | null,
+  parent: Node,
+  state: ParseState,
+): Node {
   const prototypeId = e.getAttribute("prototype");
   let prototype: Node | undefined;
   let id = extendFromId;
@@ -227,6 +242,8 @@ function parseNode(e: XmlElement, parent: Node, state: ParseState): Node {
   const baseId = prototypeId === undefined && hasChildren ? "core.network" : null;
   const node = createNode(e, base, baseId, parent, state);
   if (prototypeId === undefined && !hasChildren) node.prototype = null;
+  // The library's own root, so that a later node can extend one defined earlier in this file.
+  if (state.root === undefined) state.root = node;
 
   for (const child of e.childElements) {
     switch (child.tagName) {
@@ -260,9 +277,14 @@ function parseNode(e: XmlElement, parent: Node, state: ParseState): Node {
         if (i < 0) throw new NdbxLoadError(`Invalid connection input '${input}'.`);
         const connection = { outputNode: output, inputNode: input.slice(0, i), inputPort: input.slice(i + 1) };
         const outputPort = child.getAttribute("outputPort");
-        node.connections = node.connections.filter(
-          (c) => !(c.inputNode === connection.inputNode && c.inputPort === connection.inputPort),
-        );
+        // A value port takes one connection, so a second replaces the first; a list port collects.
+        const target = getChild(node, connection.inputNode);
+        const targetPort = target && getInput(target, connection.inputPort);
+        if (!targetPort || targetPort.range !== "list") {
+          node.connections = node.connections.filter(
+            (c) => !(c.inputNode === connection.inputNode && c.inputPort === connection.inputPort),
+          );
+        }
         node.connections.push(outputPort ? { ...connection, outputPort } : connection);
         break;
       }
@@ -297,13 +319,18 @@ export function parsePort(e: XmlElement, prototype: Port | undefined): Port {
   const attr = (n: string) => e.getAttribute(n);
   if (attr("label") !== undefined) port.label = attr("label")!;
   if (attr("childReference") !== undefined) port.childReference = attr("childReference")!;
+  // A port that feeds several children, which NodeBox 3 never wrote but the core supports.
+  const more = attr("childReferences");
+  if (more !== undefined && more !== "") port.childReferences = more.split(/\s+/);
   if (attr("widget") !== undefined) port.widget = parseWidget(attr("widget")!);
   if (attr("range") !== undefined) port.range = parseRange(attr("range")!);
   if (attr("min") !== undefined) port.min = Number(attr("min"));
   if (attr("max") !== undefined) port.max = Number(attr("max"));
   if (attr("value") !== undefined) {
     if (!["int", "float", "string", "boolean", "point", "color"].includes(port.type))
-      throw new NdbxLoadError(`Port ${name}: you can only set the value for one of the standard types, not ${port.type}.`);
+      throw new NdbxLoadError(
+        `Port ${name}: you can only set the value for one of the standard types, not ${port.type}.`,
+      );
     port.value = clampValue(port, parseValue(port.type, attr("value")!));
   }
   if (attr("description") !== undefined) port.description = attr("description")!;

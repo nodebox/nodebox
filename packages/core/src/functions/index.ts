@@ -3,6 +3,7 @@ import { colorLibrary } from "./color";
 import { coreLibrary } from "./core";
 import { corevectorLibrary, pyvectorLibrary } from "./corevector";
 import { dataLibrary } from "./data";
+import { imageLibrary } from "./image";
 import { deviceLibrary } from "./device";
 import { listLibrary } from "./list";
 import { mathLibrary } from "./math";
@@ -15,6 +16,7 @@ export * as list from "./list";
 export * as string from "./string";
 export * as color from "./color";
 export * as data from "./data";
+export * as image from "./image";
 export * as corevector from "./corevector";
 export * as network from "./network";
 export * as device from "./device";
@@ -33,6 +35,7 @@ export {
   pyvectorLibrary,
   networkLibrary,
   deviceLibrary,
+  imageLibrary,
 };
 
 /** The function repository with every built-in library. */
@@ -48,5 +51,6 @@ export function builtinFunctionRepository(): FunctionRepository {
     pyvectorLibrary,
     networkLibrary,
     deviceLibrary,
+    imageLibrary,
   );
 }

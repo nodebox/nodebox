@@ -8,3 +8,5 @@ export { Path, Geometry, isGeometryLike, pointDelta } from "./path";
 export type { IGeometry } from "./path";
 export * from "./text";
 export * from "./to-g";
+export * from "./raster";
+export * from "./rasterize";

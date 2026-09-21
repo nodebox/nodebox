@@ -162,6 +162,8 @@ function writePort(port: Port, protoPort: Port | undefined, extensions: boolean,
   if (differs("label") && port.label) e.setAttribute("label", port.label);
   if (isPublishedPort(port) && (protoPort === undefined || protoPort.childReference !== port.childReference))
     e.setAttribute("childReference", port.childReference!);
+  if (port.childReferences && port.childReferences.length > 0)
+    e.setAttribute("childReferences", port.childReferences.join(" "));
   if (differs("widget")) e.setAttribute("widget", port.widget);
   if (differs("range")) e.setAttribute("range", port.range);
   if (isStandardType(port.type) && port.value !== null) e.setAttribute("value", formatValue(port.type, port.value));
