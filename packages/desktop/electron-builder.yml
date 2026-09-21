@@ -1,0 +1,33 @@
+appId: net.nodebox.desktop
+productName: NodeBox
+directories:
+  output: release
+files:
+  - dist/**
+  - resources/**
+  - package.json
+extraResources:
+  - from: ../server/data
+    to: data
+    filter:
+      - "core/**"
+      - "skel/**"
+      - "template/**"
+      - "example/**"
+      - "demo/**"
+      - "tutorial/**"
+  - from: ../../libraries
+    to: libraries
+  - from: ../../examples
+    to: examples
+fileAssociations:
+  - ext: ndbx
+    name: NodeBox Document
+    role: Editor
+mac:
+  category: public.app-category.graphics-design
+  target: [dmg, zip]
+win:
+  target: [nsis]
+linux:
+  target: [AppImage]

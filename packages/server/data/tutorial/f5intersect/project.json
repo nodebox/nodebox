@@ -1,0 +1,178 @@
+{
+    "title": "f5intersect",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "toxiclibs.js": "c44cdadaa03ccd645b72adb412349499a5cf32d2"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "lineIntersect1",
+                    "x": 76,
+                    "y": 385,
+                    "fn": "f5intersect.lineIntersect"
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 137,
+                    "y": 165,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "max": 200
+                    }
+                },
+                {
+                    "name": "randomNumbers2",
+                    "x": 244,
+                    "y": 166,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "max": 360,
+                        "seed": 6
+                    }
+                },
+                {
+                    "name": "scatterPoints1",
+                    "x": 30,
+                    "y": 273,
+                    "fn": "g.scatterPoints",
+                    "values": {}
+                },
+                {
+                    "name": "number1",
+                    "x": 140,
+                    "y": 81,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 120
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 30,
+                    "y": 165,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 500,
+                        "height": 500
+                    }
+                },
+                {
+                    "name": "lineAngle1",
+                    "x": 30,
+                    "y": 324,
+                    "fn": "g.lineAngle"
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 76,
+                    "y": 432,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 8,
+                        "height": 8
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 30,
+                    "y": 537,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 76,
+                    "y": 476,
+                    "fn": "g.colorize"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "number1",
+                    "input": "randomNumbers2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "number1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "number1",
+                    "input": "scatterPoints1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "rect1",
+                    "input": "scatterPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "lineAngle1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "randomNumbers2",
+                    "input": "lineAngle1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "lineAngle1",
+                    "parameter": "point"
+                },
+                {
+                    "output": "lineAngle1",
+                    "input": "lineIntersect1",
+                    "parameter": "lines"
+                },
+                {
+                    "output": "lineIntersect1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "lineAngle1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "lineIntersect",
+            "source": "/*\nThis example uses the js port by Kyle Phillips based on the original code by Karsten Schmidt\nsee https://github.com/hapticdata/toxiclibsjs/ for toxiclibs.js code\n*/\n\nf5intersect.lineIntersect = function (lines) {\n    var result = [];\n    for (var i = 0; i < lines.length; i++) {\n        var p1 = lines[i].commands[0];\n        var p2 = lines[i].commands[1];\n        var l = new toxi.geom.Line2D(new toxi.geom.Vec2D(p1.x, p1.y), new toxi.geom.Vec2D(p2.x, p2.y));\n        for (var j = 0; j < lines.length; j++) {\n            var pp1 = lines[j].commands[0];\n            var pp2 = lines[j].commands[1];\n            var m = new toxi.geom.Line2D(new toxi.geom.Vec2D(pp1.x, pp1.y), new toxi.geom.Vec2D(pp2.x, pp2.y));\n            var interse = toxi.geom.Line2D.LineIntersection();\n            interse = l.intersectLine(m);\n            if (interse.getType() == toxi.geom.Line2D.LineIntersection.Type.INTERSECTING) {\n                var pos = interse.getPos();\n                result.push(new g.Point(pos.x, pos.y));\n            }\n        }\n    }\n    return result;\n\n};",
+            "parameters": [
+                {
+                    "name": "lines",
+                    "type": "shape",
+                    "value": 1,
+                    "takesList": true
+                }
+            ],
+            "outputType": "point",
+            "returnsList": true
+        }
+    ],
+    "id": "f5intersect"
+}

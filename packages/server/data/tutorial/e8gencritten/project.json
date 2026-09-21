@@ -1,0 +1,737 @@
+{
+    "title": "e8gencritten",
+    "color": "black",
+    "dependencies": {
+        "core/g": "dev",
+        "demo/supr": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "shape1",
+                    "x": 311,
+                    "y": 584,
+                    "fn": "supr.shape",
+                    "values": {
+                        "n1": 200,
+                        "points": 200,
+                        "m": 40,
+                        "width": 250,
+                        "height": 250,
+                        "n3": -1.5,
+                        "n2": -52
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 464,
+                    "y": -182,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.6,
+                            "y": 0.6
+                        },
+                        "origin": {
+                            "x": 60,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "scatterPoints1",
+                    "x": 464,
+                    "y": -141,
+                    "fn": "g.scatterPoints",
+                    "values": {
+                        "amount": 1,
+                        "seed": 2
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 354,
+                    "y": -210,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 30,
+                        "height": 30,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 485,
+                    "y": -48,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 485,
+                    "y": 10,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "white",
+                        "stroke": "black",
+                        "strokeWidth": 2
+                    }
+                },
+                {
+                    "name": "scale2",
+                    "x": 368,
+                    "y": -45,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.2,
+                            "y": 0.2
+                        }
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 443,
+                    "y": 86,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 381,
+                    "y": 985,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "colorize2",
+                    "x": 502,
+                    "y": 739,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(250,10,0,.7)",
+                        "stroke": "red",
+                        "strokeWidth": 0
+                    }
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 80,
+                    "y": -57,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "min": -1000,
+                        "max": 1000,
+                        "speed": 2.5,
+                        "period": 230,
+                        "v": 6
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 113,
+                    "y": 170,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 50,
+                        "height": 2
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 262,
+                    "y": 228,
+                    "fn": "g.frame",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 263,
+                    "y": 271,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 100
+                    }
+                },
+                {
+                    "name": "integer1",
+                    "x": 263,
+                    "y": 314,
+                    "fn": "g.integer",
+                    "values": {}
+                },
+                {
+                    "name": "slice2",
+                    "x": 333,
+                    "y": 456,
+                    "fn": "g.slice",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers2",
+                    "x": 232,
+                    "y": 399,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "start": 4,
+                        "end": 50,
+                        "amount": 1000,
+                        "seed": 8,
+                        "max": 22,
+                        "min": 2
+                    }
+                },
+                {
+                    "name": "integer2",
+                    "x": 335,
+                    "y": 500,
+                    "fn": "g.integer",
+                    "values": {}
+                },
+                {
+                    "name": "fitTo1",
+                    "x": -39,
+                    "y": 130,
+                    "fn": "g.fitTo",
+                    "values": {}
+                },
+                {
+                    "name": "rect2",
+                    "x": -30,
+                    "y": 16,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 250,
+                        "height": 250
+                    }
+                },
+                {
+                    "name": "combine2",
+                    "x": 620,
+                    "y": 649,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "mirror1",
+                    "x": 621,
+                    "y": 832,
+                    "fn": "g.mirror",
+                    "values": {
+                        "origin": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 291,
+                    "y": 654,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "bounds.height"
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 51,
+                    "y": 537,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(255,255,255,.5)"
+                    }
+                },
+                {
+                    "name": "ellipse3",
+                    "x": 253,
+                    "y": 732,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 394,
+                        "height": 417
+                    }
+                },
+                {
+                    "name": "scale3",
+                    "x": 298,
+                    "y": 818,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 95,
+                            "y": 95
+                        }
+                    }
+                },
+                {
+                    "name": "resampleByAmount1",
+                    "x": -8,
+                    "y": 216,
+                    "fn": "g.resampleByAmount",
+                    "values": {
+                        "amount": 149
+                    }
+                },
+                {
+                    "name": "translate3",
+                    "x": 87,
+                    "y": 397,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "frame2",
+                    "x": 59,
+                    "y": -211,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "toPoints1",
+                    "x": -32,
+                    "y": 272,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "rotate1",
+                    "x": 131,
+                    "y": 322,
+                    "fn": "g.rotate"
+                },
+                {
+                    "name": "angle1",
+                    "x": 145,
+                    "y": 232,
+                    "fn": "g.angle",
+                    "values": {
+                        "point2": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "colorize4",
+                    "x": 475,
+                    "y": 865,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "white"
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 706,
+                    "y": 709,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "translate4",
+                    "x": 630,
+                    "y": 778,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": -8,
+                            "y": -31
+                        }
+                    },
+                    "masterList": "shape"
+                },
+                {
+                    "name": "makeNumbers2",
+                    "x": 167,
+                    "y": 57,
+                    "fn": "g.makeNumbers",
+                    "values": {
+                        "s": "25,50,75,45,15,15,15",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "add1",
+                    "x": 114,
+                    "y": -141,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 20
+                    }
+                },
+                {
+                    "name": "scale4",
+                    "x": -73,
+                    "y": 709,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 1.5,
+                            "y": 1.5
+                        }
+                    }
+                },
+                {
+                    "name": "colorize5",
+                    "x": 158,
+                    "y": 902,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "rgba(255,255,255,.4)"
+                    }
+                },
+                {
+                    "name": "compare1",
+                    "x": -60,
+                    "y": 449,
+                    "fn": "g.compare",
+                    "values": {
+                        "v2": 101,
+                        "comparator": ">"
+                    }
+                },
+                {
+                    "name": "distance1",
+                    "x": -70,
+                    "y": 332,
+                    "fn": "g.distance"
+                },
+                {
+                    "name": "cull1",
+                    "x": -41,
+                    "y": 512,
+                    "fn": "g.cull",
+                    "masterList": "l"
+                },
+                {
+                    "name": "divide2",
+                    "x": 248.26265245128656,
+                    "y": 114.0441571056073,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 3
+                    }
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 33,
+                    "y": 653,
+                    "fn": "g.connectPoints",
+                    "values": {
+                        "closed": true
+                    }
+                },
+                {
+                    "name": "colorize6",
+                    "x": 41.441040296391435,
+                    "y": 743.1989772742799,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(250,10,0,.7)"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "scale1",
+                    "input": "scatterPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "scale2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale2",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "translate2",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "frame1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "integer1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "integer1",
+                    "input": "slice2",
+                    "parameter": "startIndex"
+                },
+                {
+                    "output": "randomNumbers2",
+                    "input": "slice2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice2",
+                    "input": "integer2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "shape1",
+                    "input": "fitTo1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect2",
+                    "input": "fitTo1",
+                    "parameter": "bounding"
+                },
+                {
+                    "output": "fitTo1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "fitTo1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "translate2",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "shape1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "fitTo1",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "ellipse3",
+                    "parameter": "width"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "ellipse3",
+                    "parameter": "height"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list4"
+                },
+                {
+                    "output": "ellipse3",
+                    "input": "scale3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale3",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "fitTo1",
+                    "input": "resampleByAmount1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "integer2",
+                    "input": "shape1",
+                    "parameter": "m"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "shape1",
+                    "parameter": "n1"
+                },
+                {
+                    "output": "resampleByAmount1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "angle1",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "translate3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate3",
+                    "input": "colorize4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "combine2",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "translate4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate4",
+                    "input": "mirror1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "frame2",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "scale4",
+                    "input": "colorize5",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize5",
+                    "input": "combine1",
+                    "parameter": "list7"
+                },
+                {
+                    "output": "colorize4",
+                    "input": "combine1",
+                    "parameter": "list5"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "distance1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "distance1",
+                    "input": "compare1",
+                    "parameter": "v1"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "cull1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "compare1",
+                    "input": "cull1",
+                    "parameter": "booleans"
+                },
+                {
+                    "output": "cull1",
+                    "input": "translate3",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "cull1",
+                    "input": "angle1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "makeNumbers2",
+                    "input": "divide2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide2",
+                    "input": "rect1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "cull1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "connectPoints1",
+                    "input": "colorize6",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "colorize6",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "connectPoints1",
+                    "input": "scale4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "mirror1",
+                    "input": "combine1",
+                    "parameter": "list6"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "topoints",
+            "source": "e8gencritten.topoints = function (shape) {\n   var points = [];\n//return shape.segments;\n  if(shape.segments){\n   for (var i = 0; i < shape.segments.length; i += 1) {\n     var seg = shape.segments[i];\n     if (seg.point) {\n         points.push(new g.Point(seg.point.x, seg.point.y));\n     }\n   }\n}\n   return points;\n};",
+            "example": "e8gencritten.topoints(42)",
+            "parameters": [
+                {
+                    "name": "v",
+                    "type": "float",
+                    "value": 42
+                }
+            ],
+            "returnType": "point",
+            "returnsList": true
+        }
+    ],
+    "id": "e8gencritten"
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@ndbx/desktop",
+  "version": "4.0.0-dev",
+  "description": "NodeBox for the desktop: the NodeBox editor in an Electron shell with local documents.",
+  "private": true,
+  "type": "module",
+  "main": "dist/main.cjs",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs && electron .",
+    "start": "electron .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "package": "node scripts/build.mjs && electron-builder --config electron-builder.yml"
+  },
+  "license": "GPL-2.0-or-later",
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@ndbx/core": "*",
+    "@ndbx/server": "*",
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.2"
+  }
+}

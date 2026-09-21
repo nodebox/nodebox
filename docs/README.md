@@ -7,6 +7,7 @@ Welcome to the documentation space for NodeBox. This folder is meant to grow int
 - [Development Guide](development.md)
 - [Architecture Overview](architecture.md)
 - [Contributing](contributing.md)
+- [Unified architecture: one core, two shells](unified-architecture.md)
 
 ## User Docs (planned)
 

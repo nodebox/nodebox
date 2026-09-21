@@ -1,0 +1,459 @@
+{
+    "title": "g2verlet",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev",
+        "demo/supr": "dev"
+    },
+    "assets": {
+        "Verletlittle.js": "c5581996d69206344ab575bc521d3e288c2973c0",
+        "FiraMono-Bold.otf": "1a1057726324ab0d6afb09e3fee05ac43c2994b3"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "resampleByLength4",
+                    "x": 45,
+                    "y": 85,
+                    "fn": "g.resampleByLength",
+                    "values": {
+                        "points": 40,
+                        "length": 5
+                    }
+                },
+                {
+                    "name": "toPoints4",
+                    "x": 45,
+                    "y": 125,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "combine1",
+                    "x": 195,
+                    "y": 1015,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "makeNumbers1",
+                    "x": 85,
+                    "y": 225,
+                    "fn": "g.makeNumbers",
+                    "values": {
+                        "s": "2,13,29,41",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 365,
+                    "y": 725,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 600,
+                        "height": 450
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 365,
+                    "y": 815,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "black"
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": 415,
+                    "y": 775,
+                    "fn": "g.align",
+                    "values": {
+                        "vAlign": "top",
+                        "hAlign": "left"
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": -45,
+                    "y": 625,
+                    "fn": "g.shift"
+                },
+                {
+                    "name": "distance1",
+                    "x": -5,
+                    "y": 675,
+                    "fn": "g.distance"
+                },
+                {
+                    "name": "compare1",
+                    "x": 5,
+                    "y": 725,
+                    "fn": "g.compare",
+                    "values": {
+                        "v2": 20
+                    }
+                },
+                {
+                    "name": "line1",
+                    "x": -35,
+                    "y": 845,
+                    "fn": "g.line"
+                },
+                {
+                    "name": "colorize2",
+                    "x": -35,
+                    "y": 885,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "rgba(237, 237, 237, 1)"
+                    }
+                },
+                {
+                    "name": "textPath1",
+                    "x": 45,
+                    "y": 45,
+                    "fn": "g.textPath",
+                    "values": {
+                        "font": "FiraMono-Bold.otf",
+                        "fontSize": 110,
+                        "text": "jelly",
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "fontFamily": "FiraMono-Bold.otf"
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 5,
+                    "y": 765,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.5
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 225,
+                    "y": 715,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 50,
+                        "height": 50,
+                        "position": {
+                            "x": 0,
+                            "y": -25
+                        }
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 225,
+                    "y": 755,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(250,0,0,.1)"
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 225,
+                    "y": 805,
+                    "fn": "g.translate",
+                    "masterList": "translate"
+                },
+                {
+                    "name": "verletUpdate1",
+                    "x": 45,
+                    "y": 365,
+                    "fn": "g2verlet.verletUpdate"
+                },
+                {
+                    "name": "verletInit1",
+                    "x": 45,
+                    "y": 285,
+                    "fn": "g2verlet.verletInit",
+                    "values": {
+                        "inpoints": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "centre": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "spokeStiffness": 10,
+                        "tocenter": true,
+                        "time": 2000,
+                        "treadStiffness": 10,
+                        "joint": 70,
+                        "pinpoint": 0
+                    }
+                },
+                {
+                    "name": "verletToPoints1",
+                    "x": 45,
+                    "y": 445,
+                    "fn": "g2verlet.verletToPoints"
+                },
+                {
+                    "name": "stateLoad2",
+                    "x": 45,
+                    "y": 325,
+                    "fn": "g.stateLoad",
+                    "values": {
+                        "key": "sim"
+                    }
+                },
+                {
+                    "name": "stateSave2",
+                    "x": 45,
+                    "y": 405,
+                    "fn": "g.stateSave",
+                    "values": {
+                        "key": "sim"
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 65,
+                    "y": 185,
+                    "fn": "g.makePoint",
+                    "values": {
+                        "y": -300
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "resampleByLength4",
+                    "input": "toPoints4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list4"
+                },
+                {
+                    "output": "rect1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "distance1",
+                    "input": "compare1",
+                    "parameter": "v1"
+                },
+                {
+                    "output": "shift1",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "line1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "textPath1",
+                    "input": "resampleByLength4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "compare1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "colorize2",
+                    "parameter": "strokeWidth"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "toPoints4",
+                    "input": "verletInit1",
+                    "parameter": "inpoints"
+                },
+                {
+                    "output": "makeNumbers1",
+                    "input": "verletInit1",
+                    "parameter": "joint"
+                },
+                {
+                    "output": "stateLoad2",
+                    "input": "verletUpdate1",
+                    "parameter": "sim"
+                },
+                {
+                    "output": "stateSave2",
+                    "input": "verletToPoints1",
+                    "parameter": "sim"
+                },
+                {
+                    "output": "verletInit1",
+                    "input": "stateLoad2",
+                    "parameter": "initial"
+                },
+                {
+                    "output": "verletUpdate1",
+                    "input": "stateSave2",
+                    "parameter": "state"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "verletInit1",
+                    "parameter": "centre"
+                },
+                {
+                    "output": "verletToPoints1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "verletToPoints1",
+                    "input": "distance1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "shift1",
+                    "input": "distance1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "verletToPoints1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "line1",
+                    "parameter": "point1"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 315,
+                    "y": 15,
+                    "width": 76,
+                    "height": 40,
+                    "text": "Press Play"
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "verletInit",
+            "source": "g2verlet.verletInit = function (inpoints, centre, joint, tocenter, spokeStiffness, treadStiffness) {\n    spokeStiffness /= 100;\n    treadStiffness /= 100;\n    var sim = new verletSimple.VerletJS(600, 450);\n    sim.friction = 1.019;\n    for (var i = 0; i < inpoints.length; i++) {\n        inpoints[i].x += sim.width / 2;\n        inpoints[i].y += sim.height / 2;\n    }\n    var an = sim.any(new verletSimple.Vec2(centre.x - sim.width / 2, centre.y - sim.height / 2), inpoints, spokeStiffness, treadStiffness, joint, tocenter);\n    return sim;\n};",
+            "parameters": [
+                {
+                    "name": "inpoints",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": true
+                },
+                {
+                    "name": "centre",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": false
+                },
+                {
+                    "name": "joint",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "tocenter",
+                    "type": "boolean",
+                    "value": 1,
+                    "takesList": false
+                },
+                {
+                    "name": "spokeStiffness",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "treadStiffness",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "outputType": "object",
+            "stateful": false,
+            "connections": []
+        },
+        {
+            "type": "code",
+            "name": "verletUpdate",
+            "source": "g2verlet.verletUpdate = function (sim) {\n    sim.frame(25);\n    var all = sim.composites.length;\n    for (var a = 0; a < all; a++) {\n        for (var i = 0; i < sim.composites[a].constraints.length; i++) {\n            var distconst = sim.composites[a].constraints[i];\n            //console.log(distconst.a.pos.x);\n            //console.log(distconst, distconst instanceof g2verlet.DistanceConstraint);\n\n        }\n    }\n    return sim;\n};",
+            "parameters": [
+                {
+                    "name": "sim",
+                    "type": "object",
+                    "value": 1
+                }
+            ],
+            "connections": [],
+            "returnsList": false,
+            "stateful": true
+        },
+        {
+            "type": "code",
+            "name": "verletToPoints",
+            "source": "g2verlet.verletToPoints = function (sim) {\n    var points = [];\n    var all = sim.composites.length;\n    for (var a = 0; a < all; a++) {\n        var particles = sim.composites[a].particles;\n        for (var i = 0; i < particles.length; i++) {\n            var pt = particles[i].pos;\n\n            points.push(new g.Point(pt.x - sim.width / 2, pt.y - sim.height / 2));\n        }\n    }\n    return points;\n\n};",
+            "parameters": [
+                {
+                    "name": "sim",
+                    "type": "object",
+                    "value": "",
+                    "takesList": false
+                }
+            ],
+            "returnsList": true,
+            "outputType": "point"
+        }
+    ],
+    "id": "g2verlet"
+}

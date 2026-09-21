@@ -1,0 +1,636 @@
+{
+    "title": "d7readjson",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "circus.json": "e899beaf684dafb93c8af510f261aaf0332152e7",
+        "fly.json": "c1ca70e3ed27134a21ecbfead359a0f3ae888d23"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "reader1",
+                    "x": 66,
+                    "y": 38,
+                    "fn": "d7readjson.reader",
+                    "values": {
+                        "file": "fly.json"
+                    }
+                },
+                {
+                    "name": "lookup3",
+                    "x": 66,
+                    "y": 84,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "tatums"
+                    }
+                },
+                {
+                    "name": "fFirst2",
+                    "x": 66,
+                    "y": 256,
+                    "fn": "d7readjson.fFirst",
+                    "masterList": "index"
+                },
+                {
+                    "name": "amount2",
+                    "x": 164,
+                    "y": 129,
+                    "fn": "d7readjson.amount"
+                },
+                {
+                    "name": "range2",
+                    "x": 123,
+                    "y": 188,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "lookup5",
+                    "x": 66,
+                    "y": 298,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "duration"
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 32,
+                    "y": 351,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 30
+                    }
+                },
+                {
+                    "name": "accumulate1",
+                    "x": 5,
+                    "y": 413,
+                    "fn": "g.accumulate"
+                },
+                {
+                    "name": "average1",
+                    "x": 201,
+                    "y": 289,
+                    "fn": "g.average"
+                },
+                {
+                    "name": "multiply2",
+                    "x": 201,
+                    "y": 334,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 58
+                    }
+                },
+                {
+                    "name": "ceil1",
+                    "x": 201,
+                    "y": 378,
+                    "fn": "g.ceil"
+                },
+                {
+                    "name": "range3",
+                    "x": 227,
+                    "y": 439,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "max1",
+                    "x": 336,
+                    "y": 369,
+                    "fn": "g.max"
+                },
+                {
+                    "name": "select1",
+                    "x": 47,
+                    "y": 519,
+                    "fn": "d7readjson.select",
+                    "values": {
+                        "compare": 213,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    },
+                    "masterList": "compare"
+                },
+                {
+                    "name": "count1",
+                    "x": 227,
+                    "y": 484,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "line1",
+                    "x": 222,
+                    "y": 544,
+                    "fn": "g.line",
+                    "values": {
+                        "point1": {
+                            "x": -100,
+                            "y": -250
+                        },
+                        "point2": {
+                            "x": -100,
+                            "y": 250
+                        }
+                    }
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 224,
+                    "y": 644,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "sqrt1",
+                    "x": 261,
+                    "y": 182,
+                    "fn": "g.sqrt"
+                },
+                {
+                    "name": "floor1",
+                    "x": 261,
+                    "y": 230,
+                    "fn": "g.floor"
+                },
+                {
+                    "name": "group1",
+                    "x": 53,
+                    "y": 568,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "align1",
+                    "x": 53,
+                    "y": 611,
+                    "fn": "g.align",
+                    "values": {
+                        "hAlign": "left",
+                        "position": {
+                            "x": -200,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "text1",
+                    "x": 336,
+                    "y": 499,
+                    "fn": "g.text",
+                    "values": {
+                        "text": "dj fly - dmc world champion 2013 set",
+                        "position": {
+                            "x": -200,
+                            "y": -255
+                        },
+                        "fontSize": 14,
+                        "align": "left"
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 53,
+                    "y": 652,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "resampleByAmount1",
+                    "x": 228,
+                    "y": 593,
+                    "fn": "g.resampleByAmount"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "reader1",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "fFirst2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "amount2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "amount2",
+                    "input": "range2",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range2",
+                    "input": "fFirst2",
+                    "parameter": "index"
+                },
+                {
+                    "output": "fFirst2",
+                    "input": "lookup5",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup5",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "accumulate1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "average1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "average1",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "ceil1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "range3",
+                    "parameter": "step"
+                },
+                {
+                    "output": "max1",
+                    "input": "range3",
+                    "parameter": "max"
+                },
+                {
+                    "output": "accumulate1",
+                    "input": "max1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "accumulate1",
+                    "input": "select1",
+                    "parameter": "rows"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "select1",
+                    "parameter": "segment"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "select1",
+                    "parameter": "originals"
+                },
+                {
+                    "output": "range3",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "range3",
+                    "input": "select1",
+                    "parameter": "compare"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "select1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "amount2",
+                    "input": "sqrt1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sqrt1",
+                    "input": "floor1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "select1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "floor1",
+                    "input": "multiply2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "align1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "text1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "line1",
+                    "input": "resampleByAmount1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByAmount1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count1",
+                    "input": "resampleByAmount1",
+                    "parameter": "amount"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 175,
+                    "y": 65,
+                    "width": 200,
+                    "height": 50,
+                    "text": "Change the lookup3 key to bars, beats, tatums, sections or segments"
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "reader",
+            "source": "d7readjson.reader = function (file) {\n    var jsonString = ndbx.findAsset(file);\n    return JSON.parse(jsonString);\n};",
+            "parameters": [
+                {
+                    "name": "file",
+                    "type": "file",
+                    "value": ""
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "fFirst",
+            "source": "d7readjson.fFirst = function (v,index) {\n    return v[index];\n};",
+            "parameters": [
+                {
+                    "name": "v",
+                    "type": "float",
+                    "value": 42
+                },
+                {
+                    "name": "index",
+                    "type": "float",
+                    "value": 1
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "amount",
+            "source": "d7readjson.amount = function (v) {\n    return v.length;\n};",
+            "parameters": [
+                {
+                    "name": "v",
+                    "type": "float",
+                    "value": 42
+                }
+            ]
+        },
+        {
+            "name": "select",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "compare1",
+                    "x": 397,
+                    "y": 618,
+                    "fn": "g.compare",
+                    "values": {
+                        "v2": 213
+                    }
+                },
+                {
+                    "name": "cull1",
+                    "x": 300,
+                    "y": 819,
+                    "fn": "g.cull"
+                },
+                {
+                    "name": "subtract1",
+                    "x": 515,
+                    "y": 540,
+                    "fn": "g.subtract"
+                },
+                {
+                    "name": "compare2",
+                    "x": 528,
+                    "y": 621,
+                    "fn": "g.compare",
+                    "values": {
+                        "comparator": ">"
+                    }
+                },
+                {
+                    "name": "and1",
+                    "x": 446,
+                    "y": 725,
+                    "fn": "g.and",
+                    "values": {
+                        "comparator": "and"
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 295,
+                    "y": 873,
+                    "fn": "g.rect",
+                    "values": {
+                        "height": 10
+                    }
+                },
+                {
+                    "name": "stack1",
+                    "x": 296,
+                    "y": 984,
+                    "fn": "g.stack",
+                    "values": {
+                        "margin": 3
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 296,
+                    "y": 1034,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "translate1",
+                    "x": 295,
+                    "y": 1124,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "align1",
+                    "x": 296,
+                    "y": 938,
+                    "fn": "g.align",
+                    "values": {
+                        "hAlign": "left",
+                        "vAlign": "bottom"
+                    }
+                },
+                {
+                    "name": "align2",
+                    "x": 296,
+                    "y": 1079,
+                    "fn": "g.align",
+                    "values": {
+                        "hAlign": "left",
+                        "vAlign": "bottom"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "rows",
+                    "input": "compare1",
+                    "parameter": "v1"
+                },
+                {
+                    "inlet": "compare",
+                    "input": "compare1",
+                    "parameter": "v2"
+                },
+                {
+                    "inlet": "compare",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "inlet": "segment",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "inlet": "rows",
+                    "input": "compare2",
+                    "parameter": "v1"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "compare2",
+                    "parameter": "v2"
+                },
+                {
+                    "output": "compare1",
+                    "input": "and1",
+                    "parameter": "bool1"
+                },
+                {
+                    "output": "compare2",
+                    "input": "and1",
+                    "parameter": "bool2"
+                },
+                {
+                    "output": "and1",
+                    "input": "cull1",
+                    "parameter": "booleans"
+                },
+                {
+                    "output": "cull1",
+                    "input": "rect1",
+                    "parameter": "width"
+                },
+                {
+                    "inlet": "originals",
+                    "input": "cull1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "stack1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "rect1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "stack1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align2",
+                    "input": "translate1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "rows",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "compare",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "segment",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "originals",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "d7readjson"
+}

@@ -1,0 +1,364 @@
+{
+    "login": "tutorial",
+    "email": "info@emrg.be",
+    "projects": [
+        {
+            "id": "a00order",
+            "title": "basics: order",
+            "color": "hotpink"
+        },
+        {
+            "id": "a0shapes",
+            "title": "basics: shapes",
+            "color": "hotpink"
+        },
+        {
+            "id": "a1numbers",
+            "title": "basics: numbers",
+            "color": "hotpink"
+        },
+        {
+            "id": "a2color",
+            "title": "basics: color",
+            "color": "hotpink"
+        },
+        {
+            "id": "a3listmatch",
+            "title": "basics: listmatch",
+            "color": "hotpink"
+        },
+        {
+            "id": "a5spiral",
+            "title": "basics: spiral",
+            "color": "hotpink"
+        },
+        {
+            "id": "a6coordshape",
+            "title": "basics: coordshape",
+            "color": "hotpink"
+        },
+        {
+            "id": "a7lists",
+            "title": "basics: lists",
+            "color": "hotpink"
+        },
+        {
+            "id": "a8tilling",
+            "title": "basics: tilling",
+            "color": "hotpink"
+        },
+        {
+            "id": "a9compound",
+            "title": "basics: compound ops",
+            "color": "hotpink"
+        },
+        {
+            "id": "b0myshuffle",
+            "title": "functions: shuffle",
+            "color": "forestgreen"
+        },
+        {
+            "id": "b1spikes",
+            "title": "functions: spikes",
+            "color": "forestgreen"
+        },
+        {
+            "id": "b2web",
+            "title": "functions: web",
+            "color": "forestgreen"
+        },
+        {
+            "id": "b3hair",
+            "title": "functions: hair",
+            "color": "forestgreen"
+        },
+        {
+            "id": "b4closest",
+            "title": "functions: closest",
+            "color": "forestgreen"
+        },
+        {
+            "id": "b5bulge",
+            "title": "functions: bulge",
+            "color": "forestgreen"
+        },
+        {
+            "id": "b55morph",
+            "title": "functions: morph",
+            "color": "forestgreen"
+        },
+        {
+            "id": "b6elastic",
+            "title": "functions: elastic",
+            "color": "forestgreen"
+        },
+        {
+            "id": "b7shading",
+            "title": "functions: shading",
+            "color": "forestgreen"
+        },
+        {
+            "id": "b10svg",
+            "title": "functions: svg",
+            "color": "forestgreen"
+        },
+        {
+            "id": "c0names",
+            "title": "generative: names",
+            "color": "darkorange"
+        },
+        {
+            "id": "c1invader",
+            "title": "generative: invader",
+            "color": "darkorange"
+        },
+        {
+            "id": "c2truchet",
+            "title": "generative: truchet",
+            "color": "darkorange"
+        },
+        {
+            "id": "c2ahyperbolic",
+            "title": "generative: hyperbolic",
+            "color": "darkorange"
+        },
+        {
+            "id": "c3stylevader",
+            "title": "generative: stylevader",
+            "color": "darkorange"
+        },
+        {
+            "id": "c4nooverlap",
+            "title": "generative: nooverlap",
+            "color": "darkorange"
+        },
+        {
+            "id": "c55spider",
+            "title": "generative: spider web",
+            "color": "darkorange"
+        },
+        {
+            "id": "c6guys",
+            "title": "generative: hi guys",
+            "color": "darkorange"
+        },
+        {
+            "id": "c7critten",
+            "title": "generative: critten",
+            "color": "darkorange"
+        },
+        {
+            "id": "c8squarebug",
+            "title": "generative: squared",
+            "color": "darkorange"
+        },
+        {
+            "id": "d0debtris",
+            "title": "visualization: debtris",
+            "color": "yellowgreen"
+        },
+        {
+            "id": "d1namedcolor",
+            "title": "visualizat: namedcolor",
+            "color": "yellowgreen"
+        },
+        {
+            "id": "d2soccer",
+            "title": "visualization: soccer",
+            "color": "yellowgreen"
+        },
+        {
+            "id": "d3quackes",
+            "title": "visualization: quackes",
+            "color": "yellowgreen"
+        },
+        {
+            "id": "d3pi",
+            "title": "visualization: pi",
+            "color": "yellowgreen"
+        },
+        {
+            "id": "d4zipcodes",
+            "title": "visualization: zipcodes",
+            "color": "yellowgreen"
+        },
+        {
+            "id": "d5afghan",
+            "title": "visualization: afghanwar",
+            "color": "yellowgreen"
+        },
+        {
+            "id": "d5metallica",
+            "title": "visualization: metallica",
+            "color": "yellowgreen"
+        },
+        {
+            "id": "d6filter",
+            "title": "visualization: filter data",
+            "color": "yellowgreen"
+        },
+        {
+            "id": "d7readjson",
+            "title": "visualization: json",
+            "color": "yellowgreen"
+        },
+        {
+            "id": "e0hsbcycle",
+            "title": "animation: hsbcycle",
+            "color": "dodgerblue"
+        },
+        {
+            "id": "e1moiree",
+            "title": "animation: moiree",
+            "color": "dodgerblue"
+        },
+        {
+            "id": "e2wave",
+            "title": "animation: wave",
+            "color": "dodgerblue"
+        },
+        {
+            "id": "e3isometric",
+            "title": "animation: isometric",
+            "color": "dodgerblue"
+        },
+        {
+            "id": "e4landscape",
+            "title": "animation: landscape",
+            "color": "dodgerblue"
+        },
+        {
+            "id": "e5lissajous",
+            "title": "animation: lissajous",
+            "color": "dodgerblue"
+        },
+        {
+            "id": "e6bubbles",
+            "title": "animation: bubbles",
+            "color": "dodgerblue"
+        },
+        {
+            "id": "e8gencritten",
+            "title": "animation: it's dark !",
+            "color": "dodgerblue"
+        },
+        {
+            "id": "e9oceanlife",
+            "title": "animation: oceanlife",
+            "color": "dodgerblue"
+        },
+        {
+            "id": "e10centipede",
+            "title": "animation: centipede",
+            "color": "dodgerblue"
+        },
+        {
+            "id": "f01time",
+            "title": "code: time",
+            "color": "tomato"
+        },
+        {
+            "id": "f03follow",
+            "title": "code: follow",
+            "color": "tomato"
+        },
+        {
+            "id": "f0imagegrid",
+            "title": "code: imagegrid",
+            "color": "tomato"
+        },
+        {
+            "id": "f1treemap",
+            "title": "code: treemap",
+            "color": "tomato"
+        },
+        {
+            "id": "f2triangles",
+            "title": "code: triangles",
+            "color": "tomato"
+        },
+        {
+            "id": "f3projection",
+            "title": "code: pointcloud",
+            "color": "tomato"
+        },
+        {
+            "id": "f4projection",
+            "title": "code: 3d display",
+            "color": "tomato"
+        },
+        {
+            "id": "f5ascriptimport",
+            "title": "code: script import",
+            "color": "tomato"
+        },
+        {
+            "id": "f5intersect",
+            "title": "code: line intersection",
+            "color": "tomato"
+        },
+        {
+            "id": "f6simplenoise",
+            "title": "code: simplex noise",
+            "color": "tomato"
+        },
+        {
+            "id": "g0counter",
+            "title": "feedback: counter",
+            "color": "darkslategray"
+        },
+        {
+            "id": "g1balloon",
+            "title": "feedback: pump it up",
+            "color": "darkslategray"
+        },
+        {
+            "id": "g1aboxrotate",
+            "title": "feedback: boxed in",
+            "color": "darkslategray"
+        },
+        {
+            "id": "g3shoot",
+            "title": "feedback: contained",
+            "color": "darkslategray"
+        },
+        {
+            "id": "g4network",
+            "title": "feedback: moving net",
+            "color": "darkslategray"
+        },
+        {
+            "id": "g5particles",
+            "title": "feedback: particles",
+            "color": "darkslategray"
+        },
+        {
+            "id": "g6avoidcontact",
+            "title": "feedback: avoid contact",
+            "color": "darkslategray"
+        },
+        {
+            "id": "g7networktoo",
+            "title": "feedback: connect to closest",
+            "color": "darkslategray"
+        },
+        {
+            "id": "g7networkthree",
+            "title": "feedback: lightemitter net",
+            "color": "darkslategray"
+        },
+        {
+            "id": "g2verlet",
+            "title": "feedback: verlet physics",
+            "color": "darkslategray"
+        },
+        {
+            "id": "h1follow",
+            "title": "feedback: vortex",
+            "color": "darkslategray"
+        }
+    ],
+    "prefs": {
+        "guideVisible": false
+    }
+}

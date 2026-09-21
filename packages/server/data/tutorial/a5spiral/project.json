@@ -1,0 +1,72 @@
+{
+    "title": "a5spiral",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "connectPoints1",
+            "nodes": [
+                {
+                    "name": "sample1",
+                    "x": 127,
+                    "y": 174,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 200,
+                        "amount": 200,
+                        "circular": true
+                    }
+                },
+                {
+                    "name": "sample2",
+                    "x": 237,
+                    "y": 174,
+                    "fn": "g.sample",
+                    "values": {
+                        "amount": 50,
+                        "max": 360,
+                        "circular": true
+                    }
+                },
+                {
+                    "name": "coordinates1",
+                    "x": 125,
+                    "y": 248,
+                    "fn": "g.coordinates"
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 125,
+                    "y": 303,
+                    "fn": "g.connectPoints",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "sample2",
+                    "input": "coordinates1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "sample1",
+                    "input": "coordinates1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "a5spiral"
+}

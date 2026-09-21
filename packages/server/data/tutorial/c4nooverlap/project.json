@@ -1,0 +1,387 @@
+{
+    "title": "c4nooverlap",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "unit",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 169,
+                    "y": 135,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 60,
+                        "roundness": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "scatterPoints1",
+                    "x": 248,
+                    "y": 182,
+                    "fn": "g.scatterPoints",
+                    "values": {
+                        "amount": 25,
+                        "seed": 5
+                    }
+                },
+                {
+                    "name": "connectPoints2",
+                    "x": 191,
+                    "y": 278,
+                    "fn": "g.connectPoints",
+                    "values": {
+                        "closed": true
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": 191,
+                    "y": 329,
+                    "fn": "g.align",
+                    "values": {
+                        "vAlign": "bottom"
+                    }
+                },
+                {
+                    "name": "copy1",
+                    "x": 191,
+                    "y": 381,
+                    "fn": "g.copy",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 191,
+                    "y": 431,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "fill": "rgba(250,130,120,.4)",
+                        "strokeWidth": 0.5
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 191,
+                    "y": 480,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 201,
+                    "y": 75,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 1.7
+                    }
+                },
+                {
+                    "name": "shapeSort1",
+                    "x": 192,
+                    "y": 237,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "angle"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "rect1",
+                    "input": "scatterPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "connectPoints2",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "copy1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "size",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "rect1",
+                    "parameter": "width"
+                },
+                {
+                    "inlet": "size",
+                    "input": "rect1",
+                    "parameter": "height"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "inlet": "seed",
+                    "input": "scatterPoints1",
+                    "parameter": "seed"
+                },
+                {
+                    "inlet": "amount",
+                    "input": "scatterPoints1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "connectPoints2",
+                    "parameter": "points"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "shapeSort1",
+                    "parameter": "shapes"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "size",
+                    "type": "float",
+                    "value": 50
+                },
+                {
+                    "name": "seed",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "amount",
+                    "type": "float",
+                    "value": 20
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "unit1",
+            "nodes": [
+                {
+                    "name": "unit1",
+                    "x": 67,
+                    "y": 487,
+                    "fn": "c4nooverlap.unit",
+                    "values": {
+                        "amount": 7
+                    }
+                },
+                {
+                    "name": "grid1",
+                    "x": 49,
+                    "y": 92,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 500,
+                        "height": 500,
+                        "rows": 5,
+                        "columns": 5,
+                        "columnWidth": 120,
+                        "rowHeight": 120
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 113,
+                    "y": 162,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 113,
+                    "y": 208,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "start": 30,
+                        "end": 60,
+                        "seed": 9,
+                        "amount": 11
+                    }
+                },
+                {
+                    "name": "distance1",
+                    "x": 256,
+                    "y": 168,
+                    "fn": "g.distance",
+                    "values": {
+                        "point1": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "min1",
+                    "x": 295,
+                    "y": 214,
+                    "fn": "g.min",
+                    "values": {}
+                },
+                {
+                    "name": "max1",
+                    "x": 312,
+                    "y": 259,
+                    "fn": "g.max",
+                    "values": {}
+                },
+                {
+                    "name": "convert1",
+                    "x": 259,
+                    "y": 320,
+                    "fn": "g.convert",
+                    "values": {}
+                },
+                {
+                    "name": "add1",
+                    "x": 259,
+                    "y": 408,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 5
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": 259,
+                    "y": 364,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 4
+                    }
+                },
+                {
+                    "name": "unit2",
+                    "x": 174,
+                    "y": 89,
+                    "fn": "c4nooverlap.unit"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "grid1",
+                    "input": "unit1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "grid1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "unit1",
+                    "parameter": "seed"
+                },
+                {
+                    "output": "distance1",
+                    "input": "min1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "distance1",
+                    "input": "max1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "distance1",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "min1",
+                    "input": "convert1",
+                    "parameter": "inMin"
+                },
+                {
+                    "output": "max1",
+                    "input": "convert1",
+                    "parameter": "inMax"
+                },
+                {
+                    "output": "max1",
+                    "input": "convert1",
+                    "parameter": "outMin"
+                },
+                {
+                    "output": "min1",
+                    "input": "convert1",
+                    "parameter": "outMax"
+                },
+                {
+                    "output": "add1",
+                    "input": "unit1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "convert1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "grid1",
+                    "input": "distance1",
+                    "parameter": "point2"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "c4nooverlap"
+}

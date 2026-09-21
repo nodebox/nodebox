@@ -1,0 +1,135 @@
+{
+    "title": "e0hsbcycle",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 95,
+                    "y": 315,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 100,
+                        "height": 100,
+                        "roundness": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 235,
+                    "y": 177,
+                    "fn": "g.range",
+                    "values": {
+                        "end": 255,
+                        "max": 1,
+                        "step": 0.01
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 185,
+                    "y": 395,
+                    "fn": "g.colorize",
+                    "values": {}
+                },
+                {
+                    "name": "grid1",
+                    "x": 95,
+                    "y": 245,
+                    "fn": "g.grid",
+                    "values": {
+                        "columns": 8,
+                        "width": 715,
+                        "height": 206,
+                        "columnWidth": 105,
+                        "rowHeight": 105
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 355,
+                    "y": 245,
+                    "fn": "g.frame",
+                    "values": {}
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 235,
+                    "y": 245,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.5
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": 235,
+                    "y": 315,
+                    "fn": "g.shift"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "rect1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "grid1",
+                    "input": "rect1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "range1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "frame1",
+                    "input": "shift1",
+                    "parameter": "amount"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 372,
+                    "y": 198,
+                    "width": 91,
+                    "height": 42,
+                    "text": "Press Play"
+                }
+            ]
+        }
+    ],
+    "id": "e0hsbcycle"
+}

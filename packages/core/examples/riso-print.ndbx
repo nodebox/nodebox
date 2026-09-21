@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx type="file" formatVersion="22">
+    <property name="canvasHeight" value="800"/>
+    <property name="canvasWidth" value="800"/>
+    <node prototype="core.network" name="root" renderedChild="print1">
+        <node prototype="corevector.arc" name="arc1">
+            <port name="width" type="float" value="520.0"/>
+            <port name="height" type="float" value="520.0"/>
+            <port name="degrees" type="float" value="320.0"/>
+        </node>
+        <node prototype="image.stroke" name="blueFill">
+            <port name="strokeWidth" type="float" value="7.0"/>
+            <port name="width" type="int" value="800"/>
+            <port name="height" type="int" value="800"/>
+        </node>
+        <node prototype="corevector.ellipse" name="disc1">
+            <port name="position" type="point" value="0.00,20.00"/>
+            <port name="width" type="float" value="660.0"/>
+            <port name="height" type="float" value="660.0"/>
+        </node>
+        <node prototype="corevector.ellipse" name="dot1">
+            <port name="width" type="float" value="26.0"/>
+            <port name="height" type="float" value="26.0"/>
+        </node>
+        <node prototype="corevector.grid" name="grid1">
+            <port name="columns" type="int" value="9"/>
+            <port name="rows" type="int" value="9"/>
+            <port name="width" type="float" value="560.0"/>
+            <port name="height" type="float" value="560.0"/>
+        </node>
+        <node prototype="image.fill" name="pinkFill">
+            <port name="width" type="int" value="800"/>
+            <port name="height" type="int" value="800"/>
+        </node>
+        <node prototype="image.print" name="print1" renderedChild="sheet">
+            <node prototype="image.halftone" name="blueInk" position="4.00,1.00" renderedChild="inked">
+                <node prototype="image.multiply" name="covered" position="1.00,7.00"/>
+                <node prototype="image.constant" name="density" position="19.00,1.00">
+                    <port name="value" type="float" value="0.94"/>
+                </node>
+                <node prototype="image.compare" name="dots" position="1.00,5.00"/>
+                <node prototype="image.screen" name="dotScreen" position="10.00,1.00"/>
+                <node prototype="image.remap" name="edge" description="Fine noise at the edge of every dot." position="7.00,2.00">
+                    <port name="low" type="float" value="-0.03"/>
+                    <port name="high" type="float" value="0.03"/>
+                </node>
+                <node prototype="image.add" name="edged" position="1.00,4.00"/>
+                <node prototype="image.constant" name="emptyAt" position="16.00,1.00">
+                    <port name="value" type="float" value="0.02"/>
+                </node>
+                <node prototype="image.compare" name="gate" description="No ink where nothing was drawn, whatever the grain says." position="16.00,2.00">
+                    <port name="softness" type="float" value="0.01"/>
+                </node>
+                <node prototype="image.ink" name="inked" position="1.00,9.00"/>
+                <node prototype="image.noise" name="mottle" position="4.00,1.00"/>
+                <node prototype="image.remap" name="mottleDensity" position="4.00,3.00">
+                    <port name="low" type="float" value="0.8"/>
+                </node>
+                <node prototype="image.remap" name="mottleTone" description="The slow unevenness of the ink, as a tone around 1." position="4.00,2.00">
+                    <port name="low" type="float" value="0.88"/>
+                    <port name="high" type="float" value="1.12"/>
+                </node>
+                <node prototype="image.grain" name="press" position="7.00,1.00"/>
+                <node prototype="image.remap" name="pressDensity" position="7.00,3.00">
+                    <port name="low" type="float" value="0.92"/>
+                </node>
+                <node prototype="image.shift" name="reg" position="1.00,1.00"/>
+                <node prototype="image.maximum" name="screened" position="1.00,6.00"/>
+                <node prototype="image.compare" name="solid" description="Where the ink covers almost everything it stays solid instead of breaking into dots." position="13.00,2.00">
+                    <port name="softness" type="float" value="0.01"/>
+                </node>
+                <node prototype="image.constant" name="solidAt" position="13.00,1.00">
+                    <port name="value" type="float" value="0.97"/>
+                </node>
+                <node prototype="image.grain" name="speckle" position="22.00,1.00">
+                    <port name="size" type="int" value="2"/>
+                    <port name="seed" type="int" value="8"/>
+                </node>
+                <node prototype="image.constant" name="speckleAt" position="22.00,2.00">
+                    <port name="value" type="float" value="0.035"/>
+                </node>
+                <node prototype="image.multiply" name="speckled" position="1.00,8.00"/>
+                <node prototype="image.remap" name="speckleGain" position="22.00,4.00">
+                    <port name="low" type="float" value="1.0"/>
+                    <port name="high" type="float" value="0.45"/>
+                </node>
+                <node prototype="image.compare" name="speckleMask" description="The holes the drum leaves in a solid area." position="22.00,3.00">
+                    <port name="softness" type="float" value="0.001"/>
+                </node>
+                <node prototype="image.multiply" name="tone" position="1.00,3.00"/>
+                <conn output="reg" input="tone.images"/>
+                <conn output="mottle" input="mottleTone.image"/>
+                <conn output="mottleTone" input="tone.images"/>
+                <conn output="press" input="edge.image"/>
+                <conn output="tone" input="edged.images"/>
+                <conn output="edge" input="edged.images"/>
+                <conn output="edged" input="dots.a"/>
+                <conn output="dotScreen" input="dots.b"/>
+                <conn output="reg" input="solid.a"/>
+                <conn output="solidAt" input="solid.b"/>
+                <conn output="dots" input="screened.images"/>
+                <conn output="solid" input="screened.images"/>
+                <conn output="reg" input="gate.a"/>
+                <conn output="emptyAt" input="gate.b"/>
+                <conn output="mottle" input="mottleDensity.image"/>
+                <conn output="press" input="pressDensity.image"/>
+                <conn output="screened" input="covered.images"/>
+                <conn output="gate" input="covered.images"/>
+                <conn output="density" input="covered.images"/>
+                <conn output="mottleDensity" input="covered.images"/>
+                <conn output="pressDensity" input="covered.images"/>
+                <conn output="speckleAt" input="speckleMask.a"/>
+                <conn output="speckle" input="speckleMask.b"/>
+                <conn output="speckleMask" input="speckleGain.image"/>
+                <conn output="covered" input="speckled.images"/>
+                <conn output="speckleGain" input="speckled.images"/>
+                <conn output="speckled" input="inked.image"/>
+            </node>
+            <node prototype="image.halftone" name="pinkInk" position="7.00,1.00" renderedChild="inked">
+                <node prototype="image.multiply" name="covered" position="1.00,7.00"/>
+                <node prototype="image.constant" name="density" position="19.00,1.00">
+                    <port name="value" type="float" value="0.94"/>
+                </node>
+                <node prototype="image.compare" name="dots" position="1.00,5.00"/>
+                <node prototype="image.screen" name="dotScreen" position="10.00,1.00"/>
+                <node prototype="image.remap" name="edge" description="Fine noise at the edge of every dot." position="7.00,2.00">
+                    <port name="low" type="float" value="-0.03"/>
+                    <port name="high" type="float" value="0.03"/>
+                </node>
+                <node prototype="image.add" name="edged" position="1.00,4.00"/>
+                <node prototype="image.constant" name="emptyAt" position="16.00,1.00">
+                    <port name="value" type="float" value="0.02"/>
+                </node>
+                <node prototype="image.compare" name="gate" description="No ink where nothing was drawn, whatever the grain says." position="16.00,2.00">
+                    <port name="softness" type="float" value="0.01"/>
+                </node>
+                <node prototype="image.ink" name="inked" position="1.00,9.00"/>
+                <node prototype="image.noise" name="mottle" position="4.00,1.00"/>
+                <node prototype="image.remap" name="mottleDensity" position="4.00,3.00">
+                    <port name="low" type="float" value="0.8"/>
+                </node>
+                <node prototype="image.remap" name="mottleTone" description="The slow unevenness of the ink, as a tone around 1." position="4.00,2.00">
+                    <port name="low" type="float" value="0.88"/>
+                    <port name="high" type="float" value="1.12"/>
+                </node>
+                <node prototype="image.grain" name="press" position="7.00,1.00"/>
+                <node prototype="image.remap" name="pressDensity" position="7.00,3.00">
+                    <port name="low" type="float" value="0.92"/>
+                </node>
+                <node prototype="image.shift" name="reg" position="1.00,1.00"/>
+                <node prototype="image.maximum" name="screened" position="1.00,6.00"/>
+                <node prototype="image.compare" name="solid" description="Where the ink covers almost everything it stays solid instead of breaking into dots." position="13.00,2.00">
+                    <port name="softness" type="float" value="0.01"/>
+                </node>
+                <node prototype="image.constant" name="solidAt" position="13.00,1.00">
+                    <port name="value" type="float" value="0.97"/>
+                </node>
+                <node prototype="image.grain" name="speckle" position="22.00,1.00">
+                    <port name="size" type="int" value="2"/>
+                    <port name="seed" type="int" value="8"/>
+                </node>
+                <node prototype="image.constant" name="speckleAt" position="22.00,2.00">
+                    <port name="value" type="float" value="0.035"/>
+                </node>
+                <node prototype="image.multiply" name="speckled" position="1.00,8.00"/>
+                <node prototype="image.remap" name="speckleGain" position="22.00,4.00">
+                    <port name="low" type="float" value="1.0"/>
+                    <port name="high" type="float" value="0.45"/>
+                </node>
+                <node prototype="image.compare" name="speckleMask" description="The holes the drum leaves in a solid area." position="22.00,3.00">
+                    <port name="softness" type="float" value="0.001"/>
+                </node>
+                <node prototype="image.multiply" name="tone" position="1.00,3.00"/>
+                <port name="cell" type="float" value="5.2"/>
+                <port name="angle" type="float" value="45.0"/>
+                <port name="registration" type="point" value="1.80,1.10"/>
+                <port name="skew" type="float" value="0.069"/>
+                <port name="color" type="color" value="#ff48b0ff"/>
+                <port name="seed" type="int" childReferences="press.seed" value="107"/>
+                <conn output="reg" input="tone.images"/>
+                <conn output="mottle" input="mottleTone.image"/>
+                <conn output="mottleTone" input="tone.images"/>
+                <conn output="press" input="edge.image"/>
+                <conn output="tone" input="edged.images"/>
+                <conn output="edge" input="edged.images"/>
+                <conn output="edged" input="dots.a"/>
+                <conn output="dotScreen" input="dots.b"/>
+                <conn output="reg" input="solid.a"/>
+                <conn output="solidAt" input="solid.b"/>
+                <conn output="dots" input="screened.images"/>
+                <conn output="solid" input="screened.images"/>
+                <conn output="reg" input="gate.a"/>
+                <conn output="emptyAt" input="gate.b"/>
+                <conn output="mottle" input="mottleDensity.image"/>
+                <conn output="press" input="pressDensity.image"/>
+                <conn output="screened" input="covered.images"/>
+                <conn output="gate" input="covered.images"/>
+                <conn output="density" input="covered.images"/>
+                <conn output="mottleDensity" input="covered.images"/>
+                <conn output="pressDensity" input="covered.images"/>
+                <conn output="speckleAt" input="speckleMask.a"/>
+                <conn output="speckle" input="speckleMask.b"/>
+                <conn output="speckleMask" input="speckleGain.image"/>
+                <conn output="covered" input="speckled.images"/>
+                <conn output="speckleGain" input="speckled.images"/>
+                <conn output="speckled" input="inked.image"/>
+            </node>
+            <node prototype="image.multiply" name="sheet" position="1.00,3.00"/>
+            <node prototype="image.paper" name="stock" position="1.00,1.00">
+                <port name="width" type="int" value="800"/>
+                <port name="height" type="int" value="800"/>
+            </node>
+            <node prototype="image.halftone" name="yellowInk" position="10.00,1.00" renderedChild="inked">
+                <node prototype="image.multiply" name="covered" position="1.00,7.00"/>
+                <node prototype="image.constant" name="density" position="19.00,1.00">
+                    <port name="value" type="float" value="0.94"/>
+                </node>
+                <node prototype="image.compare" name="dots" position="1.00,5.00"/>
+                <node prototype="image.screen" name="dotScreen" position="10.00,1.00"/>
+                <node prototype="image.remap" name="edge" description="Fine noise at the edge of every dot." position="7.00,2.00">
+                    <port name="low" type="float" value="-0.03"/>
+                    <port name="high" type="float" value="0.03"/>
+                </node>
+                <node prototype="image.add" name="edged" position="1.00,4.00"/>
+                <node prototype="image.constant" name="emptyAt" position="16.00,1.00">
+                    <port name="value" type="float" value="0.02"/>
+                </node>
+                <node prototype="image.compare" name="gate" description="No ink where nothing was drawn, whatever the grain says." position="16.00,2.00">
+                    <port name="softness" type="float" value="0.01"/>
+                </node>
+                <node prototype="image.ink" name="inked" position="1.00,9.00"/>
+                <node prototype="image.noise" name="mottle" position="4.00,1.00"/>
+                <node prototype="image.remap" name="mottleDensity" position="4.00,3.00">
+                    <port name="low" type="float" value="0.8"/>
+                </node>
+                <node prototype="image.remap" name="mottleTone" description="The slow unevenness of the ink, as a tone around 1." position="4.00,2.00">
+                    <port name="low" type="float" value="0.88"/>
+                    <port name="high" type="float" value="1.12"/>
+                </node>
+                <node prototype="image.grain" name="press" position="7.00,1.00"/>
+                <node prototype="image.remap" name="pressDensity" position="7.00,3.00">
+                    <port name="low" type="float" value="0.92"/>
+                </node>
+                <node prototype="image.shift" name="reg" position="1.00,1.00"/>
+                <node prototype="image.maximum" name="screened" position="1.00,6.00"/>
+                <node prototype="image.compare" name="solid" description="Where the ink covers almost everything it stays solid instead of breaking into dots." position="13.00,2.00">
+                    <port name="softness" type="float" value="0.01"/>
+                </node>
+                <node prototype="image.constant" name="solidAt" position="13.00,1.00">
+                    <port name="value" type="float" value="0.97"/>
+                </node>
+                <node prototype="image.grain" name="speckle" position="22.00,1.00">
+                    <port name="size" type="int" value="2"/>
+                    <port name="seed" type="int" value="8"/>
+                </node>
+                <node prototype="image.constant" name="speckleAt" position="22.00,2.00">
+                    <port name="value" type="float" value="0.035"/>
+                </node>
+                <node prototype="image.multiply" name="speckled" position="1.00,8.00"/>
+                <node prototype="image.remap" name="speckleGain" position="22.00,4.00">
+                    <port name="low" type="float" value="1.0"/>
+                    <port name="high" type="float" value="0.45"/>
+                </node>
+                <node prototype="image.compare" name="speckleMask" description="The holes the drum leaves in a solid area." position="22.00,3.00">
+                    <port name="softness" type="float" value="0.001"/>
+                </node>
+                <node prototype="image.multiply" name="tone" position="1.00,3.00"/>
+                <port name="cell" type="float" value="6.2"/>
+                <port name="angle" type="float" value="0.0"/>
+                <port name="registration" type="point" value="-1.60,1.80"/>
+                <port name="skew" type="float" value="-0.069"/>
+                <port name="color" type="color" value="#ffe800ff"/>
+                <port name="seed" type="int" childReferences="press.seed" value="207"/>
+                <conn output="reg" input="tone.images"/>
+                <conn output="mottle" input="mottleTone.image"/>
+                <conn output="mottleTone" input="tone.images"/>
+                <conn output="press" input="edge.image"/>
+                <conn output="tone" input="edged.images"/>
+                <conn output="edge" input="edged.images"/>
+                <conn output="edged" input="dots.a"/>
+                <conn output="dotScreen" input="dots.b"/>
+                <conn output="reg" input="solid.a"/>
+                <conn output="solidAt" input="solid.b"/>
+                <conn output="dots" input="screened.images"/>
+                <conn output="solid" input="screened.images"/>
+                <conn output="reg" input="gate.a"/>
+                <conn output="emptyAt" input="gate.b"/>
+                <conn output="mottle" input="mottleDensity.image"/>
+                <conn output="press" input="pressDensity.image"/>
+                <conn output="screened" input="covered.images"/>
+                <conn output="gate" input="covered.images"/>
+                <conn output="density" input="covered.images"/>
+                <conn output="mottleDensity" input="covered.images"/>
+                <conn output="pressDensity" input="covered.images"/>
+                <conn output="speckleAt" input="speckleMask.a"/>
+                <conn output="speckle" input="speckleMask.b"/>
+                <conn output="speckleMask" input="speckleGain.image"/>
+                <conn output="covered" input="speckled.images"/>
+                <conn output="speckleGain" input="speckled.images"/>
+                <conn output="speckled" input="inked.image"/>
+            </node>
+            <port name="width" type="int" childReferences="blueInk.width pinkInk.width yellowInk.width" value="800"/>
+            <port name="height" type="int" childReferences="blueInk.height pinkInk.height yellowInk.height" value="800"/>
+            <conn output="stock" input="sheet.images"/>
+            <conn output="blueInk" input="sheet.images"/>
+            <conn output="pinkInk" input="sheet.images"/>
+            <conn output="yellowInk" input="sheet.images"/>
+        </node>
+        <node prototype="corevector.resample" name="resample1">
+            <port name="method" type="string" value="amount"/>
+            <port name="points" type="int" value="60"/>
+        </node>
+        <node prototype="corevector.ellipse" name="ring1">
+            <port name="width" type="float" value="54.0"/>
+            <port name="height" type="float" value="54.0"/>
+        </node>
+        <node prototype="image.fill" name="yellowFill">
+            <port name="width" type="int" value="800"/>
+            <port name="height" type="int" value="800"/>
+        </node>
+        <conn output="grid1" input="ring1.position"/>
+        <conn output="ring1" input="blueFill.shape"/>
+        <conn output="arc1" input="resample1.shape"/>
+        <conn output="resample1" input="dot1.position"/>
+        <conn output="dot1" input="pinkFill.shape"/>
+        <conn output="disc1" input="yellowFill.shape"/>
+        <conn output="blueFill" input="print1.blue"/>
+        <conn output="pinkFill" input="print1.pink"/>
+        <conn output="yellowFill" input="print1.yellow"/>
+    </node>
+</ndbx>

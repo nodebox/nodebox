@@ -1,0 +1,771 @@
+{
+    "title": "f3projection",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "pixie-bold.otf": "b57796eae6cb5404de166f90c05986aa97cfebb3",
+        "Musket bold.otf": "208c20c3f658896fc470a8bcd2a95d5ddabc4c72"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "connectPoints1",
+            "nodes": [
+                {
+                    "name": "pointcloud1",
+                    "x": -112,
+                    "y": 310,
+                    "fn": "f3projection.pointcloud",
+                    "values": {
+                        "x": -1,
+                        "persp": {
+                            "x": 250,
+                            "y": 250
+                        },
+                        "rotY": 193,
+                        "rotZ": 61,
+                        "rotX": 935,
+                        "z": 0
+                    }
+                },
+                {
+                    "name": "number1",
+                    "x": -112,
+                    "y": 52,
+                    "fn": "g.number"
+                },
+                {
+                    "name": "sample2",
+                    "x": -113,
+                    "y": 142,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 1,
+                        "min": -1
+                    }
+                },
+                {
+                    "name": "repeat1",
+                    "x": -90,
+                    "y": 204,
+                    "fn": "g.repeat",
+                    "values": {
+                        "perItem": true,
+                        "amount": 41
+                    }
+                },
+                {
+                    "name": "number2",
+                    "x": 151,
+                    "y": 149,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 496
+                    }
+                },
+                {
+                    "name": "sample1",
+                    "x": 151,
+                    "y": 282,
+                    "fn": "g.sample"
+                },
+                {
+                    "name": "pi1",
+                    "x": 281,
+                    "y": 150,
+                    "fn": "g.pi"
+                },
+                {
+                    "name": "multiply1",
+                    "x": 281,
+                    "y": 200,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 30
+                    }
+                },
+                {
+                    "name": "sample3",
+                    "x": 278,
+                    "y": 284,
+                    "fn": "g.sample"
+                },
+                {
+                    "name": "sin1",
+                    "x": 106,
+                    "y": 352,
+                    "fn": "g.sin"
+                },
+                {
+                    "name": "cos1",
+                    "x": 177,
+                    "y": 395,
+                    "fn": "g.cos"
+                },
+                {
+                    "name": "sin2",
+                    "x": 279,
+                    "y": 353,
+                    "fn": "g.sin"
+                },
+                {
+                    "name": "cos2",
+                    "x": 315,
+                    "y": 395,
+                    "fn": "g.cos"
+                },
+                {
+                    "name": "multiply2",
+                    "x": 146,
+                    "y": 474,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "multiply3",
+                    "x": 275,
+                    "y": 471,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "pointcloud2",
+                    "x": 174,
+                    "y": 586,
+                    "fn": "f3projection.pointcloud",
+                    "values": {
+                        "persp": {
+                            "x": 250,
+                            "y": 50
+                        },
+                        "rotX": 63,
+                        "rotY": 36,
+                        "rotZ": 184
+                    }
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 174,
+                    "y": 634,
+                    "fn": "g.connectPoints"
+                },
+                {
+                    "name": "frame1",
+                    "x": 40,
+                    "y": 474,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 492,
+                    "y": 125,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "amount": 85,
+                        "min": -1,
+                        "max": 1
+                    }
+                },
+                {
+                    "name": "randomNumbers2",
+                    "x": 598,
+                    "y": 125,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "amount": 50,
+                        "min": -1,
+                        "max": 1,
+                        "seed": 8
+                    }
+                },
+                {
+                    "name": "randomNumbers3",
+                    "x": 704,
+                    "y": 126,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "amount": 50,
+                        "seed": 2,
+                        "max": 200
+                    }
+                },
+                {
+                    "name": "pointcloud3",
+                    "x": 583,
+                    "y": 320,
+                    "fn": "f3projection.pointcloud",
+                    "values": {
+                        "persp": {
+                            "x": 150,
+                            "y": 50
+                        }
+                    }
+                },
+                {
+                    "name": "frame2",
+                    "x": 809,
+                    "y": 123,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 780,
+                    "y": 259,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "min": -1,
+                        "period": 122
+                    }
+                },
+                {
+                    "name": "add1",
+                    "x": 809,
+                    "y": 194,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 618,
+                    "y": 465,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 10,
+                        "height": 10
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 545,
+                    "y": 620,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "shift1",
+                    "x": 609,
+                    "y": 366,
+                    "fn": "g.shift",
+                    "values": {
+                        "amount": 73
+                    }
+                },
+                {
+                    "name": "curve1",
+                    "x": 492,
+                    "y": 462,
+                    "fn": "g.curve",
+                    "values": {
+                        "distance": 50
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 491,
+                    "y": 509,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(250,130,0,.05)",
+                        "stroke": "black"
+                    }
+                },
+                {
+                    "name": "pointcloud5",
+                    "x": 1072,
+                    "y": 449,
+                    "fn": "f3projection.pointcloud",
+                    "values": {
+                        "persp": {
+                            "x": 250,
+                            "y": 50
+                        },
+                        "rotX": 1310,
+                        "rotY": 169
+                    }
+                },
+                {
+                    "name": "sineWave2",
+                    "x": 1011,
+                    "y": 261,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "period": 50,
+                        "min": -1,
+                        "waveType": "square"
+                    }
+                },
+                {
+                    "name": "frame4",
+                    "x": 1259,
+                    "y": 104,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "add2",
+                    "x": 1130,
+                    "y": 215,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "number3",
+                    "x": 1139,
+                    "y": 106,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 50
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 1149,
+                    "y": 174,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "connectPoints4",
+                    "x": 1072,
+                    "y": 494,
+                    "fn": "g.connectPoints",
+                    "values": {}
+                },
+                {
+                    "name": "cos3",
+                    "x": 1113,
+                    "y": 331,
+                    "fn": "g.cos"
+                },
+                {
+                    "name": "multiply4",
+                    "x": 1113,
+                    "y": 386,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "sin3",
+                    "x": 1220,
+                    "y": 330,
+                    "fn": "g.sin"
+                },
+                {
+                    "name": "number4",
+                    "x": 491,
+                    "y": 63,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 40
+                    }
+                },
+                {
+                    "name": "sample4",
+                    "x": 997,
+                    "y": 336,
+                    "fn": "g.sample",
+                    "values": {
+                        "min": -1,
+                        "max": 1,
+                        "amount": 200
+                    }
+                },
+                {
+                    "name": "mirror1",
+                    "x": 1072,
+                    "y": 545,
+                    "fn": "g.mirror",
+                    "values": {
+                        "keepOriginal": false
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 960,
+                    "y": 594,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "red",
+                        "strokeWidth": 7
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 1071,
+                    "y": 594,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "green",
+                        "strokeWidth": 5
+                    }
+                },
+                {
+                    "name": "combine2",
+                    "x": 1052,
+                    "y": 644,
+                    "fn": "g.combine"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "number1",
+                    "input": "sample2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "sample2",
+                    "input": "pointcloud1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "sample2",
+                    "input": "repeat1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "repeat1",
+                    "input": "pointcloud1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "number2",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "pi1",
+                    "input": "sample1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "pi1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "sample3",
+                    "parameter": "max"
+                },
+                {
+                    "output": "number2",
+                    "input": "sample3",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "sample1",
+                    "input": "sin1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sample1",
+                    "input": "cos1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sample3",
+                    "input": "sin2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sample3",
+                    "input": "cos2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sin1",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "cos2",
+                    "input": "multiply2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "sin1",
+                    "input": "multiply3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "sin2",
+                    "input": "multiply3",
+                    "parameter": "b"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "pointcloud2",
+                    "parameter": "x"
+                },
+                {
+                    "output": "pointcloud2",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "cos1",
+                    "input": "pointcloud2",
+                    "parameter": "z"
+                },
+                {
+                    "output": "multiply3",
+                    "input": "pointcloud2",
+                    "parameter": "y"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "pointcloud3",
+                    "parameter": "x"
+                },
+                {
+                    "output": "randomNumbers2",
+                    "input": "pointcloud3",
+                    "parameter": "y"
+                },
+                {
+                    "output": "frame2",
+                    "input": "pointcloud3",
+                    "parameter": "rotX"
+                },
+                {
+                    "output": "frame2",
+                    "input": "pointcloud3",
+                    "parameter": "rotZ"
+                },
+                {
+                    "output": "frame2",
+                    "input": "pointcloud3",
+                    "parameter": "rotY"
+                },
+                {
+                    "output": "frame2",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "randomNumbers3",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "pointcloud3",
+                    "parameter": "z"
+                },
+                {
+                    "output": "pointcloud3",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "pointcloud3",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "pointcloud3",
+                    "input": "curve1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "shift1",
+                    "input": "curve1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "curve1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "number3",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range1",
+                    "input": "add2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "frame4",
+                    "input": "add2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "sineWave2",
+                    "input": "pointcloud5",
+                    "parameter": "x"
+                },
+                {
+                    "output": "pointcloud5",
+                    "input": "connectPoints4",
+                    "parameter": "points"
+                },
+                {
+                    "output": "number3",
+                    "input": "sineWave2",
+                    "parameter": "period"
+                },
+                {
+                    "output": "sineWave2",
+                    "input": "cos3",
+                    "parameter": "v"
+                },
+                {
+                    "output": "cos3",
+                    "input": "multiply4",
+                    "parameter": "a"
+                },
+                {
+                    "output": "sineWave2",
+                    "input": "sin3",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sin3",
+                    "input": "multiply4",
+                    "parameter": "b"
+                },
+                {
+                    "output": "frame4",
+                    "input": "pointcloud5",
+                    "parameter": "rotZ"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "number4",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "number4",
+                    "input": "randomNumbers2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "number4",
+                    "input": "randomNumbers3",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "multiply4",
+                    "input": "pointcloud5",
+                    "parameter": "z"
+                },
+                {
+                    "output": "sample4",
+                    "input": "pointcloud5",
+                    "parameter": "y"
+                },
+                {
+                    "output": "frame4",
+                    "input": "pointcloud5",
+                    "parameter": "rotX"
+                },
+                {
+                    "output": "frame4",
+                    "input": "pointcloud5",
+                    "parameter": "rotY"
+                },
+                {
+                    "output": "connectPoints4",
+                    "input": "mirror1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "connectPoints4",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "mirror1",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "frame1",
+                    "input": "pointcloud2",
+                    "parameter": "rotY"
+                },
+                {
+                    "output": "add1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "add2",
+                    "input": "sineWave2",
+                    "parameter": "v"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "pointcloud",
+            "source": "f3projection.pointcloud = function (x, y, z, rotX, rotY, rotZ, persp) {\n\n    var Sx = g.sin(g.radians(rotX))\n    var Cx = g.cos(g.radians(rotX))\n    var Sy = g.sin(g.radians(rotY))\n    var Cy = g.cos(g.radians(rotY))\n    var Sz = g.sin(g.radians(rotZ))\n    var Cz = g.cos(g.radians(rotZ))\n\n    var x1 = Cy * (Sz * y + Cz * x) - Sy * z\n    var y1 = Sx * (Cy * z + Sy * (Sz * y + Cz * x)) + Cx * (Cz * y - Sz * x)\n    var z1 = Cx * (Cy * z + Sy * (Sz * y + Cz * x)) - Sx * (Cz * y - Sz * x)\n\n    var sca = persp.x\n    var fov = persp.y\n\n    var factor = sca / fov + z1\n\n    var x2 = factor * x1 * fov\n    var y2 = factor * y1 * -fov\n\n    return new g.Point(x2,y2);\n};",
+            "parameters": [
+                {
+                    "name": "x",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "y",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "z",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "rotX",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "rotY",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "rotZ",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "persp",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                }
+            ]
+        }
+    ],
+    "id": "f3projection"
+}

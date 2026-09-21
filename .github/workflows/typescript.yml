@@ -1,0 +1,35 @@
+name: TypeScript workspace
+
+on:
+  push:
+    paths:
+      - "packages/**"
+      - "libraries/**"
+      - "examples/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/typescript.yml"
+  pull_request:
+    paths:
+      - "packages/**"
+      - "libraries/**"
+      - "examples/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/typescript.yml"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: npm
+      - run: npm ci
+      - run: npm run check-format
+      - run: npm run build
+      - run: npm test
+      - run: npm run desktop:build
+      - run: npm run desktop:test

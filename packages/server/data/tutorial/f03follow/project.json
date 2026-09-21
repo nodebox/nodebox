@@ -1,0 +1,323 @@
+{
+    "title": "f03follow",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "obama.png": "0e42d55f7631c05a7dd7695c6c3eb7c500763aaf"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "positionContainer1",
+                    "x": 50,
+                    "y": 179,
+                    "fn": "f03follow.positionContainer",
+                    "values": {
+                        "num": 52
+                    }
+                },
+                {
+                    "name": "init1",
+                    "x": 50,
+                    "y": 97,
+                    "fn": "f03follow.init"
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 50,
+                    "y": 350,
+                    "fn": "g.ellipse"
+                },
+                {
+                    "name": "range1",
+                    "x": 228,
+                    "y": 212,
+                    "fn": "g.range",
+                    "values": {
+                        "max": 39,
+                        "step": 2
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 215,
+                    "y": 97,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "slice1",
+                    "x": 40,
+                    "y": 476,
+                    "fn": "g.slice",
+                    "values": {
+                        "startIndex": 0
+                    }
+                },
+                {
+                    "name": "subtract2",
+                    "x": 231,
+                    "y": 338,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "segment1",
+                    "x": -61,
+                    "y": 350,
+                    "fn": "f03follow.segment"
+                },
+                {
+                    "name": "multiply1",
+                    "x": 249,
+                    "y": 147,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 181,
+                    "y": 424,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "divide1",
+                    "x": 201,
+                    "y": 295,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 4
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 147,
+                    "y": 574,
+                    "fn": "g.combine"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "positionContainer1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "positionContainer1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "subtract2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "slice1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "init1",
+                    "input": "positionContainer1",
+                    "parameter": "po"
+                },
+                {
+                    "output": "positionContainer1",
+                    "input": "segment1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "range1",
+                    "input": "segment1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "segment1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "range1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "divide1",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "slice1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 317,
+                    "y": 9,
+                    "width": 80,
+                    "height": 45,
+                    "text": "Press Play - Move Mouse"
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "positionContainer",
+            "source": "f03follow.positionContainer = function (po) {\n    var pos = po;\n    if (pos.length < 40) {\n        pos.push(ndbx._mousePosition);\n    } else {\n        pos.splice(0,1);\n    }\n    return pos;\n};",
+            "parameters": [
+                {
+                    "name": "po",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": true
+                }
+            ],
+            "stateful": true,
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "init",
+            "source": "f03follow.init = function () {\n    var pos = [];\n    return pos;\n};",
+            "parameters": [],
+            "returnsList": true,
+            "outputType": "point"
+        },
+        {
+            "name": "segment",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "ellipse1",
+                    "x": -169,
+                    "y": 219,
+                    "fn": "g.ellipse"
+                },
+                {
+                    "name": "scale1",
+                    "x": -111,
+                    "y": 273,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.7,
+                            "y": 0.7
+                        }
+                    }
+                },
+                {
+                    "name": "compound1",
+                    "x": -169,
+                    "y": 332,
+                    "fn": "g.compound",
+                    "values": {
+                        "method": "difference"
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": -179,
+                    "y": 439,
+                    "fn": "g.translate"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "ellipse1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "compound1",
+                    "parameter": "shape1"
+                },
+                {
+                    "output": "scale1",
+                    "input": "compound1",
+                    "parameter": "shape2"
+                },
+                {
+                    "inlet": "size",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "inlet": "size",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "compound1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "size",
+                    "type": "float",
+                    "value": 100
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "f03follow"
+}

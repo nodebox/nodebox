@@ -1,0 +1,214 @@
+{
+    "title": "e5lissajous",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize2",
+            "nodes": [
+                {
+                    "name": "sample1",
+                    "x": 237,
+                    "y": 159,
+                    "fn": "g.sample",
+                    "values": {
+                        "amount": 1000,
+                        "max": 25
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 295,
+                    "y": 262,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 4
+                    }
+                },
+                {
+                    "name": "sin1",
+                    "x": 296,
+                    "y": 308,
+                    "fn": "g.sin",
+                    "values": {}
+                },
+                {
+                    "name": "multiply2",
+                    "x": 308,
+                    "y": 360,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 162
+                    }
+                },
+                {
+                    "name": "multiply3",
+                    "x": 146,
+                    "y": 260,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 27
+                    }
+                },
+                {
+                    "name": "sin2",
+                    "x": 144,
+                    "y": 306,
+                    "fn": "g.sin",
+                    "values": {}
+                },
+                {
+                    "name": "multiply4",
+                    "x": 145,
+                    "y": 358,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 173
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 197,
+                    "y": 426,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 197,
+                    "y": 498,
+                    "fn": "g.connectPoints",
+                    "values": {
+                        "stroke": "",
+                        "strokeWidth": 0
+                    }
+                },
+                {
+                    "name": "add1",
+                    "x": 111,
+                    "y": 203,
+                    "fn": "g.add",
+                    "values": {
+                        "a": 20,
+                        "b": 1
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 111,
+                    "y": 47,
+                    "fn": "g.frame",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 111,
+                    "y": 158,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 2000
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 196,
+                    "y": 548,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "",
+                        "fill": "rgba(255,155,0,.8)"
+                    }
+                },
+                {
+                    "name": "add2",
+                    "x": 111,
+                    "y": 100,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 500
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "sample1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "sin1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sin1",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "sample1",
+                    "input": "multiply3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply3",
+                    "input": "sin2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sin2",
+                    "input": "multiply4",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply4",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "divide1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add1",
+                    "input": "multiply3",
+                    "parameter": "b"
+                },
+                {
+                    "output": "connectPoints1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "frame1",
+                    "input": "add2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add2",
+                    "input": "divide1",
+                    "parameter": "a"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "e5lissajous"
+}

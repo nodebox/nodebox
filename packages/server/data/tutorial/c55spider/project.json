@@ -1,0 +1,860 @@
+{
+    "title": "c55spider",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine2",
+            "nodes": [
+                {
+                    "name": "number1",
+                    "x": 361,
+                    "y": 68,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 8
+                    }
+                },
+                {
+                    "name": "pi1",
+                    "x": 234,
+                    "y": 169,
+                    "fn": "g.pi"
+                },
+                {
+                    "name": "multiply1",
+                    "x": 234,
+                    "y": 213,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "stride",
+                    "x": 233,
+                    "y": 258,
+                    "fn": "g.divide"
+                },
+                {
+                    "name": "n",
+                    "x": 128,
+                    "y": 258,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 10
+                    }
+                },
+                {
+                    "name": "radiusStride",
+                    "x": 1,
+                    "y": 325,
+                    "fn": "g.divide",
+                    "values": {
+                        "a": 200
+                    }
+                },
+                {
+                    "name": "range2",
+                    "x": 147,
+                    "y": 315,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "theta",
+                    "x": 316,
+                    "y": 370,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "shrinking",
+                    "x": 36,
+                    "y": 469,
+                    "fn": "g.subtract",
+                    "values": {
+                        "a": 200
+                    }
+                },
+                {
+                    "name": "multiply2",
+                    "x": 52,
+                    "y": 420,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "multiply3",
+                    "x": 179,
+                    "y": 472,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2.1
+                    }
+                },
+                {
+                    "name": "cos1",
+                    "x": 179,
+                    "y": 521,
+                    "fn": "g.cos"
+                },
+                {
+                    "name": "off",
+                    "x": 180,
+                    "y": 600,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "divide1",
+                    "x": 291,
+                    "y": 474,
+                    "fn": "g.divide",
+                    "values": {
+                        "a": 200,
+                        "b": 10
+                    }
+                },
+                {
+                    "name": "cos2",
+                    "x": 86,
+                    "y": 672,
+                    "fn": "g.cos"
+                },
+                {
+                    "name": "multiply5",
+                    "x": 86,
+                    "y": 722,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "sin1",
+                    "x": 202,
+                    "y": 670,
+                    "fn": "g.sin"
+                },
+                {
+                    "name": "multiply6",
+                    "x": 202,
+                    "y": 723,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "add1",
+                    "x": 202,
+                    "y": 771,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 86,
+                    "y": 837,
+                    "fn": "g.makePoint",
+                    "masterList": "x"
+                },
+                {
+                    "name": "connectPoints3",
+                    "x": 149,
+                    "y": 1083,
+                    "fn": "g.connectPoints"
+                },
+                {
+                    "name": "combine2",
+                    "x": 244,
+                    "y": 1259,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "webleg2",
+                    "x": 263,
+                    "y": 1036,
+                    "fn": "c55spider.webleg",
+                    "values": {
+                        "shift": 3
+                    }
+                },
+                {
+                    "name": "range3",
+                    "x": 317,
+                    "y": 968,
+                    "fn": "g.range",
+                    "values": {
+                        "max": 9
+                    }
+                },
+                {
+                    "name": "pick3",
+                    "x": 382,
+                    "y": 1038,
+                    "fn": "g.pick",
+                    "values": {
+                        "amount": 5
+                    }
+                },
+                {
+                    "name": "rect2",
+                    "x": 524,
+                    "y": 759,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 500,
+                        "height": 500
+                    }
+                },
+                {
+                    "name": "resampleByLength2",
+                    "x": 524,
+                    "y": 815,
+                    "fn": "g.resampleByLength",
+                    "values": {
+                        "length": 117
+                    }
+                },
+                {
+                    "name": "toPoints2",
+                    "x": 535,
+                    "y": 920,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "pick4",
+                    "x": 523,
+                    "y": 1039,
+                    "fn": "g.pick",
+                    "values": {
+                        "amount": 5,
+                        "seed": 5
+                    }
+                },
+                {
+                    "name": "line2",
+                    "x": 436,
+                    "y": 1176,
+                    "fn": "g.line"
+                },
+                {
+                    "name": "slice2",
+                    "x": 383,
+                    "y": 896,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 20
+                    }
+                },
+                {
+                    "name": "colorize5",
+                    "x": 423,
+                    "y": 972,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "black",
+                        "stroke": "white"
+                    }
+                },
+                {
+                    "name": "number3",
+                    "x": 539,
+                    "y": 977,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 28
+                    }
+                },
+                {
+                    "name": "wigglePoints2",
+                    "x": 548,
+                    "y": 871,
+                    "fn": "g.wigglePoints",
+                    "values": {
+                        "offset": {
+                            "x": 10,
+                            "y": 10
+                        },
+                        "seed": 3
+                    }
+                },
+                {
+                    "name": "colorize6",
+                    "x": 200,
+                    "y": 1130,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "white",
+                        "fill": "tranparent",
+                        "strokeWidth": 2
+                    }
+                },
+                {
+                    "name": "colorize7",
+                    "x": 436,
+                    "y": 1219,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "white",
+                        "strokeWidth": 1.5
+                    }
+                },
+                {
+                    "name": "colorize8",
+                    "x": 313,
+                    "y": 1173,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "white"
+                    }
+                },
+                {
+                    "name": "depth",
+                    "x": 127,
+                    "y": 168,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 23
+                    }
+                },
+                {
+                    "name": "radius",
+                    "x": 21,
+                    "y": 167,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 214
+                    }
+                },
+                {
+                    "name": "add2",
+                    "x": 425,
+                    "y": 423,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "cos3",
+                    "x": 447,
+                    "y": 239,
+                    "fn": "g.cos"
+                },
+                {
+                    "name": "multiply4",
+                    "x": 442,
+                    "y": 176,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.4
+                    }
+                },
+                {
+                    "name": "multiply7",
+                    "x": 444,
+                    "y": 295,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.05
+                    }
+                },
+                {
+                    "name": "multiply8",
+                    "x": 556,
+                    "y": 175,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.05
+                    }
+                },
+                {
+                    "name": "cos4",
+                    "x": 560,
+                    "y": 241,
+                    "fn": "g.cos"
+                },
+                {
+                    "name": "multiply9",
+                    "x": 563,
+                    "y": 308,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.20000000000000018
+                    }
+                },
+                {
+                    "name": "add3",
+                    "x": 454,
+                    "y": 366,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "count1",
+                    "x": 393,
+                    "y": 744,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "divide2",
+                    "x": 390,
+                    "y": 804,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 6
+                    }
+                },
+                {
+                    "name": "add4",
+                    "x": -21.589169016031565,
+                    "y": 257.19316626367856,
+                    "fn": "g.add",
+                    "values": {
+                        "b": -10
+                    }
+                },
+                {
+                    "name": "shapeSort1",
+                    "x": 525,
+                    "y": 1100,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "angle"
+                    }
+                },
+                {
+                    "name": "shapeSort2",
+                    "x": 404,
+                    "y": 1108,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "angle"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "pi1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "stride",
+                    "parameter": "a"
+                },
+                {
+                    "output": "number1",
+                    "input": "stride",
+                    "parameter": "b"
+                },
+                {
+                    "output": "number1",
+                    "input": "n",
+                    "parameter": "a"
+                },
+                {
+                    "output": "n",
+                    "input": "radiusStride",
+                    "parameter": "b"
+                },
+                {
+                    "output": "n",
+                    "input": "range2",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range2",
+                    "input": "theta",
+                    "parameter": "a"
+                },
+                {
+                    "output": "radiusStride",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "range2",
+                    "input": "multiply2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "shrinking",
+                    "parameter": "b"
+                },
+                {
+                    "output": "multiply3",
+                    "input": "cos1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "divide1",
+                    "input": "off",
+                    "parameter": "b"
+                },
+                {
+                    "output": "cos1",
+                    "input": "off",
+                    "parameter": "a"
+                },
+                {
+                    "output": "cos2",
+                    "input": "multiply5",
+                    "parameter": "a"
+                },
+                {
+                    "output": "shrinking",
+                    "input": "multiply5",
+                    "parameter": "b"
+                },
+                {
+                    "output": "sin1",
+                    "input": "multiply6",
+                    "parameter": "a"
+                },
+                {
+                    "output": "shrinking",
+                    "input": "multiply6",
+                    "parameter": "b"
+                },
+                {
+                    "output": "multiply6",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "off",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "multiply5",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "add1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "number1",
+                    "input": "webleg2",
+                    "parameter": "segments"
+                },
+                {
+                    "output": "range3",
+                    "input": "webleg2",
+                    "parameter": "shift"
+                },
+                {
+                    "output": "number1",
+                    "input": "range3",
+                    "parameter": "max"
+                },
+                {
+                    "output": "toPoints2",
+                    "input": "pick4",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice2",
+                    "input": "pick3",
+                    "parameter": "l"
+                },
+                {
+                    "output": "number3",
+                    "input": "pick4",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "number3",
+                    "input": "pick3",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "wigglePoints2",
+                    "input": "colorize5",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect2",
+                    "input": "resampleByLength2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByLength2",
+                    "input": "wigglePoints2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "wigglePoints2",
+                    "input": "toPoints2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "connectPoints3",
+                    "input": "colorize6",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize6",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "colorize5",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "line2",
+                    "input": "colorize7",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize7",
+                    "input": "combine2",
+                    "parameter": "list5"
+                },
+                {
+                    "output": "webleg2",
+                    "input": "colorize8",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize8",
+                    "input": "combine2",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "connectPoints3",
+                    "parameter": "points"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "webleg2",
+                    "parameter": "points"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "slice2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "depth",
+                    "input": "n",
+                    "parameter": "b"
+                },
+                {
+                    "output": "radius",
+                    "input": "shrinking",
+                    "parameter": "a"
+                },
+                {
+                    "output": "radius",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "depth",
+                    "input": "divide1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "range2",
+                    "input": "multiply4",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply4",
+                    "input": "cos3",
+                    "parameter": "v"
+                },
+                {
+                    "output": "cos3",
+                    "input": "multiply7",
+                    "parameter": "a"
+                },
+                {
+                    "output": "range2",
+                    "input": "multiply8",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply8",
+                    "input": "cos4",
+                    "parameter": "v"
+                },
+                {
+                    "output": "cos4",
+                    "input": "multiply9",
+                    "parameter": "a"
+                },
+                {
+                    "output": "stride",
+                    "input": "theta",
+                    "parameter": "b"
+                },
+                {
+                    "output": "theta",
+                    "input": "add2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add2",
+                    "input": "multiply3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add2",
+                    "input": "cos2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "add2",
+                    "input": "sin1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "multiply7",
+                    "input": "add3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply9",
+                    "input": "add3",
+                    "parameter": "b"
+                },
+                {
+                    "output": "add3",
+                    "input": "add2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "divide2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide2",
+                    "input": "slice2",
+                    "parameter": "size"
+                },
+                {
+                    "output": "radius",
+                    "input": "add4",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add4",
+                    "input": "radiusStride",
+                    "parameter": "a"
+                },
+                {
+                    "output": "pick4",
+                    "input": "shapeSort1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "line2",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "pick3",
+                    "input": "shapeSort2",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "shapeSort2",
+                    "input": "line2",
+                    "parameter": "point1"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "webleg",
+            "type": "network",
+            "renderedNode": "connectPoints1",
+            "nodes": [
+                {
+                    "name": "takeEvery1",
+                    "x": 249,
+                    "y": 305,
+                    "fn": "g.takeEvery",
+                    "values": {
+                        "n": 9
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": 276,
+                    "y": 233,
+                    "fn": "g.shift",
+                    "values": {
+                        "amount": 5
+                    }
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 249,
+                    "y": 360,
+                    "fn": "g.connectPoints"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "shift1",
+                    "input": "takeEvery1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "takeEvery1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "inlet": "points",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "segments",
+                    "input": "takeEvery1",
+                    "parameter": "n"
+                },
+                {
+                    "inlet": "shift",
+                    "input": "shift1",
+                    "parameter": "amount"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "points",
+                    "type": "point",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "shift",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "segments",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "c55spider"
+}

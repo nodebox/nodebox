@@ -1,0 +1,553 @@
+{
+    "title": "b9metanet",
+    "color": "teal",
+    "dependencies": {
+        "core/anim": "dev",
+        "core/g": "dev",
+        "core/list": "dev",
+        "core/math": "dev",
+        "course/b8metaballs": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "frame1",
+            "nodes": [
+                {
+                    "name": "main1",
+                    "x": 79,
+                    "y": 431,
+                    "fn": "b8metaballs.main",
+                    "values": {
+                        "grid": 40,
+                        "size": 800
+                    }
+                },
+                {
+                    "name": "scatter1",
+                    "x": 57,
+                    "y": 154,
+                    "fn": "g.scatter",
+                    "values": {
+                        "amount": 5,
+                        "seed": 4
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 41,
+                    "y": 37,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "position": {
+                            "x": 50,
+                            "y": 0
+                        },
+                        "height": 300,
+                        "width": 300
+                    }
+                },
+                {
+                    "name": "rgb1",
+                    "x": 324,
+                    "y": 620,
+                    "fn": "g.rgb",
+                    "values": {
+                        "red": 0,
+                        "green": 0,
+                        "range": 1,
+                        "alpha": 0.8
+                    }
+                },
+                {
+                    "name": "grid1",
+                    "x": 239,
+                    "y": 362,
+                    "fn": "g.grid",
+                    "values": {
+                        "rows": 40,
+                        "columns": 40,
+                        "width": 400,
+                        "height": 400
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 188,
+                    "y": 723,
+                    "fn": "g.colorize",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 229,
+                    "y": 476,
+                    "fn": "math.divide",
+                    "values": {
+                        "a": 0.5,
+                        "b": -0.5
+                    }
+                },
+                {
+                    "name": "number1",
+                    "x": 289,
+                    "y": 100,
+                    "fn": "math.number",
+                    "values": {
+                        "v": 30
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 311,
+                    "y": 179,
+                    "fn": "math.multiply",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "totalpix1",
+                    "x": 324,
+                    "y": 428,
+                    "fn": "b9metanet.totalPix",
+                    "values": {
+                        "shift": 162,
+                        "amount": 4
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 180,
+                    "y": 55,
+                    "fn": "anim.frame",
+                    "values": {}
+                },
+                {
+                    "name": "divide3",
+                    "x": 179,
+                    "y": 98,
+                    "fn": "math.divide",
+                    "values": {
+                        "b": 5
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 139,
+                    "y": 612,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 13,
+                        "height": 13
+                    }
+                },
+                {
+                    "name": "subtract1",
+                    "x": 209,
+                    "y": 543,
+                    "fn": "math.subtract",
+                    "values": {
+                        "a": 0.45
+                    }
+                },
+                {
+                    "name": "divide2",
+                    "x": 363,
+                    "y": 476,
+                    "fn": "math.divide",
+                    "values": {
+                        "b": 1.2
+                    }
+                },
+                {
+                    "name": "subtract2",
+                    "x": 363,
+                    "y": 522,
+                    "fn": "math.subtract",
+                    "values": {
+                        "b": -0.5
+                    }
+                },
+                {
+                    "name": "count3",
+                    "x": 36,
+                    "y": 239,
+                    "fn": "list.count",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 38,
+                    "y": 288,
+                    "fn": "math.randomNumbers",
+                    "values": {
+                        "start": 20,
+                        "end": 500,
+                        "seed": 23
+                    }
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 514,
+                    "y": 296,
+                    "fn": "g.ellipse",
+                    "values": {}
+                },
+                {
+                    "name": "wave1",
+                    "x": 493,
+                    "y": 128,
+                    "fn": "math.wave",
+                    "values": {
+                        "max": 100,
+                        "period": 15,
+                        "min": -100
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 515,
+                    "y": 217,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "wave2",
+                    "x": 643,
+                    "y": 128,
+                    "fn": "math.wave",
+                    "values": {
+                        "min": -100,
+                        "max": 100,
+                        "period": 30
+                    }
+                },
+                {
+                    "name": "makePoint2",
+                    "x": 655,
+                    "y": 214,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "ellipse3",
+                    "x": 655,
+                    "y": 296,
+                    "fn": "g.ellipse",
+                    "values": {}
+                },
+                {
+                    "name": "divide4",
+                    "x": 563,
+                    "y": 39,
+                    "fn": "math.divide",
+                    "values": {
+                        "b": 4
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 555,
+                    "y": 390,
+                    "fn": "list.combine",
+                    "values": {}
+                },
+                {
+                    "name": "centroid1",
+                    "x": 559,
+                    "y": 453,
+                    "fn": "g.centroid",
+                    "values": {}
+                },
+                {
+                    "name": "range1",
+                    "x": 357,
+                    "y": 244,
+                    "fn": "math.range"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "ellipse1",
+                    "input": "scatter1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rgb1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "number1",
+                    "input": "grid1",
+                    "parameter": "columns"
+                },
+                {
+                    "output": "number1",
+                    "input": "grid1",
+                    "parameter": "rows"
+                },
+                {
+                    "output": "number1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "number1",
+                    "input": "multiply1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "frame1",
+                    "input": "divide3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "grid1",
+                    "input": "rect1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "divide1",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "rgb1",
+                    "parameter": "green"
+                },
+                {
+                    "output": "divide2",
+                    "input": "subtract2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "rgb1",
+                    "parameter": "blue"
+                },
+                {
+                    "output": "divide3",
+                    "input": "scatter1",
+                    "parameter": "seed"
+                },
+                {
+                    "output": "main1",
+                    "input": "totalpix1",
+                    "parameter": "list"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "totalpix1",
+                    "parameter": "n"
+                },
+                {
+                    "output": "scatter1",
+                    "input": "count3",
+                    "parameter": "l"
+                },
+                {
+                    "output": "totalpix1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "totalpix1",
+                    "input": "divide2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "totalpix1",
+                    "input": "rgb1",
+                    "parameter": "red"
+                },
+                {
+                    "output": "count3",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "divide3",
+                    "input": "wave1",
+                    "parameter": "t"
+                },
+                {
+                    "output": "wave1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "ellipse2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "wave2",
+                    "input": "makePoint2",
+                    "parameter": "x"
+                },
+                {
+                    "output": "makePoint2",
+                    "input": "ellipse3",
+                    "parameter": "position"
+                },
+                {
+                    "output": "frame1",
+                    "input": "divide4",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide4",
+                    "input": "wave2",
+                    "parameter": "t"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "ellipse3",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "centroid1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "number1",
+                    "input": "main1",
+                    "parameter": "grid"
+                },
+                {
+                    "output": "centroid1",
+                    "input": "main1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range1",
+                    "input": "totalpix1",
+                    "parameter": "shift"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "totalPix",
+            "type": "network",
+            "renderedNode": "divide1",
+            "nodes": [
+                {
+                    "name": "takeEvery1",
+                    "x": 57,
+                    "y": 192,
+                    "fn": "list.takeEvery",
+                    "values": {
+                        "n": 2000
+                    }
+                },
+                {
+                    "name": "sum1",
+                    "x": 57,
+                    "y": 250,
+                    "fn": "math.sum",
+                    "values": {}
+                },
+                {
+                    "name": "shift1",
+                    "x": 55,
+                    "y": 122,
+                    "fn": "list.shift",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 56,
+                    "y": 314,
+                    "fn": "math.divide",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "takeEvery1",
+                    "input": "sum1",
+                    "parameter": "values"
+                },
+                {
+                    "inlet": "n",
+                    "input": "takeEvery1",
+                    "parameter": "n"
+                },
+                {
+                    "inlet": "list",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift1",
+                    "input": "takeEvery1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "shift",
+                    "input": "shift1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "sum1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "inlet": "amount",
+                    "input": "divide1",
+                    "parameter": "b"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "list",
+                    "type": "float",
+                    "value": true,
+                    "takesList": true
+                },
+                {
+                    "name": "n",
+                    "type": "float",
+                    "value": 2000
+                },
+                {
+                    "name": "shift",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "amount",
+                    "type": "float",
+                    "value": 2
+                }
+            ],
+            "returnsList": true,
+            "returnType": "float"
+        }
+    ],
+    "id": "b9metanet"
+}

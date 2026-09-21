@@ -1,0 +1,1011 @@
+{
+    "title": "metallica",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "Metallica_Dataset.csv": "5e5aa76693a9840cd71e8c3b322f5980382cd07b",
+        "FiraSans-Light.otf": "8462d4816e1254fb02467dde2c83e9ae4af6e87d"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine2",
+            "nodes": [
+                {
+                    "name": "Word",
+                    "x": -170,
+                    "y": 23,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "Word"
+                    }
+                },
+                {
+                    "name": "import1",
+                    "x": 124,
+                    "y": -86,
+                    "fn": "g.import",
+                    "values": {
+                        "file": "Metallica_Dataset.csv"
+                    }
+                },
+                {
+                    "name": "distinct1",
+                    "x": -90,
+                    "y": 69,
+                    "fn": "g.distinct",
+                    "values": {}
+                },
+                {
+                    "name": "count1",
+                    "x": -89,
+                    "y": 149,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "coordinates1",
+                    "x": -97,
+                    "y": 271,
+                    "fn": "g.coordinates",
+                    "values": {
+                        "distance": 300
+                    }
+                },
+                {
+                    "name": "angle1",
+                    "x": -18,
+                    "y": 320,
+                    "fn": "g.angle",
+                    "values": {}
+                },
+                {
+                    "name": "rotate1",
+                    "x": 27,
+                    "y": 391,
+                    "fn": "g.rotate",
+                    "values": {
+                        "rotate": 37
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 392,
+                    "y": 64,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 400,
+                        "height": 400
+                    }
+                },
+                {
+                    "name": "Album",
+                    "x": 112,
+                    "y": 25,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "Album"
+                    }
+                },
+                {
+                    "name": "distinct2",
+                    "x": 204,
+                    "y": 67,
+                    "fn": "g.distinct",
+                    "values": {}
+                },
+                {
+                    "name": "count2",
+                    "x": 537,
+                    "y": 197,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "scatterPoints1",
+                    "x": 390,
+                    "y": 160,
+                    "fn": "g.scatterPoints",
+                    "values": {
+                        "seed": 11
+                    }
+                },
+                {
+                    "name": "zipMap1",
+                    "x": 207,
+                    "y": 149,
+                    "fn": "g.zipMap",
+                    "values": {}
+                },
+                {
+                    "name": "lookup3",
+                    "x": 206,
+                    "y": 316,
+                    "fn": "g.lookup",
+                    "values": {}
+                },
+                {
+                    "name": "curve1",
+                    "x": -7,
+                    "y": 616,
+                    "fn": "g.curve",
+                    "values": {
+                        "distance": 50
+                    }
+                },
+                {
+                    "name": "zipMap2",
+                    "x": 635,
+                    "y": 522,
+                    "fn": "g.zipMap",
+                    "values": {}
+                },
+                {
+                    "name": "lookup4",
+                    "x": 693,
+                    "y": 653,
+                    "fn": "g.lookup",
+                    "values": {}
+                },
+                {
+                    "name": "colorize2",
+                    "x": 572,
+                    "y": 771,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,0,0,0)"
+                    }
+                },
+                {
+                    "name": "zipMap3",
+                    "x": -157,
+                    "y": 387,
+                    "fn": "g.zipMap",
+                    "values": {}
+                },
+                {
+                    "name": "lookup5",
+                    "x": -159,
+                    "y": 439,
+                    "fn": "g.lookup",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 546,
+                    "y": 1018,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 211,
+                    "y": 492,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 5,
+                        "height": 5,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 260,
+                    "y": 601,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 0.25
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 212,
+                    "y": 535,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "Frequency",
+                    "x": 754,
+                    "y": 13,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "Frequency"
+                    }
+                },
+                {
+                    "name": "textPath1",
+                    "x": 50,
+                    "y": 260,
+                    "fn": "g.textPath",
+                    "values": {
+                        "font": "FiraSans-Light.otf",
+                        "align": "left",
+                        "fontSize": 12,
+                        "fontFamily": "FiraSans-Light.otf",
+                        "position": {
+                            "x": 62,
+                            "y": 3
+                        }
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 22,
+                    "y": 442,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "sample2",
+                    "x": -89,
+                    "y": 193,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 360,
+                        "circular": true
+                    }
+                },
+                {
+                    "name": "hexColor1",
+                    "x": 535,
+                    "y": 151,
+                    "fn": "g.hexColor",
+                    "values": {
+                        "s": "#ffa700ff"
+                    }
+                },
+                {
+                    "name": "stringSplit1",
+                    "x": 535,
+                    "y": 111,
+                    "fn": "g.stringSplit",
+                    "values": {
+                        "s": "#ffa700ff,#00b7ffff,#006dffff,#35a463ff,#3544a4ff,#3567a4ff,#a1a435ff,#a47035ff,#ff5d00ff",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 391,
+                    "y": 110,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 1.2,
+                            "y": 1.2
+                        }
+                    }
+                },
+                {
+                    "name": "inAlbum1",
+                    "x": 1005,
+                    "y": 943,
+                    "fn": "metallica.inAlbum",
+                    "values": {
+                        "position": {
+                            "x": -94,
+                            "y": 148
+                        },
+                        "angle": -7
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 1058,
+                    "y": 799,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "zipMap4",
+                    "x": 1036,
+                    "y": 859,
+                    "fn": "g.zipMap"
+                },
+                {
+                    "name": "coordinates2",
+                    "x": -209,
+                    "y": 271,
+                    "fn": "g.coordinates",
+                    "values": {
+                        "distance": 310
+                    }
+                },
+                {
+                    "name": "lineAngle1",
+                    "x": 70,
+                    "y": 723,
+                    "fn": "g.lineAngle",
+                    "values": {
+                        "distance": 59
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 67,
+                    "y": 796,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "white",
+                        "strokeWidth": 0.5
+                    }
+                },
+                {
+                    "name": "colorize4",
+                    "x": 377,
+                    "y": 603,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 2
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 410,
+                    "y": 1014,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 900,
+                        "height": 900
+                    }
+                },
+                {
+                    "name": "combine2",
+                    "x": 556,
+                    "y": 1139,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "colorize5",
+                    "x": 23,
+                    "y": 490,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "white"
+                    }
+                },
+                {
+                    "name": "textPath2",
+                    "x": 503,
+                    "y": 549,
+                    "fn": "g.textPath",
+                    "values": {
+                        "fontFamily": "FiraSans-Light.otf",
+                        "fontSize": 20
+                    }
+                },
+                {
+                    "name": "colorize6",
+                    "x": 503,
+                    "y": 601,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "white",
+                        "strokeWidth": 0.3
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "import1",
+                    "input": "Word",
+                    "parameter": "table"
+                },
+                {
+                    "output": "Word",
+                    "input": "distinct1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "import1",
+                    "input": "Album",
+                    "parameter": "table"
+                },
+                {
+                    "output": "Album",
+                    "input": "distinct2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count2",
+                    "input": "scatterPoints1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "distinct2",
+                    "input": "zipMap1",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "zipMap1",
+                    "parameter": "vals"
+                },
+                {
+                    "output": "zipMap1",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "Album",
+                    "input": "lookup3",
+                    "parameter": "key"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "curve1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "distinct2",
+                    "input": "zipMap2",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "zipMap2",
+                    "input": "lookup4",
+                    "parameter": "table"
+                },
+                {
+                    "output": "Album",
+                    "input": "lookup4",
+                    "parameter": "key"
+                },
+                {
+                    "output": "curve1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "colorize2",
+                    "parameter": "stroke"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "zipMap3",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "zipMap3",
+                    "parameter": "vals"
+                },
+                {
+                    "output": "zipMap3",
+                    "input": "lookup5",
+                    "parameter": "table"
+                },
+                {
+                    "output": "Word",
+                    "input": "lookup5",
+                    "parameter": "key"
+                },
+                {
+                    "output": "lookup5",
+                    "input": "curve1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "translate1",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "import1",
+                    "input": "Frequency",
+                    "parameter": "table"
+                },
+                {
+                    "output": "Frequency",
+                    "input": "colorize2",
+                    "parameter": "strokeWidth"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "textPath1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "textPath1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "translate2",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "count1",
+                    "input": "sample2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "sample2",
+                    "input": "coordinates1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "angle1",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "angle1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "stringSplit1",
+                    "input": "hexColor1",
+                    "parameter": "s"
+                },
+                {
+                    "output": "hexColor1",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "hexColor1",
+                    "input": "zipMap2",
+                    "parameter": "vals"
+                },
+                {
+                    "output": "hexColor1",
+                    "input": "colorize3",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "scatterPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "import1",
+                    "input": "inAlbum1",
+                    "parameter": "dat"
+                },
+                {
+                    "output": "count2",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "distinct2",
+                    "input": "zipMap4",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "range1",
+                    "input": "zipMap4",
+                    "parameter": "vals"
+                },
+                {
+                    "output": "zipMap4",
+                    "input": "inAlbum1",
+                    "parameter": "zip"
+                },
+                {
+                    "output": "hexColor1",
+                    "input": "inAlbum1",
+                    "parameter": "col"
+                },
+                {
+                    "output": "angle1",
+                    "input": "inAlbum1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "inAlbum1",
+                    "parameter": "word"
+                },
+                {
+                    "output": "sample2",
+                    "input": "coordinates2",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "coordinates2",
+                    "input": "inAlbum1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "angle1",
+                    "input": "lineAngle1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "lineAngle1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list6"
+                },
+                {
+                    "output": "inAlbum1",
+                    "input": "combine1",
+                    "parameter": "list7"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "lineAngle1",
+                    "parameter": "point"
+                },
+                {
+                    "output": "colorize4",
+                    "input": "combine1",
+                    "parameter": "list4"
+                },
+                {
+                    "output": "hexColor1",
+                    "input": "colorize4",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "combine1",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "rect1",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "translate2",
+                    "input": "colorize5",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize5",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "distinct2",
+                    "input": "textPath2",
+                    "parameter": "text"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "textPath2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "textPath2",
+                    "input": "colorize6",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "hexColor1",
+                    "input": "colorize6",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "colorize6",
+                    "input": "combine1",
+                    "parameter": "list5"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 997,
+                    "y": 709,
+                    "width": 200,
+                    "height": 50,
+                    "text": "dots outside indicate if a word is used in an album"
+                }
+            ]
+        },
+        {
+            "name": "pickme",
+            "type": "network",
+            "renderedNode": "group1",
+            "nodes": [
+                {
+                    "name": "ellipse1",
+                    "x": 345.7984968203417,
+                    "y": 410.10378342748834,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 6,
+                        "height": 6,
+                        "position": {
+                            "x": -4,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "copy1",
+                    "x": 346,
+                    "y": 469,
+                    "fn": "g.copy",
+                    "values": {
+                        "copies": 9,
+                        "translate": {
+                            "x": 6,
+                            "y": 0
+                        },
+                        "rotate": 0
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 345,
+                    "y": 524,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "slice1",
+                    "x": 365.4880361183502,
+                    "y": 634.5645314247852,
+                    "fn": "g.slice"
+                },
+                {
+                    "name": "group1",
+                    "x": 367,
+                    "y": 678,
+                    "fn": "g.group"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "ellipse1",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "copy1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "inlet": "col",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "inlet": "index",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "col",
+                    "type": "string",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "index",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "inAlbum",
+            "type": "network",
+            "renderedNode": "group1",
+            "nodes": [
+                {
+                    "name": "pickme1",
+                    "x": 208,
+                    "y": 405,
+                    "fn": "metallica.pickme"
+                },
+                {
+                    "name": "filterData1",
+                    "x": 229,
+                    "y": 186,
+                    "fn": "g.filterData",
+                    "values": {
+                        "value": "you",
+                        "key": "Word"
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 229,
+                    "y": 239,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "Album"
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 198,
+                    "y": 308,
+                    "fn": "g.lookup"
+                },
+                {
+                    "name": "group1",
+                    "x": 238,
+                    "y": 734,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "rotate1",
+                    "x": 328,
+                    "y": 550,
+                    "fn": "g.rotate"
+                },
+                {
+                    "name": "translate1",
+                    "x": 235.53707675149414,
+                    "y": 666.0677943015987,
+                    "fn": "g.translate"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "filterData1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "lookup2",
+                    "parameter": "key"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "pickme1",
+                    "parameter": "index"
+                },
+                {
+                    "inlet": "dat",
+                    "input": "filterData1",
+                    "parameter": "data"
+                },
+                {
+                    "inlet": "zip",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "inlet": "col",
+                    "input": "pickme1",
+                    "parameter": "col"
+                },
+                {
+                    "inlet": "angle",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "pickme1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "inlet": "word",
+                    "input": "filterData1",
+                    "parameter": "value"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "dat",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "zip",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": false
+                },
+                {
+                    "name": "col",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "angle",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": false
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": false
+                },
+                {
+                    "name": "word",
+                    "type": "string",
+                    "value": 1,
+                    "takesList": false
+                }
+            ],
+            "returnsList": true,
+            "outputType": "shape"
+        }
+    ],
+    "id": "metallica"
+}

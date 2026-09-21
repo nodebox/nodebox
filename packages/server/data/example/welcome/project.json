@@ -1,0 +1,119 @@
+{
+  "title": "Welcome - Getting Started",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Main",
+      "children": [
+        {
+          "type": "NODE",
+          "id": "0:2",
+          "name": "rectangle",
+          "x": 95,
+          "y": 213,
+          "fn": "core/g/rect",
+          "values": {
+            "x": {
+              "type": "EXPRESSION",
+              "expression": "value"
+            },
+            "y": {
+              "type": "EXPRESSION",
+              "expression": "value"
+            },
+            "width": {
+              "type": "VALUE",
+              "value": 10
+            },
+            "height": {
+              "type": "VALUE",
+              "value": 10
+            },
+            "fill": {
+              "type": "VALUE",
+              "value": {
+                "r": 0.9529411764705882,
+                "g": 0.023529411764705882,
+                "b": 0.023529411764705882,
+                "a": 1
+              }
+            },
+            "stroke": {
+              "type": "VALUE",
+              "value": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+              }
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eM0brS62USj:0",
+          "x": 95,
+          "y": 63,
+          "name": "sample data",
+          "fn": "core/g/sample",
+          "values": {
+            "min": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "max": {
+              "type": "VALUE",
+              "value": 100
+            },
+            "amount": {
+              "type": "VALUE",
+              "value": 11
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eM0brS62USj:1",
+          "x": 225,
+          "y": 63,
+          "name": "load-csv",
+          "fn": "core/g/load-csv",
+          "values": {
+            "file": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eM0brS62USj:0",
+          "outPort": "out",
+          "inNode": "0:2",
+          "inPort": "table"
+        }
+      ],
+      "stickies": [
+        {
+          "x": 15,
+          "y": 95,
+          "width": 275,
+          "height": 35,
+          "text": "Click the live1 node and change the orderBy method from X to Y ( or to Angle / Distance)."
+        }
+      ],
+      "renderedNode": "0:2"
+    }
+  ],
+  "id": "welcome",
+  "__gallery": {}
+}

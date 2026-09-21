@@ -1,5 +1,6 @@
 NodeBox 3
 =========
+
 NodeBox is a new software application for creating generative art using procedural graphics and a new way to approach graphic design.
 
 Highlights:
@@ -107,6 +108,7 @@ ant run
 ```
 
 ### Arch Linux
+
 Nodebox has an aur package for distributions based on Arch linux : nodebox-git
 
 ```shell
@@ -122,7 +124,7 @@ makepkg
 sudo pacman -U nodebox-git-[version-number]-any.pkg.tar.xz
 ```
 
-You can then launch nodebox as any desktop application, or by running the ```nodebox``` command on terminal.
+You can then launch nodebox as any desktop application, or by running the `nodebox` command on terminal.
 
 ## Building on FreeBSD/PC-BSD
 

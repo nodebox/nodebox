@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="22" type="file">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <link href="javascript:image.js" rel="functions"/>
+    <node description="Pixels: rasters, halftones and print." name="root" prototype="core.network" renderedChild="print">
+        <node category="image" description="Fill shapes into one coverage raster, under the nonzero winding rule. The whole list is rasterized at once, the way a plate is exposed in one pass." function="image/fill" name="fill" outputType="raster" position="1.00,1.00" prototype="core.node">
+            <port name="shape" range="list" type="geometry" widget="none"/>
+            <port name="width" range="value" type="int" value="1024" widget="int"/>
+            <port name="height" range="value" type="int" value="1024" widget="int"/>
+            <port description="Pixels per unit of the shape's coordinates." name="scale" range="value" type="float" value="1.0" widget="float"/>
+            <port description="Subsample rows per pixel." name="samples" range="value" type="int" value="4" widget="int"/>
+        </node>
+        <node category="image" description="Stroke shapes into one coverage raster, with round joins and caps." function="image/stroke" name="stroke" outputType="raster" position="3.00,1.00" prototype="core.node">
+            <port name="shape" range="list" type="geometry" widget="none"/>
+            <port name="strokeWidth" range="value" type="float" value="1.0" widget="float"/>
+            <port name="width" range="value" type="int" value="1024" widget="int"/>
+            <port name="height" range="value" type="int" value="1024" widget="int"/>
+            <port name="scale" range="value" type="float" value="1.0" widget="float"/>
+            <port name="samples" range="value" type="int" value="4" widget="int"/>
+        </node>
+        <node category="image" description="A raster with the same value everywhere." function="image/constant" name="constant" outputType="raster" position="5.00,1.00" prototype="core.node">
+            <port name="width" range="value" type="int" value="1024" widget="int"/>
+            <port name="height" range="value" type="int" value="1024" widget="int"/>
+            <port name="value" range="value" type="float" value="1.0" widget="float"/>
+        </node>
+        <node category="image" description="The halftone threshold: a round dot per cell, at an angle." function="image/screen" name="screen" outputType="raster" position="7.00,1.00" prototype="core.node">
+            <port name="width" range="value" type="int" value="1024" widget="int"/>
+            <port name="height" range="value" type="int" value="1024" widget="int"/>
+            <port description="Cell size in pixels." name="cell" range="value" type="float" value="6.0" widget="float"/>
+            <port description="Screen angle in degrees." name="angle" range="value" type="float" value="15.0" widget="float"/>
+        </node>
+        <node category="image" description="Tiling value noise." function="image/noise" name="noise" outputType="raster" position="9.00,1.00" prototype="core.node">
+            <port name="width" range="value" type="int" value="1024" widget="int"/>
+            <port name="height" range="value" type="int" value="1024" widget="int"/>
+            <port name="scale" range="value" type="float" value="110.0" widget="float"/>
+            <port name="seed" range="value" type="int" value="7" widget="seed"/>
+        </node>
+        <node category="image" description="White noise in square blocks: the grain of the paper and the press." function="image/grain" name="grain" outputType="raster" position="11.00,1.00" prototype="core.node">
+            <port name="width" range="value" type="int" value="1024" widget="int"/>
+            <port name="height" range="value" type="int" value="1024" widget="int"/>
+            <port description="Block size in pixels." name="size" range="value" type="int" value="1" widget="int"/>
+            <port name="seed" range="value" type="int" value="7" widget="seed"/>
+        </node>
+        <node category="image" description="Paper: a flat tone with fibres drawn into it." function="image/paper" name="paper" outputType="raster" position="13.00,1.00" prototype="core.node">
+            <port name="width" range="value" type="int" value="1024" widget="int"/>
+            <port name="height" range="value" type="int" value="1024" widget="int"/>
+            <port name="color" range="value" type="color" value="#f3efe6ff" widget="color"/>
+            <port name="fibres" range="value" type="float" value="1.0" widget="float"/>
+            <port name="seed" range="value" type="int" value="31" widget="seed"/>
+        </node>
+        <node category="image" description="Add the rasters together." function="image/add" name="add" outputType="raster" position="1.00,3.00" prototype="core.node">
+            <port name="images" range="list" type="raster" widget="none"/>
+        </node>
+        <node category="image" description="Multiply the rasters together." function="image/multiply" name="multiply" outputType="raster" position="3.00,3.00" prototype="core.node">
+            <port name="images" range="list" type="raster" widget="none"/>
+        </node>
+        <node category="image" description="Keep the largest value of each pixel." function="image/maximum" name="maximum" outputType="raster" position="5.00,3.00" prototype="core.node">
+            <port name="images" range="list" type="raster" widget="none"/>
+        </node>
+        <node category="image" description="Keep the smallest value of each pixel." function="image/minimum" name="minimum" outputType="raster" position="7.00,3.00" prototype="core.node">
+            <port name="images" range="list" type="raster" widget="none"/>
+        </node>
+        <node category="image" description="A soft step of a against b. This is what turns a tone into halftone dots." function="image/compare" name="compare" outputType="raster" position="9.00,3.00" prototype="core.node">
+            <port name="a" range="value" type="raster" widget="none"/>
+            <port name="b" range="value" type="raster" widget="none"/>
+            <port name="softness" range="value" type="float" value="0.14" widget="float"/>
+        </node>
+        <node category="image" description="Map 0..1 onto low..high." function="image/remap" name="remap" outputType="raster" position="11.00,3.00" prototype="core.node">
+            <port name="image" range="value" type="raster" widget="none"/>
+            <port name="low" range="value" type="float" value="0.0" widget="float"/>
+            <port name="high" range="value" type="float" value="1.0" widget="float"/>
+        </node>
+        <node category="image" description="Registration: move and turn one ink against the paper." function="image/shift" name="shift" outputType="raster" position="13.00,3.00" prototype="core.node">
+            <port name="image" range="value" type="raster" widget="none"/>
+            <port name="translate" range="value" type="point" value="0.00,0.00" widget="point"/>
+            <port description="Rotation in degrees." name="angle" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node category="image" description="Coverage as the transmittance of one ink: paper where nothing prints." function="image/ink" name="ink" outputType="raster" position="15.00,3.00" prototype="core.node">
+            <port name="image" range="value" type="raster" widget="none"/>
+            <port name="color" range="value" type="color" value="#ff48b0ff" widget="color"/>
+        </node>
+        <node category="image" description="An expression of the two inputs: a is the first, b the second, x and y run 0..1." function="image/expression" name="expression" outputType="raster" position="17.00,3.00" prototype="core.node">
+            <port name="a" range="value" type="raster" widget="none"/>
+            <port name="b" range="value" type="raster" widget="none"/>
+            <port name="expression" range="value" type="string" value="a" widget="string"/>
+        </node>
+
+        <node category="image" description="One ink printed: registration slip, an uneven tone, a halftone screen, the grain of the press and the speckle of the drum. The amounts that are not parameters here are literals inside; dive in to reach them." name="halftone" outputType="raster" position="1.00,6.00" prototype="core.network" renderedChild="inked">
+            <node name="reg" position="1.00,1.00" prototype="image.shift"/>
+            <node name="mottle" position="4.00,1.00" prototype="image.noise">
+                <port name="scale" type="float" value="110.0"/>
+            </node>
+            <node description="The slow unevenness of the ink, as a tone around 1." name="mottleTone" position="4.00,2.00" prototype="image.remap">
+                <port name="low" type="float" value="0.88"/>
+                <port name="high" type="float" value="1.12"/>
+            </node>
+            <node name="tone" position="1.00,3.00" prototype="image.multiply"/>
+            <node name="press" position="7.00,1.00" prototype="image.grain">
+                <port name="size" type="int" value="1"/>
+            </node>
+            <node description="Fine noise at the edge of every dot." name="edge" position="7.00,2.00" prototype="image.remap">
+                <port name="low" type="float" value="-0.03"/>
+                <port name="high" type="float" value="0.03"/>
+            </node>
+            <node name="edged" position="1.00,4.00" prototype="image.add"/>
+            <node name="dotScreen" position="10.00,1.00" prototype="image.screen"/>
+            <node name="dots" position="1.00,5.00" prototype="image.compare"/>
+            <node name="solidAt" position="13.00,1.00" prototype="image.constant">
+                <port name="value" type="float" value="0.97"/>
+            </node>
+            <node description="Where the ink covers almost everything it stays solid instead of breaking into dots." name="solid" position="13.00,2.00" prototype="image.compare">
+                <port name="softness" type="float" value="0.01"/>
+            </node>
+            <node name="screened" position="1.00,6.00" prototype="image.maximum"/>
+            <node name="emptyAt" position="16.00,1.00" prototype="image.constant">
+                <port name="value" type="float" value="0.02"/>
+            </node>
+            <node description="No ink where nothing was drawn, whatever the grain says." name="gate" position="16.00,2.00" prototype="image.compare">
+                <port name="softness" type="float" value="0.01"/>
+            </node>
+            <node name="density" position="19.00,1.00" prototype="image.constant">
+                <port name="value" type="float" value="0.94"/>
+            </node>
+            <node name="mottleDensity" position="4.00,3.00" prototype="image.remap">
+                <port name="low" type="float" value="0.8"/>
+                <port name="high" type="float" value="1.0"/>
+            </node>
+            <node name="pressDensity" position="7.00,3.00" prototype="image.remap">
+                <port name="low" type="float" value="0.92"/>
+                <port name="high" type="float" value="1.0"/>
+            </node>
+            <node name="covered" position="1.00,7.00" prototype="image.multiply"/>
+            <node name="speckle" position="22.00,1.00" prototype="image.grain">
+                <port name="size" type="int" value="2"/>
+                <port name="seed" type="int" value="8"/>
+            </node>
+            <node name="speckleAt" position="22.00,2.00" prototype="image.constant">
+                <port name="value" type="float" value="0.035"/>
+            </node>
+            <node description="The holes the drum leaves in a solid area." name="speckleMask" position="22.00,3.00" prototype="image.compare">
+                <port name="softness" type="float" value="0.001"/>
+            </node>
+            <node name="speckleGain" position="22.00,4.00" prototype="image.remap">
+                <port name="low" type="float" value="1.0"/>
+                <port name="high" type="float" value="0.45"/>
+            </node>
+            <node name="speckled" position="1.00,8.00" prototype="image.multiply"/>
+            <node name="inked" position="1.00,9.00" prototype="image.ink"/>
+            <conn input="tone.images" output="reg"/>
+            <conn input="mottleTone.image" output="mottle"/>
+            <conn input="tone.images" output="mottleTone"/>
+            <conn input="edge.image" output="press"/>
+            <conn input="edged.images" output="tone"/>
+            <conn input="edged.images" output="edge"/>
+            <conn input="dots.a" output="edged"/>
+            <conn input="dots.b" output="dotScreen"/>
+            <conn input="solid.a" output="reg"/>
+            <conn input="solid.b" output="solidAt"/>
+            <conn input="screened.images" output="dots"/>
+            <conn input="screened.images" output="solid"/>
+            <conn input="gate.a" output="reg"/>
+            <conn input="gate.b" output="emptyAt"/>
+            <conn input="mottleDensity.image" output="mottle"/>
+            <conn input="pressDensity.image" output="press"/>
+            <conn input="covered.images" output="screened"/>
+            <conn input="covered.images" output="gate"/>
+            <conn input="covered.images" output="density"/>
+            <conn input="covered.images" output="mottleDensity"/>
+            <conn input="covered.images" output="pressDensity"/>
+            <conn input="speckleMask.a" output="speckleAt"/>
+            <conn input="speckleMask.b" output="speckle"/>
+            <conn input="speckleGain.image" output="speckleMask"/>
+            <conn input="speckled.images" output="covered"/>
+            <conn input="speckled.images" output="speckleGain"/>
+            <conn input="inked.image" output="speckled"/>
+            <port childReference="reg.image" name="coverage" range="value" type="raster" widget="none"/>
+            <port childReference="mottle.width" childReferences="press.width dotScreen.width solidAt.width emptyAt.width density.width speckle.width speckleAt.width" name="width" range="value" type="int" value="1024" widget="int"/>
+            <port childReference="mottle.height" childReferences="press.height dotScreen.height solidAt.height emptyAt.height density.height speckle.height speckleAt.height" name="height" range="value" type="int" value="1024" widget="int"/>
+            <port childReference="dotScreen.cell" name="cell" range="value" type="float" value="5.6" widget="float"/>
+            <port childReference="dotScreen.angle" name="angle" range="value" type="float" value="15.0" widget="float"/>
+            <port childReference="dots.softness" name="softness" range="value" type="float" value="0.14" widget="float"/>
+            <port childReference="reg.translate" name="registration" range="value" type="point" value="0.00,0.00" widget="point"/>
+            <port childReference="reg.angle" name="skew" range="value" type="float" value="0.0" widget="float"/>
+            <port childReference="density.value" name="inkDensity" range="value" type="float" value="0.94" widget="float"/>
+            <port childReference="inked.color" name="color" range="value" type="color" value="#0078bfff" widget="color"/>
+            <port childReference="mottle.seed" childReferences="press.seed" name="seed" range="value" type="int" value="7" widget="seed"/>
+        </node>
+
+        <node category="image" description="A three-colour riso print: paper, and one halftone per ink." name="print" outputType="raster" position="5.00,6.00" prototype="core.network" renderedChild="sheet">
+            <node name="stock" position="1.00,1.00" prototype="image.paper"/>
+            <node name="blueInk" position="4.00,1.00" prototype="image.halftone">
+                <port name="color" type="color" value="#0078bfff"/>
+                <port name="cell" type="float" value="5.6"/>
+                <port name="angle" type="float" value="15.0"/>
+                <port name="registration" type="point" value="0.00,0.00"/>
+                <port name="seed" type="int" value="7"/>
+            </node>
+            <node name="pinkInk" position="7.00,1.00" prototype="image.halftone">
+                <port name="color" type="color" value="#ff48b0ff"/>
+                <port name="cell" type="float" value="5.2"/>
+                <port name="angle" type="float" value="45.0"/>
+                <port name="registration" type="point" value="1.80,1.10"/>
+                <port name="skew" type="float" value="0.069"/>
+                <port name="seed" type="int" value="107"/>
+            </node>
+            <node name="yellowInk" position="10.00,1.00" prototype="image.halftone">
+                <port name="color" type="color" value="#ffe800ff"/>
+                <port name="cell" type="float" value="6.2"/>
+                <port name="angle" type="float" value="0.0"/>
+                <port name="registration" type="point" value="-1.60,1.80"/>
+                <port name="skew" type="float" value="-0.069"/>
+                <port name="seed" type="int" value="207"/>
+            </node>
+            <node name="sheet" position="1.00,3.00" prototype="image.multiply"/>
+            <conn input="sheet.images" output="stock"/>
+            <conn input="sheet.images" output="blueInk"/>
+            <conn input="sheet.images" output="pinkInk"/>
+            <conn input="sheet.images" output="yellowInk"/>
+            <port childReference="blueInk.coverage" name="blue" range="value" type="raster" widget="none"/>
+            <port childReference="pinkInk.coverage" name="pink" range="value" type="raster" widget="none"/>
+            <port childReference="yellowInk.coverage" name="yellow" range="value" type="raster" widget="none"/>
+            <port childReference="stock.width" childReferences="blueInk.width pinkInk.width yellowInk.width" name="width" range="value" type="int" value="1024" widget="int"/>
+            <port childReference="stock.height" childReferences="blueInk.height pinkInk.height yellowInk.height" name="height" range="value" type="int" value="1024" widget="int"/>
+            <port childReference="stock.color" name="paperColor" range="value" type="color" value="#f3efe6ff" widget="color"/>
+            <port childReference="stock.fibres" name="fibres" range="value" type="float" value="1.0" widget="float"/>
+            <port childReference="blueInk.softness" childReferences="pinkInk.softness yellowInk.softness" name="softness" range="value" type="float" value="0.14" widget="float"/>
+            <port childReference="blueInk.inkDensity" childReferences="pinkInk.inkDensity yellowInk.inkDensity" name="inkDensity" range="value" type="float" value="0.94" widget="float"/>
+            <port childReference="stock.seed" name="seed" range="value" type="int" value="31" widget="seed"/>
+        </node>
+    </node>
+</ndbx>

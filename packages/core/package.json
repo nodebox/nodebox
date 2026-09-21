@@ -1,0 +1,46 @@
+{
+  "name": "@ndbx/core",
+  "version": "0.1.0",
+  "description": "NodeBox core: the document model, the .ndbx and NodeBox Live loaders, the list-matching evaluator and the built-in node libraries.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./fonts/node": {
+      "types": "./dist/fonts/node.d.ts",
+      "import": "./dist/fonts/node.js"
+    }
+  },
+  "files": [
+    "dist",
+    "fonts"
+  ],
+  "scripts": {
+    "generate": "node scripts/embed-libraries.mjs",
+    "build": "node scripts/embed-libraries.mjs && tsc -p tsconfig.build.json && node scripts/copy-declarations.mjs",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/embed-libraries.mjs && vitest run",
+    "test-dev": "vitest"
+  },
+  "license": "GPL-2.0-or-later",
+  "dependencies": {
+    "@ndbx/g": "*",
+    "opentype.js": "2.0.0",
+    "polygon-clipping": "^0.15.7"
+  },
+  "devDependencies": {
+    "@webgpu/types": "^0.1.74",
+    "esbuild": "^0.28.2",
+    "g.js": "^0.1.17",
+    "jsdom": "^25.0.1",
+    "opentype-classic": "npm:opentype.js@^1.3.4",
+    "playwright": "^1.63.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.2"
+  }
+}

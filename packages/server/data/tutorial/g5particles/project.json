@@ -1,0 +1,300 @@
+{
+    "title": "g5particles",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "partInit1",
+                    "x": 45,
+                    "y": 45,
+                    "fn": "g5particles.partInit"
+                },
+                {
+                    "name": "partUpdate1",
+                    "x": 45,
+                    "y": 295,
+                    "fn": "g5particles.partUpdate"
+                },
+                {
+                    "name": "partAdd1",
+                    "x": 45,
+                    "y": 205,
+                    "fn": "g5particles.partAdd",
+                    "values": {
+                        "time": 10
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 165,
+                    "y": 525,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 7,
+                        "height": 7
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 205,
+                    "y": 445,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "s"
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 205,
+                    "y": 485,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 45,
+                    "y": 525,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 5,
+                        "height": 5
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 45,
+                    "y": 605,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 165,
+                    "y": 565,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(85,85,85,.5)"
+                    }
+                },
+                {
+                    "name": "mousePosition1",
+                    "x": 245,
+                    "y": 125,
+                    "fn": "g.mousePosition"
+                },
+                {
+                    "name": "stateLoad1",
+                    "x": 45,
+                    "y": 125,
+                    "fn": "g.stateLoad",
+                    "values": {
+                        "key": "particles"
+                    }
+                },
+                {
+                    "name": "stateSave1",
+                    "x": 45,
+                    "y": 375,
+                    "fn": "g.stateSave",
+                    "values": {
+                        "key": "particles"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "lookup1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "mousePosition1",
+                    "input": "partAdd1",
+                    "parameter": "pos"
+                },
+                {
+                    "output": "partInit1",
+                    "input": "stateLoad1",
+                    "parameter": "initial"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "stateLoad1",
+                    "input": "partAdd1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "partAdd1",
+                    "input": "partUpdate1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "partUpdate1",
+                    "input": "stateSave1",
+                    "parameter": "state"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "ellipse2",
+                    "parameter": "position"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 305,
+                    "y": 5,
+                    "width": 120,
+                    "height": 59,
+                    "text": "Press play - move mouse"
+                },
+                {
+                    "x": 35,
+                    "y": 25,
+                    "width": 175,
+                    "height": 55,
+                    "text": "Initial state: an empty list."
+                },
+                {
+                    "x": 35,
+                    "y": 105,
+                    "width": 175,
+                    "height": 55,
+                    "text": "Load the particles' state."
+                },
+                {
+                    "x": 35,
+                    "y": 185,
+                    "width": 175,
+                    "height": 55,
+                    "text": "Add new particles if needed."
+                },
+                {
+                    "x": 35,
+                    "y": 275,
+                    "width": 175,
+                    "height": 55,
+                    "text": "Update the particle system."
+                },
+                {
+                    "x": 35,
+                    "y": 355,
+                    "width": 175,
+                    "height": 55,
+                    "text": "Save the particles' state."
+                },
+                {
+                    "x": 35,
+                    "y": 435,
+                    "width": 285,
+                    "height": 215,
+                    "text": "Draw the particles."
+                },
+                {
+                    "x": 235,
+                    "y": 85,
+                    "width": 195,
+                    "height": 75,
+                    "text": "New particles are added at the position of the mouse."
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "partInit",
+            "source": "g5particles.partInit = function () {\n    var l = [];\n    return l;\n};",
+            "parameters": [],
+            "returnsList": true,
+            "outputType": ""
+        },
+        {
+            "type": "code",
+            "name": "partUpdate",
+            "source": "g5particles.partUpdate = function (l) {\n    var cl = []\n    for (var i = 0; i < l.length; i++) {\n        var p = l[i];\n        p.x += p.sx;\n        p.y += p.sy;\n        var np = new g.Point(p.x, p.y);\n        np.sx = p.sx;\n        np.sy = p.sy;\n        np.s = p.s;\n        if (p.life > 0) {\n            np.life = p.life - 1;\n            cl.push(np);\n        }\n    }\n    return cl;\n};",
+            "parameters": [
+                {
+                    "name": "l",
+                    "type": "",
+                    "value": "",
+                    "takesList": true
+                }
+            ],
+            "returnsList": true,
+            "stateful": true,
+            "outputType": ""
+        },
+        {
+            "type": "code",
+            "name": "partAdd",
+            "source": "g5particles.partAdd = function (l, time,pos) {\n    if (l.length < 100) {\n        var np = new g.Point(pos.x,pos.y);\n        np.sx = 3.0 * (Math.random() - 0.5);\n        np.sy = 3.0 * (Math.random() - 0.5);\n        np.life = 100;\n        np.s = (1 + Math.random()) * 3.0;\n        l.push(np);\n    }\n    return l;\n};",
+            "parameters": [
+                {
+                    "name": "l",
+                    "type": "",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "time",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "pos",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                }
+            ],
+            "returnsList": true,
+            "stateful": true
+        }
+    ],
+    "id": "g5particles"
+}

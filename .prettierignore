@@ -1,0 +1,44 @@
+# Ignore build artifacts
+build/
+dist/
+
+# Ignore dependencies
+node_modules/
+
+# Ignore specific project folders/files
+packages/server/data/
+
+# Ignore generated files
+*.min.*
+*.bundle.js
+*.map
+
+# Ignore config and environment files
+.env
+.env.local
+
+# Ignore CI config
+.github/
+
+# Ignore npm lock file
+package-lock.json
+
+# Java application, assets and NodeBox 3 documents
+src/
+libraries/
+examples/
+res/
+artwork/
+platform/
+lib/
+xml/
+docs/
+specs/
+*.ndbx
+*.xml
+*.nsi
+*.nsh
+packages/core/src/libraries/builtin-ndbx.ts
+packages/core/src/live/classic-g.ts
+packages/core/libraries/classic-g.json
+packages/desktop/release/

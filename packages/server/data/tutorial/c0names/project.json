@@ -1,0 +1,250 @@
+{
+    "title": "c0names",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "text1",
+            "nodes": [
+                {
+                    "name": "text1",
+                    "x": 117,
+                    "y": 342,
+                    "fn": "g.text",
+                    "values": {
+                        "text": "hello",
+                        "fontSize": 40
+                    }
+                },
+                {
+                    "name": "stringSplit1",
+                    "x": -31,
+                    "y": 133,
+                    "fn": "g.stringSplit",
+                    "values": {
+                        "s": "creep,craw,slim,fuzz,whirl,roll,sail,hug",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "pick1",
+                    "x": -31,
+                    "y": 192,
+                    "fn": "g.pick",
+                    "values": {
+                        "amount": 1
+                    }
+                },
+                {
+                    "name": "stringSplit2",
+                    "x": 100,
+                    "y": 128,
+                    "fn": "g.stringSplit",
+                    "values": {
+                        "s": "y,er,o",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "pick2",
+                    "x": 101,
+                    "y": 193,
+                    "fn": "g.pick",
+                    "values": {
+                        "amount": 1
+                    }
+                },
+                {
+                    "name": "stringSplit3",
+                    "x": 227,
+                    "y": 127,
+                    "fn": "g.stringSplit",
+                    "values": {
+                        "s": ",glurg,gobble,doozle,floozie,glar",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "pick3",
+                    "x": 231,
+                    "y": 196,
+                    "fn": "g.pick",
+                    "values": {
+                        "amount": 1
+                    }
+                },
+                {
+                    "name": "stringSplit4",
+                    "x": 370,
+                    "y": 130,
+                    "fn": "g.stringSplit",
+                    "values": {
+                        "s": "naut,fish,bot,zorg,ball,feeder,pod,bath,toy,zoid",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "pick4",
+                    "x": 371,
+                    "y": 201,
+                    "fn": "g.pick",
+                    "values": {
+                        "amount": 1
+                    }
+                },
+                {
+                    "name": "concatenate1",
+                    "x": 118,
+                    "y": 262,
+                    "fn": "g.concatenate",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 159,
+                    "y": 12,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "seed": 3
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 308,
+                    "y": 304,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "line1",
+                    "x": 248,
+                    "y": 381,
+                    "fn": "g.line",
+                    "values": {
+                        "point1": {
+                            "x": 0,
+                            "y": -200
+                        },
+                        "point2": {
+                            "x": 0,
+                            "y": 200
+                        }
+                    }
+                },
+                {
+                    "name": "topoints1",
+                    "x": 248,
+                    "y": 521,
+                    "fn": "g.toPoints",
+                    "values": {}
+                },
+                {
+                    "name": "resampleByAmount1",
+                    "x": 247,
+                    "y": 452,
+                    "fn": "g.resampleByAmount"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "stringSplit1",
+                    "input": "pick1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "stringSplit2",
+                    "input": "pick2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "stringSplit3",
+                    "input": "pick3",
+                    "parameter": "l"
+                },
+                {
+                    "output": "stringSplit4",
+                    "input": "pick4",
+                    "parameter": "l"
+                },
+                {
+                    "output": "pick1",
+                    "input": "concatenate1",
+                    "parameter": "s1"
+                },
+                {
+                    "output": "pick2",
+                    "input": "concatenate1",
+                    "parameter": "s2"
+                },
+                {
+                    "output": "pick3",
+                    "input": "concatenate1",
+                    "parameter": "s3"
+                },
+                {
+                    "output": "pick4",
+                    "input": "concatenate1",
+                    "parameter": "s4"
+                },
+                {
+                    "output": "concatenate1",
+                    "input": "text1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "pick1",
+                    "parameter": "seed"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "pick2",
+                    "parameter": "seed"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "pick3",
+                    "parameter": "seed"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "pick4",
+                    "parameter": "seed"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "text1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "line1",
+                    "input": "resampleByAmount1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count1",
+                    "input": "resampleByAmount1",
+                    "parameter": "perContour"
+                },
+                {
+                    "output": "resampleByAmount1",
+                    "input": "topoints1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "c0names"
+}

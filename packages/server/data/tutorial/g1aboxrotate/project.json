@@ -1,0 +1,209 @@
+{
+    "title": "g1aboxrotate",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "align1",
+            "nodes": [
+                {
+                    "name": "boxrotate",
+                    "x": 45,
+                    "y": 165,
+                    "fn": "g1aboxrotate.boxrotate",
+                    "values": {
+                        "amount": 30
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 45,
+                    "y": 45,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "rect2",
+                    "x": 105,
+                    "y": 215,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 20,
+                        "height": 20
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 115,
+                    "y": 405,
+                    "fn": "g.translate",
+                    "masterList": "translate"
+                },
+                {
+                    "name": "rotate1",
+                    "x": 115,
+                    "y": 355,
+                    "fn": "g.rotate",
+                    "values": {}
+                },
+                {
+                    "name": "lookup1",
+                    "x": 135,
+                    "y": 285,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "rot"
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": 45,
+                    "y": 85,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 22
+                    }
+                },
+                {
+                    "name": "rect3",
+                    "x": 315,
+                    "y": 355,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 280,
+                        "height": 280,
+                        "position": {
+                            "x": 195,
+                            "y": 195
+                        }
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 165,
+                    "y": 465,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 315,
+                    "y": 405,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "white",
+                        "stroke": "black"
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 165,
+                    "y": 515,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "align1",
+                    "x": 175,
+                    "y": 565,
+                    "fn": "g.align",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "boxrotate",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "rect2",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "frame1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "rect3",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "divide1",
+                    "input": "boxrotate",
+                    "parameter": "time"
+                },
+                {
+                    "output": "translate1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "boxrotate",
+                    "input": "translate1",
+                    "parameter": "translate"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 301,
+                    "y": 6,
+                    "width": 75,
+                    "height": 41,
+                    "text": "Press Play"
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "boxrotate",
+            "source": "g1aboxrotate.boxrotate = function (amount, time) {\n    var increase = Math.PI * 2.0 / amount;\n    var angle = -Math.PI;\n    var plotcache = [];\n    var rx = 200 * Math.cos(time) + 200;\n    var ry = 50 * Math.sin(time) + 200;\n    for (var i = 0; i < amount; i++) {\n        var x = 100 * Math.cos(angle) + rx;\n        var y = 100 * Math.sin(angle) + ry;\n        x = g.clamp(x, 70, 320);\n        y = g.clamp(y, 70, 320);\n        var turnangle = Math.atan2(y - ry, x - rx) * 180 / Math.PI + 90;\n        var p = new g.Point(x, y);\n        p.rot = turnangle;\n        plotcache.push(p);\n        angle += increase;\n    }\n    return plotcache;\n};",
+            "parameters": [
+                {
+                    "name": "amount",
+                    "type": "int",
+                    "value": 10
+                },
+                {
+                    "name": "time",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "g1aboxrotate"
+}
