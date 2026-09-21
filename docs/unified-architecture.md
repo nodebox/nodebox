@@ -51,6 +51,11 @@ settings, sections) travel in `node.meta` and `library.meta`, so each format wri
   `nodebox/math`, …) whose items are *native*: their parameters and ports are spelled out and their
   behaviour lives in the core. `libraryToLiveProject` converts a `.ndbx` document into a project the
   Live editor can display, hoisting subnetworks into network items with inlets and outlets.
+- `live/classic-*.ts`: the first NodeBox Live format, where a project is a list of functions and the
+  runtime does the list matching. The reader, the namespace runtime that evaluates the function
+  sources, the classic `core/g` declarations over the `g.js` package, the conversion into editor
+  items and the conversion of g.js shapes into `@ndbx/g` ones. See
+  [classic-nodebox-live.md](classic-nodebox-live.md).
 
 ### Evaluator
 
@@ -106,6 +111,7 @@ flattened outlines, and conversion to and from `@ndbx/g` shapes for rendering an
 | NodeBox 3 built-in libraries (`libraries/*.ndbx`, 154 nodes) | load as prototypes | all resolve; every function is provided |
 | NodeBox Live core library (`packages/runtime/functions/g`) | ports derived from source, nodes run through the bridge | passes (`test/live.test.ts`) |
 | NodeBox Live example projects | load, evaluate, write back | the welcome project round-trips and renders identically |
+| Classic NodeBox Live demos and tutorials (`packages/server/data`, 95 projects) | render, and compare node by node against the original runtime | all 81 that render under the original runtime produce identical results (`test/classic.test.ts`) |
 | Cartan Node Library 3.7 (274 MB, 915,470 nodes, 205 nodes + demos) | load; render every demo | loads in 35 s, 0 unresolved prototypes; 163 of 205 demos render with the built-ins alone (see below) |
 
 ### John Cartan's node library
@@ -130,6 +136,8 @@ node --max-old-space-size=12000 --import tsx scripts/ndbx-render-children.mts "n
 
 ## What is not there yet
 
+- A classic NodeBox Live project opens and renders in the editor, but cannot be saved back: its code
+  functions are sources that assign into a namespace, not the ES modules the editor writes.
 - The editor still draws NodeBox 3 documents with Live's conventions (pixel positions, inlets and
   outlets instead of published ports on the network node). Handles, the NodeBox 3 viewer overlays and
   the animation timeline are not ported.

@@ -33,6 +33,26 @@ const results = await context.renderEntryPoint("/main");
 itself would apply the network's own output range, which is what happens when it is used as a node
 inside another network, not when it is the thing being shown.
 
+## In the editor
+
+The editor works with `items`, not with a list of functions, so a classic project is converted:
+`classicProjectToLiveProject` turns every network function into a network item and every code
+function into a function item, and the original JSON travels along on the project
+(`__classicSource`) for the engine to render from. A classic parameter becomes both an input port
+and a widget, because classic made no distinction: any parameter could be connected, and every one
+of them had a control.
+
+`packages/runtime` recognises the format while loading and routes it to the core: the Live engine
+has nothing to run, since a classic function is a source string rather than an ES module.
+`core/g` is taken from the library built into `@ndbx/core` rather than from the server, whose copy
+was rewritten in a later format that the classic nodes no longer match. `g.js`, `lodash` and
+opentype 1.x are loaded on demand, so a project in the current format never pays for them, and the
+results are converted from g.js shapes to `@ndbx/g` shapes for the viewer.
+
+A classic project opens read-only in practice: the editor can show and run it, but a code
+function's source is classic JavaScript that assigns into a namespace, not a module the editor can
+save back.
+
 ## How the two models line up
 
 | Classic (`cycleMap`, `_evaluateNode`)        | Core (`buildArgumentMaps`, `postProcess`)      |
@@ -70,6 +90,9 @@ a `<script>` tag did, because that is how those projects share code.
 Most of `core/g` has no source of its own: its 172 functions are declarations over the
 [`g.js`](https://github.com/nodebox/g.js) package, which the host passes in as a namespace. The
 declarations are built into the core (`libraries/classic-g.json`), so only the package is needed.
+
+Text needs one more asset: `default-font`, the face `g.textPath` outlines with when a project names
+no font of its own. It is `FiraSans-Regular.woff`, which the web app ships under `/fonts`.
 
 Two pins matter for identical output:
 

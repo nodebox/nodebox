@@ -8,7 +8,8 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { NodeContext } from "../src/runtime/context";
-import { openClassicProject } from "../src/live/classic-document";
+import { classicLibraryProject, openClassicProject } from "../src/live/classic-document";
+import { classicProjectToLiveProject } from "../src/live/classic-editor";
 import { isClassicProject } from "../src/live/classic-types";
 import type { ClassicProject } from "../src/live/classic-types";
 
@@ -115,6 +116,45 @@ describe("classic NodeBox Live projects", () => {
     const points = search.inputs.find((port) => port.name === "points")!;
     expect(points.childReference).toBe("slice1.l");
     expect(points.childReferences).toEqual(["shapeSort1.shapes"]);
+  });
+
+  it("converts a project into editor items whose nodes all resolve", () => {
+    const unresolved: string[] = [];
+    for (const key of Object.keys(expected)) {
+      const classic = loadProject(key);
+      const project = classicProjectToLiveProject(classic, { key });
+      const items = new Map<string, Set<string>>();
+      items.set("self/self", new Set(project.items.map((item) => item.name)));
+      for (const dependencyKey of Object.keys(classic.dependencies ?? {})) {
+        const dependency = classicLibraryProject(dependencyKey) ?? loadProject(dependencyKey);
+        if (!isClassicProject(dependency)) continue;
+        items.set(dependencyKey, new Set((dependency.functions ?? []).map((fn) => fn.name)));
+      }
+      for (const item of project.items) {
+        if (item.type !== "NETWORK") continue;
+        for (const child of item.children) {
+          if (child.type !== "NODE") continue;
+          const slash = child.fn.lastIndexOf("/");
+          const names = items.get(child.fn.slice(0, slash));
+          if (names && !names.has(child.fn.slice(slash + 1))) unresolved.push(`${key}: ${child.name} -> ${child.fn}`);
+        }
+      }
+    }
+    expect(unresolved).toEqual([]);
+  });
+
+  it("gives a network an inlet per parameter and an outlet for the rendered node", () => {
+    const project = classicProjectToLiveProject(loadProject("tutorial/b5bulge"), { key: "tutorial/b5bulge" });
+    const fx = project.items.find((item) => item.name === "fx")!;
+    expect(fx.type).toBe("NETWORK");
+    const network = fx as Extract<typeof fx, { type: "NETWORK" }>;
+    expect(network.children.filter((child) => child.type === "INLET").map((child) => child.portName)).toContain(
+      "shape",
+    );
+    expect(network.children.some((child) => child.type === "OUTLET")).toBe(true);
+    expect(network.connections.some((connection) => connection.type === "INLET_TO_NODE")).toBe(true);
+    // The classic viewer drew around the origin, and the editor's viewer honours that.
+    expect(network.__ndbx?.origin).toBe("center");
   });
 
   for (const [key, count] of Object.entries(expected)) {
