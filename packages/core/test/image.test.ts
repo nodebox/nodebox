@@ -9,7 +9,10 @@ import * as kernels from "../src/functions/image";
 import { builtinFunctionRepository } from "../src/functions";
 import { builtinNodeRepository } from "../src/libraries";
 import { NodeContext } from "../src/runtime/context";
-import { addChild, connect, createNetworkNode, extendNode, setInputValue } from "../src/model/node";
+import fs from "node:fs";
+import path from "node:path";
+import { addChild, connect, createNetworkNode, extendNode, getChild, setInputValue } from "../src/model/node";
+import { parseNdbx } from "../src/ndbx/reader";
 import type { Library } from "../src/model/types";
 
 // Without a device installed every kernel returns a CPU raster.
@@ -168,6 +171,30 @@ describe("the print, as a network of those nodes", () => {
     const middle =
       raster.at(size / 2, size / 2, 0) + raster.at(size / 2, size / 2, 1) + raster.at(size / 2, size / 2, 2);
     expect(middle).toBeLessThan(paper[0] + paper[1] + paper[2]);
+  }, 30000);
+
+  it("renders the example document that ends in a print", async () => {
+    const file = path.resolve(__dirname, "..", "examples", "riso-print.ndbx");
+    const { library, warnings } = parseNdbx(fs.readFileSync(file, "utf-8"), { repository: builtinNodeRepository() });
+    expect(warnings).toEqual([]);
+    // The document is 800 by 800; render it at a quarter so the test stays quick. `scale` is
+    // pixels per unit, so the framing is the same.
+    for (const name of ["blueFill", "pinkFill", "yellowFill"]) {
+      const node = getChild(library.root, name)!;
+      setInputValue(node, "width", 200);
+      setInputValue(node, "height", 200);
+      setInputValue(node, "scale", 0.25);
+    }
+    const print = getChild(library.root, "print1")!;
+    setInputValue(print, "width", 200);
+    setInputValue(print, "height", 200);
+    setInputValue(print, "fibres", 0);
+    const results = await new NodeContext(library, builtinFunctionRepository()).render("/");
+    const raster = results[0] as Raster;
+    expect([raster.width, raster.height, raster.channels]).toEqual([200, 200, 3]);
+    // The corner is bare paper; the middle of the yellow disc is not.
+    expect(raster.at(3, 3, 2)).toBeGreaterThan(0.8);
+    expect(raster.at(100, 100, 2)).toBeLessThan(0.5);
   }, 30000);
 
   it("is built from the image blocks, not from one function", () => {
