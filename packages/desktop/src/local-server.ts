@@ -51,13 +51,14 @@ export async function startLocalServer(options: LocalServerOptions): Promise<Loc
     ASSETS_URL: "",
   };
   const host = options.host ?? "127.0.0.1";
-  const server = serve({
-    fetch: (request) => app.fetch(request, env),
-    hostname: host,
-    port: options.port ?? 0,
+  // The server binds asynchronously, so the port an ephemeral bind (port 0) picked is only known
+  // once it is listening. Asking for the address before that yields port 0 and an unreachable URL.
+  const { server, port } = await new Promise<{ server: ReturnType<typeof serve>; port: number }>((resolve) => {
+    const started = serve(
+      { fetch: (request) => app.fetch(request, env), hostname: host, port: options.port ?? 0 },
+      (info) => resolve({ server: started, port: info.port }),
+    );
   });
-  const address = server.address();
-  const port = typeof address === "object" && address ? address.port : options.port ?? 0;
   return {
     url: `http://${host}:${port}`,
     token,
