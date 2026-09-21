@@ -21,7 +21,7 @@ import {
   toG,
 } from "@ndbx/core";
 import type { ClassicDocument, ClassicProject, LiveProject } from "@ndbx/core";
-import { classicToG, openClassicProject } from "@ndbx/core";
+import { GpuRaster, classicToG, getImageDevice, installImageDevice, openClassicProject } from "@ndbx/core";
 import Context from "./context";
 import { config } from "./loaders";
 import { Item, Project } from "./types";
@@ -192,6 +192,31 @@ async function renderClassicItem(cx: Context, item: Item, data: Record<string, u
   return classicToG(results.length === 1 ? results[0] : results) ?? (results.length === 1 ? results[0] : results);
 }
 
+let devicePromise: Promise<void> | null = null;
+
+/**
+ * The pixel nodes run their kernels on WebGPU when the browser has it. The device is asked for
+ * once; until it answers, and where there is none, the kernels run on the CPU.
+ */
+export function ensureImageDevice(): Promise<void> {
+  if (devicePromise) return devicePromise;
+  devicePromise = (async () => {
+    if (getImageDevice() || typeof navigator === "undefined") return;
+    // Typed here rather than pulled in as a global, so the WebGPU types stay inside @ndbx/core.
+    const gpu = (navigator as { gpu?: { requestAdapter(): Promise<{ requestDevice(): Promise<unknown> } | null> } })
+      .gpu;
+    if (!gpu) return;
+    try {
+      const adapter = await gpu.requestAdapter();
+      const device = await adapter?.requestDevice();
+      if (device) installImageDevice(device as never);
+    } catch (e) {
+      console.warn("No WebGPU device; the pixel nodes will run on the CPU.", e);
+    }
+  })();
+  return devicePromise;
+}
+
 /** Render one item of the project with the core engine and return its primary result. */
 export async function renderItemWithCore(
   cx: Context,
@@ -200,6 +225,7 @@ export async function renderItemWithCore(
 ): Promise<unknown> {
   if (cx.project.__classicSource !== undefined) return renderClassicItem(cx, item, data);
   await ensureCoreFonts();
+  await ensureImageDevice();
   const { main, all } = coreLibraries(cx);
   const functions = builtinFunctionRepository().combine(
     liveFunctions(all, {
@@ -215,7 +241,17 @@ export async function renderItemWithCore(
   const context = new NodeContext(main, functions, { data: { frame: 1, ...data }, persistent });
   state.contexts.set(persistentKey, context);
   const results = await context.render(`/${item.name}`);
-  return primaryResult(results);
+  return primaryResult(await Promise.all(results.map(fromDevice)));
+}
+
+/** A raster that ran its kernels on the device comes back to the CPU to be shown or exported. */
+async function fromDevice(value: unknown): Promise<unknown> {
+  if (!GpuRaster.isGpuRaster(value)) return value;
+  const device = getImageDevice();
+  if (!device) return value;
+  const raster = await device.readback(value);
+  value.release();
+  return raster;
 }
 
 /** A rendered list becomes what the viewer expects: one shape tree, a table, or a single value. */

@@ -32,6 +32,7 @@ import { ButtonMenu, MenuOption } from "../components/button-menu";
 import { toast } from "react-toastify";
 import * as vega from "vega";
 import { colorIsTransparent, colorToCss } from "../lib/color-utils";
+import { isRaster, rasterToDataUrl } from "../lib/raster";
 
 const MIN_VIEW_SCALE = 0.15;
 const MAX_VIEW_SCALE = 5;
@@ -197,7 +198,19 @@ function CanvasViewer({ item, result, showAttributes, drawPoints, drawBounds }: 
   let defsElement = null;
   if (result)
     try {
-      if (result && result.type) {
+      if (isRaster(result)) {
+        // A raster covers the canvas: it was rendered at the canvas's own proportions.
+        shapeElement = (
+          <image
+            href={rasterToDataUrl(result)}
+            x={-(item.width ?? 1000) / 2}
+            y={-(item.height ?? 1000) / 2}
+            width={item.width ?? 1000}
+            height={item.height ?? 1000}
+            style={{ imageRendering: "auto" }}
+          />
+        );
+      } else if (result.type) {
         shapeElement = renderShape(result, graphicsContext, undefined, drawPoints);
         defsElement = renderDefs(graphicsContext);
       }
@@ -206,9 +219,10 @@ function CanvasViewer({ item, result, showAttributes, drawPoints, drawBounds }: 
     }
 
   let svgSize: CanvasSize = { left: 0, top: 0, width: item.width ?? 1000, height: item.height ?? 1000 };
-  // Documents converted from NodeBox 3 draw around the origin, not from the top-left corner.
+  // Documents converted from NodeBox 3 draw around the origin, not from the top-left corner, and
+  // so does a raster, which is centred on the canvas.
   const origin = (item as Network & { __ndbx?: { origin?: string } }).__ndbx?.origin;
-  if (origin === "center") {
+  if (origin === "center" || isRaster(result)) {
     svgSize.left = -svgSize.width / 2;
     svgSize.top = -svgSize.height / 2;
   }
@@ -460,6 +474,7 @@ export default function Viewer() {
 
   const resultIsDrawable =
     (typeof resultType === "string" && GRAPHIC_TYPES.includes(resultType)) ||
+    isRaster(result.value) ||
     isValidElement(result.value) ||
     isVegaSpec(result.value);
   let realActiveTab = activeTab;

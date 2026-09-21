@@ -11,7 +11,17 @@ import { Point } from "../graphics/point";
 import { NodeRepository } from "../model/library";
 import { addChild, createNetworkNode, createRootNode, extendNode, getInput, setInputValue } from "../model/node";
 import { createPort } from "../model/port";
-import { FunctionLink, Library, MenuItem, Node, Port, PortRange, PortType, PortWidget } from "../model/types";
+import {
+  FunctionLink,
+  Library,
+  MenuItem,
+  Node,
+  Port,
+  PortRange,
+  PortType,
+  PortWidget,
+  isStandardType,
+} from "../model/types";
 import { analyzeFunctionSource } from "./source-analysis";
 import {
   LIVE_FORMAT_VERSION,
@@ -333,7 +343,12 @@ function fillNetwork(
         warnings.push(`Connection refers to an unknown node (${c.outNode} -> ${c.inNode}).`);
         continue;
       }
-      node.connections = node.connections.filter((x) => !(x.inputNode === inNode && x.inputPort === c.inPort));
+      // A value port takes one connection, so a second replaces the first; a list port collects.
+      const target = node.children.find((n) => n.name === inNode);
+      const targetPort = target && getInput(target, c.inPort);
+      if (!targetPort || targetPort.range !== "list") {
+        node.connections = node.connections.filter((x) => !(x.inputNode === inNode && x.inputPort === c.inPort));
+      }
       node.connections.push({ outputNode: outNode, outputPort: c.outPort, inputNode: inNode, inputPort: c.inPort });
     } else if (c.type === "INLET_TO_NODE") {
       const inlet = inlets.get(c.inlet) ?? [...inlets.values()].find((i) => i.portName === c.inlet);
@@ -345,10 +360,11 @@ function fillNetwork(
       const existing = node.inputs.find((p) => p.name === inlet.portName);
       const reference = `${inNode}.${c.inPort}`;
       if (existing && existing.childReference) {
-        // One inlet feeding several ports: keep the extra targets so the writer can restore them.
-        const extra = (node.meta.liveExtraInletTargets as Record<string, string[]>) ?? {};
-        (extra[inlet.portName] ??= []).push(reference);
-        node.meta.liveExtraInletTargets = extra;
+        // One inlet feeding several ports: the rest are the port's further targets, which the
+        // evaluator pushes values into as well.
+        if (existing.childReference !== reference && !(existing.childReferences ?? []).includes(reference)) {
+          (existing.childReferences ??= []).push(reference);
+        }
         continue;
       }
       const { type, range } = livePortType(inlet.portType);
@@ -356,10 +372,18 @@ function fillNetwork(
       const childPort = child ? getInput(child, c.inPort) : undefined;
       const port = createPort(inlet.portName, childPort?.type ?? type, {
         range: childPort?.range ?? range,
-        widget: "none",
+        // A published port of a standard type keeps the child's control, so the editor can set it
+        // without diving into the network; a data port has none either way.
+        widget: childPort && isStandardType(childPort.type) ? childPort.widget : "none",
         childReference: reference,
       });
-      if (childPort) port.value = childPort.value;
+      if (childPort) {
+        port.value = childPort.value;
+        port.min = childPort.min;
+        port.max = childPort.max;
+        port.menuItems = childPort.menuItems.map((m) => ({ ...m }));
+        port.label = childPort.label;
+      }
       if (existing) Object.assign(existing, port);
       else node.inputs.push(port);
     } else if (c.type === "NODE_TO_OUTLET") {

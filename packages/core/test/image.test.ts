@@ -5,12 +5,19 @@ import { Path } from "../src/graphics/path";
 import { Point } from "../src/graphics/point";
 import { Raster } from "../src/graphics/raster";
 import { rasterizeFill, rasterizeStroke } from "../src/graphics/rasterize";
-import * as image from "../src/functions/image";
+import * as kernels from "../src/functions/image";
 import { builtinFunctionRepository } from "../src/functions";
 import { builtinNodeRepository } from "../src/libraries";
 import { NodeContext } from "../src/runtime/context";
 import { addChild, connect, createNetworkNode, extendNode, setInputValue } from "../src/model/node";
 import type { Library } from "../src/model/types";
+
+// Without a device installed every kernel returns a CPU raster.
+const image = kernels as unknown as {
+  [K in keyof typeof kernels]: (typeof kernels)[K] extends (...args: infer A) => kernels.AnyRaster
+    ? (...args: A) => Raster
+    : (typeof kernels)[K];
+};
 
 function stats(raster: Raster) {
   let min = Infinity;

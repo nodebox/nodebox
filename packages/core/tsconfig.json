@@ -14,7 +14,8 @@
     "isolatedModules": true,
     "declaration": true,
     "sourceMap": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "types": ["@webgpu/types", "node"]
   },
   "include": ["src/**/*", "test/**/*"]
 }

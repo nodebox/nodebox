@@ -11,7 +11,7 @@ import { Color } from "../graphics/color";
 import { Point } from "../graphics/point";
 import { NodeRepository } from "../model/library";
 import { getChild, uniqueName } from "../model/node";
-import { CLASSIC_TYPE_PREFIX, classicTypeOf, isPublishedPort, portLabel } from "../model/port";
+import { CLASSIC_TYPE_PREFIX, classicTypeOf, isPublishedPort, portLabel, publishedTargets } from "../model/port";
 import { Library, Node, Port } from "../model/types";
 import { builtinNodeRepository } from "../libraries";
 import {
@@ -75,7 +75,14 @@ function nativeItem(node: Node, prototype: string, id: string): NativeFunctionIt
   const inputPorts: LivePort[] = [];
   const parameters: LiveParameter[] = [];
   for (const port of node.inputs) {
-    if (isDataPort(port)) inputPorts.push({ name: port.name, type: livePortTypeFor(port), label: portLabel(port) });
+    if (isDataPort(port))
+      inputPorts.push({
+        name: port.name,
+        type: livePortTypeFor(port),
+        label: portLabel(port),
+        // Live port types cannot say "a list of geometry", so the real one travels alongside.
+        __ndbx: { type: port.type, range: port.range },
+      });
     else parameters.push(portToLiveParameter(port));
   }
   const outputPorts: LivePort[] =
@@ -295,9 +302,11 @@ export function libraryToLiveProject(library: Library, options: ConvertOptions =
           label: portLabel(port),
           __ndbx: { type: port.type, range: port.range },
         });
-        const [childName, childPort] = port.childReference!.split(".");
-        const inNode = ids.get(childName);
-        if (inNode) connections.push({ type: "INLET_TO_NODE", inlet: inletId, inNode, inPort: childPort });
+        // A published port can feed several children; the editor draws that as several wires.
+        for (const target of publishedTargets(port)) {
+          const inNode = ids.get(target.node);
+          if (inNode) connections.push({ type: "INLET_TO_NODE", inlet: inletId, inNode, inPort: target.port });
+        }
       } else {
         parameters.push(portToLiveParameter(port));
       }

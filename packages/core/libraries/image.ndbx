@@ -4,15 +4,15 @@
     <property name="canvasWidth" value="1000"/>
     <link href="javascript:image.js" rel="functions"/>
     <node description="Pixels: rasters, halftones and print." name="root" prototype="core.network" renderedChild="print">
-        <node category="image" description="Fill a shape into a coverage raster, under the nonzero winding rule." function="image/fill" name="fill" outputType="raster" position="1.00,1.00" prototype="core.node">
-            <port name="shape" range="value" type="geometry" widget="none"/>
+        <node category="image" description="Fill shapes into one coverage raster, under the nonzero winding rule. The whole list is rasterized at once, the way a plate is exposed in one pass." function="image/fill" name="fill" outputType="raster" position="1.00,1.00" prototype="core.node">
+            <port name="shape" range="list" type="geometry" widget="none"/>
             <port name="width" range="value" type="int" value="1024" widget="int"/>
             <port name="height" range="value" type="int" value="1024" widget="int"/>
             <port description="Pixels per unit of the shape's coordinates." name="scale" range="value" type="float" value="1.0" widget="float"/>
             <port description="Subsample rows per pixel." name="samples" range="value" type="int" value="4" widget="int"/>
         </node>
-        <node category="image" description="Stroke a shape into a coverage raster, with round joins and caps." function="image/stroke" name="stroke" outputType="raster" position="3.00,1.00" prototype="core.node">
-            <port name="shape" range="value" type="geometry" widget="none"/>
+        <node category="image" description="Stroke shapes into one coverage raster, with round joins and caps." function="image/stroke" name="stroke" outputType="raster" position="3.00,1.00" prototype="core.node">
+            <port name="shape" range="list" type="geometry" widget="none"/>
             <port name="strokeWidth" range="value" type="float" value="1.0" widget="float"/>
             <port name="width" range="value" type="int" value="1024" widget="int"/>
             <port name="height" range="value" type="int" value="1024" widget="int"/>

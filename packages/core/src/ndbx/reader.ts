@@ -234,22 +234,30 @@ function createNode(
   return node;
 }
 
-function parseNode(e: XmlElement, parent: Node, state: ParseState): Node {
+function parseNode(e: XmlElement, parent: Node, state: ParseState, inherited?: Node): Node {
   const hasChildren = e.childElements.some((c) => c.tagName === "node" || c.tagName === "importCoreNode");
   const prototypeId = e.getAttribute("prototype");
-  // A node without a prototype extends the root node, or the network node once it has children.
-  const base = prototypeId === undefined && hasChildren ? CORE_NODES.NETWORK() : CORE_NODES.ROOT();
-  const baseId = prototypeId === undefined && hasChildren ? "core.network" : null;
+  // A node without a prototype extends the child of the same name it already has from its own
+  // prototype, or the root node, or the network node once it has children.
+  const base = inherited ?? (prototypeId === undefined && hasChildren ? CORE_NODES.NETWORK() : CORE_NODES.ROOT());
+  const baseId = inherited ? inherited.prototype : prototypeId === undefined && hasChildren ? "core.network" : null;
   const node = createNode(e, base, baseId, parent, state);
-  if (prototypeId === undefined && !hasChildren) node.prototype = null;
+  if (prototypeId === undefined && !hasChildren && !inherited) node.prototype = null;
   // The library's own root, so that a later node can extend one defined earlier in this file.
   if (state.root === undefined) state.root = node;
 
   for (const child of e.childElements) {
     switch (child.tagName) {
-      case "node":
-        addChild(node, parseNode(child, node, state));
+      case "node": {
+        // A node that extends a network already has that network's children; an element with the
+        // same name refines one of them rather than adding a second.
+        const childName = child.getAttribute("name");
+        const inheritedChild = childName ? getChild(node, childName) : undefined;
+        const parsed = parseNode(child, node, state, inheritedChild);
+        if (inheritedChild) node.children[node.children.indexOf(inheritedChild)] = parsed;
+        else addChild(node, parsed);
         break;
+      }
       case "importCoreNode": {
         const ref = child.getAttribute("ref") ?? "";
         const factory = CORE_NODES[ref];

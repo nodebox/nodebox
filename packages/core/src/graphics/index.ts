@@ -10,3 +10,4 @@ export * from "./text";
 export * from "./to-g";
 export * from "./raster";
 export * from "./rasterize";
+export * from "./gpu";
