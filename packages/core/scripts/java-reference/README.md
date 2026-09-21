@@ -21,7 +21,7 @@ NDBX_INSPECT_PLAIN=1 NDBX_INSPECT_POINTS=1 node --import tsx scripts/ndbx-inspec
 node --import tsx scripts/ndbx-compare-traces.mts demo.java.log demo.ts.log
 ```
 
-Both traces record the *last* invocation of a node, so inside networks that run once per list
+Both traces record the _last_ invocation of a node, so inside networks that run once per list
 item the inner values differ harmlessly; compare the network's own output first. Python and
 Clojure function modules of a document load in Java only when the `.py`/`.clj` files sit next to
 the document.

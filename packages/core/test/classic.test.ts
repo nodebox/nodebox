@@ -24,7 +24,7 @@ const gPackage = require("g.js");
 gPackage._toSVG = gPackage.toSVG;
 
 const dataDir = path.resolve(__dirname, "..", "..", "server", "data");
-const fontFile = path.resolve(__dirname, "..", "..", "server", "static", "fonts", "FiraSans-Regular.woff");
+const fontFile = path.resolve(__dirname, "..", "..", "web", "public", "fonts", "FiraSans-Regular.woff");
 const expected: Record<string, number> = JSON.parse(
   fs.readFileSync(path.join(__dirname, "classic-results.json"), "utf-8"),
 );
@@ -76,7 +76,7 @@ async function render(key: string): Promise<unknown[]> {
   const project = loadProject(key);
   const scripts: string[] = [];
   const assets = loadAssets(key, project, scripts);
-  if (fs.existsSync(fontFile)) assets["default-font"] = toArrayBuffer(fs.readFileSync(fontFile));
+  assets["default-font"] = toArrayBuffer(fs.readFileSync(fontFile));
   // A dependency that is no longer a classic project (core/g was rewritten in a later format) is
   // left out, so that the classic library built into the core is used for it instead.
   const dependencies = Object.keys(project.dependencies ?? {})

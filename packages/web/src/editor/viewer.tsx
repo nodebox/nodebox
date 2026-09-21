@@ -113,6 +113,7 @@ function hasInlineValues(data: vega.BaseData): data is vega.BaseData & { values:
 function CanvasViewer({ item, result, showAttributes, drawPoints, drawBounds }: CanvasViewerProps) {
   const [contextMenu, setContextMenu] = useState<MousePosition | null>(null);
   const [viewport, setViewport] = useState<Viewport>({ zoom: 1, x: 0, y: 0 });
+  const svgRef = useRef<SVGSVGElement>(null);
 
   function handleMouseDown(e: React.MouseEvent) {
     e.preventDefault();
@@ -160,14 +161,29 @@ function CanvasViewer({ item, result, showAttributes, drawPoints, drawBounds }: 
     setContextMenu({ x: e.clientX + 2, y: e.clientY - 6 });
   }
 
+  /** Put the whole canvas in view, the way both the NodeBox 3 and the classic viewer opened. */
+  const fitCanvas = useCallback((width: number, height: number) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const { width: viewWidth, height: viewHeight } = svg.getBoundingClientRect();
+    if (viewWidth === 0 || viewHeight === 0 || width === 0 || height === 0) return;
+    const zoom = Math.min(Math.min(viewWidth / width, viewHeight / height) * 0.9, 1);
+    setViewport({ zoom, x: (viewWidth - width * zoom) / 2, y: (viewHeight - height * zoom) / 2 });
+  }, []);
+
   function handleResetViewport() {
     setContextMenu(null);
-    setViewport({ zoom: 1, x: 0, y: 0 });
+    fitCanvas(item.width ?? 1000, item.height ?? 1000);
   }
+
+  // The canvas itself never moves while a project renders, so fit it once per item.
+  useEffect(() => {
+    fitCanvas(item.width ?? 1000, item.height ?? 1000);
+  }, [fitCanvas, item.id, item.width, item.height]);
 
   const getTransform = (dx: number = 0, dy: number = 0) => {
     const { zoom, x, y } = viewport;
-    return `translate(${x + dx} ${y + dy}) scale(${zoom})`;
+    return `translate(${x + dx * zoom} ${y + dy * zoom}) scale(${zoom})`;
   };
 
   // This is here to force an update when the result changes
@@ -247,8 +263,6 @@ function CanvasViewer({ item, result, showAttributes, drawPoints, drawBounds }: 
     setPopup({ content: "", x: 0, y: 0, visible: false });
   }, []);
 
-  const svgRef = useRef<SVGSVGElement>(null);
-
   useEffect(() => {
     if (!svgRef.current || !shapeElement) return;
     if (!showAttributes) return;
@@ -282,6 +296,7 @@ function CanvasViewer({ item, result, showAttributes, drawPoints, drawBounds }: 
       >
         <defs>
           <clipPath id="frame">
+            {/* The clip path is transformed with the group it clips, so it is in canvas coordinates. */}
             <rect x={svgSize.left} y={svgSize.top} width={svgSize.width} height={svgSize.height} />
           </clipPath>
         </defs>

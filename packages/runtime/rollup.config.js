@@ -75,5 +75,7 @@ export default {
     typescript(),
     functionsToJSON(),
   ],
-  external: ["react", "react-dom", "@ndbx/core"],
+  // The classic NodeBox Live packages stay outside the bundle: they are loaded on demand, and only
+  // by a project in the classic format.
+  external: ["react", "react-dom", "@ndbx/core", "g.js", "opentype-classic", "lodash"],
 };

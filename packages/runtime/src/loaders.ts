@@ -17,6 +17,7 @@ import { updateFormatVersion } from "./upgrades";
 import { evalTemplate, startCase } from "./string-utils";
 import { findNodeStatements } from "./lexer";
 import { isNativeItem, nativeProject } from "./core-engine";
+import { classicLibraryProject, classicProjectToLiveProject, isClassicProject } from "@ndbx/core";
 
 interface LoadResult {
   status: "ok" | "error";
@@ -126,7 +127,9 @@ async function loadProject(
   if (userId === "nodebox") {
     // The NodeBox 3 built-in libraries come from @ndbx/core, not from the server.
     const project = nativeProject(projectKey);
-    result = project ? { status: "ok", project: project as unknown as Project } : { status: "error", message: `Unknown built-in library ${projectKey}` };
+    result = project
+      ? { status: "ok", project: project as unknown as Project }
+      : { status: "error", message: `Unknown built-in library ${projectKey}` };
   } else if (version !== "published") {
     // If it's not a published project, we're going through the API
     const projectUrl = `${config.apiRoot}/api/projects/${userId}/${projectId}/${version}`;
@@ -147,6 +150,9 @@ async function loadProject(
   if (project === undefined) {
     throw new Error(`Failed to load project ${userId}/${projectId}@${version}: ${result.message}`);
   }
+  if (isClassicProject(project)) {
+    return loadClassicProject(projectKey, project, loader);
+  }
   const loadedProject = updateFormatVersion(project);
   setMetaDataForItems(project);
   analyzeFunctions(loadedProject);
@@ -154,6 +160,40 @@ async function loadProject(
   await loadAssets(userId, projectId, loadedProject, loader);
   await loadDependencies(loadedProject, loader);
   return loadedProject;
+}
+
+/**
+ * A project in the first NodeBox Live format: a list of functions rather than items, with no
+ * format version and no ES modules. It is converted for the editor and kept as it was for the
+ * core engine, which renders it with the classic list matching (see docs/classic-nodebox-live.md).
+ */
+async function loadClassicProject(projectKey: string, classic: any, loader: ProjectLoader): Promise<Project> {
+  const [userId, projectId] = projectKey.split("/");
+  const project = classicProjectToLiveProject(classic, { key: projectKey }) as unknown as Project;
+  project.__classicSource = { key: projectKey, project: classic };
+  setMetaDataForItems(project);
+  loader.projectMap.set(projectKey, project);
+  await loadAssets(userId, projectId, project, loader);
+  await loadClassicDependencies(classic, loader);
+  return project;
+}
+
+/**
+ * A classic project's dependencies must be classic too. "core/g" was rewritten in a later format
+ * and no longer matches the nodes that call it, so the classic library built into @ndbx/core is
+ * used instead of the one the server stores.
+ */
+async function loadClassicDependencies(classic: any, loader: ProjectLoader) {
+  for (const key of Object.keys(classic.dependencies ?? {})) {
+    if (loader.projectMap.has(key)) continue;
+    const builtin = classicLibraryProject(key);
+    if (builtin) {
+      await loadClassicProject(key, builtin, loader);
+      continue;
+    }
+    const [userId, projectId] = key.split("/");
+    await loadProject(userId, projectId, "published", loader);
+  }
 }
 
 function setMetaDataForItems(project: Project) {

@@ -25,7 +25,7 @@ const [dataDir, ...targets] = process.argv.slice(2);
 const frame = Number(process.env.FRAME ?? 1);
 // Text nodes measure and outline with this font unless a project supplies its own.
 const defaultFontFile =
-  process.env.DEFAULT_FONT ?? path.resolve(import.meta.dirname, "../../server/static/fonts/FiraSans-Regular.woff");
+  process.env.DEFAULT_FONT ?? path.resolve(import.meta.dirname, "../../web/public/fonts/FiraSans-Regular.woff");
 
 const TEXT_EXTENSIONS = new Set([
   ".csv",

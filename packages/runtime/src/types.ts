@@ -4,6 +4,11 @@ import { Shape } from "@ndbx/g";
 
 export interface Project {
   __gallery?: Gallery;
+  /**
+   * The project as it was stored, for a project in the classic NodeBox Live format. The editor
+   * works with the converted `items`; the core engine renders from this.
+   */
+  __classicSource?: { key: string; project: unknown };
   id: string;
   formatVersion: number;
   title: string;

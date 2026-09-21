@@ -45,6 +45,15 @@ export function classicNamespaceOf(key: string): string {
   return slash < 0 ? key : key.slice(slash + 1);
 }
 
+/**
+ * The classic project for a dependency key that @ndbx/core ships itself. Only "core/g" does: its
+ * 172 declarations sit over the g.js package, and the server's own copy was rewritten in a later
+ * format that the classic nodes no longer match.
+ */
+export function classicLibraryProject(key: string): ClassicProject | undefined {
+  return key === CLASSIC_CORE_G_KEY ? classicCoreG : undefined;
+}
+
 export function openClassicProject(
   key: string,
   project: ClassicProject,
@@ -57,13 +66,13 @@ export function openClassicProject(
 
   // Dependencies first: a project's networks instantiate their prototypes.
   const given = options.dependencies ?? [];
+  const main = { key, project };
   const needsCoreG =
-    Object.keys(project.dependencies ?? {}).includes(CLASSIC_CORE_G_KEY) &&
+    [main, ...given].some((input) => Object.keys(input.project.dependencies ?? {}).includes(CLASSIC_CORE_G_KEY)) &&
     !given.some((d) => d.key === CLASSIC_CORE_G_KEY);
   const inputs = [
-    ...(needsCoreG ? [{ key: CLASSIC_CORE_G_KEY, project: classicCoreG }] : []),
-    ...given,
-    { key, project },
+    ...inDependencyOrder([...(needsCoreG ? [{ key: CLASSIC_CORE_G_KEY, project: classicCoreG }] : []), ...given]),
+    main,
   ];
   for (const input of inputs) {
     const namespace = classicNamespaceOf(input.key);
@@ -82,6 +91,27 @@ export function openClassicProject(
     runtime,
     warnings,
   };
+}
+
+/**
+ * A project is read after the projects it depends on, because a network instantiates the
+ * prototypes it uses. A cycle falls back to the order the caller gave.
+ */
+function inDependencyOrder(inputs: ClassicDocumentInput[]): ClassicDocumentInput[] {
+  const byKey = new Map(inputs.map((input) => [input.key, input]));
+  const ordered: ClassicDocumentInput[] = [];
+  const seen = new Set<string>();
+  const visit = (input: ClassicDocumentInput): void => {
+    if (seen.has(input.key)) return;
+    seen.add(input.key);
+    for (const key of Object.keys(input.project.dependencies ?? {})) {
+      const dependency = byKey.get(key);
+      if (dependency) visit(dependency);
+    }
+    ordered.push(input);
+  };
+  for (const input of inputs) visit(input);
+  return ordered;
 }
 
 /** The namespace object a host passes for a library whose functions live in a package. */

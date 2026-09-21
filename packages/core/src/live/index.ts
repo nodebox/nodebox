@@ -17,3 +17,5 @@ export * from "./classic-reader";
 export * from "./classic-runtime";
 export * from "./classic-document";
 export { classicCoreG } from "./classic-g";
+export * from "./classic-editor";
+export * from "./classic-graphics";
