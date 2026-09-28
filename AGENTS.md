@@ -29,6 +29,8 @@ Prereqs: Java JDK and Apache Ant are required; Maven is used for dependency reso
 - JUnit is the primary test framework; tests are discovered by `**/*Test.class` in `src/test/java`.
 - Run `ant clean` after changing a `static final` constant such as `NodeLibrary.CURRENT_FORMAT_VERSION`: javac copies it into other classes, and Ant only recompiles changed sources.
 - `ant test` does not halt on failures; read the results in `reports/TEST-*.xml`.
+- The render cache must never change what renders. `ant test` and `ant test-e2e` run with `-Dnodebox.cache.verify=true`, which recomputes every cache hit and fails on a difference. `RenderCacheDifferentialTest` replays random user edits on every example plus a scenario document and compares cached with uncached renders; replay with `-Dnodebox.cache.seed=… -Dnodebox.cache.steps=…`. A change to what a node's output depends on needs a scenario edit there that exercises it.
+- To check that a test catches a planted bug, delete the affected `build/prod` classes first: Ant skips recompiling a source edited within the same second as its class file.
 - End-to-end tests run with `NODEBOX_E2E=1 ant test-e2e`. Drive the UI through Swing (`SwingUtilities.processKeyBindings`, document APIs), not `java.awt.Robot` input: macOS keeps a background app from activating, so OS-level keystrokes land in the frontmost app.
 - Name new Java tests `SomethingTest.java` and keep them close to the package they cover.
 - Run `ant test` before shipping changes that affect core behavior or UI flows.

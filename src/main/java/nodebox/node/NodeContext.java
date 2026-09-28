@@ -239,10 +239,14 @@ public final class NodeContext {
             // type-conversion or invocation work.
             String childPath = getChildPath(networkPath, child.getName());
             RenderCache.Key cacheKey = null;
+            // In verify mode, a cache hit is computed anyway and compared with the fresh result.
+            RenderCache.Result verified = null;
             if (cacheable) {
                 cacheKey = RenderCache.key(child, connectedInputs);
                 RenderCache.Result cached = renderCache.get(childPath, cacheKey);
-                if (cached != null) {
+                if (cached != null && RenderCache.isVerifying()) {
+                    verified = cached;
+                } else if (cached != null) {
                     nodeArgumentsResults.put(nodeArguments, cached.value);
                     nodeArgumentsFiles.put(nodeArguments, cached.files);
                     dependOn(cached.files);
@@ -297,6 +301,20 @@ public final class NodeContext {
             }
             dependOn(files);
 
+            if (verified != null) {
+                Object cachedSnapshot = ResultSnapshot.of(verified.value);
+                Object freshSnapshot = ResultSnapshot.of(resultsList);
+                if (!cachedSnapshot.equals(freshSnapshot)) {
+                    RenderCache.recordVerifyFailure();
+                    throw new IllegalStateException("The render cache returned a result for " + childPath
+                            + " that differs from a fresh computation.\nCached: " + cachedSnapshot
+                            + "\nFresh:  " + freshSnapshot);
+                }
+                // Keep the cached instance, so that the nodes downstream hit their cache (and are verified).
+                nodeArgumentsResults.put(nodeArguments, verified.value);
+                nodeArgumentsFiles.put(nodeArguments, verified.files);
+                return verified.value;
+            }
             if (cacheable) {
                 renderCache.put(childPath, cacheKey, resultsList, files);
             }

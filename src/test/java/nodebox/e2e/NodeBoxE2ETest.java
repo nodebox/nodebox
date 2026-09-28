@@ -5,6 +5,7 @@ import nodebox.client.NodeBoxDocument;
 import nodebox.node.Connection;
 import nodebox.node.Node;
 import nodebox.node.Port;
+import nodebox.node.RenderCache;
 import nodebox.ui.ExportFormat;
 import org.junit.AfterClass;
 import org.junit.Assume;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -72,6 +74,13 @@ public class NodeBoxE2ETest {
                 return app != null && app.getDocumentCount() > 0 && app.getCurrentDocument() != null;
             }
         });
+    }
+
+    @AfterClass
+    public static void noStaleCacheResults() {
+        // ant test-e2e runs with -Dnodebox.cache.verify=true, which checks every render cache hit.
+        assertEquals("The render cache returned results that differ from a fresh computation",
+                0, RenderCache.getVerifyFailures());
     }
 
     @AfterClass

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import nodebox.function.*;
 import nodebox.graphics.Point;
 import nodebox.util.SideEffects;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,9 +29,19 @@ public class RenderCacheTest {
     private final FunctionRepository functions = FunctionRepository.of(
             CoreFunctions.LIBRARY, MathFunctions.LIBRARY, ListFunctions.LIBRARY, SideEffects.LIBRARY);
 
+    private boolean wasVerifying;
+
     @Before
     public void setUp() {
         SideEffects.reset();
+        // These tests count how often functions run; verify mode runs every cache hit again.
+        wasVerifying = RenderCache.isVerifying();
+        RenderCache.setVerifying(false);
+    }
+
+    @After
+    public void tearDown() {
+        RenderCache.setVerifying(wasVerifying);
     }
 
     private final Node makeNumbersNode = Node.ROOT
@@ -267,6 +278,42 @@ public class RenderCacheTest {
         FunctionRepository rebuilt = FunctionRepository.combine(functions);
         renderWith(library, rebuilt, cache);
         assertEquals("An equal repository must not drop the cached results", 3, SideEffects.theCounter);
+    }
+
+    // ------------------------------------------------------------------
+    // Verify mode: every cache hit is checked against a fresh computation.
+    // ------------------------------------------------------------------
+
+    @Test
+    public void verifyModeReportsCachedResultThatWasMutated() throws IOException {
+        File script = File.createTempFile("nodebox-turtle", ".py");
+        script.deleteOnExit();
+        // Like a turtle library: extend changes the path it receives and returns the same object.
+        Files.writeString(script.toPath(), "from nodebox.graphics import Path\n" +
+                "def start(x):\n" +
+                "    p = Path()\n" +
+                "    p.moveto(x, 0)\n" +
+                "    return p\n" +
+                "def extend(path, x):\n" +
+                "    path.lineto(x, 10)\n" +
+                "    return path\n");
+        FunctionRepository turtleFunctions = FunctionRepository.of(PythonLibrary.loadScript("turtle", script.getAbsolutePath()));
+        Node start = Node.ROOT.withName("start").withFunction("turtle/start").withInputAdded(Port.floatPort("x", 0));
+        Node extend = Node.ROOT.withName("extend").withFunction("turtle/extend")
+                .withInputAdded(Port.customPort("path", "geometry"))
+                .withInputAdded(Port.floatPort("x", 5));
+        Node net = Node.NETWORK.withChildAdded(start).withChildAdded(extend)
+                .connect("start", "extend", "path").withRenderedChildName("extend");
+        RenderCache cache = new RenderCache();
+        RenderCache.setVerifying(true);
+        try {
+            renderWith(NodeLibrary.create("test", net, turtleFunctions), turtleFunctions, cache);
+            Node edited = net.withChildReplaced("extend", extend.withInputValue("x", 6.0));
+            renderWith(NodeLibrary.create("test", edited, turtleFunctions), turtleFunctions, cache);
+            fail("The mutated cached result of start should have been reported");
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("/start"));
+        }
     }
 
     // ------------------------------------------------------------------

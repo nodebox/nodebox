@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A cache of node render results that persists <i>across</i> renders.
@@ -72,6 +73,30 @@ public final class RenderCache {
      */
     private static final int MAX_SLOTS = 10000;
 
+    // When set, every cache hit is checked against a fresh computation (see NodeContext). Tests turn it on
+    // with -Dnodebox.cache.verify=true.
+    private static volatile boolean verifying = Boolean.getBoolean("nodebox.cache.verify");
+
+    public static boolean isVerifying() {
+        return verifying;
+    }
+
+    public static void setVerifying(boolean verifying) {
+        RenderCache.verifying = verifying;
+    }
+
+    // Verify failures so far. A failure inside the application only shows up as a render error, so the
+    // end-to-end tests check this count.
+    private static final AtomicInteger verifyFailures = new AtomicInteger();
+
+    public static int getVerifyFailures() {
+        return verifyFailures.get();
+    }
+
+    static void recordVerifyFailure() {
+        verifyFailures.incrementAndGet();
+    }
+
     // One slot per node path, holding only the latest key and result for that node. A result for older
     // inputs can never be hit again once an input changed (every frame, every drag step), so keeping it
     // would only grow memory: an animation would otherwise add one result per node per frame.
@@ -130,6 +155,7 @@ public final class RenderCache {
         for (FileStamp file : s.result.files) {
             if (!file.isCurrent()) return null;
         }
+        hits++;
         return s.result;
     }
 
@@ -152,6 +178,13 @@ public final class RenderCache {
     /** Replace the state with the outputs of the stateful nodes in a completed render, by node path. */
     public void setState(Map<String, List<?>> state) {
         this.state = ImmutableMap.copyOf(state);
+    }
+
+    // The number of results served, for tests.
+    private int hits;
+
+    int hits() {
+        return hits;
     }
 
     int size() {
