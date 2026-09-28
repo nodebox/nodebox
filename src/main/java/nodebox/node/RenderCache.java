@@ -1,7 +1,7 @@
 package nodebox.node;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MapMaker;
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
@@ -11,6 +11,8 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * A cache of node render results that persists <i>across</i> renders.
@@ -53,7 +55,8 @@ import java.util.Map;
  *
  * <p>Cached results belong to the functions they were computed with. When a library is added, removed or
  * reloaded after the user edited its code, the results are dropped (see {@link #useFunctions}). Nodes that
- * read files through file ports are cached with the modification time and size of those files in the key.
+ * read files through file ports, and networks around them, record the modification time and size of those
+ * files with their result; a result whose files changed on disk is not used.
  *
  * <h2>Threading</h2>
  *
@@ -121,13 +124,21 @@ public final class RenderCache {
     /**
      * Return the cached result for the node at {@code slot} (its path), if it was computed for this key.
      */
-    public List<?> get(String slot, Key key) {
+    public Result get(String slot, Key key) {
         Slot s = slots.get(slot);
-        return s != null && s.key.equals(key) ? s.value : null;
+        if (s == null || !s.key.equals(key)) return null;
+        for (FileStamp file : s.result.files) {
+            if (!file.isCurrent()) return null;
+        }
+        return s.result;
     }
 
-    public void put(String slot, Key key, List<?> value) {
-        slots.put(slot, new Slot(key, value));
+    /**
+     * Store the result for the node at {@code slot}. {@code files} are the files read while computing it,
+     * by the node itself or by nodes inside it; the result is valid while none of them changes on disk.
+     */
+    public void put(String slot, Key key, List<?> value, Set<FileStamp> files) {
+        slots.put(slot, new Slot(key, new Result(value, ImmutableSet.copyOf(files))));
     }
 
     /**
@@ -150,8 +161,7 @@ public final class RenderCache {
     /**
      * Whether the given node's result may be cached across renders: true unless the node, or anything in
      * its subtree, reads the execution context, has a state port, is always rendered or runs a
-     * time-dependent function. A network that contains a node reading files is not cacheable either.
-     * The answer is memoized per node until the functions change.
+     * time-dependent function. The answer is memoized per node until the functions change.
      */
     public boolean isCacheable(Node node, FunctionRepository functionRepository) {
         Boolean known = cacheable.get(node);
@@ -172,19 +182,9 @@ public final class RenderCache {
         if (node.isNetwork()) {
             for (Node child : node.getChildren()) {
                 if (!isCacheable(child, functionRepository)) return false;
-                // A file node is cached with the state of its files in its key, but the key of the network
-                // around it does not have them.
-                if (hasFilePort(child)) return false;
             }
         }
         return true;
-    }
-
-    private static boolean hasFilePort(Node node) {
-        for (Port port : node.getInputs()) {
-            if (port.isFileWidget()) return true;
-        }
-        return false;
     }
 
     private static boolean isTimeDependent(String function, FunctionRepository functionRepository) {
@@ -195,26 +195,61 @@ public final class RenderCache {
     /**
      * Build a cache key for a child node being rendered. {@code connectedInputs} holds, in input-port
      * order, the result list feeding each <i>connected</i> input port (literal port values are already
-     * captured by the node's identity and are not included here). {@code files} holds the file names
-     * the node reads through file ports; their modification time and size become part of the key, so a
-     * file that changes on disk is read again.
+     * captured by the node's identity and are not included here).
      */
-    public static Key key(Node node, List<List<?>> connectedInputs, List<String> files) {
-        ImmutableList.Builder<String> stamps = ImmutableList.builder();
-        for (String fileName : files) {
-            File f = new File(fileName);
-            stamps.add(fileName + " " + f.lastModified() + " " + f.length());
-        }
-        return new Key(node, connectedInputs, stamps.build());
+    public static Key key(Node node, List<List<?>> connectedInputs) {
+        return new Key(node, connectedInputs);
     }
 
     private static final class Slot {
         private final Key key;
-        private final List<?> value;
+        private final Result result;
 
-        private Slot(Key key, List<?> value) {
+        private Slot(Key key, Result result) {
             this.key = key;
+            this.result = result;
+        }
+    }
+
+    /** A cached result and the files it was computed from. */
+    public static final class Result {
+        public final List<?> value;
+        public final ImmutableSet<FileStamp> files;
+
+        private Result(List<?> value, ImmutableSet<FileStamp> files) {
             this.value = value;
+            this.files = files;
+        }
+    }
+
+    /** A file as it was on disk when a node read it: its modification time and size. */
+    public static final class FileStamp {
+        private final String path;
+        private final long lastModified;
+        private final long length;
+
+        public FileStamp(String path) {
+            File f = new File(path);
+            this.path = path;
+            this.lastModified = f.lastModified();
+            this.length = f.length();
+        }
+
+        boolean isCurrent() {
+            File f = new File(path);
+            return f.lastModified() == lastModified && f.length() == length;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(path, lastModified, length);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof FileStamp)) return false;
+            FileStamp other = (FileStamp) o;
+            return path.equals(other.path) && lastModified == other.lastModified && length == other.length;
         }
     }
 
@@ -222,23 +257,21 @@ public final class RenderCache {
      * An identity-based cache key. The node and the connected-input result lists are compared by
      * reference (==): the engine reuses the same node and result-list instances across renders for
      * unchanged subgraphs, so reference equality is both correct and cheap (no deep hashing of large
-     * geometry lists). File stamps are compared by value.
+     * geometry lists).
      */
     public static final class Key {
         private final Node node;
         private final List<?>[] inputs;
-        private final ImmutableList<String> fileStamps;
         private final int hash;
 
-        private Key(Node node, List<List<?>> connectedInputs, ImmutableList<String> fileStamps) {
+        private Key(Node node, List<List<?>> connectedInputs) {
             this.node = node;
             this.inputs = connectedInputs.toArray(new List<?>[0]);
-            this.fileStamps = fileStamps;
             int h = System.identityHashCode(node);
             for (List<?> input : inputs) {
                 h = h * 31 + System.identityHashCode(input);
             }
-            this.hash = h * 31 + fileStamps.hashCode();
+            this.hash = h;
         }
 
         @Override
@@ -255,7 +288,7 @@ public final class RenderCache {
             for (int i = 0; i < inputs.length; i++) {
                 if (inputs[i] != other.inputs[i]) return false;
             }
-            return fileStamps.equals(other.fileStamps);
+            return true;
         }
     }
 }

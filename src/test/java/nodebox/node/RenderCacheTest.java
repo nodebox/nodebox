@@ -356,7 +356,11 @@ public class RenderCacheTest {
         NodeLibrary library = NodeLibrary.create("test", net, dataFunctions);
         RenderCache cache = new RenderCache();
 
-        assertResultsEqual(renderWith(library, dataFunctions, cache), "a");
+        List<?> first = renderWith(library, dataFunctions, cache);
+        assertResultsEqual(first, "a");
+        assertSame("A subnetwork that reads an unchanged file is served from the cache",
+                first, renderWith(library, dataFunctions, cache));
+
         Files.writeString(text.toPath(), "a\nb\n");
         text.setLastModified(2000000000L);
         assertResultsEqual(renderWith(library, dataFunctions, cache), "a", "b");

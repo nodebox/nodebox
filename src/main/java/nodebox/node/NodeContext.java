@@ -22,6 +22,11 @@ public final class NodeContext {
     private final ImmutableMap<String, ?> data;
     private final Map<String, List<?>> renderResults;
     private final Map<NodeArguments, List<?>> nodeArgumentsResults;
+    // The files each result in nodeArgumentsResults was computed from.
+    private final Map<NodeArguments, Set<RenderCache.FileStamp>> nodeArgumentsFiles = new HashMap<NodeArguments, Set<RenderCache.FileStamp>>();
+    // One set per node being computed, innermost last: the files read while computing it. A file read by a
+    // node inside a network is a dependency of that network too, so a finished set merges into its parent.
+    private final Deque<Set<RenderCache.FileStamp>> readFiles = new ArrayDeque<Set<RenderCache.FileStamp>>();
     private final Map<String, ?> portOverrides;
 
     // Cross-render result cache, shared across NodeContext instances (each render builds a fresh
@@ -196,7 +201,10 @@ public final class NodeContext {
         NodeArguments nodeArguments = new NodeArguments(networkPath, child.getName(), networkArgumentMap);
 
         List<?> storedResults = nodeArgumentsResults.get(nodeArguments);
-        if (storedResults != null) return storedResults;
+        if (storedResults != null) {
+            dependOn(nodeArgumentsFiles.get(nodeArguments));
+            return storedResults;
+        }
 
         // A list of all result objects.
         List<Object> resultsList = new ArrayList<Object>();
@@ -215,8 +223,6 @@ public final class NodeContext {
             // Identities of the result lists feeding the connected input ports; these form the cache key
             // together with the child node itself (which captures its function and literal port values).
             List<List<?>> connectedInputs = cacheable ? new ArrayList<List<?>>() : null;
-            // Files the child reads through file ports; their state on disk is part of the cache key.
-            List<String> files = cacheable ? new ArrayList<String>() : null;
 
             // Evaluate the raw port data. This recurses into the upstream nodes, which hit their own
             // caches; the results' identities are stable across renders for unchanged subgraphs.
@@ -227,11 +233,6 @@ public final class NodeContext {
                 if (cacheable && findOutputNode(network, child, port) != null) {
                     connectedInputs.add(result);
                 }
-                if (cacheable && port.isFileWidget()) {
-                    for (Object fileName : result) {
-                        files.add(String.valueOf(fileName));
-                    }
-                }
             }
 
             // Reuse a previously computed result for the same node and the same inputs, before doing any
@@ -239,11 +240,13 @@ public final class NodeContext {
             String childPath = getChildPath(networkPath, child.getName());
             RenderCache.Key cacheKey = null;
             if (cacheable) {
-                cacheKey = RenderCache.key(child, connectedInputs, files);
-                List<?> cached = renderCache.get(childPath, cacheKey);
+                cacheKey = RenderCache.key(child, connectedInputs);
+                RenderCache.Result cached = renderCache.get(childPath, cacheKey);
                 if (cached != null) {
-                    nodeArgumentsResults.put(nodeArguments, cached);
-                    return cached;
+                    nodeArgumentsResults.put(nodeArguments, cached.value);
+                    nodeArgumentsFiles.put(nodeArguments, cached.files);
+                    dependOn(cached.files);
+                    return cached.value;
                 }
             }
 
@@ -276,17 +279,36 @@ public final class NodeContext {
             // A prepared list of argument lists, each for one invocation of the child node.
             Iterable<Map<Port, ?>> argumentMaps = buildArgumentMaps(portArguments);
 
-            for (Map<Port, ?> argumentMap : argumentMaps) {
-                List<?> results = renderNode(childPath, argumentMap);
-                resultsList.addAll(results);
+            Set<RenderCache.FileStamp> files = new HashSet<RenderCache.FileStamp>();
+            readFiles.push(files);
+            try {
+                for (Map.Entry<Port, List<?>> entry : portArguments.entrySet()) {
+                    if (!entry.getKey().isFileWidget()) continue;
+                    for (Object fileName : entry.getValue()) {
+                        files.add(new RenderCache.FileStamp(String.valueOf(fileName)));
+                    }
+                }
+                for (Map<Port, ?> argumentMap : argumentMaps) {
+                    List<?> results = renderNode(childPath, argumentMap);
+                    resultsList.addAll(results);
+                }
+            } finally {
+                readFiles.pop();
             }
+            dependOn(files);
 
             if (cacheable) {
-                renderCache.put(childPath, cacheKey, resultsList);
+                renderCache.put(childPath, cacheKey, resultsList, files);
             }
+            nodeArgumentsFiles.put(nodeArguments, files);
         }
         nodeArgumentsResults.put(nodeArguments, resultsList);
         return resultsList;
+    }
+
+    /** Record files as dependencies of the node being computed, if any. */
+    private void dependOn(Set<RenderCache.FileStamp> files) {
+        if (files != null && !readFiles.isEmpty()) readFiles.peek().addAll(files);
     }
 
     private Object invokeNode(String nodePath, Map<Port, ?> argumentMap) {

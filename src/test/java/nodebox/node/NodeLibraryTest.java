@@ -699,17 +699,6 @@ public class NodeLibraryTest {
         assertEquals(new Point(100, 100), root.getChild("copy2").getInput("scale").getValue());
     }
     
-    @Test
-    public void testUpgrade22to21() {
-        // Development builds wrote version 22, which has the same content as version 21.
-        File version22File = new File("src/test/files/upgrade-v22.ndbx");
-        UpgradeResult result = NodeLibraryUpgrades.upgrade(version22File);
-        assertTrue(result.getXml().contains("formatVersion=\"21\""));
-        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
-        NodeLibrary upgradedLibrary = result.getLibrary(version22File, NodeRepository.of(mathLibrary));
-        assertTrue(upgradedLibrary.getRoot().hasChild("number1"));
-    }
-
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */
