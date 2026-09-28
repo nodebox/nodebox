@@ -698,22 +698,16 @@ public class NodeLibraryTest {
         assertEquals(new Point(200, 150), root.getChild("copy1").getInput("scale").getValue());
         assertEquals(new Point(100, 100), root.getChild("copy2").getInput("scale").getValue());
     }
-
+    
     @Test
-    public void testUpgrade21to22() {
-        // Feedback ("state") ports were removed; the device.buffer_points node that relied on them is
-        // dropped from existing documents, with a warning.
-        File version21File = new File("src/test/files/upgrade-v21.ndbx");
-        UpgradeResult result = NodeLibraryUpgrades.upgrade(version21File);
-        assertFalse("buffer_points node should be removed from the XML", result.getXml().contains("buffer_points"));
-        assertTrue("Upgrade should warn about the removed node",
-                result.getWarnings().toString().contains("buffer_points"));
-        NodeLibrary deviceLibrary = NodeLibrary.load(new File("libraries/device/device.ndbx"), NodeRepository.of());
-        NodeLibrary upgradedLibrary = result.getLibrary(version21File, NodeRepository.of(deviceLibrary));
-        Node root = upgradedLibrary.getRoot();
-        assertFalse(root.hasChild("buffer_points1"));
-        assertTrue(root.hasChild("mouse_position1"));
-        assertEquals(0, root.getConnections().size());
+    public void testUpgrade22to21() {
+        // Development builds wrote version 22, which has the same content as version 21.
+        File version22File = new File("src/test/files/upgrade-v22.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version22File);
+        assertTrue(result.getXml().contains("formatVersion=\"21\""));
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version22File, NodeRepository.of(mathLibrary));
+        assertTrue(upgradedLibrary.getRoot().hasChild("number1"));
     }
 
     /**

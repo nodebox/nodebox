@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="22" type="file">
+    <node name="root" prototype="core.network" renderedChild="number1">
+        <node name="number1" position="1.00,1.00" prototype="math.number"/>
+    </node>
+</ndbx>

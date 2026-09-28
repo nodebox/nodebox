@@ -27,10 +27,14 @@ Prereqs: Java JDK and Apache Ant are required; Maven is used for dependency reso
 
 ## Testing Guidelines
 - JUnit is the primary test framework; tests are discovered by `**/*Test.class` in `src/test/java`.
+- Run `ant clean` after changing a `static final` constant such as `NodeLibrary.CURRENT_FORMAT_VERSION`: javac copies it into other classes, and Ant only recompiles changed sources.
+- `ant test` does not halt on failures; read the results in `reports/TEST-*.xml`.
+- End-to-end tests run with `NODEBOX_E2E=1 ant test-e2e`. Drive the UI through Swing (`SwingUtilities.processKeyBindings`, document APIs), not `java.awt.Robot` input: macOS keeps a background app from activating, so OS-level keystrokes land in the frontmost app.
 - Name new Java tests `SomethingTest.java` and keep them close to the package they cover.
 - Run `ant test` before shipping changes that affect core behavior or UI flows.
 
 ## Commit & Pull Request Guidelines
+- Base branch is `master`. Work on a feature branch and merge through a pull request; pushing to `master` builds nightly installers, and a `v*` tag builds a release (see `docs/RELEASING.md`).
 - Recent history favors short, sentence-style commit messages (e.g., “Use Ctrl key on Windows.”). Keep messages concise and specific.
 - PRs should describe the user-visible change, list test commands run, and include screenshots or recordings for UI updates.
 - Link relevant issues or tickets when applicable.

@@ -21,7 +21,6 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -93,20 +92,23 @@ public class NodeBoxE2ETest {
 
     @Test
     public void launchesAndOpensExample() throws Exception {
-        NodeBoxDocument current = focusCurrentDocument();
+        final NodeBoxDocument current = focusCurrentDocument();
         assertNotNull(current);
         assertTrue(current.isVisible());
 
         int initialCount = Application.getInstance().getDocumentCount();
-        Robot robot = new Robot();
-        robot.setAutoWaitForIdle(true);
-        robot.delay(500);
-
-        int menuKey = menuShortcutKey();
-        robot.keyPress(menuKey);
-        robot.keyPress(KeyEvent.VK_N);
-        robot.keyRelease(KeyEvent.VK_N);
-        robot.keyRelease(menuKey);
+        // Deliver the shortcut to the document's key bindings, where the menu accelerators live. An OS-level
+        // keystroke (java.awt.Robot) goes to the frontmost app, and macOS does not let a background app bring
+        // itself to the front, so it would land in whatever app the user has in front.
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                KeyEvent newShortcut = new KeyEvent(current.getRootPane(), KeyEvent.KEY_PRESSED,
+                        System.currentTimeMillis(), Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx(),
+                        KeyEvent.VK_N, 'n');
+                SwingUtilities.processKeyBindings(newShortcut);
+            }
+        });
 
         waitFor("New document", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
             @Override
@@ -455,14 +457,6 @@ public class NodeBoxE2ETest {
         });
     }
 
-    private static int menuShortcutKey() {
-        int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
-        if ((mask & InputEvent.META_DOWN_MASK) != 0) {
-            return KeyEvent.VK_META;
-        }
-        return KeyEvent.VK_CONTROL;
-    }
-
     private static void waitFor(String label, long timeoutMs, Supplier<Boolean> condition) throws Exception {
         long start = System.currentTimeMillis();
         while ((System.currentTimeMillis() - start) < timeoutMs) {
@@ -510,8 +504,12 @@ public class NodeBoxE2ETest {
         waitFor("Example open", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
             @Override
             public Boolean get() {
-                NodeBoxDocument doc = Application.getInstance().getCurrentDocument();
-                return doc != null && doc.getDocumentFile() != null && sameFile(example, doc.getDocumentFile());
+                // The current document follows window activation, which the OS may withhold from a background
+                // app, so look for the example among all open documents.
+                for (NodeBoxDocument doc : Application.getInstance().getDocuments()) {
+                    if (doc.getDocumentFile() != null && sameFile(example, doc.getDocumentFile())) return true;
+                }
+                return false;
             }
         });
     }

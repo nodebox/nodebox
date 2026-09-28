@@ -29,6 +29,11 @@ public final class NodeContext {
     // renders (e.g. in isolated unit tests). See RenderCache for the caching/invalidation model.
     private final RenderCache renderCache;
 
+    // The outputs of stateful nodes from the previous render, read by their state ports, and their outputs
+    // in this render, which become the state when the render is committed.
+    private final ImmutableMap<String, List<?>> previousState;
+    private final Map<String, List<?>> newState = new HashMap<String, List<?>>();
+
     // Per-network lookup from an (input node, input port) pair to the node connected to its output.
     // findOutputNode is called for every input port of every child invocation; without this cache it
     // performs a linear scan over all of a network's connections (and children) on each call, which is
@@ -60,6 +65,8 @@ public final class NodeContext {
         this.nodeArgumentsResults = new HashMap<NodeArguments, List<?>>();
         this.portOverrides = ImmutableMap.copyOf(portOverrides);
         this.renderCache = renderCache;
+        if (renderCache != null) renderCache.useFunctions(this.functionRepository);
+        this.previousState = renderCache != null ? renderCache.stateSnapshot() : ImmutableMap.<String, List<?>>of();
     }
 
     public NodeLibrary getNodeLibrary() {
@@ -130,7 +137,26 @@ public final class NodeContext {
         }
         List<?> results = postProcessResult(nodePath, result);
         renderResults.put(nodePath, results);
+        if (hasStatePort(node)) {
+            newState.put(nodePath, results);
+        }
         return results;
+    }
+
+    /**
+     * Make the outputs of the stateful nodes in this render the state for the next render. Call this when
+     * the render completed; a render that failed or was canceled leaves the state as it was. Stateful nodes
+     * that were not rendered lose their state.
+     */
+    public void commitState() {
+        if (renderCache != null) renderCache.setState(newState);
+    }
+
+    private static boolean hasStatePort(Node node) {
+        for (Port port : node.getInputs()) {
+            if (port.getType().equals(Port.TYPE_STATE)) return true;
+        }
+        return false;
     }
 
     private List<?> postProcessResult(String nodePath, Object result) {
@@ -185,10 +211,12 @@ public final class NodeContext {
             boolean cacheable = renderCache != null
                     && networkArgumentMap.isEmpty()
                     && portOverrides.isEmpty()
-                    && renderCache.isCacheable(child);
+                    && renderCache.isCacheable(child, functionRepository);
             // Identities of the result lists feeding the connected input ports; these form the cache key
             // together with the child node itself (which captures its function and literal port values).
             List<List<?>> connectedInputs = cacheable ? new ArrayList<List<?>>() : null;
+            // Files the child reads through file ports; their state on disk is part of the cache key.
+            List<String> files = cacheable ? new ArrayList<String>() : null;
 
             // Evaluate the raw port data. This recurses into the upstream nodes, which hit their own
             // caches; the results' identities are stable across renders for unchanged subgraphs.
@@ -199,14 +227,20 @@ public final class NodeContext {
                 if (cacheable && findOutputNode(network, child, port) != null) {
                     connectedInputs.add(result);
                 }
+                if (cacheable && port.isFileWidget()) {
+                    for (Object fileName : result) {
+                        files.add(String.valueOf(fileName));
+                    }
+                }
             }
 
             // Reuse a previously computed result for the same node and the same inputs, before doing any
             // type-conversion or invocation work.
+            String childPath = getChildPath(networkPath, child.getName());
             RenderCache.Key cacheKey = null;
             if (cacheable) {
-                cacheKey = RenderCache.key(child, connectedInputs);
-                List<?> cached = renderCache.get(cacheKey);
+                cacheKey = RenderCache.key(child, connectedInputs, files);
+                List<?> cached = renderCache.get(childPath, cacheKey);
                 if (cached != null) {
                     nodeArgumentsResults.put(nodeArguments, cached);
                     return cached;
@@ -242,14 +276,13 @@ public final class NodeContext {
             // A prepared list of argument lists, each for one invocation of the child node.
             Iterable<Map<Port, ?>> argumentMaps = buildArgumentMaps(portArguments);
 
-            String childPath = getChildPath(networkPath, child.getName());
             for (Map<Port, ?> argumentMap : argumentMaps) {
                 List<?> results = renderNode(childPath, argumentMap);
                 resultsList.addAll(results);
             }
 
             if (cacheable) {
-                renderCache.put(cacheKey, resultsList);
+                renderCache.put(childPath, cacheKey, resultsList);
             }
         }
         nodeArgumentsResults.put(nodeArguments, resultsList);
@@ -365,6 +398,7 @@ public final class NodeContext {
      * This method does some last-minute conversions and lookups on special cases:
      * <ul>
      * <li>If the port type is context, return a reference to the current node context.</li>
+     * <li>If the port type is state, return the output of this node in the previous render.</li>
      * <li>If the port is a file widget, convert relative to absolute paths.</li>
      * </ul>
      */
@@ -375,6 +409,9 @@ public final class NodeContext {
         Object portValue = overrideValue == null ? port.getValue() : overrideValue;
         if (port.getType().equals("context")) {
             return this;
+        } else if (port.getType().equals(Port.TYPE_STATE)) {
+            List<?> state = previousState.get(nodePath);
+            return state != null ? state : ImmutableList.of();
         } else if (port.isFileWidget() && !port.stringValue().isEmpty()) {
             return convertToFileName(portValue);
         }

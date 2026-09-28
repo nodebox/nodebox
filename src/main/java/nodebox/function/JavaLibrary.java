@@ -100,6 +100,10 @@ public final class JavaLibrary extends FunctionLibrary {
             return method.getName();
         }
 
+        public boolean isTimeDependent() {
+            return method.isAnnotationPresent(TimeDependent.class);
+        }
+
         public Object invoke(Object... args) throws Exception {
             return method.invoke(null, args);
         }

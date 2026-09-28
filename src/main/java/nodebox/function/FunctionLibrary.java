@@ -78,6 +78,17 @@ public abstract class FunctionLibrary {
     public void reload() {
     }
 
+    // Counts the reloads of this library, so that results computed with its old code can be recognized.
+    private volatile long version = 0;
+
+    public long getVersion() {
+        return version;
+    }
+
+    void incrementVersion() {
+        version++;
+    }
+
 
     //// Object overrides ////
 

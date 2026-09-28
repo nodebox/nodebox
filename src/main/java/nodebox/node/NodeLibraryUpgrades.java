@@ -73,7 +73,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("18", upgradeMethod("upgrade18to19"));
         upgradeMap.put("19", upgradeMethod("upgrade19to20"));
         upgradeMap.put("20", upgradeMethod("upgrade20to21"));
-        upgradeMap.put("21", upgradeMethod("upgrade21to22"));
+        upgradeMap.put("22", upgradeMethod("upgrade22to21"));
     }
 
     public static String parseFormatVersion(String xml) {
@@ -341,11 +341,9 @@ public class NodeLibraryUpgrades {
         return transformXml(inputXml, "21", copyScaleValueOp);
     }
 
-    public static UpgradeStringResult upgrade21to22(String inputXml) throws LoadException {
-        // Version 22: Feedback ("state") ports were removed from the engine, which makes the
-        // device.buffer_points node (its only user) obsolete. Remove it from existing documents.
-        UpgradeOp removeBufferPointsOp = new RemoveNodeOp("device.buffer_points");
-        return transformXml(inputXml, "22", removeBufferPointsOp);
+    public static UpgradeStringResult upgrade22to21(String inputXml) throws LoadException {
+        // Development builds wrote version 22. Its content is the same as version 21.
+        return transformXml(inputXml, "21");
     }
 
     private static List<Node> childNodes(Node parent) {
