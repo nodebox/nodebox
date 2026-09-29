@@ -580,7 +580,7 @@ def arcToSegments(x, y, rx, ry, large, sweep, rotateX, ox, oy):
     elif th_arc > 0 and sweep == 0:
         th_arc -= 2 * pi
 
-    segments = ceil(abs(th_arc / (pi * 0.5 + 0.001)))
+    segments = int(ceil(abs(th_arc / (pi * 0.5 + 0.001))))
     result = []
     for i in range(segments):
         th2 = th0 + i * th_arc / segments
@@ -620,8 +620,8 @@ def parse_path(e):
     d = re.sub(r"([MmZzLlHhVvCcSsQqTtAa])([^\s])", r"\1 \2", d) # separate commands from points
     d = re.sub(r"([^\s])([MmZzLlHhVvCcSsQqTtAa])", r"\1 \2", d) # separate commands from points
     d = re.sub(r"([0-9])([+\-])", r"\1 \2", d) # separate digits when no comma
-    d = re.sub(r"(\.[0-9]*)(\.)", r"\1 \2", d) # separate digits when no comma
-    d = re.sub(r"([Aa](\s+[0-9]+){3})\s+([01])\s*([01])", r"\1 \3 \4 ", d) # shorthand elliptical arc path syntax
+    d = re.sub(r"(\.[0-9]*)(?=\.)", r"\1 ", d) # separate digits when no comma
+    d = re.sub(r"([Aa](\s+[0-9.]+){3})\s+([01])\s*([01])", r"\1 \3 \4 ", d) # shorthand elliptical arc path syntax
     d = re.sub(r"[\s\r\t\n]+", r" ", d)
     d = d.strip()
 
@@ -676,7 +676,7 @@ def parse_path(e):
                 cp1y = curr.y + 2 / 3.0 * (cntrl.y - curr.y) # CP1 = QP0 + 2 / 3 *(QP1-QP0)
                 cp2x = cp1x + 1 / 3.0 * (cp.x - curr.x) # CP2 = CP1 + 1 / 3 *(QP2-QP0)
                 cp2y = cp1y + 1 / 3.0 * (cp.y - curr.y) # CP2 = CP1 + 1 / 3 *(QP2-QP0)
-                g.curveto(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y)
+                path.curveto(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y)
         elif command == 't':
             while not pp.isCommandOrEnd():
                 curr = pp.current
