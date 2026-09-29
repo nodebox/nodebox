@@ -1336,6 +1336,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                         ImmutableMap.<String, Object>of(), request.cache);
                 results = context.renderNode(request.network);
                 context.renderAlwaysRenderedNodes(request.network);
+                // Stateful nodes remember only renders that completed and were not canceled.
+                if (request.generation > canceledGeneration) context.commitState();
             } catch (Throwable t) {
                 results = ImmutableList.of();
                 error = t;
@@ -1794,6 +1796,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                         NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, data, ImmutableMap.<String, Object>of(), exportCache);
 
                         List<?> results = context.renderNode("/");
+                        context.commitState();
                         viewer.setOutputValues((List<?>) results);
                         exportDelegate.frameDone(frame, results);
 

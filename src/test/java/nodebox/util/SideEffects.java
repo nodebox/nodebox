@@ -2,6 +2,7 @@ package nodebox.util;
 
 import nodebox.function.FunctionLibrary;
 import nodebox.function.JavaLibrary;
+import nodebox.function.TimeDependent;
 
 /**
  * Function library that is used for testing and produces side effects.
@@ -14,7 +15,8 @@ public class SideEffects {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("side-effects", SideEffects.class, "getNumber", "setNumber", "increaseAndCount");
+        LIBRARY = JavaLibrary.ofClass("side-effects", SideEffects.class, "getNumber", "setNumber", "increaseAndCount",
+                "increaseAndCountEveryRender");
     }
 
     public static long theInput = 0;
@@ -55,6 +57,15 @@ public class SideEffects {
      * @return The input + 1;
      */
     public static double increaseAndCount(double n) {
+        theCounter++;
+        return n + 1;
+    }
+
+    /**
+     * Like increaseAndCount, but declared time-dependent, so it runs on every render.
+     */
+    @TimeDependent
+    public static double increaseAndCountEveryRender(double n) {
         theCounter++;
         return n + 1;
     }

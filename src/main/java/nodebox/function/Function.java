@@ -26,6 +26,18 @@ public interface Function {
 
     public ImmutableList<Argument> getArguments();
 
+    /**
+     * Whether the result can change between renders even when the arguments are the same, because the
+     * function reads the clock, the network or a device, or acts on the outside world. A time-dependent
+     * function runs on every render; any other function is cached until its inputs change.
+     * <p/>
+     * Java functions declare this with {@link TimeDependent}, Python functions with a
+     * {@code timeDependent = True} attribute and Clojure functions with {@code ^:time-dependent} metadata.
+     */
+    public default boolean isTimeDependent() {
+        return false;
+    }
+
     public static final class Argument {
 
         public String name;
