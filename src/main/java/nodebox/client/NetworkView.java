@@ -868,6 +868,8 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             } else if (isDragTrigger(e)) {
             } else {
                 Point2D pt = inverseViewTransformPoint(e.getPoint());
+                // Reset drag state left over from a previous click that never dragged.
+                startDragging = false;
 
                 // Check if we're over an output port.
                 connectionOutput = getNodeWithOutputPortAt(pt);
@@ -906,6 +908,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             if (e.isPopupTrigger()) {
                 showPopup(e);
             } else {
+                startDragging = false;
                 isDraggingNodes = false;
                 isDragSelecting = false;
                 if (isAltPressed)
