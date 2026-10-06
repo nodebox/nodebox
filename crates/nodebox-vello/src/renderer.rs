@@ -10,7 +10,7 @@ use vello::wgpu::{
 };
 use vello::{AaConfig, RenderParams, Renderer, RendererOptions, Scene};
 
-use crate::vello_convert::{convert_paths, VelloPath};
+use crate::convert::{convert_paths, VelloPath};
 use nodebox_core::geometry::{Color, Path};
 
 /// Error type for Vello renderer operations.
@@ -124,52 +124,7 @@ impl VelloRenderer {
 
     /// Build a Vello scene from NodeBox paths.
     pub fn build_scene(&self, paths: &[Path], transform: Affine) -> Scene {
-        let mut scene = Scene::new();
-        let vello_paths = convert_paths(paths);
-
-        for vp in &vello_paths {
-            self.draw_path(&mut scene, vp, transform);
-        }
-
-        scene
-    }
-
-    /// Draw a single path to the scene.
-    fn draw_path(&self, scene: &mut Scene, vp: &VelloPath, transform: Affine) {
-        // Draw fill
-        if let Some(fill_color) = vp.style.fill {
-            scene.fill(
-                Fill::NonZero,
-                transform,
-                &Brush::Solid(fill_color),
-                None,
-                &vp.bezpath,
-            );
-        }
-
-        // Draw stroke
-        if let Some(stroke_color) = vp.style.stroke {
-            let stroke = Stroke::new(vp.style.stroke_width);
-            scene.stroke(
-                &stroke,
-                transform,
-                &Brush::Solid(stroke_color),
-                None,
-                &vp.bezpath,
-            );
-        }
-
-        // If no fill or stroke, draw default black stroke
-        if vp.style.fill.is_none() && vp.style.stroke.is_none() {
-            let stroke = Stroke::new(1.0);
-            scene.stroke(
-                &stroke,
-                transform,
-                &Brush::Solid(PenikoColor::BLACK),
-                None,
-                &vp.bezpath,
-            );
-        }
+        build_scene(paths, transform)
     }
 
     /// Render paths to the target texture.
@@ -195,7 +150,7 @@ impl VelloRenderer {
         let scene = self.build_scene(paths, transform);
 
         // Convert background color
-        let bg = crate::vello_convert::color_to_peniko(&self.config.background_color);
+        let bg = crate::convert::color_to_peniko(&self.config.background_color);
 
         // Render parameters
         let params = RenderParams {
@@ -226,6 +181,56 @@ impl VelloRenderer {
     /// Set the background color.
     pub fn set_background_color(&mut self, color: Color) {
         self.config.background_color = color;
+    }
+}
+
+/// Build a Vello scene from NodeBox paths.
+pub fn build_scene(paths: &[Path], transform: Affine) -> Scene {
+    let mut scene = Scene::new();
+    let vello_paths = convert_paths(paths);
+
+    for vp in &vello_paths {
+        draw_path(&mut scene, vp, transform);
+    }
+
+    scene
+}
+
+/// Draw a single path to the scene.
+fn draw_path(scene: &mut Scene, vp: &VelloPath, transform: Affine) {
+    // Draw fill
+    if let Some(fill_color) = vp.style.fill {
+        scene.fill(
+            Fill::NonZero,
+            transform,
+            &Brush::Solid(fill_color),
+            None,
+            &vp.bezpath,
+        );
+    }
+
+    // Draw stroke
+    if let Some(stroke_color) = vp.style.stroke {
+        let stroke = Stroke::new(vp.style.stroke_width);
+        scene.stroke(
+            &stroke,
+            transform,
+            &Brush::Solid(stroke_color),
+            None,
+            &vp.bezpath,
+        );
+    }
+
+    // If no fill or stroke, draw default black stroke
+    if vp.style.fill.is_none() && vp.style.stroke.is_none() {
+        let stroke = Stroke::new(1.0);
+        scene.stroke(
+            &stroke,
+            transform,
+            &Brush::Solid(PenikoColor::BLACK),
+            None,
+            &vp.bezpath,
+        );
     }
 }
 

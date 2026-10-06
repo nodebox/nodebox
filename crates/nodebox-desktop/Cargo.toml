@@ -52,7 +52,11 @@ version = "2"
 
 [features]
 default = ["gpu-rendering"]
-gpu-rendering = ["dep:vello", "dep:egui-wgpu", "dep:pollster", "eframe/wgpu"]
+gpu-rendering = ["dep:vello", "dep:nodebox-vello", "dep:egui-wgpu", "dep:pollster", "eframe/wgpu"]
+
+[dependencies.nodebox-vello]
+path = "../nodebox-vello"
+optional = true
 
 [dependencies.vello]
 workspace = true

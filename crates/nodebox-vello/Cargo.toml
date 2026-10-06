@@ -1,0 +1,12 @@
+[package]
+name = "nodebox-vello"
+description = "Vello rendering of NodeBox geometry, independent of any GUI toolkit"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+nodebox-core = { path = "../nodebox-core" }
+vello = { workspace = true }

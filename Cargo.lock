@@ -2895,6 +2895,7 @@ dependencies = [
  "log",
  "muda",
  "nodebox-core",
+ "nodebox-vello",
  "pollster",
  "rfd",
  "serde",
@@ -2913,6 +2914,14 @@ dependencies = [
  "nodebox-core",
  "pyo3",
  "tempfile",
+]
+
+[[package]]
+name = "nodebox-vello"
+version = "0.1.0"
+dependencies = [
+ "nodebox-core",
+ "vello",
 ]
 
 [[package]]

@@ -48,9 +48,9 @@ mod viewer_pane;
 
 // GPU rendering modules (feature-gated)
 #[cfg(feature = "gpu-rendering")]
-pub mod vello_convert;
+pub use nodebox_vello::convert as vello_convert;
 #[cfg(feature = "gpu-rendering")]
-pub mod vello_renderer;
+pub use nodebox_vello::renderer as vello_renderer;
 #[cfg(feature = "gpu-rendering")]
 pub mod vello_viewer;
 
