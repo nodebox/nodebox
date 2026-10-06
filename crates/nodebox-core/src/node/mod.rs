@@ -12,6 +12,7 @@ mod connection;
 mod node;
 mod library;
 mod default_ports;
+pub mod templates;
 
 pub use port::{Port, PortType, PortRange, Widget, MenuItem};
 pub use connection::Connection;

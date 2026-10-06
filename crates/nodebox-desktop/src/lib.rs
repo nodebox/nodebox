@@ -32,7 +32,7 @@ mod components;
 pub use nodebox_core::eval;
 mod export;
 pub mod handles;
-pub mod history;
+pub use nodebox_core::history;
 mod icon_cache;
 mod network_view;
 mod node_library;

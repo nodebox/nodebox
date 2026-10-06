@@ -2,7 +2,7 @@
 
 use std::collections::HashSet;
 use std::sync::Arc;
-use nodebox_core::node::NodeLibrary;
+use crate::node::NodeLibrary;
 
 /// Maximum number of undo states to keep.
 const MAX_HISTORY: usize = 50;

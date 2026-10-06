@@ -1,9 +1,8 @@
 //! Tests for undo/redo history functionality.
 
-mod common;
-
 use std::sync::Arc;
-use nodebox_desktop::{History, SelectionSnapshot, Node, NodeLibrary, Port};
+use nodebox_core::history::{History, SelectionSnapshot};
+use nodebox_core::node::{Node, NodeLibrary, Port};
 
 /// Create a simple test library with an ellipse.
 fn create_test_library(x: f64) -> Arc<NodeLibrary> {
