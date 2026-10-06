@@ -77,8 +77,13 @@ Node definitions and their implementations are split across multiple locations:
 
 ### Rust Implementations
 - **Node operations**: `crates/nodebox-core/src/ops/` (generators.rs, filters.rs, etc.)
-- **Node registration**: `crates/nodebox-desktop/src/node_library.rs` and `node_selection_dialog.rs`
-- **Node evaluation**: `crates/nodebox-desktop/src/eval.rs`
+- **Node templates**: `crates/nodebox-core/src/node/templates.rs` (the dialog is `crates/nodebox-desktop/src/node_selection_dialog.rs`)
+- **Default ports on load**: `crates/nodebox-core/src/node/default_ports.rs`
+- **Node evaluation**: `crates/nodebox-core/src/eval.rs`
+- **Fonts**: `crates/nodebox-core/src/geometry/font.rs` (fontdb + ttf-parser; no system fonts on wasm, the host calls `register_font`)
+- **Vello scene building**: `crates/nodebox-vello/`
+
+Code without egui in it belongs in `nodebox-core` (or `nodebox-vello` when it needs Vello), so other front ends can use it. `nodebox-core` must keep building for `wasm32-unknown-unknown`.
 
 ## Porting Nodes from Java to Rust
 
@@ -88,7 +93,7 @@ When porting node functions from Java to Rust, follow this checklist:
 
 2. **Verify the return type in Java**: Check the Java method signature in `CoreVectorFunctions.java`. For example, `grid` returns `List<Point>`, not `Geometry`.
 
-3. **Match output type in Rust registration**: When registering the node in `node_library.rs` and `node_selection_dialog.rs`, set:
+3. **Match output type in Rust registration**: When registering the node in `node/templates.rs` (and its default ports in `node/default_ports.rs`), set:
    - `.with_output_type(PortType::X)` — must match the `.ndbx` `outputType`
    - `.with_output_range(PortRange::List)` — if `.ndbx` has `outputRange="list"`
 
