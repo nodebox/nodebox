@@ -19,21 +19,26 @@ test('evaluator produces a render result with paths', async () => {
   expect(state.renderResult.pathCount).toBeGreaterThanOrEqual(1);
 });
 
-test('viewer canvas draws the rect (has non-white center pixel)', async () => {
+test('viewer draws the rect (dark pixel inside it, background outside)', async () => {
   // The default rect is at (0,0) with width=100, height=100, black fill.
-  // The origin crosshair paints over the exact center, so sample slightly off-center.
-  // Poll until the evaluator finishes and the canvas paints.
-  const viewerCanvas = ctx.window.locator('canvas').first();
-
+  // Poll until the evaluator and the WebGPU device are ready.
+  // Vello draws the geometry on a WebGPU canvas, which has no getImageData,
+  // so the test renders the same geometry offscreen and reads that.
   await expect(async () => {
-    const pixel = await viewerCanvas.evaluate((el: HTMLCanvasElement) => {
-      const c = el.getContext('2d');
-      if (!c) return null;
-      // Offset by 30px to avoid the origin crosshair (arm=20px from center)
-      const data = c.getImageData(Math.floor(el.width / 2) - 30, Math.floor(el.height / 2) - 30, 1, 1).data;
-      return { r: data[0], g: data[1], b: data[2] };
+    const pixel = await ctx.window.evaluate(async () => {
+      const size = 200;
+      const pixels: Uint8Array = await (window as any).__viewerPixels__({
+        width: size,
+        height: size,
+        offsetX: size / 2,
+        offsetY: size / 2,
+        scale: 1,
+        background: [255, 255, 255],
+      });
+      // 30px left of and above the origin, inside the 100x100 rect.
+      const i = ((size / 2 - 30) * size + (size / 2 - 30)) * 4;
+      return { r: pixels[i], g: pixels[i + 1], b: pixels[i + 2] };
     });
-    expect(pixel).not.toBeNull();
     expect(pixel!.r).toBeLessThan(50);
     expect(pixel!.g).toBeLessThan(50);
     expect(pixel!.b).toBeLessThan(50);

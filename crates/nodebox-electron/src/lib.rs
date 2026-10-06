@@ -5,9 +5,11 @@
 //! that communicate via JSON.
 
 mod platform_bridge;
+#[cfg(target_arch = "wasm32")]
+mod viewer;
 
 use nodebox_core::geometry::font;
-use nodebox_core::geometry::{Color, Point};
+use nodebox_core::geometry::{Color, Path, Point};
 use nodebox_core::node::{Connection, NodeLibrary, PortType};
 use nodebox_core::ops::data::DataValue;
 use nodebox_core::platform::{Platform, ProjectContext};
@@ -15,6 +17,7 @@ use nodebox_core::Value;
 use nodebox_core::eval::{evaluate_network, NodeOutput};
 use nodebox_core::node::templates::{create_node_from_template, NODE_TEMPLATES};
 use platform_bridge::WasmPlatform;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
@@ -431,7 +434,6 @@ fn describe_output(output: &NodeOutput) -> serde_json::Value {
 /// ```json
 /// {
 ///   "paths": [{ "contours": [...], "fill": {...}, "stroke": null, "stroke_width": 1.0 }],
-///   "texts": [],
 ///   "output": { "type": "Geometry", "isMultiple": false, "values": ["Path 0", ...] },
 ///   "errors": [{ "nodeName": "rect1", "message": "..." }]
 /// }
@@ -451,15 +453,41 @@ pub fn evaluate_library(library_json: &str, files_json: &str, frame: u32) -> Str
     ctx.frame = frame;
 
     let (paths, output, errors) = evaluate_network(&library, &platform, &ctx);
+    let result = serialize_eval_result(&paths, &output, &errors);
+    LAST_PATHS.with(|last| *last.borrow_mut() = Arc::new(paths));
+    result
+}
 
-    serialize_eval_result(&paths, &output, &errors)
+thread_local! {
+    /// The geometry of the last `evaluate_library` call. The viewer and the
+    /// exporters draw from it, so paths do not travel through JSON twice.
+    static LAST_PATHS: RefCell<Arc<Vec<Path>>> = RefCell::new(Arc::new(Vec::new()));
+}
+
+pub(crate) fn last_paths() -> Arc<Vec<Path>> {
+    LAST_PATHS.with(|last| last.borrow().clone())
+}
+
+/// Render the geometry of the last evaluation as an SVG document.
+///
+/// The document is `width` by `height`, with the origin in its centre.
+#[wasm_bindgen]
+pub fn export_svg(width: f64, height: f64, background_r: u8, background_g: u8, background_b: u8) -> String {
+    let background = Color::rgb(
+        f64::from(background_r) / 255.0,
+        f64::from(background_g) / 255.0,
+        f64::from(background_b) / 255.0,
+    );
+    let options = nodebox_core::svg::SvgOptions::new(width, height)
+        .with_centered(true)
+        .with_background(Some(background));
+    nodebox_core::svg::render_to_svg_with_options(&last_paths(), &options)
 }
 
 /// Build an EvalResult JSON with just an error.
 fn error_result_json(message: &str) -> String {
     serde_json::json!({
         "paths": [],
-        "texts": [],
         "output": { "type": "none", "isMultiple": false, "values": [] },
         "errors": [{ "nodeName": "root", "message": message }],
     })
@@ -510,7 +538,6 @@ fn serialize_eval_result(
 
     let result = serde_json::json!({
         "paths": paths_json,
-        "texts": [],
         "output": {
             "type": output_type,
             "isMultiple": is_multiple,
@@ -597,48 +624,17 @@ fn resolve_node_ports(node: &mut nodebox_core::node::Node, temp_lib: &NodeLibrar
     }
 }
 
-/// Convert text to vector path contours using the bundled font.
-///
-/// Returns JSON array of contours, each with points and closed flag.
-/// Uses the bundled Inter font (no system font access needed).
+/// Add a font file to the font database. WebAssembly has no system fonts, so
+/// the page supplies the fonts a document asks for.
 #[wasm_bindgen]
-pub fn text_to_path(text: &str, font_size: f64, position_x: f64, position_y: f64) -> String {
-    let font_bytes = font::BUNDLED_FONT_BYTES;
-    let position = Point::new(position_x, position_y);
+pub fn register_font(data: Vec<u8>) -> usize {
+    font::register_font(data)
+}
 
-    match font::text_to_path_from_bytes(text, font_bytes, font_size, position) {
-        Ok(path) => {
-            let contours: Vec<serde_json::Value> = path
-                .contours
-                .iter()
-                .map(|c| {
-                    let points: Vec<serde_json::Value> = c
-                        .points
-                        .iter()
-                        .map(|p| {
-                            serde_json::json!({
-                                "x": p.x(),
-                                "y": p.y(),
-                                "type": match p.point_type {
-                                    nodebox_core::geometry::PointType::LineTo => "lineTo",
-                                    nodebox_core::geometry::PointType::CurveTo => "curveTo",
-                                    nodebox_core::geometry::PointType::CurveData => "curveData",
-                                    nodebox_core::geometry::PointType::QuadTo => "quadTo",
-                                    nodebox_core::geometry::PointType::QuadData => "quadData",
-                                },
-                            })
-                        })
-                        .collect();
-                    serde_json::json!({
-                        "points": points,
-                        "closed": c.closed,
-                    })
-                })
-                .collect();
-            serde_json::to_string(&contours).unwrap_or_else(|_| "[]".to_string())
-        }
-        Err(_) => "[]".to_string(),
-    }
+/// The font names that matched no registered font since the last call.
+#[wasm_bindgen]
+pub fn take_missing_fonts() -> Vec<String> {
+    font::take_missing_fonts()
 }
 
 #[cfg(test)]
@@ -788,5 +784,22 @@ mod tests {
         // Overridden width should be preserved
         let width = ellipse.inputs.iter().find(|p| p.name == "width").unwrap();
         assert_eq!(width.value, Value::Float(50.0));
+    }
+
+    #[test]
+    fn test_export_svg_draws_the_last_evaluation() {
+        let ndbx = r#"<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="17" type="file" uuid="test">
+    <node name="root" prototype="core.network" renderedChild="rect1">
+        <node name="rect1" prototype="corevector.rect"/>
+    </node>
+</ndbx>"#;
+        let library = WasmNodeLibrary::from_ndbx(ndbx).unwrap();
+        let result = evaluate_library(&library.to_json().unwrap(), "{}", 1);
+        assert!(result.contains("\"paths\""), "evaluation should return paths: {}", result);
+
+        let svg = export_svg(400.0, 300.0, 255, 255, 255);
+        assert!(svg.contains("translate(200,150)"), "the origin is in the centre: {}", svg);
+        assert!(svg.contains("<path"), "the rect is in the document: {}", svg);
     }
 }

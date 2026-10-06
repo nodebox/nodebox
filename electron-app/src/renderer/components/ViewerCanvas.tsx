@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../state/store';
 import { usePanZoom } from '../hooks/usePanZoom';
 import { useCanvasRenderer } from '../hooks/useCanvasRenderer';
-import type { PathRenderData, TextRenderData } from '../types/eval-result';
-import type { Contour, Point } from '../types/geometry';
+import { initViewer, onWasmReady, renderViewer } from '../eval/wasm';
+import type { Point } from '../types/geometry';
 import {
   ZINC_200,
   VIEWER_CROSSHAIR,
@@ -21,106 +21,12 @@ import {
 } from '../viewer/four-point-handle';
 import { resolveFourPointHandle } from '../viewer/handle-resolver';
 
-function colorToCSS(c: { r: number; g: number; b: number; a: number }): string {
-  return `rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${c.a})`;
-}
-
-function contourToPath2D(contour: Contour): Path2D {
-  const path = new Path2D();
-  const pts = contour.points;
-  let i = 0;
-  while (i < pts.length) {
-    const pt = pts[i];
-    if (i === 0) {
-      // First point of each contour is always an implicit moveTo
-      path.moveTo(pt.point.x, pt.point.y);
-      i++;
-      continue;
-    }
-    switch (pt.point_type) {
-      case 'LineTo':
-        path.lineTo(pt.point.x, pt.point.y);
-        i++;
-        break;
-      case 'CurveData': {
-        // Expect two CurveData followed by one CurveTo
-        const cp1 = pts[i];
-        const cp2 = pts[i + 1];
-        const end = pts[i + 2];
-        if (cp2 && end && end.point_type === 'CurveTo') {
-          path.bezierCurveTo(cp1.point.x, cp1.point.y, cp2.point.x, cp2.point.y, end.point.x, end.point.y);
-          i += 3;
-        } else {
-          i++;
-        }
-        break;
-      }
-      case 'CurveTo':
-        // Should be handled by CurveData, but fallback
-        path.lineTo(pt.point.x, pt.point.y);
-        i++;
-        break;
-      case 'QuadData': {
-        // One QuadData followed by one QuadTo
-        const cp = pts[i];
-        const end = pts[i + 1];
-        if (end && end.point_type === 'QuadTo') {
-          path.quadraticCurveTo(cp.point.x, cp.point.y, end.point.x, end.point.y);
-          i += 2;
-        } else {
-          i++;
-        }
-        break;
-      }
-      case 'QuadTo':
-        // Should be handled by QuadData, but fallback
-        path.lineTo(pt.point.x, pt.point.y);
-        i++;
-        break;
-      default:
-        i++;
-        break;
-    }
-  }
-  if (contour.closed) {
-    path.closePath();
-  }
-  return path;
-}
-
-function drawPathData(
-  ctx: CanvasRenderingContext2D,
-  pathData: PathRenderData,
-) {
-  const combined = new Path2D();
-  for (const contour of pathData.contours) {
-    combined.addPath(contourToPath2D(contour));
-  }
-
-  if (pathData.fill) {
-    ctx.fillStyle = colorToCSS(pathData.fill);
-    ctx.fill(combined);
-  }
-  if (pathData.stroke) {
-    ctx.strokeStyle = colorToCSS(pathData.stroke);
-    ctx.lineWidth = pathData.stroke_width;
-    ctx.stroke(combined);
-  }
-}
-
-function drawTextData(
-  ctx: CanvasRenderingContext2D,
-  textData: TextRenderData,
-) {
-  ctx.font = `${textData.fontSize}px "${textData.fontFamily}", sans-serif`;
-  ctx.textAlign = textData.align;
-  ctx.textBaseline = 'alphabetic';
-  if (textData.fill) {
-    ctx.fillStyle = colorToCSS(textData.fill);
-  } else {
-    ctx.fillStyle = '#000000';
-  }
-  ctx.fillText(textData.text, textData.position.x, textData.position.y);
+/** Parse a CSS hex colour ("#rgb", "#rrggbb" or "#rrggbbaa") to red, green and blue, each 0-255. */
+export function parseHexColor(css: string): [number, number, number] {
+  let hex = css.trim().replace(/^#/, '');
+  if (hex.length === 3) hex = hex.replace(/./g, (c) => c + c);
+  const value = /^[0-9a-fA-F]{6}/.test(hex) ? parseInt(hex.slice(0, 6), 16) : 0xe4e4e7;
+  return [(value >> 16) & 0xff, (value >> 8) & 0xff, value & 0xff];
 }
 
 function drawOrigin(
@@ -318,31 +224,51 @@ export function ViewerCanvas() {
   const docHeight = parseFloat(library.properties.canvasHeight ?? '1000');
   const canvasBg = library.properties.canvasBackground ?? ZINC_200;
 
+  // The WebGPU canvas that Vello draws to, and whether its device is ready.
+  const gpuCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [viewerState, setViewerState] = useState<'starting' | 'ready' | string>('starting');
+  useEffect(() => {
+    let cancelled = false;
+    onWasmReady(() => {
+      const canvas = gpuCanvasRef.current;
+      if (!canvas || cancelled) return;
+      initViewer(canvas).then(
+        () => !cancelled && setViewerState('ready'),
+        (error) => !cancelled && setViewerState(String(error?.message ?? error)),
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const draw = useCallback(
     (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-      // Clear with light document background
-      ctx.fillStyle = canvasBg;
-      ctx.fillRect(0, 0, width, height);
+      // Geometry: Vello draws the document background and the paths on the
+      // WebGPU canvas underneath. This canvas only holds the overlays.
+      const dpr = window.devicePixelRatio || 1;
+      const gpuCanvas = gpuCanvasRef.current;
+      if (gpuCanvas && viewerState === 'ready') {
+        const bufferWidth = Math.round(width * dpr);
+        const bufferHeight = Math.round(height * dpr);
+        if (gpuCanvas.width !== bufferWidth || gpuCanvas.height !== bufferHeight) {
+          gpuCanvas.width = bufferWidth;
+          gpuCanvas.height = bufferHeight;
+        }
+        renderViewer({
+          width: bufferWidth,
+          height: bufferHeight,
+          offsetX: (width / 2 + pz.panX) * dpr,
+          offsetY: (height / 2 + pz.panY) * dpr,
+          scale: pz.zoom * dpr,
+          background: parseHexColor(canvasBg),
+        });
+      }
+      ctx.clearRect(0, 0, width, height);
 
       // Canvas border
       if (showCanvasBorder) {
         drawCanvasBorder(ctx, width, height, docWidth, docHeight, pz.panX, pz.panY, pz.zoom);
-      }
-
-      // Render paths and texts
-      if (renderResult) {
-        ctx.save();
-        ctx.translate(width / 2 + pz.panX, height / 2 + pz.panY);
-        ctx.scale(pz.zoom, pz.zoom);
-
-        for (const pathData of renderResult.paths) {
-          drawPathData(ctx, pathData);
-        }
-        for (const textData of renderResult.texts) {
-          drawTextData(ctx, textData);
-        }
-
-        ctx.restore();
       }
 
       // Draw points (always show when output is Point type, like grid)
@@ -401,7 +327,7 @@ export function ViewerCanvas() {
         drawOrigin(ctx, width, height, pz.panX, pz.panY);
       }
     },
-    [pz, renderResult, showOrigin, showCanvasBorder, showHandles, showPoints, showPointNumbers, docWidth, docHeight, canvasBg, fourPointHandle],
+    [pz, renderResult, showOrigin, showCanvasBorder, showHandles, showPoints, showPointNumbers, docWidth, docHeight, canvasBg, fourPointHandle, viewerState],
   );
 
   const { canvasRef } = useCanvasRenderer(draw);
@@ -492,15 +418,28 @@ export function ViewerCanvas() {
 
   const cursor = handleDragTarget !== 'none' || panZoom.isPanning ? 'grabbing' : panZoom.isSpaceDown ? 'grab' : 'default';
 
+  const viewerError = viewerState !== 'starting' && viewerState !== 'ready' ? viewerState : null;
+
   return (
-    <canvas
-      ref={canvasRef}
-      className="w-full h-full block"
-      style={{ cursor }}
-      onWheel={handlers.onWheel}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-    />
+    <div className="relative w-full h-full" style={{ background: canvasBg }}>
+      {/* Overlays and pointer input. First in the DOM, drawn above the geometry. */}
+      <canvas
+        ref={canvasRef}
+        data-testid="viewer-canvas"
+        className="absolute inset-0 z-10 w-full h-full block"
+        style={{ cursor }}
+        onWheel={handlers.onWheel}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+      />
+      {/* Geometry, drawn by Vello through WebGPU. */}
+      <canvas ref={gpuCanvasRef} data-testid="viewer-gpu-canvas" className="absolute inset-0 w-full h-full block" />
+      {viewerError && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center p-6 text-center text-zinc-700">
+          The viewer needs WebGPU, which is not available: {viewerError}
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,10 +1,9 @@
 import type { NodeLibrary } from '../types/node';
 import type { EvalResult } from '../types/eval-result';
-import { isWasmReady, evaluateLibrary } from './wasm';
+import { isWasmReady, evaluateLibrary, registerFont, takeMissingFonts } from './wasm';
 
 const EMPTY_RESULT: EvalResult = {
   paths: [],
-  texts: [],
   output: { type: 'none', isMultiple: false, values: [] },
   errors: [],
 };
@@ -53,6 +52,45 @@ async function readFiles(
   return files;
 }
 
+/** A font as the Local Font Access API describes it. */
+interface LocalFont {
+  family: string;
+  style: string;
+  postscriptName: string;
+  blob(): Promise<Blob>;
+}
+
+const requestedFonts = new Set<string>();
+let localFonts: Promise<LocalFont[]> | null = null;
+
+/**
+ * Register the system fonts for `names` with the WASM module, which has no
+ * system fonts of its own. Each name is looked up one time. Returns true if a
+ * font was registered, so the caller evaluates again.
+ */
+async function loadMissingFonts(names: string[]): Promise<boolean> {
+  const wanted = names.filter((name) => !requestedFonts.has(name));
+  const query = (window as unknown as { queryLocalFonts?: () => Promise<LocalFont[]> }).queryLocalFonts;
+  if (wanted.length === 0 || !query) return false;
+  for (const name of wanted) requestedFonts.add(name);
+
+  localFonts ??= query.call(window).catch(() => []);
+  const fonts = await localFonts;
+  let registered = false;
+  for (const name of wanted) {
+    const lower = name.toLowerCase();
+    // .ndbx files store PostScript names such as "Verdana-Bold".
+    const font =
+      fonts.find((f) => f.postscriptName.toLowerCase() === lower) ??
+      fonts.find((f) => f.family.toLowerCase() === lower && f.style === 'Regular') ??
+      fonts.find((f) => f.family.toLowerCase() === lower);
+    if (!font) continue;
+    registerFont(new Uint8Array(await (await font.blob()).arrayBuffer()));
+    registered = true;
+  }
+  return registered;
+}
+
 export async function evaluate(
   library: NodeLibrary,
   frame: number,
@@ -70,6 +108,10 @@ export async function evaluate(
     }
   }
 
-  const json = evaluateLibrary(JSON.stringify(library), filesJson, frame);
+  const libraryJson = JSON.stringify(library);
+  let json = evaluateLibrary(libraryJson, filesJson, frame);
+  if (await loadMissingFonts(takeMissingFonts())) {
+    json = evaluateLibrary(libraryJson, filesJson, frame);
+  }
   return JSON.parse(json) as EvalResult;
 }

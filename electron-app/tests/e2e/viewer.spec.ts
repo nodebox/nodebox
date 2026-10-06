@@ -157,7 +157,7 @@ async function setRenderedLibrary(
 }
 
 test('viewer canvas exists and has dimensions', async () => {
-  // The viewer is the second canvas element (after the network canvas)
+  // The viewer has two canvases (overlays and geometry); the network view has one.
   const canvases = ctx.window.locator('canvas');
   const count = await canvases.count();
   expect(count).toBeGreaterThanOrEqual(2);
@@ -170,7 +170,7 @@ test('viewer canvas exists and has dimensions', async () => {
 });
 
 test('viewer canvas zooms with wheel events', async () => {
-  const viewerCanvas = ctx.window.locator('canvas').nth(1);
+  const viewerCanvas = ctx.window.getByTestId('viewer-canvas');
   const box = await viewerCanvas.boundingBox();
   expect(box).not.toBeNull();
 

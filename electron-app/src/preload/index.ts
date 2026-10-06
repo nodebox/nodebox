@@ -15,8 +15,6 @@ const electronAPI = {
     ipcRenderer.invoke(IPC.ASSET_READ, { relativePath, projectDir }),
 
   // Fonts
-  getFontList: () => ipcRenderer.invoke(IPC.FONT_LIST),
-  getFontBytes: (name: string) => ipcRenderer.invoke(IPC.FONT_BYTES, name),
 
   // Menu actions
   onMenuAction: (callback: (action: string) => void) => {

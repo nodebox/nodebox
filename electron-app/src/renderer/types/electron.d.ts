@@ -1,11 +1,5 @@
 // Type declarations for the contextBridge API exposed by preload.
 
-interface FontInfo {
-  family: string;
-  postscriptName: string;
-  path: string;
-}
-
 interface FileResult {
   path: string;
   content: string;
@@ -30,8 +24,6 @@ interface ElectronAPI {
     relativePath: string,
     projectDir: string,
   ): Promise<{ content: string } | { error: string }>;
-  getFontList(): Promise<FontInfo[]>;
-  getFontBytes(name: string): Promise<Uint8Array | null>;
   onMenuAction(callback: (action: string) => void): void;
 }
 

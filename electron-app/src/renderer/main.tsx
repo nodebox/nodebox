@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { useStore } from './state/store';
 import './App.css';
+import { renderViewerPixels } from './eval/wasm';
 
 // Expose store for E2E test actions (create nodes, set port values, etc.)
 (window as any).__store__ = useStore;
@@ -46,6 +47,9 @@ import './App.css';
     viewerZoom: s.viewerZoom,
   };
 };
+
+// Lets E2E tests read what Vello draws; a WebGPU canvas has no getImageData.
+(window as any).__viewerPixels__ = renderViewerPixels;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

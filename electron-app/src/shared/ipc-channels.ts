@@ -7,8 +7,6 @@ export const IPC = {
   FILE_SAVE_AS: 'file:save-as',
   EXPORT_SVG: 'export:svg',
   EXPORT_PNG: 'export:png',
-  FONT_LIST: 'font:list',
-  FONT_BYTES: 'font:bytes',
   ASSET_OPEN: 'asset:open',
   ASSET_READ: 'asset:read',
   MENU_ACTION: 'menu:action',

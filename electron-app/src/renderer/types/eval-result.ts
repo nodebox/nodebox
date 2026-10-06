@@ -1,21 +1,12 @@
 // Evaluation result types from the WASM engine.
 
-import type { Contour, Color, Point } from './geometry';
+import type { Contour, Color } from './geometry';
 
 export interface PathRenderData {
   contours: Contour[];
   fill: Color | null;
   stroke: Color | null;
   stroke_width: number;
-}
-
-export interface TextRenderData {
-  text: string;
-  position: Point;
-  fontFamily: string;
-  fontSize: number;
-  align: 'left' | 'center' | 'right';
-  fill: Color | null;
 }
 
 export interface OutputInfo {
@@ -31,7 +22,6 @@ export interface NodeError {
 
 export interface EvalResult {
   paths: PathRenderData[];
-  texts: TextRenderData[];
   output: OutputInfo;
   errors: NodeError[];
 }

@@ -3,7 +3,9 @@ import { useStore } from './state/store';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { AppLayout } from './components/AppLayout';
 import { evaluate } from './eval/evaluator';
-import { isWasmReady, onWasmReady, parseNdbx, serializeNdbx } from './eval/wasm';
+import { exportSvg, isWasmReady, onWasmReady, parseNdbx, renderViewerPixels, serializeNdbx } from './eval/wasm';
+import { parseHexColor } from './components/ViewerCanvas';
+import { ZINC_200 } from './theme/tokens';
 import { createDefaultLibrary } from './types/node';
 import type { MenuAction } from '../shared/ipc-channels';
 
@@ -13,6 +15,24 @@ function dirname(filePath: string): string {
   const backSep = filePath.lastIndexOf('\\');
   const lastSep = Math.max(sep, backSep);
   return lastSep >= 0 ? filePath.substring(0, lastSep) : '.';
+}
+
+/** The size and background colour of the document canvas. */
+function documentFrame(library: { properties: Record<string, string> }) {
+  return {
+    width: parseFloat(library.properties.canvasWidth ?? '1000'),
+    height: parseFloat(library.properties.canvasHeight ?? '1000'),
+    background: parseHexColor(library.properties.canvasBackground ?? ZINC_200),
+  };
+}
+
+/** Encode RGBA pixels as a PNG file. */
+async function encodePng(pixels: Uint8Array, width: number, height: number): Promise<Uint8Array> {
+  const canvas = new OffscreenCanvas(width, height);
+  const image = new ImageData(new Uint8ClampedArray(pixels), width, height);
+  canvas.getContext('2d')!.putImageData(image, 0, 0);
+  const blob = await canvas.convertToBlob({ type: 'image/png' });
+  return new Uint8Array(await blob.arrayBuffer());
 }
 
 export function App() {
@@ -194,6 +214,27 @@ export function App() {
         case 'view:toggle-canvas-border':
           toggleCanvasBorder();
           break;
+        // Export the document at its own size, with the origin in the centre.
+        case 'export:svg': {
+          const doc = documentFrame(useStore.getState().library);
+          await window.electronAPI.exportSvg(exportSvg(doc.width, doc.height, doc.background));
+          break;
+        }
+        case 'export:png': {
+          const doc = documentFrame(useStore.getState().library);
+          const width = Math.round(doc.width);
+          const height = Math.round(doc.height);
+          const pixels = await renderViewerPixels({
+            width,
+            height,
+            offsetX: width / 2,
+            offsetY: height / 2,
+            scale: 1,
+            background: doc.background,
+          });
+          await window.electronAPI.exportPng(await encodePng(pixels, width, height));
+          break;
+        }
         case 'help:about':
           setAboutDialogVisible(true);
           break;

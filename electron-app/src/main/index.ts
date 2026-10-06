@@ -1,9 +1,8 @@
-import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, Menu, session } from 'electron';
 import { readFile, writeFile } from 'fs/promises';
 import { join, resolve, relative, isAbsolute } from 'path';
 import { IPC } from '../shared/ipc-channels';
 import { createMenu } from './menu';
-import { listFonts, getFontBytes } from './fonts';
 
 // Use app.getAppPath() for reliable path resolution in both dev and production
 const appPath = app.getAppPath();
@@ -102,14 +101,6 @@ ipcMain.handle(IPC.EXPORT_PNG, async (_event, data: Uint8Array) => {
   return { path: filePath };
 });
 
-ipcMain.handle(IPC.FONT_LIST, async () => {
-  return listFonts();
-});
-
-ipcMain.handle(IPC.FONT_BYTES, async (_event, name: string) => {
-  return getFontBytes(name);
-});
-
 ipcMain.handle(IPC.ASSET_READ, async (_event, { relativePath, projectDir }: { relativePath: string; projectDir: string }) => {
   // Reject absolute paths outright — only relative paths are allowed
   if (isAbsolute(relativePath)) {
@@ -147,7 +138,20 @@ ipcMain.handle(IPC.ASSET_OPEN, async (_event, { filters, projectDir }: { filters
   return { path: relativePath };
 });
 
-app.whenReady().then(createWindow);
+// The viewer draws with WebGPU on every platform.
+app.commandLine.appendSwitch('enable-unsafe-webgpu');
+app.commandLine.appendSwitch('enable-features', 'WebGPU');
+
+app.whenReady().then(() => {
+  // The renderer reads system fonts with the Local Font Access API.
+  // Electron's types do not list this permission yet, hence the string comparison.
+  const isLocalFonts = (permission: string) => permission === 'local-fonts';
+  session.defaultSession.setPermissionCheckHandler((_contents, permission) => isLocalFonts(permission));
+  session.defaultSession.setPermissionRequestHandler((_contents, permission, callback) =>
+    callback(isLocalFonts(permission)),
+  );
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
