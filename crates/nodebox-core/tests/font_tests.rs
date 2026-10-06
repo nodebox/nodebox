@@ -9,8 +9,7 @@ use std::path::PathBuf;
 
 fn get_inter_font_path() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("fixtures")
+        .join("resources")
         .join("Inter.ttf")
 }
 

@@ -13,9 +13,10 @@ The Java/Python code (`src/main/java`, `src/main/python`) is **legacy and read-o
 
 ### Active code
 - `electron-app/` — Electron GUI (see detailed section below)
-- `crates/nodebox-core/` — Rust core: geometry types, node operations, evaluator
+- `crates/nodebox-core/` — Rust core: geometry types, node operations, evaluator, fonts, node templates
+- `crates/nodebox-vello/` — Vello scene building and rendering, shared by both GUIs
 - `crates/nodebox-desktop/` — Rust desktop GUI (egui)
-- `crates/nodebox-electron/` — WASM bridge for Electron (e.g., text-to-path via wasm-pack)
+- `crates/nodebox-electron/` — WASM module for Electron: evaluation, the Vello viewer, export (built with wasm-pack)
 
 ### Reference / legacy (read-only)
 - `src/main/java/` — Legacy Java application (`nodebox.*` packages)
@@ -92,8 +93,7 @@ Node definitions live in several places. When porting a node, use the legacy `.n
 - `src/main/python/` modules — Python node implementations (reference only)
 
 ### Current implementations
-- **Rust:** `crates/nodebox-core/src/ops/` (generators.rs, filters.rs, etc.), registered in `crates/nodebox-desktop/src/node_library.rs`
-- **Electron/TypeScript:** `electron-app/src/renderer/eval/generators.ts` (node evaluation), types in `electron-app/src/renderer/types/`
+All node logic is in Rust. The Electron app evaluates through the WASM module and holds no node implementations of its own; its TypeScript types in `electron-app/src/renderer/types/` mirror the Rust ones.
 
 ### Rust Implementations
 - **Node operations**: `crates/nodebox-core/src/ops/` (generators.rs, filters.rs, etc.)
@@ -107,7 +107,7 @@ Code without egui in it belongs in `nodebox-core` (or `nodebox-vello` when it ne
 
 ## Porting Nodes from Java
 
-When porting node functions from Java to Rust or TypeScript, follow this checklist:
+When porting node functions from Java to Rust, follow this checklist:
 
 1. **Find the authoritative definition**: Look up the node in `libraries/corevector/corevector.ndbx` to see `outputType`, `outputRange`, and all `<port>` elements. This is the source of truth.
 
@@ -187,18 +187,11 @@ The canvas uses a centered coordinate system where:
 - Canvas extends from `-width/2` to `+width/2` and `-height/2` to `+height/2`
 - This matches standard graphics conventions and simplifies transforms
 
-**For SVG export:**
-```rust
-// Use centered viewBox
-let half_w = width / 2.0;
-let half_h = height / 2.0;
-format!(r#"viewBox="{} {} {} {}""#, -half_w, -half_h, width, height)
-```
+**For SVG export**, `nodebox_core::svg::SvgOptions::with_centered(true)` wraps the geometry in a group translated by half the width and height.
 
-**For PNG export with tiny_skia:**
+**For Vello**, the view transform puts the origin where the document centre should appear:
 ```rust
-// Center the transform
-let transform = Transform::from_translate(width as f32 / 2.0, height as f32 / 2.0);
+let transform = Affine::translate((offset_x, offset_y)) * Affine::scale(scale);
 ```
 
 ## Screen-space Rendering
@@ -338,8 +331,7 @@ electron-app/
 ├── src/
 │   ├── main/              # Electron main process
 │   │   ├── index.ts        # App entry, window creation, IPC handlers
-│   │   ├── menu.ts         # Native app menu
-│   │   └── fonts.ts        # System font enumeration (main process)
+│   │   └── menu.ts         # Native app menu
 │   ├── preload/
 │   │   └── index.ts        # Context bridge (electronAPI)
 │   ├── shared/
@@ -351,8 +343,8 @@ electron-app/
 │       ├── components/      # React components
 │       ├── state/           # Zustand store slices
 │       ├── hooks/           # Custom React hooks
-│       ├── eval/            # Node evaluator (JS + WASM)
-│       ├── theme/           # Design tokens (JS constants for Canvas2D)
+│       ├── eval/            # Calls into the WASM module (evaluation, viewer, export, fonts)
+│       ├── theme/           # Design tokens (JS constants for canvas drawing)
 │       ├── types/           # TypeScript type definitions
 │       └── viewer/          # Viewer handle logic (FourPointHandle, hit testing)
 ├── wasm/                   # WASM module (built by wasm-pack from crates/)
@@ -385,8 +377,8 @@ npm run build && npx playwright test
 
 ### Electron Process Model
 
-- **Main process** (`src/main/index.ts`): Window management, native file dialogs, system font access, app menu. Uses `contextIsolation: true` and `nodeIntegration: false`.
-- **Preload** (`src/preload/index.ts`): Bridges main↔renderer via `contextBridge.exposeInMainWorld('electronAPI', ...)`. Exposes file I/O, export, font access, and menu action handlers.
+- **Main process** (`src/main/index.ts`): Window management, native file dialogs, app menu. Enables WebGPU and grants the `local-fonts` permission. Uses `contextIsolation: true` and `nodeIntegration: false`.
+- **Preload** (`src/preload/index.ts`): Bridges main↔renderer via `contextBridge.exposeInMainWorld('electronAPI', ...)`. Exposes file I/O, export, and menu action handlers.
 - **Renderer** (`src/renderer/`): Full React app. No direct Node.js access — all system operations go through the `electronAPI` bridge.
 
 ### IPC Channels
@@ -394,7 +386,6 @@ npm run build && npx playwright test
 Defined in `src/shared/ipc-channels.ts`:
 - `file:new`, `file:open`, `file:save`, `file:save-as` — file operations
 - `export:svg`, `export:png` — export operations
-- `font:list`, `font:bytes` — system font access
 - `menu:action` — menu command dispatch (undo, redo, delete, zoom, toggle view options)
 
 ### State Management (Zustand + Immer)
@@ -408,37 +399,42 @@ The store is composed of 6 slices, all using Immer for immutable updates:
 | `HistorySlice` | `state/history-slice.ts` | Undo/redo stacks (structuredClone snapshots, max 50) |
 | `UISlice` | `state/ui-slice.ts` | View toggles, splitter ratios, dialog visibility, viewer mode/zoom |
 | `AnimationSlice` | `state/animation-slice.ts` | Frame, play state, frame range |
-| `RenderSlice` | `state/render-slice.ts` | Evaluation result (paths, texts, errors) |
+| `RenderSlice` | `state/render-slice.ts` | Evaluation result (paths, output info, errors) |
 
 Store is created in `state/store.ts` and accessed via `useStore` hook.
 
 ### Node Evaluation
 
-The evaluator (`eval/evaluator.ts`) implements a recursive, memoized graph evaluator in pure TypeScript:
+Evaluation runs in Rust, in the WASM module built from `crates/nodebox-electron/`. `eval/evaluator.ts` only prepares the call:
 
-1. Starts from `renderedChild` node
-2. Recursively resolves input ports: checks connections first, falls back to port default values
-3. Dispatches to generator functions (`eval/generators.ts`) based on `node.prototype`
-4. Returns `EvalResult` with paths, texts, output info, and errors
+1. It reads the files that File-widget ports point to, through the `electronAPI` bridge, because the evaluator cannot block on IPC.
+2. It calls `evaluate_library(libraryJson, filesJson, frame)` and parses the returned `EvalResult` (paths, output info, errors).
+3. If the document asked for fonts that are not registered yet, it reads them with the Local Font Access API (`queryLocalFonts`), registers them with `register_font`, and evaluates again. Until then text uses the bundled Inter font.
 
-**Supported node types:** rect, ellipse, line, polygon, star, grid, textpath, colorize, stroke, translate, rotate, scale, copy, make_point, math ops (add/subtract/multiply/divide).
+A node type the evaluator does not implement comes back as an error that names the node.
 
 ### WASM Integration
 
-The `wasm/` directory contains a wasm-pack output built from a Rust crate (`crates/nodebox-electron/`). Currently used for:
-- `text_to_path(text, fontSize, x, y)` — converts text to bezier path contours using a bundled Inter font
+`wasm/` is the wasm-pack output of `crates/nodebox-electron/`. Rebuild it after changing Rust code:
 
-Loaded eagerly in `eval/wasm.ts`:
-```typescript
-import init, { text_to_path } from '@wasm/nodebox_electron.js';
-init().then(() => { ready = true; });
+```bash
+cd crates && wasm-pack build nodebox-electron --target web --out-dir ../electron-app/wasm
 ```
+
+`eval/wasm.ts` loads the module and wraps its exports: `evaluate_library`, `get_node_templates`, `create_node`, `WasmNodeLibrary` (parse and serialize `.ndbx`), `register_font`, `take_missing_fonts`, `export_svg`, and the viewer functions `viewer_init`, `viewer_render` and `viewer_render_pixels`.
 
 Vite path alias `@wasm` → `wasm/` is configured in `vite.config.ts`.
 
 ### Canvas Rendering
 
-Both the network view and viewer use `<canvas>` with Canvas2D (not WebGL/WebGPU):
+The network view draws with Canvas2D. The viewer has two stacked canvases:
+
+- a WebGPU canvas, on which **Vello** draws the document background and the geometry (`viewer_render` in `crates/nodebox-electron/src/viewer.rs`). The paths of the last evaluation stay in WASM memory, so drawing does not parse them again;
+- a Canvas2D canvas above it for the overlays and the pointer input.
+
+The same Vello renderer produces PNG export and the pixels that E2E tests read (`viewer_render_pixels`), because a WebGPU canvas has no `getImageData`.
+
+Shared hooks:
 
 - **`useCanvasRenderer` hook** — handles DPR-aware canvas sizing, `requestAnimationFrame` scheduling, and `ResizeObserver` auto-rerender
 - **`usePanZoom` hook** — mouse wheel zoom (ctrl/meta for zoom, plain scroll for pan), middle-mouse/alt-click drag pan, `worldToScreen`/`screenToWorld` coordinate transforms
@@ -448,9 +444,8 @@ Both the network view and viewer use `<canvas>` with Canvas2D (not WebGL/WebGPU)
 - Connection lines (colored by port type), port indicators
 - Selection highlights, rubber band selection, drag preview
 
-**ViewerCanvas** renders:
+**ViewerCanvas** renders on its 2D overlay:
 - Canvas border, origin crosshair
-- Path geometry (fill + stroke via combined Path2D with nonzero winding)
 - Control points (colored circles by point type: green=lineTo, red=curveTo, blue=curveData)
 - Point numbers (bitmap digit cache, toggled via UI)
 - Interactive FourPointHandle for rect/ellipse (drag corners to resize, center to reposition)
@@ -470,7 +465,7 @@ Where `CELL_SIZE = 48` and `NODE_PADDING = 8`. Default pan is `(8, 8)` so grid p
 
 1. **Tailwind CSS (`App.css` `@theme`)** — for DOM components. Defines the Zinc/Violet palette, semantic colors, category colors, point type colors, and spacing as CSS custom properties. Usage: `className="bg-zinc-800 text-zinc-100"`.
 
-2. **JS Constants (`theme/tokens.ts`)** — for Canvas2D rendering. Same values as CSS, but as TypeScript string constants. Canvas2D code (`NetworkCanvas.tsx`, `ViewerCanvas.tsx`) must import from here since it draws programmatically.
+2. **JS Constants (`theme/tokens.ts`)** — for canvas drawing. Same values as CSS, but as TypeScript string constants. Canvas2D code (`NetworkCanvas.tsx`, `ViewerCanvas.tsx`) must import from here since it draws programmatically.
 
 **Rule:** DOM components should use Tailwind classes. Only Canvas2D code uses `tokens.ts`.
 
@@ -504,7 +499,7 @@ Same as the Rust GUI — **Linear-inspired dark theme**:
 |-----------|-------------|
 | `AppLayout.tsx` | Main layout with horizontal/vertical splitters, viewer/network/params panels |
 | `NetworkCanvas.tsx` | Canvas2D network editor: node rendering, connections, drag, rubber band |
-| `ViewerCanvas.tsx` | Canvas2D geometry viewer: paths, points, handles, origin, grid |
+| `ViewerCanvas.tsx` | Geometry viewer: Vello canvas for paths, Canvas2D overlay for points, handles, origin |
 | `ParameterPanel.tsx` | Parameter editor: DragValue for numbers, text inputs, color pickers, point editors |
 | `DragValue.tsx` | Numeric input with click-to-edit and drag-to-adjust |
 | `NodeSelectionDialog.tsx` | Fuzzy search dialog for adding nodes (opened via double-click or Tab) |
@@ -535,12 +530,12 @@ Tests use Playwright's Electron support via `@playwright/test`:
 | `node-deletion.spec.ts` | Delete nodes |
 | `node-categories.spec.ts` | Category-based node filtering |
 | `viewer.spec.ts` | Viewer rendering, zoom, mode switching |
-| `evaluation.spec.ts` | Node evaluation correctness |
+| `evaluation.spec.ts` | Node evaluation correctness, including pixels read back from Vello |
 | `undo-redo.spec.ts` | History operations |
 | `animation.spec.ts` | Play/stop, frame changes |
 | `file-operations.spec.ts` | New/save/open via IPC |
 | `export.spec.ts` | SVG/PNG export |
-| `textpath.spec.ts` | Text-to-path WASM rendering |
+| `textpath.spec.ts` | Text-to-path through the WASM evaluator |
 
 ## Type System
 
@@ -551,7 +546,7 @@ TypeScript types mirror the Rust crate types:
 | `types/node.ts` | `crates/nodebox-core/src/node/` — Node, Port, Connection, NodeLibrary |
 | `types/geometry.ts` | `crates/nodebox-core/src/geometry/` — Point, Color, Path, Contour, PathPoint |
 | `types/value.ts` | `crates/nodebox-core/src/value.rs` — tagged union Value type |
-| `types/eval-result.ts` | Evaluation result: PathRenderData, TextRenderData, EvalResult |
+| `types/eval-result.ts` | Evaluation result: PathRenderData, EvalResult |
 
 ### Value Type (tagged union)
 
@@ -571,7 +566,7 @@ type Value =
 
 ### Path Rendering
 
-Paths use contours with typed points: `moveTo`, `lineTo`, `curveTo`/`curveData` (cubic bezier), `quadTo`/`quadData` (quadratic bezier from TrueType fonts). All contours in a path are combined into a single `Path2D` and filled with nonzero winding rule (matching TrueType conventions). The `editable` flag suppresses handle visualization for generated paths (e.g., font glyphs).
+Paths use contours with typed points: `moveTo`, `lineTo`, `curveTo`/`curveData` (cubic bezier), `quadTo`/`quadData` (quadratic bezier from TrueType fonts). Vello fills each path with the nonzero winding rule (matching TrueType conventions). The `editable` flag suppresses handle visualization for generated paths (e.g., font glyphs).
 
 ## Vite Configuration
 

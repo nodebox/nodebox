@@ -21,6 +21,7 @@ cargo check --workspace --exclude nodebox-python # must report zero warnings
 | `nodebox-core` | Geometry, node model, `.ndbx` files, node operations, evaluation, fonts, SVG export, undo history. No GUI code. Builds for `wasm32-unknown-unknown`. |
 | `nodebox-vello` | Turns evaluated paths into a Vello scene and renders it with wgpu. |
 | `nodebox-desktop` | The egui desktop app. |
+| `nodebox-electron` | The WebAssembly module of the Electron app in `electron-app/`: evaluation, the Vello viewer and export. |
 | `nodebox-python` | Python bindings (pyo3). |
 
 Code without GUI code in it belongs in `nodebox-core`, or in `nodebox-vello`

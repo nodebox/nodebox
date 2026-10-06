@@ -9,8 +9,7 @@ use std::path::PathBuf;
 
 fn inter_font_bytes() -> Vec<u8> {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("fixtures")
+        .join("resources")
         .join("Inter.ttf");
     std::fs::read(path).expect("Inter.ttf fixture should exist")
 }
