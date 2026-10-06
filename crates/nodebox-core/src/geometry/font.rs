@@ -392,6 +392,30 @@ pub fn text_to_path_with_font(
     Ok(layout(&font.face()?, text, font_size, position))
 }
 
+/// Convert text to a path using the bytes of a font file.
+pub fn text_to_path_from_bytes(
+    text: &str,
+    font_bytes: &[u8],
+    font_size: f64,
+    position: Point,
+) -> Result<Path, FontError> {
+    let face = Face::parse(font_bytes, 0)
+        .map_err(|e| FontError::LoadError(format!("Failed to parse font: {}", e)))?;
+    Ok(layout(&face, text, font_size, position))
+}
+
+/// List every face in the font database as (family name, PostScript name).
+pub fn list_faces() -> Vec<(String, String)> {
+    store()
+        .database
+        .faces()
+        .filter_map(|face| {
+            let family = face.families.first()?.0.clone();
+            Some((family, face.post_script_name.clone()))
+        })
+        .collect()
+}
+
 /// List the font families in the font database.
 pub fn list_font_families() -> Vec<String> {
     let families: BTreeSet<String> = store()

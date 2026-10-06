@@ -12,7 +12,6 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 nodebox-core = { path = "../nodebox-core", default-features = false, features = ["serde"] }
-nodebox-eval = { path = "../nodebox-eval" }
 
 # Enable the "js" feature on uuid for wasm32 randomness support
 uuid = { workspace = true, features = ["js"] }

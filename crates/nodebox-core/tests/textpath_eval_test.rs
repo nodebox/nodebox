@@ -4,8 +4,7 @@ use std::sync::Arc;
 use nodebox_core::geometry::Point;
 use nodebox_core::node::{Node, NodeLibrary, Port};
 use nodebox_core::platform::{ProjectContext, TestPlatform};
-use nodebox_eval::eval::evaluate_network;
-use nodebox_eval::NodeOutput;
+use nodebox_core::eval::{evaluate_network, NodeOutput};
 
 fn make_textpath_library(text: &str, font_size: f64, position: Point) -> NodeLibrary {
     let mut lib = NodeLibrary::new("test");

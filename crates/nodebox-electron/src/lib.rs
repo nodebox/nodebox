@@ -1,7 +1,7 @@
 //! WASM bindings for the NodeBox Electron app.
 //!
 //! This crate provides a JavaScript-callable interface to the NodeBox engine,
-//! wrapping `nodebox-core` and `nodebox-eval` types behind opaque handles
+//! wrapping `nodebox-core` types behind opaque handles
 //! that communicate via JSON.
 
 mod platform_bridge;
@@ -12,9 +12,8 @@ use nodebox_core::node::{Connection, NodeLibrary, PortType};
 use nodebox_core::ops::data::DataValue;
 use nodebox_core::platform::{Platform, ProjectContext};
 use nodebox_core::Value;
-use nodebox_eval::eval::{evaluate_network, NodeOutput};
-use nodebox_eval::node_factory::create_node_from_template;
-use nodebox_eval::node_templates::NODE_TEMPLATES;
+use nodebox_core::eval::{evaluate_network, NodeOutput};
+use nodebox_core::node::templates::{create_node_from_template, NODE_TEMPLATES};
 use platform_bridge::WasmPlatform;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -24,6 +23,9 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub fn init() {
     console_error_panic_hook::set_once();
+    // WebAssembly has no system fonts. The bundled font is the fallback until
+    // the host registers the fonts a document asks for.
+    font::register_font(font::BUNDLED_FONT_BYTES.to_vec());
 }
 
 /// Get all available node templates as a JSON array.
@@ -467,7 +469,7 @@ fn error_result_json(message: &str) -> String {
 fn serialize_eval_result(
     paths: &[nodebox_core::geometry::Path],
     output: &NodeOutput,
-    errors: &[nodebox_eval::eval::NodeError],
+    errors: &[nodebox_core::eval::NodeError],
 ) -> String {
     // Paths serialize directly via serde (field names match TS PathRenderData)
     let paths_json = serde_json::to_value(paths).unwrap_or(serde_json::json!([]));

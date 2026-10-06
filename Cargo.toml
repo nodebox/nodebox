@@ -17,7 +17,6 @@ resolver = "2"
 members = [
     ".",
     "crates/nodebox-core",
-    "crates/nodebox-eval",
     "crates/nodebox-desktop",
     "crates/nodebox-electron",
     "crates/nodebox-python",
@@ -30,7 +29,6 @@ members = [
 default-members = [
     ".",
     "crates/nodebox-core",
-    "crates/nodebox-eval",
     "crates/nodebox-desktop",
     "crates/nodebox-vello",
 ]

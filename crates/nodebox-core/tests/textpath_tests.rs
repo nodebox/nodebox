@@ -1,6 +1,6 @@
 //! Tests for text_to_path_from_bytes (the WASM-compatible path).
 //!
-//! These test the same Inter.ttf fixture but via ttf-parser (no system-fonts feature needed),
+//! These test the same Inter.ttf fixture from its bytes, without the font database,
 //! which is the code path used in the Electron/WASM evaluator.
 
 use nodebox_core::geometry::font;
