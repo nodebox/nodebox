@@ -153,3 +153,31 @@ fn test_inter_bezier_operations() {
     let resampled = path.resample_by_amount(20);
     assert!(!resampled.is_empty(), "Resampled path should not be empty");
 }
+
+#[test]
+fn test_registered_font_is_found_by_postscript_name() {
+    use nodebox_core::geometry::font::{register_font, text_to_path};
+
+    let data = std::fs::read(get_inter_font_path()).expect("Failed to read Inter font");
+    assert_eq!(register_font(data), 1, "Inter.ttf holds one face");
+
+    // .ndbx files store PostScript names such as "Verdana-Bold".
+    let font = load_font_from_path(get_inter_font_path()).expect("Failed to load Inter font");
+    let expected = text_to_path_with_font("NodeBox", &font, 48.0, Point::new(0.0, 100.0))
+        .expect("Failed to convert text with the font file");
+    let by_name = text_to_path("NodeBox", "Inter-Regular", 48.0, Point::new(0.0, 100.0))
+        .expect("Failed to convert text by PostScript name");
+
+    assert_eq!(by_name.bounds(), expected.bounds());
+}
+
+#[test]
+fn test_unknown_font_is_reported_as_missing() {
+    use nodebox_core::geometry::font::{take_missing_fonts, text_to_path};
+
+    let _ = text_to_path("A", "NoSuchFont-Regular", 48.0, Point::ZERO);
+
+    let missing = take_missing_fonts();
+    assert!(missing.contains(&"NoSuchFont-Regular".to_string()));
+    assert!(take_missing_fonts().is_empty(), "The list is cleared after it is read");
+}

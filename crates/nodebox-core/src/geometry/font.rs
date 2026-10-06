@@ -1,17 +1,19 @@
-//! Font loading and text-to-path conversion using font-kit.
+//! Font loading and text-to-path conversion.
 //!
-//! This module provides functionality to convert text to vector paths
-//! using system fonts.
+//! Fonts are parsed in pure Rust (`fontdb` for lookup, `ttf-parser` for
+//! outlines), so the same code runs natively and in WebAssembly.
+//!
+//! Natively the font database holds the system fonts. In WebAssembly there are
+//! no system fonts: the host passes font files to [`register_font`]. A name
+//! that could not be matched is recorded and returned by
+//! [`take_missing_fonts`], so the host can fetch that font and evaluate again.
 
+use std::collections::BTreeSet;
 use std::path::Path as FilePath;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
 
-use font_kit::family_name::FamilyName;
-use font_kit::font::Font;
-use font_kit::hinting::HintingOptions;
-use font_kit::outline::OutlineSink;
-use font_kit::properties::Properties;
-use font_kit::source::SystemSource;
+use fontdb::{Database, Family, Query, ID};
+use ttf_parser::{Face, OutlineBuilder};
 
 use super::{Contour, Path, Point};
 
@@ -38,32 +40,142 @@ impl std::fmt::Display for FontError {
 
 impl std::error::Error for FontError {}
 
-/// Loads a font by family name.
+/// A font file held in memory, with the index of one face in it.
+#[derive(Debug, Clone)]
+pub struct Font {
+    data: Arc<Vec<u8>>,
+    index: u32,
+}
+
+impl Font {
+    /// Creates a font from the bytes of a font file. `index` selects a face in a collection.
+    pub fn from_bytes(data: Vec<u8>, index: u32) -> Result<Self, FontError> {
+        Face::parse(&data, index)
+            .map_err(|e| FontError::LoadError(format!("Failed to parse font: {}", e)))?;
+        Ok(Font {
+            data: Arc::new(data),
+            index,
+        })
+    }
+
+    fn face(&self) -> Result<Face<'_>, FontError> {
+        Face::parse(&self.data, self.index)
+            .map_err(|e| FontError::LoadError(format!("Failed to parse font: {}", e)))
+    }
+}
+
+struct FontStore {
+    database: Database,
+    /// Faces added with `register_font`. They are matched before system fonts.
+    registered: Vec<ID>,
+    /// Names that were requested and matched no face.
+    missing: BTreeSet<String>,
+}
+
+fn store() -> MutexGuard<'static, FontStore> {
+    static STORE: OnceLock<Mutex<FontStore>> = OnceLock::new();
+    STORE
+        .get_or_init(|| {
+            #[allow(unused_mut)]
+            let mut database = Database::new();
+            #[cfg(not(target_arch = "wasm32"))]
+            database.load_system_fonts();
+            Mutex::new(FontStore {
+                database,
+                registered: Vec::new(),
+                missing: BTreeSet::new(),
+            })
+        })
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
+impl FontStore {
+    /// Finds the face for `name`, which is a generic family (`sans-serif`), a
+    /// PostScript name (`Verdana-Bold`, as stored in .ndbx files) or a family
+    /// name (`Verdana`). Falls back to sans-serif, then to any face.
+    fn find(&mut self, name: &str) -> Option<ID> {
+        let query = |family| {
+            self.database.query(&Query {
+                families: &[family],
+                ..Query::default()
+            })
+        };
+        let generic = match name.to_lowercase().as_str() {
+            "sans-serif" | "sans" => Some(Family::SansSerif),
+            "serif" => Some(Family::Serif),
+            "monospace" | "mono" => Some(Family::Monospace),
+            _ => None,
+        };
+        let found = match generic {
+            Some(family) => query(family),
+            None => {
+                let matches = |face: &&fontdb::FaceInfo| {
+                    face.post_script_name.eq_ignore_ascii_case(name)
+                        || face.families.iter().any(|(family, _)| family.eq_ignore_ascii_case(name))
+                };
+                let registered = self
+                    .registered
+                    .iter()
+                    .filter_map(|&id| self.database.face(id))
+                    .find(matches);
+                registered
+                    .or_else(|| {
+                        self.database
+                            .faces()
+                            .find(|face| face.post_script_name.eq_ignore_ascii_case(name))
+                    })
+                    .map(|face| face.id)
+                    .or_else(|| query(Family::Name(name)))
+            }
+        };
+        if found.is_none() && generic.is_none() {
+            self.missing.insert(name.to_string());
+        }
+        found
+            .or_else(|| query(Family::SansSerif))
+            .or_else(|| self.database.faces().next().map(|face| face.id))
+    }
+}
+
+/// Adds the faces of a font file to the font database and returns how many were added.
+pub fn register_font(data: Vec<u8>) -> usize {
+    let mut store = store();
+    let ids = store
+        .database
+        .load_font_source(fontdb::Source::Binary(Arc::new(data)));
+    store.registered.extend(ids.iter().copied());
+    ids.len()
+}
+
+/// Returns the font names that matched no face since the last call, and forgets them.
+pub fn take_missing_fonts() -> Vec<String> {
+    std::mem::take(&mut store().missing).into_iter().collect()
+}
+
+/// Returns the bytes of the font file that holds the best match for `name`.
 ///
-/// Searches system fonts for a matching family. Falls back to default
+/// A host uses this to hand a font to a WebAssembly client, which passes the
+/// bytes to [`register_font`].
+pub fn font_data(name: &str) -> Option<Vec<u8>> {
+    let mut store = store();
+    let id = store.find(name)?;
+    store.database.with_face_data(id, |data, _| data.to_vec())
+}
+
+/// Loads a font by name.
+///
+/// Searches the font database for a matching face. Falls back to default
 /// sans-serif if the requested font is not found.
 pub fn load_font(family_name: &str) -> Result<Font, FontError> {
-    let source = SystemSource::new();
-
-    // Try to find the exact font family
-    let family = match family_name.to_lowercase().as_str() {
-        "sans-serif" | "sans" => FamilyName::SansSerif,
-        "serif" => FamilyName::Serif,
-        "monospace" | "mono" => FamilyName::Monospace,
-        _ => FamilyName::Title(family_name.to_string()),
-    };
-
-    let handle = source
-        .select_best_match(&[family.clone()], &Properties::new())
-        .or_else(|_| {
-            // Fallback to sans-serif
-            source.select_best_match(&[FamilyName::SansSerif], &Properties::new())
-        })
-        .map_err(|e| FontError::FontNotFound(format!("{}: {}", family_name, e)))?;
-
-    handle
-        .load()
-        .map_err(|e| FontError::LoadError(e.to_string()))
+    let mut store = store();
+    let id = store
+        .find(family_name)
+        .ok_or_else(|| FontError::FontNotFound(family_name.to_string()))?;
+    store
+        .database
+        .with_face_data(id, |data, index| Font::from_bytes(data.to_vec(), index))
+        .ok_or_else(|| FontError::LoadError(family_name.to_string()))?
 }
 
 /// Loads a font from a file path.
@@ -81,11 +193,10 @@ pub fn load_font_from_path(path: impl AsRef<FilePath>) -> Result<Font, FontError
     let data = std::fs::read(path)
         .map_err(|e| FontError::LoadError(format!("Failed to read font file: {}", e)))?;
 
-    Font::from_bytes(Arc::new(data), 0)
-        .map_err(|e| FontError::LoadError(format!("Failed to parse font: {}", e)))
+    Font::from_bytes(data, 0)
 }
 
-/// A sink for receiving path commands from font glyph outlines.
+/// Receives the outline of one glyph and turns it into contours.
 struct PathSink {
     contours: Vec<Contour>,
     current_contour: Contour,
@@ -124,32 +235,28 @@ impl PathSink {
     }
 }
 
-impl OutlineSink for PathSink {
-    fn move_to(&mut self, to: pathfinder_geometry::vector::Vector2F) {
+impl OutlineBuilder for PathSink {
+    fn move_to(&mut self, x: f32, y: f32) {
         // Start a new contour
         if !self.current_contour.is_empty() {
             self.contours.push(std::mem::take(&mut self.current_contour));
         }
-        let p = self.transform_point(to.x(), to.y());
+        let p = self.transform_point(x, y);
         self.current_contour.move_to(p.x, p.y);
         self.current_point = p;
     }
 
-    fn line_to(&mut self, to: pathfinder_geometry::vector::Vector2F) {
-        let p = self.transform_point(to.x(), to.y());
+    fn line_to(&mut self, x: f32, y: f32) {
+        let p = self.transform_point(x, y);
         self.current_contour.line_to(p.x, p.y);
         self.current_point = p;
     }
 
-    fn quadratic_curve_to(
-        &mut self,
-        ctrl: pathfinder_geometry::vector::Vector2F,
-        to: pathfinder_geometry::vector::Vector2F,
-    ) {
+    fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
         // Convert quadratic to cubic bezier
         // Cubic control points are: P1 = P0 + 2/3 * (C - P0), P2 = P + 2/3 * (C - P)
-        let ctrl = self.transform_point(ctrl.x(), ctrl.y());
-        let to = self.transform_point(to.x(), to.y());
+        let ctrl = self.transform_point(x1, y1);
+        let to = self.transform_point(x, y);
 
         let ctrl1 = Point::new(
             self.current_point.x + 2.0 / 3.0 * (ctrl.x - self.current_point.x),
@@ -165,14 +272,10 @@ impl OutlineSink for PathSink {
         self.current_point = to;
     }
 
-    fn cubic_curve_to(
-        &mut self,
-        ctrl: pathfinder_geometry::line_segment::LineSegment2F,
-        to: pathfinder_geometry::vector::Vector2F,
-    ) {
-        let ctrl0 = self.transform_point(ctrl.from_x(), ctrl.from_y());
-        let ctrl1 = self.transform_point(ctrl.to_x(), ctrl.to_y());
-        let to = self.transform_point(to.x(), to.y());
+    fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
+        let ctrl0 = self.transform_point(x1, y1);
+        let ctrl1 = self.transform_point(x2, y2);
+        let to = self.transform_point(x, y);
 
         self.current_contour
             .curve_to(ctrl0.x, ctrl0.y, ctrl1.x, ctrl1.y, to.x, to.y);
@@ -185,11 +288,66 @@ impl OutlineSink for PathSink {
     }
 }
 
+/// Lays out `text` on one line, glyph by glyph, starting at `position` on the baseline.
+fn layout(face: &Face, text: &str, font_size: f64, position: Point) -> Path {
+    let scale = font_size / face.units_per_em() as f64;
+
+    let mut path = Path::new();
+    let mut x = position.x;
+    let y = position.y;
+
+    for ch in text.chars() {
+        if let Some(glyph_id) = face.glyph_index(ch) {
+            // A glyph without an outline, such as a space, only advances.
+            let mut sink = PathSink::new(scale, x, y);
+            face.outline_glyph(glyph_id, &mut sink);
+            for contour in sink.finish() {
+                path.add_contour(contour);
+            }
+
+            x += face.glyph_hor_advance(glyph_id).unwrap_or(0) as f64 * scale;
+        } else {
+            // No glyph for this character, advance by estimated width
+            x += font_size * 0.5;
+        }
+    }
+
+    path
+}
+
+/// The advance width of `text` on one line, as [`layout`] places it.
+fn advance(face: &Face, text: &str, font_size: f64) -> f64 {
+    let scale = font_size / face.units_per_em() as f64;
+    text.chars()
+        .map(|ch| match face.glyph_index(ch) {
+            Some(glyph_id) => face.glyph_hor_advance(glyph_id).unwrap_or(0) as f64 * scale,
+            None => font_size * 0.5,
+        })
+        .sum()
+}
+
+/// Measure the advance width of `text` set on one line.
+pub fn text_width(text: &str, font_family: &str, font_size: f64) -> Result<f64, FontError> {
+    let mut store = store();
+    let id = store
+        .find(font_family)
+        .ok_or_else(|| FontError::FontNotFound(font_family.to_string()))?;
+    store
+        .database
+        .with_face_data(id, |data, index| {
+            let face = Face::parse(data, index)
+                .map_err(|e| FontError::LoadError(format!("Failed to parse font: {}", e)))?;
+            Ok(advance(&face, text, font_size))
+        })
+        .ok_or_else(|| FontError::LoadError(font_family.to_string()))?
+}
+
 /// Convert text to a vector path.
 ///
 /// # Arguments
 /// * `text` - The text to convert
-/// * `font_family` - The font family name (e.g., "Arial", "Helvetica")
+/// * `font_family` - The font name: a PostScript name ("Verdana-Bold"), a
+///   family name ("Arial") or a generic family ("sans-serif")
 /// * `font_size` - The font size in points
 /// * `position` - The starting position (baseline)
 ///
@@ -208,46 +366,18 @@ pub fn text_to_path(
     font_size: f64,
     position: Point,
 ) -> Result<Path, FontError> {
-    let font = load_font(font_family)?;
-
-    // Get font metrics
-    let metrics = font.metrics();
-    let units_per_em = metrics.units_per_em as f64;
-    let scale = font_size / units_per_em;
-
-    let mut path = Path::new();
-    let mut x = position.x;
-    let y = position.y;
-
-    for ch in text.chars() {
-        let glyph_id = font.glyph_for_char(ch);
-
-        if let Some(glyph_id) = glyph_id {
-            // Get glyph advance width
-            let advance = font
-                .advance(glyph_id)
-                .map_err(|e| FontError::GlyphError(e.to_string()))?;
-
-            // Get glyph outline
-            let mut sink = PathSink::new(scale, x, y);
-
-            font.outline(glyph_id, HintingOptions::None, &mut sink)
-                .map_err(|e| FontError::GlyphError(e.to_string()))?;
-
-            let contours = sink.finish();
-            for contour in contours {
-                path.add_contour(contour);
-            }
-
-            // Advance x position
-            x += advance.x() as f64 * scale;
-        } else {
-            // No glyph for this character, advance by estimated width
-            x += font_size * 0.5;
-        }
-    }
-
-    Ok(path)
+    let mut store = store();
+    let id = store
+        .find(font_family)
+        .ok_or_else(|| FontError::FontNotFound(font_family.to_string()))?;
+    store
+        .database
+        .with_face_data(id, |data, index| {
+            let face = Face::parse(data, index)
+                .map_err(|e| FontError::LoadError(format!("Failed to parse font: {}", e)))?;
+            Ok(layout(&face, text, font_size, position))
+        })
+        .ok_or_else(|| FontError::LoadError(font_family.to_string()))?
 }
 
 /// Convert text to path using a font loaded from a file.
@@ -259,52 +389,17 @@ pub fn text_to_path_with_font(
     font_size: f64,
     position: Point,
 ) -> Result<Path, FontError> {
-    // Get font metrics
-    let metrics = font.metrics();
-    let units_per_em = metrics.units_per_em as f64;
-    let scale = font_size / units_per_em;
-
-    let mut path = Path::new();
-    let mut x = position.x;
-    let y = position.y;
-
-    for ch in text.chars() {
-        let glyph_id = font.glyph_for_char(ch);
-
-        if let Some(glyph_id) = glyph_id {
-            // Get glyph advance width
-            let advance = font
-                .advance(glyph_id)
-                .map_err(|e| FontError::GlyphError(e.to_string()))?;
-
-            // Get glyph outline
-            let mut sink = PathSink::new(scale, x, y);
-
-            font.outline(glyph_id, HintingOptions::None, &mut sink)
-                .map_err(|e| FontError::GlyphError(e.to_string()))?;
-
-            let contours = sink.finish();
-            for contour in contours {
-                path.add_contour(contour);
-            }
-
-            // Advance x position
-            x += advance.x() as f64 * scale;
-        } else {
-            // No glyph for this character, advance by estimated width
-            x += font_size * 0.5;
-        }
-    }
-
-    Ok(path)
+    Ok(layout(&font.face()?, text, font_size, position))
 }
 
-/// List available font families on the system.
+/// List the font families in the font database.
 pub fn list_font_families() -> Vec<String> {
-    let source = SystemSource::new();
-    source
-        .all_families()
-        .unwrap_or_default()
+    let families: BTreeSet<String> = store()
+        .database
+        .faces()
+        .flat_map(|face| face.families.iter().map(|(name, _)| name.clone()))
+        .collect();
+    families.into_iter().collect()
 }
 
 #[cfg(test)]

@@ -50,9 +50,6 @@ version = "3"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.ureq]
 version = "2"
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies.font-kit]
-workspace = true
-
 [features]
 default = ["gpu-rendering"]
 gpu-rendering = ["dep:vello", "dep:egui-wgpu", "dep:pollster", "eframe/wgpu"]

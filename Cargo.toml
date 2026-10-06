@@ -40,10 +40,6 @@ authors = ["NodeBox Contributors"]
 # Core geometry
 kurbo = "0.11"
 
-# Font loading and text paths
-font-kit = "0.14"
-pathfinder_geometry = "0.5"
-
 # UUID generation (add "js" feature for wasm32 builds)
 uuid = { version = "1.6", features = ["v4"] }
 

@@ -9,8 +9,10 @@ authors.workspace = true
 
 [dependencies]
 uuid = { workspace = true }
-font-kit = { workspace = true }
-pathfinder_geometry = { workspace = true }
+
+# Font lookup and glyph outlines; both are already in the tree through usvg.
+fontdb = "0.18"
+ttf-parser = "0.21"
 
 # From nodebox-ops
 rayon = "1.10"
@@ -25,6 +27,9 @@ thiserror = { workspace = true }
 
 # From nodebox-port
 log = "0.4"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+uuid = { workspace = true, features = ["js"] }
 
 [[bench]]
 name = "clone_library"

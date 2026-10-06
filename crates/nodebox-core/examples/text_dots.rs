@@ -1,7 +1,7 @@
 //! Demo: Text to paths, resampled with dots
 //!
 //! This demonstrates the full pipeline:
-//! 1. Convert text to vector paths using font-kit
+//! 1. Convert text to vector paths using the system fonts
 //! 2. Resample each contour to get evenly-spaced points
 //! 3. Draw dots at each sample point
 

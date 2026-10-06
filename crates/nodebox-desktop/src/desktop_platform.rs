@@ -498,10 +498,7 @@ impl Platform for DesktopPlatform {
     }
 
     fn list_fonts(&self) -> Vec<String> {
-        let source = font_kit::source::SystemSource::new();
-        let mut families = source.all_families().unwrap_or_default();
-        families.sort();
-        families
+        nodebox_core::geometry::font::list_font_families()
     }
 }
 
