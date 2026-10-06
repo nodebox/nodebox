@@ -283,21 +283,28 @@ impl NodeOutput {
         }
     }
 
-    /// Convert any output to a list of individual values for list matching.
-    fn to_value_list(&self) -> Vec<NodeOutput> {
+    /// The value this output contributes to one list-matching iteration.
+    ///
+    /// A list wraps around when it is shorter than the iteration count. Only
+    /// the selected element is cloned, so matching a list costs one clone per
+    /// iteration and not one clone of the whole list.
+    fn value_at(&self, iteration: usize) -> NodeOutput {
+        fn pick<T: Clone>(items: &[T], iteration: usize, wrap: fn(T) -> NodeOutput) -> NodeOutput {
+            match items.len() {
+                0 => NodeOutput::None,
+                len => wrap(items[iteration % len].clone()),
+            }
+        }
         match self {
-            NodeOutput::None => vec![],
-            NodeOutput::Path(p) => vec![NodeOutput::Path(p.clone())],
-            NodeOutput::Paths(ps) => ps.iter().map(|p| NodeOutput::Path(p.clone())).collect(),
-            NodeOutput::Point(p) => vec![NodeOutput::Point(*p)],
-            NodeOutput::Points(pts) => pts.iter().map(|p| NodeOutput::Point(*p)).collect(),
-            NodeOutput::Floats(fs) => fs.iter().map(|f| NodeOutput::Float(*f)).collect(),
-            NodeOutput::Ints(is) => is.iter().map(|i| NodeOutput::Int(*i)).collect(),
-            NodeOutput::Strings(ss) => ss.iter().map(|s| NodeOutput::String(s.clone())).collect(),
-            NodeOutput::Booleans(bs) => bs.iter().map(|b| NodeOutput::Boolean(*b)).collect(),
-            NodeOutput::Colors(cs) => cs.iter().map(|c| NodeOutput::Color(*c)).collect(),
-            NodeOutput::DataRows(rs) => rs.iter().map(|r| NodeOutput::DataRow(r.clone())).collect(),
-            v => vec![v.clone()], // Single values remain single
+            NodeOutput::Paths(ps) => pick(ps, iteration, NodeOutput::Path),
+            NodeOutput::Points(pts) => pick(pts, iteration, NodeOutput::Point),
+            NodeOutput::Floats(fs) => pick(fs, iteration, NodeOutput::Float),
+            NodeOutput::Ints(is) => pick(is, iteration, NodeOutput::Int),
+            NodeOutput::Strings(ss) => pick(ss, iteration, NodeOutput::String),
+            NodeOutput::Booleans(bs) => pick(bs, iteration, NodeOutput::Boolean),
+            NodeOutput::Colors(cs) => pick(cs, iteration, NodeOutput::Color),
+            NodeOutput::DataRows(rs) => pick(rs, iteration, NodeOutput::DataRow),
+            v => v.clone(), // Single values remain single
         }
     }
 
@@ -541,12 +548,7 @@ fn build_iteration_inputs(
         let value = if is_list_range {
             output.clone() // Pass entire list for LIST-range ports
         } else {
-            let list = output.to_value_list();
-            if list.is_empty() {
-                NodeOutput::None
-            } else {
-                list[iteration % list.len()].clone() // Wrap
-            }
+            output.value_at(iteration)
         };
         result.insert(name.clone(), value);
     }
@@ -3713,5 +3715,15 @@ mod tests {
         assert!((center.x + center.width / 2.0).abs() < 8.0, "center: {:?}", center);
         assert!(right.x + right.width <= 0.0 && right.x + right.width > -8.0, "right: {:?}", right);
         assert_eq!(default, center);
+    }
+
+    #[test]
+    fn test_value_at_wraps_and_handles_empty_lists() {
+        let floats = NodeOutput::Floats(vec![1.0, 2.0, 3.0]);
+        assert!(matches!(floats.value_at(1), NodeOutput::Float(v) if v == 2.0));
+        assert!(matches!(floats.value_at(4), NodeOutput::Float(v) if v == 2.0));
+        assert!(matches!(NodeOutput::Floats(vec![]).value_at(0), NodeOutput::None));
+        assert!(matches!(NodeOutput::Float(7.0).value_at(5), NodeOutput::Float(v) if v == 7.0));
+        assert!(matches!(NodeOutput::None.value_at(0), NodeOutput::None));
     }
 }
