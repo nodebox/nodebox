@@ -13,6 +13,7 @@ pub mod geometry;
 pub mod node;
 pub mod value;
 pub mod ops;
+pub mod eval;
 pub mod ndbx;
 pub mod svg;
 pub mod platform;

@@ -11,11 +11,13 @@ mod port;
 mod connection;
 mod node;
 mod library;
+mod default_ports;
 
 pub use port::{Port, PortType, PortRange, Widget, MenuItem};
 pub use connection::Connection;
 pub use node::Node;
 pub use library::NodeLibrary;
+pub use default_ports::populate_default_ports;
 
 /// Errors that can occur during node evaluation.
 #[derive(Debug, Clone)]

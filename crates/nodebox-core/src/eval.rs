@@ -1,16 +1,52 @@
 //! Network evaluation - executes node graphs to produce geometry.
 
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use nodebox_core::geometry::{Path, Point, Color, Contour, PathPoint, PointType};
-use nodebox_core::geometry::font;
-use nodebox_core::node::{Node, NodeLibrary, EvalError};
-use nodebox_core::node::PortRange;
-use nodebox_core::Value;
-use nodebox_core::platform::{Platform, ProjectContext};
-use nodebox_core::ops;
+use crate::geometry::{Path, Point, Color, Contour, PathPoint, PointType};
+use crate::geometry::font;
+use crate::node::{Node, NodeLibrary, EvalError};
+use crate::node::PortRange;
+use crate::Value;
+use crate::platform::{Platform, ProjectContext};
+use crate::ops;
 use ops::data::DataValue;
-use crate::render_worker::CancellationToken;
+
+/// Token for cooperative cancellation of render operations.
+///
+/// The token is shared between the main thread and the render worker.
+/// When cancelled, the worker should check `is_cancelled()` at appropriate
+/// boundaries (per-node and per-iteration) and return early.
+#[derive(Clone)]
+pub struct CancellationToken {
+    cancelled: Arc<AtomicBool>,
+}
+
+impl CancellationToken {
+    /// Create a new cancellation token in the non-cancelled state.
+    pub fn new() -> Self {
+        Self {
+            cancelled: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+    /// Request cancellation. This is thread-safe and can be called from any thread.
+    pub fn cancel(&self) {
+        self.cancelled.store(true, Ordering::SeqCst);
+    }
+
+    /// Check if cancellation has been requested.
+    /// Call this at appropriate boundaries (before each node, during iterations).
+    pub fn is_cancelled(&self) -> bool {
+        self.cancelled.load(Ordering::SeqCst)
+    }
+}
+
+impl Default for CancellationToken {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 /// Error information for a specific node.
 #[derive(Debug, Clone)]
@@ -2270,11 +2306,11 @@ fn execute_node(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nodebox_core::node::{Port, Connection, PortRange};
-    use nodebox_core::platform::{TestPlatform, ProjectContext};
+    use crate::node::{Port, Connection, PortRange};
+    use crate::platform::{TestPlatform, ProjectContext};
 
     /// Create a test platform and project context for evaluation tests.
-    fn test_platform_and_context() -> (Arc<dyn nodebox_core::platform::Platform>, ProjectContext) {
+    fn test_platform_and_context() -> (Arc<dyn crate::platform::Platform>, ProjectContext) {
         (Arc::new(TestPlatform::new()), ProjectContext::new_unsaved())
     }
 
@@ -3488,7 +3524,7 @@ mod tests {
                     .with_input(Port::float("blue", 0.0))
                     .with_input(Port::float("alpha", 255.0))
                     .with_input(Port::float("range", 255.0))
-                    .with_output_type(nodebox_core::node::PortType::Color)
+                    .with_output_type(crate::node::PortType::Color)
             )
             .with_connection(Connection::new("sample1", "rgb_color1", "red"))
             .with_rendered_child("rgb_color1");
