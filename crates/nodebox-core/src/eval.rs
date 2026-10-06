@@ -6,7 +6,7 @@ use std::sync::Arc;
 use crate::geometry::{Path, Point, Color, Contour, PathPoint, PointType};
 use crate::geometry::font;
 use crate::node::{Node, NodeLibrary, EvalError};
-use crate::node::PortRange;
+use crate::node::{PortRange, PortType};
 use crate::Value;
 use crate::platform::{Platform, ProjectContext};
 use crate::ops;
@@ -684,7 +684,10 @@ fn evaluate_node_cancellable(
                 port,
                 project_context,
             )?;
-            inputs.insert(node_port.name.clone(), upstream_output);
+            inputs.insert(
+                node_port.name.clone(),
+                convert_for_port(upstream_output, &node_port.port_type),
+            );
         } else {
             // Multiple connections - collect all outputs as paths
             let mut all_paths: Vec<Path> = Vec::new();
@@ -813,7 +816,10 @@ fn evaluate_node(
         } else if connections.len() == 1 {
             // Single connection - evaluate and use directly
             let upstream_output = evaluate_node(network, &connections[0].output_node, cache, port, project_context)?;
-            inputs.insert(node_port.name.clone(), upstream_output);
+            inputs.insert(
+                node_port.name.clone(),
+                convert_for_port(upstream_output, &node_port.port_type),
+            );
         } else {
             // Multiple connections - collect all outputs as paths
             let mut all_paths: Vec<Path> = Vec::new();
@@ -928,6 +934,24 @@ fn get_point(inputs: &HashMap<String, NodeOutput>, name: &str, default: Point) -
         Some(NodeOutput::Point(p)) => *p,
         Some(NodeOutput::Points(pts)) if !pts.is_empty() => pts[0], // Fallback for safety
         _ => default,
+    }
+}
+
+/// Convert an upstream output to what an input port of `port_type` accepts.
+///
+/// Geometry connected to a point port becomes the list of its points, as in
+/// the Java `TypeConversions` table.
+fn convert_for_port(output: NodeOutput, port_type: &PortType) -> NodeOutput {
+    match (&output, port_type) {
+        (NodeOutput::Path(_) | NodeOutput::Paths(_), PortType::Point) => NodeOutput::Points(
+            output
+                .to_paths()
+                .iter()
+                .flat_map(|path| &path.contours)
+                .flat_map(|contour| contour.points.iter().map(|p| p.point))
+                .collect(),
+        ),
+        _ => output,
     }
 }
 
@@ -1118,6 +1142,17 @@ fn execute_node(
             let font_name = get_string(inputs, "font_name", "Verdana");
             let font_size = get_float(inputs, "font_size", 24.0);
             let position = get_point(inputs, "position", Point::ZERO);
+            // A line that fits is placed relative to the position by its advance.
+            // Wrapping to the "width" port and justification are not implemented.
+            let offset = match get_string(inputs, "align", "CENTER").as_str() {
+                "LEFT" | "JUSTIFY" => 0.0,
+                align => {
+                    let width = font::text_width(&text, &font_name, font_size)
+                        .map_err(|e| EvalError::ProcessingError(e.to_string()))?;
+                    if align == "RIGHT" { -width } else { -width / 2.0 }
+                }
+            };
+            let position = Point::new(position.x + offset, position.y);
             let path = font::text_to_path(&text, &font_name, font_size, position)
                 .map_err(|e| EvalError::ProcessingError(e.to_string()))?;
             Ok(NodeOutput::Path(path))
@@ -1263,7 +1298,10 @@ fn execute_node(
         }
 
         // Make point
-        "corevector.point" | "corevector.makePoint" | "corevector.make_point" => {
+        "corevector.point" => {
+            Ok(NodeOutput::Point(get_point(inputs, "value", Point::ZERO)))
+        }
+        "corevector.makePoint" | "corevector.make_point" => {
             let x = get_float(inputs, "x", 0.0);
             let y = get_float(inputs, "y", 0.0);
             Ok(NodeOutput::Point(Point::new(x, y)))
@@ -2270,6 +2308,12 @@ fn execute_node(
                         None => Ok(NodeOutput::String(String::new())),
                     }
                 }
+                // Java looks up attributes of any object; a point has x and y.
+                Some(NodeOutput::Point(point)) => match key.as_str() {
+                    "x" => Ok(NodeOutput::Float(point.x)),
+                    "y" => Ok(NodeOutput::Float(point.y)),
+                    _ => Ok(NodeOutput::String(String::new())),
+                },
                 _ => Ok(NodeOutput::String(String::new())),
             }
         }
@@ -3569,5 +3613,105 @@ mod tests {
         let c2 = output.color_at(2).unwrap();
         assert!((c2.b - 1.0).abs() < 0.01);
         assert!(output.color_at(3).is_none());
+    }
+
+    #[test]
+    fn test_point_passes_its_value_through() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("point1")
+                    .with_prototype("corevector.point")
+                    .with_input(Port::point("value", Point::new(3.0, 4.0)))
+            )
+            .with_rendered_child("point1");
+
+        let (port, ctx) = test_platform_and_context();
+        let (_paths, output, _errors) = evaluate_network(&library, &port, &ctx);
+        assert!(matches!(output, NodeOutput::Point(p) if p == Point::new(3.0, 4.0)));
+    }
+
+    #[test]
+    fn test_geometry_connected_to_point_port_becomes_its_points() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("line1")
+                    .with_prototype("corevector.line")
+                    .with_input(Port::point("point1", Point::new(0.0, 0.0)))
+                    .with_input(Port::point("point2", Point::new(100.0, 50.0)))
+                    .with_input(Port::int("points", 2))
+            )
+            .with_child(
+                Node::new("point1")
+                    .with_prototype("corevector.point")
+                    .with_input(Port::point("value", Point::ZERO))
+            )
+            .with_connection(Connection::new("line1", "point1", "value"))
+            .with_rendered_child("point1");
+
+        let (port, ctx) = test_platform_and_context();
+        let (_paths, output, _errors) = evaluate_network(&library, &port, &ctx);
+        match output {
+            NodeOutput::Points(points) => {
+                assert_eq!(points, vec![Point::new(0.0, 0.0), Point::new(100.0, 50.0)]);
+            }
+            other => panic!("expected a list of points, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_lookup_reads_coordinate_of_point() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("point1")
+                    .with_prototype("corevector.point")
+                    .with_input(Port::point("value", Point::new(3.0, 4.0)))
+            )
+            .with_child(
+                Node::new("lookup1")
+                    .with_prototype("data.lookup")
+                    .with_input(Port::string("key", "y"))
+            )
+            .with_connection(Connection::new("point1", "lookup1", "list"))
+            .with_rendered_child("lookup1");
+
+        let (port, ctx) = test_platform_and_context();
+        let (_paths, output, _errors) = evaluate_network(&library, &port, &ctx);
+        assert!(matches!(output, NodeOutput::Float(y) if y == 4.0), "got {:?}", output);
+    }
+
+    #[test]
+    fn test_textpath_is_centered_on_its_position_by_default() {
+        let textpath = |align: Option<&str>| {
+            let mut node = Node::new("textpath1")
+                .with_prototype("corevector.textpath")
+                .with_input(Port::string("text", "Hello"))
+                .with_input(Port::string("font_name", "sans-serif"))
+                .with_input(Port::float("font_size", 48.0))
+                .with_input(Port::point("position", Point::ZERO));
+            if let Some(align) = align {
+                node = node.with_input(Port::string("align", align));
+            }
+            let mut library = NodeLibrary::new("test");
+            library.root = Node::network("root")
+                .with_child(node)
+                .with_rendered_child("textpath1");
+            let (port, ctx) = test_platform_and_context();
+            let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
+            paths[0].bounds().unwrap()
+        };
+
+        let left = textpath(Some("LEFT"));
+        let center = textpath(Some("CENTER"));
+        let right = textpath(Some("RIGHT"));
+        let default = textpath(None);
+
+        // Side bearings keep the outline a few units away from the exact advance.
+        assert!(left.x >= 0.0 && left.x < 8.0, "left: {:?}", left);
+        assert!((center.x + center.width / 2.0).abs() < 8.0, "center: {:?}", center);
+        assert!(right.x + right.width <= 0.0 && right.x + right.width > -8.0, "right: {:?}", right);
+        assert_eq!(default, center);
     }
 }

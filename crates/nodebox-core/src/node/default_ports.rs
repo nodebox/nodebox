@@ -189,7 +189,10 @@ pub fn populate_default_ports(node: &mut Node) {
                 ensure_port(node, "closed", || Port::boolean("closed", false));
             }
             // Point
-            "corevector.point" | "corevector.makePoint" => {
+            "corevector.point" => {
+                ensure_port(node, "value", || Port::point("value", Point::ZERO));
+            }
+            "corevector.makePoint" | "corevector.make_point" => {
                 ensure_port(node, "x", || Port::float("x", 0.0));
                 ensure_port(node, "y", || Port::float("y", 0.0));
             }
