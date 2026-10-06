@@ -1,133 +1,66 @@
-# NodeBox Rust
+# NodeBox in Rust
 
-A generative design toolkit for creating 2D graphics through visual programming or code.
+NodeBox is a node-based tool for generative design. This branch holds the Rust
+rewrite. The Java application in `src/main/java` is the reference for behaviour
+and is not changed.
 
-## Quick Start
-
-### GUI (Visual Editor)
-
-```bash
-cargo run -p nodebox-gui
-```
-
-Opens the visual editor with:
-- **Canvas viewer** - See your designs in real-time
-- **Node graph** - Connect nodes to build generative systems
-- **Parameter editor** - Tweak values with sliders and inputs
-- **Timeline** - Animate parameters over time
-
-### Command Line
+## Running
 
 ```bash
-# Generate demo SVGs
-cargo run -p nodebox-cli -- demo shapes > shapes.svg
-cargo run -p nodebox-cli -- demo spiral > spiral.svg
-
-# Convert text to vector paths
-cargo run -p nodebox-cli -- text "Hello" > hello.svg
-
-# Interactive mode
-cargo run -p nodebox-cli
+cargo run                                        # the desktop app (egui)
+cargo test --workspace --exclude nodebox-python  # all tests
+cargo check --workspace --exclude nodebox-python # must report zero warnings
 ```
 
-## Using as a Library
+`nodebox-python` needs Python development headers, so it is left out by default.
 
-Add to your `Cargo.toml`:
+## Crates
 
-```toml
-[dependencies]
-nodebox-core = { path = "crates/nodebox-core" }
-nodebox-ops = { path = "crates/nodebox-ops" }
-nodebox-svg = { path = "crates/nodebox-svg" }
-```
+| Crate | Contents |
+|-------|----------|
+| `nodebox-core` | Geometry, node model, `.ndbx` files, node operations, evaluation, fonts, SVG export, undo history. No GUI code. Builds for `wasm32-unknown-unknown`. |
+| `nodebox-vello` | Turns evaluated paths into a Vello scene and renders it with wgpu. |
+| `nodebox-desktop` | The egui desktop app. |
+| `nodebox-python` | Python bindings (pyo3). |
 
-### Example: Generative Pattern
+Code without GUI code in it belongs in `nodebox-core`, or in `nodebox-vello`
+when it needs Vello, so that every front end can use it.
+
+## Using the core as a library
 
 ```rust
-use nodebox_core::{Point, Color, Path};
-use nodebox_ops::{polygon, star};
-use nodebox_svg::render_to_svg;
+use nodebox_core::geometry::{Color, Point};
+use nodebox_core::ops;
+use nodebox_core::svg::render_to_svg;
 
 fn main() {
-    let mut paths = Vec::new();
-
-    // Create a grid of rotating stars
-    for row in 0..5 {
-        for col in 0..5 {
-            let x = 50.0 + col as f64 * 80.0;
-            let y = 50.0 + row as f64 * 80.0;
-            let rotation = (row + col) as f64 * 15.0;
-
-            let mut s = star(Point::new(x, y), 6, 30.0, 15.0);
-            s = nodebox_ops::rotate(&s, Point::new(x, y), rotation);
-            s.fill = Some(Color::hsb(
-                (row * 5 + col) as f64 / 25.0,  // hue
-                0.7,                              // saturation
-                0.9,                              // brightness
-            ));
-            paths.push(s);
-        }
-    }
-
-    let svg = render_to_svg(&paths, 450.0, 450.0);
-    std::fs::write("pattern.svg", svg).unwrap();
+    let mut star = ops::star(Point::ZERO, 5, 80.0, 35.0);
+    star.fill = Some(Color::hsb(0.6, 0.7, 0.9));
+    let svg = render_to_svg(&[star], 200.0, 200.0);
+    std::fs::write("star.svg", svg).unwrap();
 }
 ```
 
-### Example: Animated Export
+`cargo run -p nodebox-core --example generate_svg` writes larger examples to
+`./output/`.
+
+## Evaluating a document
 
 ```rust
-use nodebox_core::{Point, Color, Path};
-use nodebox_ops::polygon;
-use nodebox_svg::render_to_svg;
-use std::f64::consts::PI;
+use std::sync::Arc;
+use nodebox_core::eval::evaluate_network;
+use nodebox_core::node::populate_default_ports;
+use nodebox_core::platform::{Platform, ProjectContext, TestPlatform};
 
-fn main() {
-    // Export 60 frames of animation
-    for frame in 0..60 {
-        let t = frame as f64 / 60.0;
-        let mut paths = Vec::new();
-
-        for i in 0..12 {
-            let angle = t * 2.0 * PI + i as f64 * PI / 6.0;
-            let x = 200.0 + angle.cos() * 80.0;
-            let y = 200.0 + angle.sin() * 80.0;
-
-            let mut hex = polygon(Point::new(x, y), 25.0, 6, true);
-            hex.fill = Some(Color::hsb(i as f64 / 12.0 + t, 0.8, 0.9));
-            paths.push(hex);
-        }
-
-        let svg = render_to_svg(&paths, 400.0, 400.0);
-        std::fs::write(format!("frame_{:03}.svg", frame), svg).unwrap();
-    }
-}
+let mut library = nodebox_core::ndbx::parse_file("examples/01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx")?;
+populate_default_ports(&mut library.root);
+let platform: Arc<dyn Platform> = Arc::new(TestPlatform::new());
+let (paths, _output, errors) = evaluate_network(&library, &platform, &ProjectContext::new_unsaved());
 ```
 
-## Available Operations
+A node type the evaluator does not implement is reported in `errors`.
 
-| Module | Examples |
-|--------|----------|
-| **Generators** | `ellipse`, `rect`, `line`, `polygon`, `star`, `arc`, `spiral`, `grid` |
-| **Filters** | `translate`, `rotate`, `scale`, `colorize`, `copy`, `align`, `fit` |
-| **Math** | `add`, `sin`, `cos`, `random`, `range`, `wave`, `sample` |
-| **List** | `sort`, `shuffle`, `slice`, `repeat`, `combine`, `pick` |
-| **String** | `concatenate`, `split`, `format_number`, `change_case` |
+## Porting nodes
 
-## Creative Ideas
-
-- **Generative logos** - Combine shapes with randomness for unique variations
-- **Data visualization** - Map data to size, color, and position
-- **Pattern design** - Tile and transform shapes for textiles/wallpapers
-- **Motion graphics** - Export frame sequences for video
-- **Plotter art** - Generate SVGs for pen plotters
-
-## Python Support
-
-For Python scripting support (requires Python dev headers):
-
-```bash
-cargo build -p nodebox-python
-```
-
-See [docs/python-nodes.md](docs/python-nodes.md) for writing Python nodes.
+`libraries/*/*.ndbx` and the Java functions are the source of truth. See
+`AGENTS.md` for the checklist.
