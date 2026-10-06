@@ -895,7 +895,8 @@ fn value_to_output(value: &Value) -> NodeOutput {
         Value::Point(p) => NodeOutput::Point(*p),
         Value::Color(c) => NodeOutput::Color(*c),
         Value::Geometry(_) => NodeOutput::None, // Will be filled by connections
-        Value::List(_) => NodeOutput::None, // TODO: handle lists
+        // A list port without a connection has no value.
+        Value::List(_) => NodeOutput::None,
         Value::Null => NodeOutput::None,
         Value::Path(p) => NodeOutput::Path(p.clone()),
         Value::Map(map) => {
@@ -2328,24 +2329,17 @@ fn execute_node(
             Ok(NodeOutput::DataRows(filtered))
         }
 
-        "network.query_json" => {
-            // Basic JSON path query - simplified implementation
-            log::warn!("JSON query node not yet fully supported: {}", proto);
-            Ok(NodeOutput::Strings(Vec::new()))
-        }
+        "network.query_json" => Err(EvalError::ProcessingError(format!(
+            "{}: JSON queries are not implemented",
+            node_name
+        ))),
 
-        // Default: pass-through or unknown node
-        _ => {
-            // For unknown nodes, try to pass through a shape input
-            if let Some(path) = get_path(inputs, "shape") {
-                Ok(NodeOutput::Path(path))
-            } else if let Some(path) = get_path(inputs, "shapes") {
-                Ok(NodeOutput::Path(path))
-            } else {
-                log::warn!("Unknown node prototype: {}", proto);
-                Ok(NodeOutput::None)
-            }
-        }
+        // A node type the evaluator does not implement is an error. Passing its
+        // input through would draw something plausible and wrong.
+        _ => Err(EvalError::ProcessingError(format!(
+            "{}: Unsupported node type '{}'",
+            node_name, proto
+        ))),
     }
 }
 
@@ -2711,10 +2705,13 @@ mod tests {
             )
             .with_rendered_child("unknown1");
 
-        // Should handle unknown node type gracefully
+        // An unsupported node is reported, with the node and its type by name.
         let (port, ctx) = test_platform_and_context();
-        let (paths, _output, _errors) = evaluate_network(&library, &port, &ctx);
+        let (paths, _output, errors) = evaluate_network(&library, &port, &ctx);
         assert!(paths.is_empty());
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].node_name, "unknown1");
+        assert!(errors[0].message.contains("corevector.nonexistent"), "{}", errors[0].message);
     }
 
     #[test]
