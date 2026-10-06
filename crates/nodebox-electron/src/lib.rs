@@ -19,8 +19,9 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 
-/// Initialize the WASM module (call once on startup).
-#[wasm_bindgen]
+/// Initialize the WASM module. Runs when the module is instantiated, on the
+/// main thread and in each worker.
+#[wasm_bindgen(start)]
 pub fn init() {
     console_error_panic_hook::set_once();
     // WebAssembly has no system fonts. The bundled font is the fallback until
