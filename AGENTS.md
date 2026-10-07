@@ -415,7 +415,7 @@ A node type the evaluator does not implement comes back as an error that names t
 
 ### WASM Integration
 
-`wasm/` is the wasm-pack output of `crates/nodebox-electron/`. Rebuild it after changing Rust code:
+`wasm/` is the wasm-pack output of `crates/nodebox-electron/`. It is not committed. Building it needs `rustup target add wasm32-unknown-unknown` and `wasm-pack`; `./scripts/dev.sh` builds it and starts the app. Rebuild it after changing Rust code:
 
 ```bash
 cd crates && wasm-pack build nodebox-electron --target web --out-dir ../electron-app/wasm
