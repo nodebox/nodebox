@@ -414,8 +414,11 @@ public abstract class AreaOp {
                 }
             }
             // If we have complex area calculation, we should consume the
-            // intermediate subcurves to optimize memory footprint
-            if (linkCount >= MAX_LINK_COUNT) {
+            // intermediate subcurves to optimize memory footprint.
+            // NodeBox: only do this when no chains are open. Upstream also
+            // does it while chains are open, which links unrelated chain ends
+            // and cuts shapes in two at the current y (see Area.java).
+            if (linkCount >= MAX_LINK_COUNT && chains.isEmpty()) {
                 consumeSubCurves(subcurves, chains, ret);
                 linkCount = 0;
                 chains.clear();

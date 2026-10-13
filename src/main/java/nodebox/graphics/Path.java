@@ -1,6 +1,7 @@
 package nodebox.graphics;
 
 import com.google.common.base.Function;
+import nodebox.graphics.geom.Area;
 
 import java.awt.*;
 import java.awt.geom.*;

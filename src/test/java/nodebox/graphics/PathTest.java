@@ -54,6 +54,42 @@ public class PathTest {
 //        assertEquals(new Rect(10, 0, 10, 40), result.getBounds());
 //    }
 
+    /**
+     * A wavy band like the ones in the forum report: 30 of them, unioned one by one, should stay 30 separate contours.
+     * Newer JDKs cut one of every few bands in pieces once Area has made 1024 links.
+     */
+    @Test
+    public void testUnitedManyWavyStripes() {
+        Path result = wavyStripe(0);
+        for (int i = 1; i < 30; i++) {
+            result = result.united(wavyStripe(i * 18));
+        }
+        assertEquals(30, result.getContours().size());
+        assertEquals(new Rect(0, -4, 600, 535), result.getBounds());
+    }
+
+    private static Path wavyStripe(double y) {
+        Path p = new Path();
+        p.moveto(0, y);
+        wave(p, y, 0, 600);
+        p.lineto(600, y + 5);
+        wave(p, y + 5, 600, 0);
+        p.close();
+        return p;
+    }
+
+    // A square-ish wave between y - 4 and y + 4 made of cubic curves, from x0 to x1 in steps of 20.
+    private static void wave(Path p, double y, double x0, double x1) {
+        double step = x1 > x0 ? 20 : -20;
+        double prevY = y;
+        int n = 0;
+        for (double x = x0; x != x1; x += step, n++) {
+            double nextY = y + (n % 2 == 0 ? 4 : -4);
+            p.curveto(x + step * 0.364, prevY, x + step * 0.636, nextY, x + step, nextY);
+            prevY = nextY;
+        }
+    }
+
     @Test
     public void testCustomAttributes() {
         // Add a velocity to each point of the path.

@@ -25,6 +25,13 @@
 
 package nodebox.graphics.geom;
 
+// NodeBox: a copy of java.awt.geom.Area and the sun.awt.geom classes behind it,
+// taken from OpenJDK 25. Newer JDKs consume intermediate results in AreaOp once
+// 1024 links have been made, even while chains are still open. That cuts
+// shapes in two and made the compound node return different results in NodeBox
+// 3.1 than in 3.0 (which shipped with JDK 14). The only change, apart from the
+// package names, is the guard on MAX_LINK_COUNT in AreaOp.pruneEdges.
+
 import java.awt.Shape;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
