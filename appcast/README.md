@@ -4,33 +4,49 @@ NodeBox checks for updates once a day, and from *Help → Check for Updates*, by
 `https://secure.nodebox.net/app/nodebox/appcast.xml?v=<version>&p=<platform>`
 (`Application.getAppcastURL`). Every release since 3.0.50 uses that URL, so it has to keep working.
 
-The feed is a static file, [`public/app/nodebox/appcast.xml`](public/app/nodebox/appcast.xml),
-served by a Cloudflare Worker that has only static assets. The query string is ignored.
+This Cloudflare Worker builds that feed from the [GitHub releases](https://github.com/nodebox/nodebox/releases).
+There is nothing to edit when you release: publish the GitHub release and running copies of NodeBox
+offer it within about an hour.
 
-## Adding a release
+## What ends up in the feed
 
-When you bump `nodebox.version` (see [`docs/RELEASING.md`](../docs/RELEASING.md)), add an item
-for that version at the **top** of the feed, in the same commit. `PublishedAppcastTest` fails
-until the newest item matches `version.properties`.
+- Published releases with a plain version tag (`v3.1.0`). Drafts, prereleases and tags like `v3.0a27` are skipped.
+- Only releases with an installer for the platform in `?p=` (`nodebox.ui.Platform`): `1` is Windows
+  (`.msi`, `.exe`), `2` is macOS (`.dmg`, `.zip`), anything else accepts either. So a Mac user is not
+  offered 3.0.53, which only shipped an `.msi`, and a release isn't offered on a platform until its
+  installer is attached.
+- The newest three, newest first. The app only reads the first one: if it is newer than the running
+  version, it shows the update dialog with the release notes, and *Download* opens that release's page.
+- The release notes are the release's Markdown body, rendered as HTML. A release without notes shows
+  the address of its page instead, so write the notes before you publish.
 
-What the app's parser (`nodebox.versioncheck.AppcastHandler`) needs:
+## Development
 
-- The app only looks at the first item. If its version is newer than the running app, it shows
-  the update dialog with that item's description, and *Download* opens the channel `<link>`.
-- No `<link>` inside an item: the parser keeps the last `<link>` in the file as the download link.
-- `<appcast:version>` with that exact prefix, and a `pubDate` like `Sun, 14 Jun 2026 20:50:01 +0000`
-  (English day and month names). An item with a bad date is unreadable and the check fails.
-- The description is HTML in a `CDATA` block. The dialog renders a `<ul>` of `<li>`s well.
+```sh
+npm install
+npm test && npm run typecheck
+npm run dev   # http://localhost:8787/app/nodebox/appcast.xml?p=2
+```
 
-Once the commit reaches `master`, every running NodeBox will offer the update within a day,
-so merge it when the GitHub Release (and the download page) has the new version.
+## GitHub rate limit
+
+The Worker asks GitHub at most once an hour per Cloudflare data center, and revalidates with the
+ETag (a `304` doesn't count against the limit). If GitHub fails, it keeps serving the last copy.
+
+Set a `GITHUB_TOKEN` secret anyway: unauthenticated calls share a limit of 60 an hour with everything
+else on the same egress IP, and `wrangler dev` already hit that limit while this was being built. A
+fine-grained token with no permissions beyond read-only access to public repositories is enough.
+
+```sh
+npx wrangler secret put GITHUB_TOKEN
+```
 
 ## Deploying
 
 Cloudflare Workers Builds, connected to this repository:
 
 - Root directory: `appcast`
-- Build command: none
+- Build command: `npm ci && npm test && npm run typecheck`
 - Deploy command: `npx wrangler deploy`
 - Build watch paths: include `appcast/*`, so other pushes to `master` don't redeploy it.
 

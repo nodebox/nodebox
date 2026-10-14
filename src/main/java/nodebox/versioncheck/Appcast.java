@@ -22,10 +22,6 @@ public class Appcast {
         return items.get(0);
     }
 
-    public List<AppcastItem> getItems() {
-        return items;
-    }
-
     public String getTitle() {
         return title;
     }
