@@ -17,6 +17,8 @@ public class Movie {
 
     public static final ArrayList<VideoFormat> VIDEO_FORMATS;
     public static final VideoFormat DEFAULT_FORMAT = MP4VideoFormat.HighFormat;
+    public static final double DEFAULT_FRAME_RATE = 25;
+    public static final double[] FRAME_RATES = {24, 25, 30, 60};
 
     static {
         String osName = System.getProperty("os.name").split("\\s")[0];
@@ -52,6 +54,7 @@ public class Movie {
     private String movieFilename;
     private VideoFormat videoFormat;
     private int width, height;
+    private double frameRate = DEFAULT_FRAME_RATE;
     private boolean verbose;
     private int frameCount = 0;
     private String temporaryFileTemplate;
@@ -83,6 +86,26 @@ public class Movie {
 
     public int getHeight() {
         return height;
+    }
+
+    public double getFrameRate() {
+        return frameRate;
+    }
+
+    /**
+     * Set the number of frames per second of the movie. The default is 25.
+     */
+    public void setFrameRate(double frameRate) {
+        if (!(frameRate > 0)) throw new IllegalArgumentException("Frame rate must be positive: " + frameRate);
+        this.frameRate = frameRate;
+    }
+
+    /**
+     * Format a frame rate without a needless decimal part: 25 rather than 25.0, but 29.97 as is.
+     */
+    public static String formatFrameRate(double frameRate) {
+        if (frameRate == Math.rint(frameRate)) return String.valueOf((long) frameRate);
+        return String.valueOf(frameRate);
     }
 
     public boolean isVerbose() {
@@ -145,6 +168,8 @@ public class Movie {
         commandList.add(FFMPEG_BINARY.getAbsolutePath());
         commandList.add("-hide_banner"); // Hide the FFMPEG compilation banner
         commandList.add("-y"); // Overwrite target if exists
+        commandList.add("-framerate");
+        commandList.add(formatFrameRate(frameRate)); // Frames per second of the input images, and so of the movie
         commandList.add("-i");
         commandList.add(temporaryFileTemplate); // Input images
         commandList.addAll(videoFormat.getArgumentList(this)); // Video format specific arguments

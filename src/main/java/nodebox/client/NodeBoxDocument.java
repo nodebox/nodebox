@@ -1725,18 +1725,19 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         File chosenFile = d.getExportPath();
         if (chosenFile != null) {
             lastExportPath = chosenFile.getParentFile().getAbsolutePath();
-            exportToMovieFile(chosenFile, d.getVideoFormat(), d.getFromValue(), d.getToValue());
+            exportToMovieFile(chosenFile, d.getVideoFormat(), d.getFrameRate(), d.getFromValue(), d.getToValue());
             return true;
         }
         return false;
     }
 
-    private void exportToMovieFile(File file, final VideoFormat videoFormat, final int fromValue, final int toValue) {
+    private void exportToMovieFile(File file, final VideoFormat videoFormat, double frameRate, final int fromValue, final int toValue) {
         file = videoFormat.ensureFileExtension(file);
         final Rectangle2D bounds = getCanvasBounds().getBounds2D();
         final int width = (int) Math.round(bounds.getWidth());
         final int height = (int) Math.round(bounds.getHeight());
         final Movie movie = new Movie(file.getAbsolutePath(), videoFormat, width, height, false);
+        movie.setFrameRate(frameRate);
         exportThreadedRange(controller.getNodeLibrary(), fromValue, toValue, new ExportDelegate() {
             @Override
             public void frameDone(double frame, Iterable<?> results) {

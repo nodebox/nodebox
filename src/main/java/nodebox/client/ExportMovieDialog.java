@@ -21,10 +21,12 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
     private JTextField toField;
     private JTextField fileField;
     private JComboBox<VideoFormat> formatBox;
+    private JComboBox<String> frameRateBox;
 
     private File exportPath;
     private int fromValue;
     private int toValue;
+    private double frameRateValue = Movie.DEFAULT_FRAME_RATE;
     private JButton exportButton;
 
     public ExportMovieDialog(Frame frame, File exportPath) {
@@ -66,6 +68,23 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
         }
         formatBox.setSelectedItem(Movie.DEFAULT_FORMAT);
         formatPanel.add(formatBox);
+
+        mainPanel.add(Box.createVerticalStrut(10));
+
+        // Frame rate
+        JPanel frameRatePanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        frameRatePanel.add(new JLabel("Frame Rate: "));
+        frameRateBox = new JComboBox<>();
+        for (double rate : Movie.FRAME_RATES) {
+            frameRateBox.addItem(Movie.formatFrameRate(rate));
+        }
+        // Editable, so other rates such as 12 or 29.97 can be typed in.
+        frameRateBox.setEditable(true);
+        frameRateBox.setSelectedItem(Movie.formatFrameRate(Movie.DEFAULT_FRAME_RATE));
+        frameRateBox.setPrototypeDisplayValue("29.97");
+        frameRatePanel.add(frameRateBox);
+        frameRatePanel.add(new JLabel(" fps"));
+        mainPanel.add(frameRatePanel);
 
         mainPanel.add(Box.createVerticalStrut(10));
         // Range
@@ -128,6 +147,7 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
         } catch (NumberFormatException e) {
             toValue = 100;
         }
+        frameRateValue = parseFrameRate(String.valueOf(frameRateBox.getEditor().getItem()));
         dialogSuccessful = true;
         setVisible(false);
     }
@@ -151,6 +171,22 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
 
     public VideoFormat getVideoFormat() {
         return (VideoFormat) formatBox.getSelectedItem();
+    }
+
+    /**
+     * Parse a typed frame rate. Anything that is not a positive number falls back to the default.
+     */
+    static double parseFrameRate(String text) {
+        try {
+            double rate = Double.parseDouble(text.trim().replace(',', '.'));
+            if (rate > 0 && rate <= 1000) return rate;
+        } catch (NumberFormatException ignored) {
+        }
+        return Movie.DEFAULT_FRAME_RATE;
+    }
+
+    public double getFrameRate() {
+        return frameRateValue;
     }
 
     public int getFromValue() {
