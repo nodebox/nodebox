@@ -35,12 +35,15 @@ public class ProgressPanel extends JComponent {
         setMinimumSize(new Dimension(0, PROGRESS_PANEL_HEIGHT));
         setMaximumSize(new Dimension(PROGRESS_PANEL_WIDTH, PROGRESS_PANEL_HEIGHT));
         setPreferredSize(new Dimension(PROGRESS_PANEL_WIDTH, PROGRESS_PANEL_HEIGHT));
-        setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        // A GridBagLayout with a single child centers it in the panel.
+        setLayout(new GridBagLayout());
 
         stopButton = new JButton(stopOffIcon);
         stopButton.setBorderPainted(false);
         stopButton.setBorder(null);
-        stopButton.setSize(19, 19);
+        stopButton.setContentAreaFilled(false);
+        stopButton.setFocusPainted(false);
+        stopButton.setToolTipText("Stop Rendering");
         stopButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 document.stopRendering();
