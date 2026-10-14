@@ -3,6 +3,7 @@ package nodebox.node;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.Point;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -153,6 +155,80 @@ public class NodeLibraryController {
             newParent = newParent.withChildPositionChanged(node.getName(), xOffset, yOffset);
         replaceNodeInPath(parentPath, newParent);
         return ImmutableList.copyOf(Iterables.skip(newParent.getChildren(), parent.getChildren().size()));
+    }
+
+    /**
+     * Paste the nodes so that the top-left corner of the group lands on the given grid position.
+     * <p/>
+     * The pasted nodes keep their layout relative to each other. If any of them would cover a node already in the
+     * network, the whole group moves down one row at a time until none does, so a paste never hides behind a node.
+     */
+    public List<Node> pasteNodes(String parentPath, Node nodesParent, Iterable<Node> nodes, Point position) {
+        if (Iterables.isEmpty(nodes)) return ImmutableList.of();
+        Node parent = getNode(parentPath);
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        for (Node node : nodes) {
+            minX = Math.min(minX, node.getPosition().getX());
+            minY = Math.min(minY, node.getPosition().getY());
+        }
+        double xOffset = Math.floor(position.getX() - minX);
+        double yOffset = Math.floor(position.getY() - minY);
+        while (coversAnyNode(nodes, xOffset, yOffset, parent.getChildren())) {
+            yOffset += 1;
+        }
+        return pasteNodes(parentPath, nodesParent, nodes, xOffset, yOffset);
+    }
+
+    /**
+     * Move the given children down one row at a time until none of them sits exactly on another child.
+     * <p/>
+     * Used after an alt-drag copy: a copy released where it started would otherwise be invisible.
+     */
+    public void moveOffStackedNodes(String parentPath, Iterable<String> childNames) {
+        Node parent = getNode(parentPath);
+        Set<String> names = ImmutableSet.copyOf(childNames);
+        List<Node> moving = new ArrayList<Node>();
+        List<Node> others = new ArrayList<Node>();
+        for (Node child : parent.getChildren()) {
+            (names.contains(child.getName()) ? moving : others).add(child);
+        }
+        int yOffset = 0;
+        while (sitsOnAnyNode(moving, yOffset, others)) {
+            yOffset += 1;
+        }
+        if (yOffset == 0) return;
+        Node newParent = parent;
+        for (Node node : moving)
+            newParent = newParent.withChildPositionChanged(node.getName(), 0, yOffset);
+        replaceNodeInPath(parentPath, newParent);
+    }
+
+    // A node is drawn three grid cells wide and one cell high, from the cell at its (truncated) position.
+    private static final int NODE_WIDTH_IN_CELLS = 3;
+
+    private static boolean coversAnyNode(Iterable<Node> nodes, double xOffset, double yOffset, Iterable<Node> others) {
+        for (Node node : nodes) {
+            int x = (int) (node.getPosition().getX() + xOffset);
+            int y = (int) (node.getPosition().getY() + yOffset);
+            for (Node other : others) {
+                int otherX = (int) other.getPosition().getX();
+                int otherY = (int) other.getPosition().getY();
+                if (y == otherY && Math.abs(x - otherX) < NODE_WIDTH_IN_CELLS) return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean sitsOnAnyNode(Iterable<Node> nodes, int yOffset, Iterable<Node> others) {
+        for (Node node : nodes) {
+            int x = (int) node.getPosition().getX();
+            int y = (int) node.getPosition().getY() + yOffset;
+            for (Node other : others) {
+                if (x == (int) other.getPosition().getX() && y == (int) other.getPosition().getY()) return true;
+            }
+        }
+        return false;
     }
 
     public Node groupIntoNetwork(String parentPath, Iterable<Node> nodes) {
