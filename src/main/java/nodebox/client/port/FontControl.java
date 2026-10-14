@@ -22,18 +22,21 @@ public class FontControl extends AbstractPortControl implements ActionListener {
 
     public FontControl(String nodePath, Port port) {
         super(nodePath, port);
-        setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        // The chooser fills the row, so long font names stay readable when the parameter pane is widened.
+        setLayout(new BorderLayout());
         fontChooser = new JComboBox<>();
         fontModel = new FontDataModel();
         FontCellRenderer fontCellRenderer = new FontCellRenderer();
         fontChooser.setModel(fontModel);
         fontChooser.setRenderer(fontCellRenderer);
         fontChooser.putClientProperty("JComponent.sizeVariant", "small");
-        fontChooser.setPreferredSize(new Dimension(150, 22));
+        fontChooser.setPreferredSize(new Dimension(300, 22));
+        // Without an explicit minimum, the combo box measures every installed font name.
+        fontChooser.setMinimumSize(new Dimension(150, 22));
         fontChooser.putClientProperty("JComboBox.isPopDown", Boolean.TRUE);
         fontChooser.addActionListener(this);
         fontChooser.setFont(Theme.SMALL_BOLD_FONT);
-        add(fontChooser);
+        add(fontChooser, BorderLayout.CENTER);
         setValueForControl(port.getValue());
     }
 
