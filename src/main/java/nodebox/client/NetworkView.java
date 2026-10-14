@@ -94,12 +94,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     // Where the user last pressed the mouse, in network coordinates, and in which network.
     private Point2D lastPressPoint;
     private String lastPressNetworkPath;
-    // Nodes briefly highlighted after a paste, so they are easy to spot.
-    private static final int FLASH_PULSES = 2;
-    private static final int FLASH_PULSE_DURATION = 400;
-    private Set<String> flashingNodes = ImmutableSet.of();
-    private long flashStartTime;
-    private Timer flashTimer;
 
     static {
         try {
@@ -307,7 +301,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         g2.transform(getViewTransform());
 
         paintNodes(g2);
-        paintFlash(g2);
         paintConnections(g2);
         paintCurrentConnection(g2);
         paintPortTooltip(g2);
@@ -749,49 +742,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
             repaint();
         }
-    }
-
-    /**
-     * Briefly pulse a ring around the given nodes.
-     */
-    public void flash(Iterable<Node> nodes) {
-        ImmutableSet.Builder<String> names = ImmutableSet.builder();
-        for (Node node : nodes)
-            names.add(node.getName());
-        flashingNodes = names.build();
-        flashStartTime = System.currentTimeMillis();
-        if (flashTimer == null) {
-            flashTimer = new Timer(30, new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    if (System.currentTimeMillis() - flashStartTime > FLASH_PULSES * FLASH_PULSE_DURATION) {
-                        flashTimer.stop();
-                        flashingNodes = ImmutableSet.of();
-                    }
-                    repaint();
-                }
-            });
-        }
-        flashTimer.restart();
-        repaint();
-    }
-
-    private void paintFlash(Graphics2D g) {
-        if (flashingNodes.isEmpty()) return;
-        long elapsed = System.currentTimeMillis() - flashStartTime;
-        if (elapsed >= FLASH_PULSES * FLASH_PULSE_DURATION) return;
-        float t = (elapsed % FLASH_PULSE_DURATION) / (float) FLASH_PULSE_DURATION;
-        int grow = 2 + Math.round(t * 16);
-        Stroke oldStroke = g.getStroke();
-        g.setStroke(new BasicStroke(3));
-        g.setColor(new Color(1f, 1f, 1f, 1f - t));
-        for (String name : flashingNodes) {
-            Node node = findNodeWithName(name);
-            if (node == null) continue;
-            Rectangle r = nodeRect(node);
-            r.grow(grow, grow);
-            g.drawRect(r.x, r.y, r.width, r.height);
-        }
-        g.setStroke(oldStroke);
     }
 
     public void deselectAll() {

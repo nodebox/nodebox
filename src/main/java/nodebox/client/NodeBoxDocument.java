@@ -1874,7 +1874,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         networkView.updateAll();
         setActiveNode(newNodes.get(0));
         networkView.select(newNodes);
-        networkView.flash(newNodes);
     }
 
     public void dragCopy() {
