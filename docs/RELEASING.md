@@ -16,12 +16,14 @@ arm64** app (no Rosetta) and `windows-latest` yields an x64 `.msi`.
 ## Cutting a release
 
 1. Bump `nodebox.version` in `src/main/resources/version.properties`.
-2. Commit, then tag and push:
+2. Add an item for the new version at the top of [`appcast/public/app/nodebox/appcast.xml`](../appcast/README.md),
+   with the release notes. Running copies of NodeBox read it to offer the update.
+3. Commit, then tag and push:
    ```sh
    git tag v3.0.53
    git push origin v3.0.53
    ```
-3. The workflow signs + notarizes the macOS build and creates the GitHub Release.
+4. The workflow signs + notarizes the macOS build and creates the GitHub Release.
 
 ## Required repository secrets (macOS signing & notarization)
 

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  // A Worker with only static assets: no script runs. It serves public/ as is.
+  "name": "nodebox-appcast",
+  "compatibility_date": "2026-09-01",
+  "assets": { "directory": "public" },
+  // Runs on the workers.dev URL until secure.nodebox.net is moved here (README.md, "Going live").
+  "workers_dev": true
+}
