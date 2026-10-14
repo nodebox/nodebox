@@ -90,6 +90,16 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     private boolean startDragging;
     private Point2D dragStartPoint;
     private Point2D dragCurrentPoint;
+    private boolean isDragCopying = false;
+    // Where the user last pressed the mouse, in network coordinates, and in which network.
+    private Point2D lastPressPoint;
+    private String lastPressNetworkPath;
+    // Nodes briefly highlighted after a paste, so they are easy to spot.
+    private static final int FLASH_PULSES = 2;
+    private static final int FLASH_PULSE_DURATION = 400;
+    private Set<String> flashingNodes = ImmutableSet.of();
+    private long flashStartTime;
+    private Timer flashTimer;
 
     static {
         try {
@@ -297,6 +307,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         g2.transform(getViewTransform());
 
         paintNodes(g2);
+        paintFlash(g2);
         paintConnections(g2);
         paintCurrentConnection(g2);
         paintPortTooltip(g2);
@@ -595,6 +606,24 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
                 (int) Math.floor(pt.getY() / GRID_CELL_SIZE));
     }
 
+    /**
+     * The grid position where pasted nodes go.
+     * <p/>
+     * This is where the user last clicked in this network, if that spot is still in view; otherwise the centre of the
+     * view. The point is the cell for the left edge of a node, so a node is centred on the click.
+     */
+    public Point pasteGridPoint() {
+        if (lastPressPoint != null && document.getActiveNetworkPath().equals(lastPressNetworkPath)) {
+            Point2D viewPoint = getViewTransform().transform(lastPressPoint, null);
+            if (getVisibleRect().contains(viewPoint)) {
+                return new Point(
+                        (int) Math.floor(lastPressPoint.getX() / GRID_CELL_SIZE) - 1,
+                        (int) Math.floor(lastPressPoint.getY() / GRID_CELL_SIZE));
+            }
+        }
+        return centerGridPoint();
+    }
+
     public Point centerGridPoint() {
         Point pt = pointToGridPoint(new Point((int) (getBounds().getWidth() / 2), (int) (getBounds().getHeight() / 2)));
         return new Point((int) pt.getX() - 1, (int) pt.getY());
@@ -720,6 +749,49 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
             repaint();
         }
+    }
+
+    /**
+     * Briefly pulse a ring around the given nodes.
+     */
+    public void flash(Iterable<Node> nodes) {
+        ImmutableSet.Builder<String> names = ImmutableSet.builder();
+        for (Node node : nodes)
+            names.add(node.getName());
+        flashingNodes = names.build();
+        flashStartTime = System.currentTimeMillis();
+        if (flashTimer == null) {
+            flashTimer = new Timer(30, new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    if (System.currentTimeMillis() - flashStartTime > FLASH_PULSES * FLASH_PULSE_DURATION) {
+                        flashTimer.stop();
+                        flashingNodes = ImmutableSet.of();
+                    }
+                    repaint();
+                }
+            });
+        }
+        flashTimer.restart();
+        repaint();
+    }
+
+    private void paintFlash(Graphics2D g) {
+        if (flashingNodes.isEmpty()) return;
+        long elapsed = System.currentTimeMillis() - flashStartTime;
+        if (elapsed >= FLASH_PULSES * FLASH_PULSE_DURATION) return;
+        float t = (elapsed % FLASH_PULSE_DURATION) / (float) FLASH_PULSE_DURATION;
+        int grow = 2 + Math.round(t * 16);
+        Stroke oldStroke = g.getStroke();
+        g.setStroke(new BasicStroke(3));
+        g.setColor(new Color(1f, 1f, 1f, 1f - t));
+        for (String name : flashingNodes) {
+            Node node = findNodeWithName(name);
+            if (node == null) continue;
+            Rectangle r = nodeRect(node);
+            r.grow(grow, grow);
+            g.drawRect(r.x, r.y, r.width, r.height);
+        }
+        g.setStroke(oldStroke);
     }
 
     public void deselectAll() {
@@ -868,6 +940,8 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             } else if (isDragTrigger(e)) {
             } else {
                 Point2D pt = inverseViewTransformPoint(e.getPoint());
+                lastPressPoint = pt;
+                lastPressNetworkPath = document.getActiveNetworkPath();
 
                 // Check if we're over an output port.
                 connectionOutput = getNodeWithOutputPortAt(pt);
@@ -908,6 +982,10 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             } else {
                 isDraggingNodes = false;
                 isDragSelecting = false;
+                if (isDragCopying) {
+                    isDragCopying = false;
+                    getDocument().finishDragCopy();
+                }
                 if (isAltPressed)
                     getDocument().stopEditing();
                 if (connectionOutput != null && connectionInput != null) {
@@ -951,6 +1029,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
                     if (isAltPressed) {
                         getDocument().startEdits("Copy Node");
                         getDocument().dragCopy();
+                        isDragCopying = true;
                     }
                     isDraggingNodes = true;
                     dragPositions = selectedNodePositions();

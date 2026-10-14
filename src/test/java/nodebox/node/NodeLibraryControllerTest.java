@@ -1,6 +1,7 @@
 package nodebox.node;
 
 import com.google.common.collect.ImmutableList;
+import nodebox.graphics.Point;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -197,6 +198,49 @@ public class NodeLibraryControllerTest {
         assertFalse(root.hasChild("alpha"));
         assertFalse(root.isConnected("beta"));
         assertFalse(root.isConnected("beta1"));
+    }
+
+    /**
+     * Pasting at a position moves the group there and keeps the nodes' layout relative to each other.
+     */
+    @Test
+    public void testPasteAtPosition() {
+        controller.addNode("/", Node.ROOT.withName("alpha").withPosition(new Point(1, 1)));
+        controller.addNode("/", Node.ROOT.withName("beta").withPosition(new Point(2, 3)));
+        Node root = controller.getRootNode();
+        controller.pasteNodes("/", root, ImmutableList.of(root.getChild("alpha"), root.getChild("beta")), new Point(10, 20));
+        assertEquals(new Point(10, 20), controller.getNode("/alpha1").getPosition());
+        assertEquals(new Point(11, 22), controller.getNode("/beta1").getPosition());
+    }
+
+    /**
+     * A pasted node never lands on top of an existing node, also not on top of the node it was copied from.
+     */
+    @Test
+    public void testPasteNeverCoversNode() {
+        controller.addNode("/", Node.ROOT.withName("alpha").withPosition(new Point(5, 5)));
+        controller.addNode("/", Node.ROOT.withName("beta").withPosition(new Point(7, 6)));
+        Node root = controller.getRootNode();
+        controller.pasteNodes("/", root, ImmutableList.of(root.getChild("alpha")), new Point(5, 5));
+        // Row 5 holds alpha, row 6 holds beta (which a node at x = 5 would partly cover), so the copy goes to row 7.
+        assertEquals(new Point(5, 7), controller.getNode("/alpha1").getPosition());
+        // Pasting again does not stack the second copy on the first one.
+        controller.pasteNodes("/", root, ImmutableList.of(root.getChild("alpha")), new Point(5, 5));
+        assertEquals(new Point(5, 8), controller.getNode("/alpha2").getPosition());
+    }
+
+    @Test
+    public void testMoveOffStackedNodes() {
+        controller.addNode("/", Node.ROOT.withName("alpha").withPosition(new Point(5, 5)));
+        controller.addNode("/", Node.ROOT.withName("alpha1").withPosition(new Point(5, 5)));
+        controller.addNode("/", Node.ROOT.withName("beta").withPosition(new Point(6, 9)));
+        controller.addNode("/", Node.ROOT.withName("beta1").withPosition(new Point(7, 9)));
+        controller.moveOffStackedNodes("/", ImmutableList.of("alpha1"));
+        assertEquals(new Point(5, 6), controller.getNode("/alpha1").getPosition());
+        assertEquals(new Point(5, 5), controller.getNode("/alpha").getPosition());
+        // A copy that only partly overlaps another node was put there on purpose and stays.
+        controller.moveOffStackedNodes("/", ImmutableList.of("beta1"));
+        assertEquals(new Point(7, 9), controller.getNode("/beta1").getPosition());
     }
 
     private void createTestNetwork() {

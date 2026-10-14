@@ -1865,17 +1865,31 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void paste() {
         addEdit("Paste node");
         if (nodeClipboard == null) return;
-        List<Node> newNodes = controller.pasteNodes(activeNetworkPath, nodeClipboard.network, nodeClipboard.nodes);
+        java.awt.Point pastePoint = networkView.pasteGridPoint();
+        nodebox.graphics.Point position = new nodebox.graphics.Point(pastePoint.x, pastePoint.y);
+        List<Node> newNodes = controller.pasteNodes(activeNetworkPath, nodeClipboard.network, nodeClipboard.nodes, position);
+        if (newNodes.isEmpty()) return;
 
         networkView.updateAll();
         setActiveNode(newNodes.get(0));
         networkView.select(newNodes);
+        networkView.flash(newNodes);
     }
 
     public void dragCopy() {
         List<Node> newNodes = controller.pasteNodes(activeNetworkPath, getActiveNetwork(), networkView.getSelectedNodes(), 0, 0);
         networkView.updateAll();
         networkView.select(newNodes);
+    }
+
+    /**
+     * Called when an alt-drag copy is released. Copies dropped right on top of a node move down until they are visible.
+     */
+    public void finishDragCopy() {
+        controller.moveOffStackedNodes(activeNetworkPath, networkView.getSelectedNodeNames());
+        // dragCopy() was started with startEdits(); record edits again now the copy is done.
+        stopEdits();
+        networkView.updateAll();
     }
 
     public void deleteSelection() {
