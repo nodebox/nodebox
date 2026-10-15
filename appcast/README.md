@@ -25,6 +25,7 @@ offer it within about an hour.
 ```sh
 npm install
 npm test && npm run typecheck
+npm run env   # writes .env with GITHUB_TOKEN from 1Password
 npm run dev   # http://localhost:8787/app/nodebox/appcast.xml?p=2
 ```
 
@@ -37,9 +38,15 @@ Set a `GITHUB_TOKEN` secret anyway: unauthenticated calls share a limit of 60 an
 else on the same egress IP, and `wrangler dev` already hit that limit while this was being built. A
 fine-grained token with no permissions beyond read-only access to public repositories is enough.
 
+The token is in 1Password at `op://NodeBox/NodeBox App/Appcast/GITHUB_TOKEN`. After the first deploy,
+copy it into the Worker (needs the 1Password CLI signed in; the value goes over a pipe, nothing is printed):
+
 ```sh
-npx wrangler secret put GITHUB_TOKEN
+npm run secrets
 ```
+
+It expires after a year. An expired token gets a `401`, and the feed then lives on its cached copy
+until the cache drops it, so replace it in 1Password and run `npm run secrets` again before then.
 
 ## Deploying
 
