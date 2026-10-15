@@ -4,8 +4,10 @@
   "name": "nodebox-appcast",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-01",
+  // The Sint Lucas account. Wrangler can't pick one by itself when you have access to several.
+  "account_id": "40728e030c0e1a608b66d84b0de7ac62",
   // Runs on the workers.dev URL until secure.nodebox.net is moved here (README.md, "Going live").
   "workers_dev": true,
   "observability": { "enabled": true }
-  // Secret (optional, wrangler secret put): GITHUB_TOKEN, a fine-grained token with read access to public repositories.
+  // Secret: GITHUB_TOKEN, from 1Password with `npm run secrets` (README.md).
 }
