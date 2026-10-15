@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Serves /app/nodebox/appcast.xml, built from the GitHub releases of nodebox/nodebox (README.md).
+  "name": "nodebox-appcast",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  // Runs on the workers.dev URL until secure.nodebox.net is moved here (README.md, "Going live").
+  "workers_dev": true,
+  "observability": { "enabled": true }
+  // Secret (optional, wrangler secret put): GITHUB_TOKEN, a fine-grained token with read access to public repositories.
+}

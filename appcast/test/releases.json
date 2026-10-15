@@ -1,0 +1,84 @@
+[
+  {
+    "tag_name": "v3.1.0",
+    "name": "v3.1.0",
+    "body": null,
+    "html_url": "https://github.com/nodebox/nodebox/releases/tag/v3.1.0",
+    "published_at": "2026-06-14T20:50:01Z",
+    "draft": false,
+    "prerelease": false,
+    "assets": [
+      {
+        "name": "NodeBox-3.1.0.dmg"
+      },
+      {
+        "name": "NodeBox-3.1.0.msi"
+      }
+    ]
+  },
+  {
+    "tag_name": "v3.0.53",
+    "name": "Version 3.0.53",
+    "body": "Small fix for Windows users: we re-enabled the Ctrl key instead of the Meta key. Sorry for the confusion, you can Ctrl-C + Ctrl-V again!",
+    "html_url": "https://github.com/nodebox/nodebox/releases/tag/v3.0.53",
+    "published_at": "2022-02-18T12:43:55Z",
+    "draft": false,
+    "prerelease": false,
+    "assets": [
+      {
+        "name": "NodeBox-3.0.53.msi"
+      }
+    ]
+  },
+  {
+    "tag_name": "v3.0.52",
+    "name": "Version 3.0.52",
+    "body": "- You can now export movies under Mac OS Catalina or later.\r\n- Option drag bug has been fixed.\r\n\r\nThis one took a *long* time because of changes to the build process. A huge shout-out to John Cartan and the NodeBox community for their support! ❤️ ",
+    "html_url": "https://github.com/nodebox/nodebox/releases/tag/v3.0.52",
+    "published_at": "2021-01-15T09:53:25Z",
+    "draft": false,
+    "prerelease": false,
+    "assets": [
+      {
+        "name": "NodeBox-3.0.52.dmg"
+      },
+      {
+        "name": "NodeBox-3.0.52.msi"
+      }
+    ]
+  },
+  {
+    "tag_name": "v3.0.51",
+    "name": "Version 3.0.51",
+    "body": "This release fixes a bug where you could connect a node to itself. You've always been able to do this, but because the output hitbox is now larger, this made it much easier (and much more annoying) to do.\r\n\r\nSpecial thanks to John Cartan for reporting and tracking down this bug.\r\n",
+    "html_url": "https://github.com/nodebox/nodebox/releases/tag/v3.0.51",
+    "published_at": "2018-01-08T13:24:55Z",
+    "draft": false,
+    "prerelease": false,
+    "assets": [
+      {
+        "name": "NodeBox-3.0.51.exe"
+      },
+      {
+        "name": "NodeBox-3.0.51.zip"
+      }
+    ]
+  },
+  {
+    "tag_name": "v3.0.50",
+    "name": "Version 3.0.50",
+    "body": "We've added two useful nodes and some welcome user interface improvements:\r\n\r\n* When dragging a connection, you can now drag the connection line over the entire node, instead of just the inputs.\r\n* We've increased the size of the output port hitbox, so it's easier to start a connection.\r\n* The `import_text` node imports a plain text file, split by lines.\r\n* The `make_table` node creates a new table out of a number of lists and a set of column headers.\r\n* We fixed a bug that would manifest when deleting a node while dragging it.",
+    "html_url": "https://github.com/nodebox/nodebox/releases/tag/v3.0.50",
+    "published_at": "2017-11-13T13:55:16Z",
+    "draft": false,
+    "prerelease": false,
+    "assets": [
+      {
+        "name": "NodeBox-3.0.50.exe"
+      },
+      {
+        "name": "NodeBox-3.0.50.zip"
+      }
+    ]
+  }
+]
