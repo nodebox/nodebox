@@ -18,6 +18,7 @@ test.afterEach(async () => {
 });
 
 test('import_svg node renders paths from an SVG file', async () => {
+  test.setTimeout(90000);
   // Use the node dialog to add an import_svg node
   await ctx.window.keyboard.press('Tab');
   await waitForUpdate(ctx.window);
@@ -45,10 +46,9 @@ test('import_svg node renders paths from an SVG file', async () => {
     state.setRenderedChild('root', svgNode.name);
   }, fixturesDir);
 
-  // Wait for async evaluation (file reading via IPC + WASM evaluation)
-  await waitForUpdate(ctx.window, 2000);
-
-  const state = await getStoreState(ctx.window);
-  expect(state.renderResult).not.toBeNull();
-  expect(state.renderResult.pathCount).toBeGreaterThanOrEqual(1);
+  // Wait for async evaluation (file reading via IPC + WASM evaluation). On the
+  // software GPU in CI the renderer is busy starting the viewer, which delays it.
+  await expect
+    .poll(async () => (await getStoreState(ctx.window)).renderResult?.pathCount ?? 0, { timeout: 45000 })
+    .toBeGreaterThanOrEqual(1);
 });
