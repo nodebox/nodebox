@@ -4,7 +4,8 @@
   "name": "nodebox-appcast",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-01",
-  // Runs on the workers.dev URL until secure.nodebox.net is moved here (README.md, "Going live").
+  // The URL every NodeBox since 3.0.50 checks. Cloudflare manages its DNS record and certificate.
+  "routes": [{ "pattern": "secure.nodebox.net", "custom_domain": true }],
   "workers_dev": true,
   "observability": { "enabled": true }
   // Secret: GITHUB_TOKEN, from 1Password with `npm run secrets` (README.md). The account ID comes from
