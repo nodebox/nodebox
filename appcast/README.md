@@ -46,7 +46,7 @@ copy it into the Worker (needs the 1Password CLI signed in; the value goes over 
 npm run secrets
 ```
 
-It expires after a year. An expired token gets a `401`, and the feed then lives on its cached copy
+The nodebox organization rejects fine-grained tokens that live longer than 366 days, so it expires after a year at most. An expired token gets a `401`, and the feed then lives on its cached copy
 until the cache drops it, so replace it in 1Password and run `npm run secrets` again before then.
 
 ## Deploying
@@ -58,17 +58,16 @@ Cloudflare Workers Builds, connected to this repository:
 - Deploy command: `npx wrangler deploy`
 - Build watch paths: include `appcast/*`, so other pushes to `master` don't redeploy it.
 
-## Going live
+## Domain
 
-`secure.nodebox.net` is a DNS-only CNAME to `nodebox.github.io`, which has nothing there.
-To serve the feed from this Worker:
+`secure.nodebox.net` is a custom domain of this Worker (`routes` in `wrangler.jsonc`); Cloudflare manages
+its DNS record and certificate. Until 2026-10-15 it was a CNAME to `nodebox.github.io` with nothing there.
 
-1. In the `nodebox.net` zone, delete the `secure` CNAME record.
-2. Add `"routes": [{ "pattern": "secure.nodebox.net", "custom_domain": true }]` to
-   `wrangler.jsonc` and push, or add the custom domain in the Worker's settings.
-3. Check it the way the app sees it:
-   ```sh
-   curl -i -A 'Java/14.0.1' 'https://secure.nodebox.net/app/nodebox/appcast.xml?v=3.0.52&p=2'
-   ```
-   It should be a `200` with the XML. A `403` or a challenge page means Bot Fight Mode or a
-   security rule is blocking Java's user agent; the app can't solve a challenge.
+To check it the way the app sees it:
+
+```sh
+curl -i -A 'Java/14.0.1' 'https://secure.nodebox.net/app/nodebox/appcast.xml?v=3.0.52&p=2'
+```
+
+It should be a `200` with the XML. A `403` or a challenge page means Bot Fight Mode or a security rule
+is blocking Java's user agent; the app can't solve a challenge.
