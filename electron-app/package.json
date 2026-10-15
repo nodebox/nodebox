@@ -22,6 +22,7 @@
   "dependencies": {},
   "devDependencies": {
     "@electron/notarize": "^3.1.1",
+    "@micropython/micropython-webassembly-pyscript": "1.29.0-6",
     "@playwright/test": "^1.49.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/react": "^16.1.0",
