@@ -329,9 +329,8 @@ function FilePortWidget({
       alert('Please save your project before importing files.');
       return;
     }
-    const projectDir = filePath.replace(/[/\\][^/\\]*$/, '');
     const filters = getFileFilters(nodePrototype);
-    const result = await window.electronAPI.openAssetFile(filters, projectDir);
+    const result = await window.electronAPI.openAssetFile(filters);
     if (!result) return; // User cancelled
     if ('error' in result) {
       alert('Please copy the file to your project folder first.');
