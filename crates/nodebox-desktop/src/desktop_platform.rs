@@ -31,6 +31,55 @@ impl DesktopPlatform {
         }
     }
 
+    /// Resolve a project-relative path to a real path inside the project.
+    ///
+    /// `RelativePath` already rejects `..` and absolute paths, but a symlink inside the
+    /// project can still point outside it. This follows symlinks on the deepest part of
+    /// the path that exists and checks the result is still under the project root. The
+    /// rest of the path does not exist yet and, having no `..`, cannot leave the root.
+    fn resolve_in_project(
+        ctx: &ProjectContext,
+        path: &RelativePath,
+    ) -> Result<PathBuf, PlatformError> {
+        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
+        let canonical_root = root.canonicalize()?;
+        let full_path = canonical_root.join(path.as_path());
+
+        let mut existing = full_path.as_path();
+        while !existing.exists() {
+            existing = existing.parent().ok_or(PlatformError::SandboxViolation)?;
+        }
+        let canonical_existing = existing.canonicalize()?;
+        if !canonical_existing.starts_with(&canonical_root) {
+            return Err(PlatformError::SandboxViolation);
+        }
+        let suffix = full_path
+            .strip_prefix(existing)
+            .map_err(|_| PlatformError::SandboxViolation)?;
+        // Joining an empty suffix would add a trailing separator.
+        if suffix.as_os_str().is_empty() {
+            Ok(canonical_existing)
+        } else {
+            Ok(canonical_existing.join(suffix))
+        }
+    }
+
+    /// Like `resolve_in_project`, but also refuses the project file itself, which only
+    /// `write_project` may change.
+    fn resolve_writable_in_project(
+        ctx: &ProjectContext,
+        path: &RelativePath,
+    ) -> Result<PathBuf, PlatformError> {
+        let resolved = Self::resolve_in_project(ctx, path)?;
+        if let Some(project_path) = ctx.project_path() {
+            let project_path = project_path.canonicalize().unwrap_or(project_path);
+            if resolved == project_path {
+                return Err(PlatformError::PermissionDenied);
+            }
+        }
+        Ok(resolved)
+    }
+
     /// Validate that a path is within the project directory and convert to RelativePath.
     ///
     /// This is a security function that ensures file access is sandboxed to the project.
@@ -169,8 +218,7 @@ impl Platform for DesktopPlatform {
     }
 
     fn read_file(&self, ctx: &ProjectContext, path: &RelativePath) -> Result<Vec<u8>, PlatformError> {
-        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
-        let full_path = root.join(path.as_path());
+        let full_path = Self::resolve_in_project(ctx, path)?;
         std::fs::read(&full_path).map_err(PlatformError::from)
     }
 
@@ -180,8 +228,7 @@ impl Platform for DesktopPlatform {
         path: &RelativePath,
         data: &[u8],
     ) -> Result<(), PlatformError> {
-        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
-        let full_path = root.join(path.as_path());
+        let full_path = Self::resolve_writable_in_project(ctx, path)?;
 
         // Create parent directories if needed
         if let Some(parent) = full_path.parent() {
@@ -196,8 +243,7 @@ impl Platform for DesktopPlatform {
         ctx: &ProjectContext,
         path: &RelativePath,
     ) -> Result<Vec<DirectoryEntry>, PlatformError> {
-        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
-        let full_path = root.join(path.as_path());
+        let full_path = Self::resolve_in_project(ctx, path)?;
 
         let entries = std::fs::read_dir(&full_path)?
             .filter_map(|entry| {
@@ -214,17 +260,13 @@ impl Platform for DesktopPlatform {
     }
 
     fn read_text_file(&self, ctx: &ProjectContext, path: &str) -> Result<String, PlatformError> {
-        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
-        let relative = RelativePath::new(path)?;
-        let full_path = root.join(relative.as_path());
+        let full_path = Self::resolve_in_project(ctx, &RelativePath::new(path)?)?;
         let bytes = std::fs::read(&full_path)?;
         String::from_utf8(bytes).map_err(|_| PlatformError::IoError("Invalid UTF-8".to_string()))
     }
 
     fn read_binary_file(&self, ctx: &ProjectContext, path: &str) -> Result<Vec<u8>, PlatformError> {
-        let root = ctx.root.as_ref().ok_or(PlatformError::Unsupported)?;
-        let relative = RelativePath::new(path)?;
-        let full_path = root.join(relative.as_path());
+        let full_path = Self::resolve_in_project(ctx, &RelativePath::new(path)?)?;
         std::fs::read(&full_path).map_err(PlatformError::from)
     }
 
@@ -267,6 +309,10 @@ impl Platform for DesktopPlatform {
     }
 
     fn load_library(&self, name: &str) -> Result<Vec<u8>, PlatformError> {
+        // A library name is a single file name, never a path.
+        if name.is_empty() || name.starts_with('.') || name.contains(['/', '\\', ':']) {
+            return Err(PlatformError::LibraryNotFound(name.to_string()));
+        }
         let library_dir = self.library_dir()?;
         let library_path = library_dir.join(format!("{}.ndbx", name));
 
@@ -865,5 +911,67 @@ mod tests {
         // Resources that don't exist should return NotFound
         let result = port.load_app_resource("nonexistent/icon.png");
         assert!(matches!(result, Err(PlatformError::NotFound)));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_symlink_out_of_project_is_rejected() {
+        let (temp_dir, ctx) = create_test_context();
+        let outside = TempDir::new().unwrap();
+        std::fs::write(outside.path().join("secret.txt"), b"secret").unwrap();
+        std::os::unix::fs::symlink(outside.path(), temp_dir.path().join("link")).unwrap();
+        let port = DesktopPlatform::new();
+
+        let path = RelativePath::new("link/secret.txt").unwrap();
+        assert!(matches!(port.read_file(&ctx, &path), Err(PlatformError::SandboxViolation)));
+        assert!(matches!(
+            port.read_text_file(&ctx, "link/secret.txt"),
+            Err(PlatformError::SandboxViolation)
+        ));
+        assert!(matches!(
+            port.list_directory(&ctx, &RelativePath::new("link").unwrap()),
+            Err(PlatformError::SandboxViolation)
+        ));
+        let new_file = RelativePath::new("link/new/file.txt").unwrap();
+        assert!(matches!(
+            port.write_file(&ctx, &new_file, b"x"),
+            Err(PlatformError::SandboxViolation)
+        ));
+        assert!(!outside.path().join("new").exists());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_symlink_inside_project_is_allowed() {
+        let (temp_dir, ctx) = create_test_context();
+        std::fs::create_dir(temp_dir.path().join("data")).unwrap();
+        std::fs::write(temp_dir.path().join("data/points.csv"), b"x,y").unwrap();
+        std::os::unix::fs::symlink(temp_dir.path().join("data"), temp_dir.path().join("alias"))
+            .unwrap();
+        let port = DesktopPlatform::new();
+
+        assert_eq!(port.read_text_file(&ctx, "alias/points.csv").unwrap(), "x,y");
+    }
+
+    #[test]
+    fn test_write_file_refuses_project_file() {
+        let (_temp_dir, ctx) = create_test_context();
+        let port = DesktopPlatform::new();
+        port.write_project(&ctx, b"<ndbx/>").unwrap();
+
+        let result = port.write_file(&ctx, &RelativePath::new("test.ndbx").unwrap(), b"x");
+        assert!(matches!(result, Err(PlatformError::PermissionDenied)));
+        assert_eq!(port.read_project(&ctx).unwrap(), b"<ndbx/>");
+    }
+
+    #[test]
+    fn test_load_library_rejects_paths() {
+        let port = DesktopPlatform::new();
+        for name in ["../escape", "a/b", "a\\b", "", ".hidden", "C:lib"] {
+            assert!(
+                matches!(port.load_library(name), Err(PlatformError::LibraryNotFound(_))),
+                "{name} should be rejected"
+            );
+        }
     }
 }
