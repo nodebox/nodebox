@@ -2936,6 +2936,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "nodebox-gpu"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "kurbo 0.13.0",
+ "nodebox-core",
+ "nodebox-vello",
+ "pollster",
+ "vello",
+ "wgpu",
+]
+
+[[package]]
 name = "nodebox-python"
 version = "0.1.0"
 dependencies = [

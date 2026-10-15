@@ -19,6 +19,7 @@ members = [
     "crates/nodebox-core",
     "crates/nodebox-desktop",
     "crates/nodebox-electron",
+    "crates/nodebox-gpu",
     "crates/nodebox-python",
     "crates/nodebox-vello",
 ]
@@ -30,6 +31,7 @@ default-members = [
     ".",
     "crates/nodebox-core",
     "crates/nodebox-desktop",
+    "crates/nodebox-gpu",
     "crates/nodebox-vello",
 ]
 

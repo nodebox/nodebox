@@ -1,0 +1,20 @@
+[package]
+name = "nodebox-gpu"
+description = "A small wgpu renderer for NodeBox paths, filling with the Slug algorithm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+nodebox-core = { path = "../nodebox-core", default-features = false }
+# The same versions as Vello's, so both renderers can share one wgpu device.
+wgpu = { version = "27", default-features = false, features = ["wgsl"] }
+kurbo = "0.13"
+bytemuck = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+nodebox-vello = { path = "../nodebox-vello" }
+vello = { workspace = true }
+pollster = { workspace = true }
