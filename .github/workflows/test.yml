@@ -2,6 +2,9 @@ name: Build and run tests
 
 on:
   push:
+    # The appcast is a separate Worker with its own tests, run by Cloudflare Workers Builds.
+    paths-ignore:
+      - 'appcast/**'
   workflow_dispatch:
     inputs:
       e2eFail:
