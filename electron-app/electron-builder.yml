@@ -4,15 +4,24 @@ productName: NodeBox
 directories:
   output: release
 
+# Vite bundles the renderer, including the wasm module, into dist/. Nothing
+# from node_modules is needed at runtime, which is why every npm package is a
+# devDependency: electron-builder copies dependencies into the app.
 files:
   - dist/**/*
   - dist-electron/**/*
-  - wasm/**/*
   - package.json
 
 asar: true
-asarUnpack:
-  - "wasm/*.wasm"
+
+# Chromium's UI strings (context menus, built-in dialogs) for each language
+# take about 40 MB. NodeBox's own UI is English only.
+electronLanguages:
+  - en
+  - en-US
+
+# Smaller installers, slower packaging.
+compression: maximum
 
 fileAssociations:
   - ext: ndbx
