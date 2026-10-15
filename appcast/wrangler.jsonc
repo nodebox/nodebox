@@ -7,5 +7,6 @@
   // Runs on the workers.dev URL until secure.nodebox.net is moved here (README.md, "Going live").
   "workers_dev": true,
   "observability": { "enabled": true }
-  // Secret (optional, wrangler secret put): GITHUB_TOKEN, a fine-grained token with read access to public repositories.
+  // Secret: GITHUB_TOKEN, from 1Password with `npm run secrets` (README.md). The account ID comes from
+  // 1Password too (npm run deploy, npm run secrets); Workers Builds sets it itself.
 }

@@ -38,7 +38,8 @@ Set a `GITHUB_TOKEN` secret anyway: unauthenticated calls share a limit of 60 an
 else on the same egress IP, and `wrangler dev` already hit that limit while this was being built. A
 fine-grained token with no permissions beyond read-only access to public repositories is enough.
 
-The token is in 1Password at `op://NodeBox/NodeBox App/Appcast/GITHUB_TOKEN`. After the first deploy,
+The token is in 1Password at `op://NodeBox/NodeBox App/Appcast/GITHUB_TOKEN`, next to
+`CLOUDFLARE_ACCOUNT_ID`, which `npm run secrets` and `npm run deploy` pass to wrangler. After the first deploy,
 copy it into the Worker (needs the 1Password CLI signed in; the value goes over a pipe, nothing is printed):
 
 ```sh
