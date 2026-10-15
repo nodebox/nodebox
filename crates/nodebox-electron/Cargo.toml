@@ -21,6 +21,7 @@ console_error_panic_hook = "0.1"
 # The viewer draws with Vello through the page's WebGPU, so it exists on wasm32 only.
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 nodebox-vello = { path = "../nodebox-vello" }
+nodebox-gpu = { path = "../nodebox-gpu" }
 vello = { workspace = true }
 wasm-bindgen-futures = "0.4"
 futures-channel = "0.3"

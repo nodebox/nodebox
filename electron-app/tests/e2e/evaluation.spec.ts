@@ -45,6 +45,28 @@ test('viewer draws the rect (dark pixel inside it, background outside)', async (
   }).toPass({ timeout: 5000 });
 });
 
+test('nodebox-gpu draws the rect like Vello', async () => {
+  // Both renderers draw the same geometry offscreen; their pixels should agree
+  // except for a little antialiasing along the edges.
+  await expect(async () => {
+    const result = await ctx.window.evaluate(async () => {
+      const view = { width: 200, height: 200, offsetX: 100, offsetY: 100, scale: 1, background: [255, 255, 255] };
+      const w = window as any;
+      w.__setViewerRenderer__('vello');
+      const vello: Uint8Array = await w.__viewerPixels__(view);
+      w.__setViewerRenderer__('gpu');
+      const gpu: Uint8Array = await w.__viewerPixels__(view);
+      w.__setViewerRenderer__('vello');
+      let total = 0;
+      for (let i = 0; i < vello.length; i++) total += Math.abs(vello[i] - gpu[i]);
+      const inside = ((100 - 30) * 200 + (100 - 30)) * 4;
+      return { meanDifference: total / vello.length, inside: gpu[inside] };
+    });
+    expect(result.inside).toBeLessThan(50);
+    expect(result.meanDifference).toBeLessThan(1);
+  }).toPass({ timeout: 5000 });
+});
+
 test('data tab shows table when clicked', async () => {
   await waitForUpdate(ctx.window, 500);
 

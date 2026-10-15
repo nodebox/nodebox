@@ -1,12 +1,16 @@
-//! The viewer: draws the geometry of the last evaluation with Vello, through
-//! the page's WebGPU.
+//! The viewer: draws the geometry of the last evaluation with Vello, or with
+//! nodebox-gpu when `viewer_set_renderer("gpu")` asks for it, through the
+//! page's WebGPU.
 //!
 //! The paths stay in WebAssembly memory between evaluation and drawing, so
 //! drawing does not parse or copy them. All coordinates here are in physical
 //! pixels; the page applies the device pixel ratio.
 
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
+use std::sync::Arc;
 
+use nodebox_core::geometry::Path;
+use nodebox_gpu::Prepared;
 use nodebox_vello::build_scene;
 use vello::kurbo::Affine;
 use vello::peniko::Color;
@@ -22,13 +26,30 @@ struct Viewer {
     surface: wgpu::Surface<'static>,
     config: wgpu::SurfaceConfiguration,
     renderer: Renderer,
-    /// Vello renders into this Rgba8Unorm texture; it is then blitted to the canvas.
+    gpu: nodebox_gpu::Renderer,
+    /// The paths nodebox-gpu prepared last, so drawing them again uploads nothing.
+    prepared: Option<(Arc<Vec<Path>>, Prepared)>,
+    /// Both renderers draw into this Rgba8Unorm texture; it is then blitted to the canvas.
     target: wgpu::TextureView,
     blitter: wgpu::util::TextureBlitter,
 }
 
 thread_local! {
     static VIEWER: RefCell<Option<Viewer>> = const { RefCell::new(None) };
+    static USE_GPU: Cell<bool> = const { Cell::new(false) };
+}
+
+/// Choose the renderer for the viewer and for `viewer_render_pixels`:
+/// `"vello"` (the default) or `"gpu"` (nodebox-gpu).
+#[wasm_bindgen]
+pub fn viewer_set_renderer(name: &str) -> Result<(), JsError> {
+    let gpu = match name {
+        "vello" => false,
+        "gpu" => true,
+        _ => return Err(JsError::new(&format!("unknown renderer {name:?}"))),
+    };
+    USE_GPU.with(|use_gpu| use_gpu.set(gpu));
+    Ok(())
 }
 
 fn error(error: impl std::fmt::Debug) -> JsError {
@@ -36,7 +57,10 @@ fn error(error: impl std::fmt::Debug) -> JsError {
 }
 
 fn create_target(device: &wgpu::Device, width: u32, height: u32, readable: bool) -> wgpu::Texture {
-    let mut usage = wgpu::TextureUsages::STORAGE_BINDING | wgpu::TextureUsages::TEXTURE_BINDING;
+    // Vello writes it as storage, nodebox-gpu as a render attachment.
+    let mut usage = wgpu::TextureUsages::STORAGE_BINDING
+        | wgpu::TextureUsages::RENDER_ATTACHMENT
+        | wgpu::TextureUsages::TEXTURE_BINDING;
     if readable {
         usage |= wgpu::TextureUsages::COPY_SRC;
     }
@@ -54,6 +78,42 @@ fn create_target(device: &wgpu::Device, width: u32, height: u32, readable: bool)
         usage,
         view_formats: &[],
     })
+}
+
+/// Draw the geometry of the last evaluation into `target`, with the chosen renderer.
+fn draw(
+    viewer: &mut Viewer,
+    target: &wgpu::TextureView,
+    width: u32,
+    height: u32,
+    offset: (f64, f64),
+    scale: f64,
+    background: [u8; 3],
+) -> Result<(), JsError> {
+    let paths = last_paths();
+    if USE_GPU.with(Cell::get) {
+        if !matches!(&viewer.prepared, Some((drawn, _)) if Arc::ptr_eq(drawn, &paths)) {
+            let prepared = nodebox_gpu::prepare(&paths);
+            viewer.prepared = Some((paths, prepared));
+        }
+        let (_, prepared) = viewer.prepared.as_ref().unwrap();
+        let [r, g, b] = background.map(|c| f64::from(c) / 255.0);
+        viewer.gpu.render(
+            &viewer.device,
+            &viewer.queue,
+            prepared,
+            nodebox_gpu::View { width, height, scale, offset },
+            target,
+            wgpu::Color { r, g, b, a: 1.0 },
+        );
+        return Ok(());
+    }
+    let scene = build_scene(&paths, view_transform(offset.0, offset.1, scale));
+    let params = render_params(width, height, background);
+    viewer
+        .renderer
+        .render_to_texture(&viewer.device, &viewer.queue, &scene, target, &params)
+        .map_err(error)
 }
 
 fn render_params(width: u32, height: u32, background: [u8; 3]) -> RenderParams {
@@ -102,6 +162,7 @@ pub async fn viewer_init(canvas: web_sys::HtmlCanvasElement) -> Result<(), JsErr
     surface.configure(&device, &config);
 
     let renderer = Renderer::new(&device, RendererOptions::default()).map_err(error)?;
+    let gpu = nodebox_gpu::Renderer::new(&device, wgpu::TextureFormat::Rgba8Unorm);
     let target = create_target(&device, width, height, false)
         .create_view(&wgpu::TextureViewDescriptor::default());
     let blitter = wgpu::util::TextureBlitter::new(&device, config.format);
@@ -113,6 +174,8 @@ pub async fn viewer_init(canvas: web_sys::HtmlCanvasElement) -> Result<(), JsErr
             surface,
             config,
             renderer,
+            gpu,
+            prepared: None,
             target,
             blitter,
         });
@@ -152,12 +215,16 @@ pub fn viewer_render(
                 .create_view(&wgpu::TextureViewDescriptor::default());
         }
 
-        let scene = build_scene(&last_paths(), view_transform(offset_x, offset_y, scale));
-        let params = render_params(width, height, [background_r, background_g, background_b]);
-        viewer
-            .renderer
-            .render_to_texture(&viewer.device, &viewer.queue, &scene, &viewer.target, &params)
-            .map_err(error)?;
+        let target = viewer.target.clone();
+        draw(
+            viewer,
+            &target,
+            width,
+            height,
+            (offset_x, offset_y),
+            scale,
+            [background_r, background_g, background_b],
+        )?;
 
         let frame = viewer.surface.get_current_texture().map_err(error)?;
         let view = frame
@@ -205,12 +272,15 @@ pub async fn viewer_render_pixels(
 
         let texture = create_target(&viewer.device, width, height, true);
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let scene = build_scene(&last_paths(), view_transform(offset_x, offset_y, scale));
-        let params = render_params(width, height, [background_r, background_g, background_b]);
-        viewer
-            .renderer
-            .render_to_texture(&viewer.device, &viewer.queue, &scene, &view, &params)
-            .map_err(error)?;
+        draw(
+            viewer,
+            &view,
+            width,
+            height,
+            (offset_x, offset_y),
+            scale,
+            [background_r, background_g, background_b],
+        )?;
 
         let buffer = viewer.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("pixel readback"),
