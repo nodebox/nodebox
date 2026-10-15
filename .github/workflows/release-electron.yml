@@ -52,6 +52,10 @@ jobs:
         run: npx electron-builder --mac
         working-directory: electron-app
 
+      - name: Check app size
+        run: npm run check-size
+        working-directory: electron-app
+
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -97,6 +101,10 @@ jobs:
         run: npx electron-builder --linux
         working-directory: electron-app
 
+      - name: Check app size
+        run: npm run check-size
+        working-directory: electron-app
+
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -140,6 +148,10 @@ jobs:
 
       - name: Package Windows app
         run: npx electron-builder --win
+        working-directory: electron-app
+
+      - name: Check app size
+        run: npm run check-size
         working-directory: electron-app
 
       - name: Upload Windows artifacts
