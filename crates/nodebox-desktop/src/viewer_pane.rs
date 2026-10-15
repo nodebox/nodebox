@@ -372,8 +372,8 @@ impl ViewerPane {
         // Hash path count and basic properties
         geometry.len().hash(&mut hasher);
         for path in geometry {
-            path.contours.len().hash(&mut hasher);
-            for contour in &path.contours {
+            path.contour_count().hash(&mut hasher);
+            for contour in path.contours().iter() {
                 contour.points.len().hash(&mut hasher);
                 contour.closed.hash(&mut hasher);
                 // Hash actual point coordinates (critical for cache invalidation!)
@@ -1301,7 +1301,7 @@ impl ViewerPane {
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             ui.add_space(4.0);
                             ui.label(
-                                egui::RichText::new(format!("{}", path.contours.len()))
+                                egui::RichText::new(format!("{}", path.contour_count()))
                                     .color(theme::TABLE_CELL_TEXT)
                                     .size(11.0),
                             );
@@ -1329,12 +1329,12 @@ impl ViewerPane {
         let text_height = theme::ROW_HEIGHT;
 
         // Build flat list of (path_idx, contour_idx, point)
-        let flat_points: Vec<(usize, usize, &PathPoint)> = state.geometry.iter()
+        let flat_points: Vec<(usize, usize, PathPoint)> = state.geometry.iter()
             .enumerate()
             .flat_map(|(pi, path)| {
-                path.contours.iter().enumerate().flat_map(move |(ci, contour)| {
-                    contour.points.iter().map(move |pp| (pi, ci, pp))
-                })
+                path.contours().iter().enumerate().flat_map(move |(ci, contour)| {
+                    contour.points.iter().map(move |pp| (pi, ci, *pp))
+                }).collect::<Vec<_>>()
             })
             .collect();
 
@@ -1581,7 +1581,7 @@ impl ViewerPane {
 
     /// Draw path points.
     fn draw_points(&self, painter: &egui::Painter, path: &Path, center: Vec2) {
-        for contour in &path.contours {
+        for contour in path.contours().iter() {
             for pp in contour.points.iter() {
                 let world_pt = Pos2::new(pp.point.x as f32, pp.point.y as f32);
                 let screen_pt = self.pan_zoom.world_to_screen(world_pt, center);
@@ -1604,7 +1604,7 @@ impl ViewerPane {
         let digit_spacing = 7.0;
         let mut point_index = start_index;
 
-        for contour in &path.contours {
+        for contour in path.contours().iter() {
             for pp in contour.points.iter() {
                 let world_pt = Pos2::new(pp.point.x as f32, pp.point.y as f32);
                 let screen_pt = self.pan_zoom.world_to_screen(world_pt, center);
@@ -1640,7 +1640,7 @@ impl ViewerPane {
 
     /// Draw a path on the canvas.
     fn draw_path(&self, painter: &egui::Painter, path: &Path, center: Vec2) {
-        for contour in &path.contours {
+        for contour in path.contours().iter() {
             if contour.points.is_empty() {
                 continue;
             }

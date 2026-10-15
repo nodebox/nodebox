@@ -135,7 +135,7 @@ impl NodeOutput {
                     vec![PathPoint::new(pt.x, pt.y, PointType::LineTo)],
                     false,
                 );
-                path.contours.push(contour);
+                path.add_contour(contour);
                 vec![path]
             }
             NodeOutput::Points(pts) => {
@@ -148,7 +148,7 @@ impl NodeOutput {
                         vec![PathPoint::new(pt.x, pt.y, PointType::LineTo)],
                         false,
                     );
-                    path.contours.push(contour);
+                    path.add_contour(contour);
                 }
                 vec![path]
             }
@@ -950,8 +950,8 @@ fn convert_for_port(output: NodeOutput, port_type: &PortType) -> NodeOutput {
             output
                 .to_paths()
                 .iter()
-                .flat_map(|path| &path.contours)
-                .flat_map(|contour| contour.points.iter().map(|p| p.point))
+                .flat_map(|path| path.all_points())
+                .map(|p| p.point)
                 .collect(),
         ),
         _ => output,

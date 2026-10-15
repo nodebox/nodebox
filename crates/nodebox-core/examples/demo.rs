@@ -31,8 +31,8 @@ fn main() {
     println!("   Rectangle perimeter: {:.2}", rect.length());
     let resampled = rect.resample_by_amount(16);
     println!("   Resampled to 16 points: {} contours, {} points",
-        resampled.contours.len(),
-        resampled.contours.iter().map(|c| c.len()).sum::<usize>()
+        resampled.contour_count(),
+        resampled.contours().iter().map(|c| c.len()).sum::<usize>()
     );
 
     // 4. Text to path (if fonts available)
@@ -43,7 +43,7 @@ fn main() {
             println!("   'Hello' at 72pt:");
             println!("   Bounds: ({:.1}, {:.1}) - size: {:.1} x {:.1}",
                 bounds.x, bounds.y, bounds.width, bounds.height);
-            println!("   Total contours: {}", path.contours.len());
+            println!("   Total contours: {}", path.contour_count());
             println!("   Path length: {:.2}", path.length());
         }
         Err(e) => println!("   Font error: {}", e),

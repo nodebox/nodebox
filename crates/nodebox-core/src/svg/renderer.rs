@@ -202,7 +202,7 @@ fn render_grob(svg: &mut String, grob: &Grob, precision: usize) {
 }
 
 fn render_path(svg: &mut String, path: &Path, precision: usize) {
-    if path.contours.is_empty() {
+    if path.is_empty() {
         return;
     }
 
@@ -270,7 +270,7 @@ fn render_text(svg: &mut String, text: &Text) {
 fn path_to_svg_data(path: &Path, precision: usize) -> String {
     let mut data = String::new();
 
-    for contour in &path.contours {
+    for contour in path.contours().iter() {
         contour_to_svg_data(&mut data, contour, precision);
     }
 

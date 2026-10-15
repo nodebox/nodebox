@@ -294,7 +294,7 @@ impl CanvasViewer {
 
     /// Draw a path on the canvas.
     fn draw_path(&self, painter: &egui::Painter, path: &Path, center: Vec2) {
-        for contour in &path.contours {
+        for contour in path.contours().iter() {
             if contour.points.is_empty() {
                 continue;
             }

@@ -75,5 +75,5 @@ fn test_textpath_empty_text() {
     let (paths, _, errors) = evaluate_network(&lib, &platform, &ctx);
     assert!(errors.is_empty());
     // Empty text produces an empty path
-    assert!(paths.is_empty() || paths[0].contours.is_empty());
+    assert!(paths.is_empty() || paths[0].is_empty());
 }

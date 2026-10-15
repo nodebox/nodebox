@@ -238,8 +238,8 @@ mod tests {
         let resampled = resample_all(&paths, 20);
 
         assert_eq!(resampled.len(), 2);
-        assert_eq!(resampled[0].contours[0].points.len(), 20);
-        assert_eq!(resampled[1].contours[0].points.len(), 20);
+        assert_eq!(resampled[0].contours()[0].points.len(), 20);
+        assert_eq!(resampled[1].contours()[0].points.len(), 20);
     }
 
     #[test]

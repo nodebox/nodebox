@@ -41,7 +41,7 @@ pub fn export_png(
 
 /// Draw a geometry path to the pixmap with a transform.
 fn draw_path_with_transform(pixmap: &mut Pixmap, geo_path: &GeoPath, transform: Transform) {
-    for contour in &geo_path.contours {
+    for contour in geo_path.contours().iter() {
         if contour.points.is_empty() {
             continue;
         }

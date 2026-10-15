@@ -445,7 +445,7 @@ pub fn ungroup(geometry: &Geometry) -> Vec<Path> {
 /// assert!(!points.is_empty());
 /// ```
 pub fn to_points(path: &Path) -> Vec<Point> {
-    path.contours
+    path.contours()
         .iter()
         .flat_map(|c| c.on_curve_points())
         .collect()
@@ -620,7 +620,7 @@ pub fn make_points(path: &Path, amount: usize) -> Vec<Point> {
 ///
 /// let path = Path::ellipse(0.0, 0.0, 100.0, 100.0);
 /// let resampled = resample(&path, 20);
-/// assert_eq!(resampled.contours[0].points.len(), 20);
+/// assert_eq!(resampled.contours()[0].points.len(), 20);
 /// ```
 pub fn resample(path: &Path, amount: usize) -> Path {
     path.resample_by_amount(amount)
@@ -673,7 +673,7 @@ pub fn snap(path: &Path, grid_size: f64, strength: f64, offset: Point) -> Path {
     };
 
     let mut result = path.clone();
-    for contour in &mut result.contours {
+    for contour in result.contours_mut() {
         for point in &mut contour.points {
             point.point.x = snap_value(point.point.x, offset.x);
             point.point.y = snap_value(point.point.y, offset.y);
@@ -721,7 +721,7 @@ pub fn wiggle(path: &Path, scope: WiggleScope, offset: Point, seed: u64) -> Path
     match scope {
         WiggleScope::Points => {
             let mut result = path.clone();
-            for contour in &mut result.contours {
+            for contour in result.contours_mut() {
                 for point in &mut contour.points {
                     let (dx, dy) = random_offset(&mut state);
                     point.point.x += dx;
@@ -732,7 +732,7 @@ pub fn wiggle(path: &Path, scope: WiggleScope, offset: Point, seed: u64) -> Path
         }
         WiggleScope::Contours => {
             let mut result = path.clone();
-            for contour in &mut result.contours {
+            for contour in result.contours_mut() {
                 let (dx, dy) = random_offset(&mut state);
                 for point in &mut contour.points {
                     point.point.x += dx;
@@ -815,19 +815,19 @@ pub fn delete(path: &Path, bounds: &Path, scope: DeleteScope, delete_inside: boo
     match scope {
         DeleteScope::Points => {
             let mut result = path.clone();
-            for contour in &mut result.contours {
+            for contour in result.contours_mut() {
                 contour.points.retain(|pp| {
                     let inside = bounding_rect.contains_point(pp.point);
                     if delete_inside { !inside } else { inside }
                 });
             }
             // Remove empty contours
-            result.contours.retain(|c| !c.points.is_empty());
+            result.contours_mut().retain(|c| !c.points.is_empty());
             result
         }
         DeleteScope::Paths => {
             // For a single path, check if any point is inside the bounds
-            let has_point_inside = path.contours.iter().any(|c| {
+            let has_point_inside = path.contours().iter().any(|c| {
                 c.points.iter().any(|pp| bounding_rect.contains_point(pp.point))
             });
             if (delete_inside && has_point_inside) || (!delete_inside && !has_point_inside) {
@@ -851,32 +851,15 @@ pub fn reflect(path: &Path, origin: Point, angle: f64, keep_original: bool) -> G
 
     let angle_rad = angle * PI / 180.0;
 
-    // Reflect a point across a line through origin at the given angle
-    let reflect_point = |p: Point| -> Point {
-        // Translate to origin
-        let px = p.x - origin.x;
-        let py = p.y - origin.y;
-
-        // Reflect across the axis
-        // Using reflection matrix for a line through origin at angle theta:
-        // [cos(2θ)   sin(2θ)]
-        // [sin(2θ)  -cos(2θ)]
-        let cos_2a = (2.0 * angle_rad).cos();
-        let sin_2a = (2.0 * angle_rad).sin();
-
-        let rx = px * cos_2a + py * sin_2a;
-        let ry = px * sin_2a - py * cos_2a;
-
-        // Translate back
-        Point::new(rx + origin.x, ry + origin.y)
-    };
-
-    let mut reflected = path.clone();
-    for contour in &mut reflected.contours {
-        for point in &mut contour.points {
-            point.point = reflect_point(point.point);
-        }
-    }
+    // Reflection across a line through the origin at angle theta:
+    // [cos(2θ)   sin(2θ)]
+    // [sin(2θ)  -cos(2θ)]
+    let cos_2a = (2.0 * angle_rad).cos();
+    let sin_2a = (2.0 * angle_rad).sin();
+    let t = Transform::translate(-origin.x, -origin.y)
+        .then(&Transform::new(cos_2a, sin_2a, sin_2a, -cos_2a, 0.0, 0.0))
+        .then(&Transform::translate(origin.x, origin.y));
+    let reflected = path.transform(&t);
 
     let mut result = Geometry::new();
     if keep_original {
@@ -1533,8 +1516,8 @@ mod tests {
         let path = Path::ellipse(0.0, 0.0, 100.0, 100.0);
         let resampled = resample(&path, 20);
 
-        assert_eq!(resampled.contours.len(), 1);
-        assert_eq!(resampled.contours[0].points.len(), 20);
+        assert_eq!(resampled.contour_count(), 1);
+        assert_eq!(resampled.contours()[0].points.len(), 20);
     }
 
     #[test]
@@ -1543,7 +1526,7 @@ mod tests {
         let resampled = resample_by_length(&path, 20.0);
 
         // Should have approximately 5 segments -> 6 points, but rounding may vary
-        assert!(resampled.contours[0].points.len() >= 4);
+        assert!(resampled.contours()[0].points.len() >= 4);
     }
 
     // ========================================================================
@@ -1575,7 +1558,7 @@ mod tests {
         let path = Path::rect(0.0, 0.0, 10.0, 10.0);
         let wiggled = wiggle(&path, WiggleScope::Points, Point::new(5.0, 5.0), 42);
         // Points should have moved
-        assert_ne!(path.contours[0].points[0].point, wiggled.contours[0].points[0].point);
+        assert_ne!(path.contours()[0].points[0].point, wiggled.contours()[0].points[0].point);
     }
 
     #[test]
@@ -1584,7 +1567,7 @@ mod tests {
         let w1 = wiggle(&path, WiggleScope::Points, Point::new(5.0, 5.0), 42);
         let w2 = wiggle(&path, WiggleScope::Points, Point::new(5.0, 5.0), 42);
         // Same seed should produce same result
-        assert_eq!(w1.contours[0].points[0].point.x, w2.contours[0].points[0].point.x);
+        assert_eq!(w1.contours()[0].points[0].point.x, w2.contours()[0].points[0].point.x);
     }
 
     #[test]
@@ -1662,19 +1645,19 @@ mod tests {
         let p2 = Path::rect(50.0, 0.0, 10.0, 10.0);
 
         let linked = link(&p1, &p2, true);
-        assert!(!linked.contours.is_empty());
+        assert!(!linked.is_empty());
     }
 
     #[test]
     fn test_freehand() {
         let path = freehand("M 0,0 10,0 10,10 M 20,20 30,30");
-        assert_eq!(path.contours.len(), 2);
+        assert_eq!(path.contour_count(), 2);
     }
 
     #[test]
     fn test_quad_curve() {
         let curve = quad_curve(Point::new(0.0, 0.0), Point::new(100.0, 0.0), 50.0, 50.0);
-        assert_eq!(curve.contours.len(), 1);
+        assert_eq!(curve.contour_count(), 1);
         // Midpoint should be offset by the distance
         let mid = curve.point_at(0.5);
         assert!(mid.y.abs() > 20.0); // Should be offset significantly

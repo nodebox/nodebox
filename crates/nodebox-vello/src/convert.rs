@@ -133,7 +133,7 @@ pub fn contour_to_bezpath(contour: &Contour) -> BezPath {
 pub fn path_to_bezpath(path: &Path) -> BezPath {
     let mut bez = BezPath::new();
 
-    for contour in &path.contours {
+    for contour in path.contours().iter() {
         let contour_path = contour_to_bezpath(contour);
         bez.extend(contour_path.iter());
     }

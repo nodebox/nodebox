@@ -10,7 +10,7 @@ fn main() {
     println!("1. Shape Generators:");
 
     let star_shape = star(Point::ZERO, 5, 50.0, 25.0);
-    println!("   Star (5 points): {} contours", star_shape.contours.len());
+    println!("   Star (5 points): {} contours", star_shape.contour_count());
 
     let poly = polygon(Point::ZERO, 40.0, 6, true);
     println!("   Hexagon: perimeter = {:.2}", poly.length());

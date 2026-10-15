@@ -229,10 +229,10 @@ fn convert_path_like(py: Python<'_>, obj: &Bound<'_, PyAny>) -> PyResult<CorePat
         .unwrap_or(1.0);
 
     Ok(CorePath {
-        contours,
         fill,
         stroke,
         stroke_width,
+        ..CorePath::from_contours(contours)
     })
 }
 

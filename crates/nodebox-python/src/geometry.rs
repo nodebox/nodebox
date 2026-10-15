@@ -70,18 +70,18 @@ impl PyPath {
 
     /// Get the number of contours.
     pub fn contour_count(&self) -> usize {
-        self.inner.contours.len()
+        self.inner.contour_count()
     }
 
     /// Get the total number of points.
     pub fn point_count(&self) -> usize {
-        self.inner.contours.iter().map(|c| c.points.len()).sum()
+        self.inner.point_count()
     }
 
     /// Get all points as a list of (x, y) tuples.
     pub fn points(&self) -> Vec<(f64, f64)> {
         let mut points = Vec::new();
-        for contour in &self.inner.contours {
+        for contour in self.inner.contours().iter() {
             for pp in &contour.points {
                 points.push((pp.point.x, pp.point.y));
             }
@@ -98,12 +98,12 @@ impl PyPath {
             }],
             closed: false,
         };
-        self.inner.contours.push(contour);
+        self.inner.contours_mut().push(contour);
     }
 
     /// Draw a line to a point.
     pub fn lineto(&mut self, x: f64, y: f64) {
-        if let Some(contour) = self.inner.contours.last_mut() {
+        if let Some(contour) = self.inner.contours_mut().last_mut() {
             contour.points.push(CorePathPoint {
                 point: CorePoint::new(x, y),
                 point_type: CorePointType::LineTo,
@@ -115,7 +115,7 @@ impl PyPath {
 
     /// Draw a cubic bezier curve.
     pub fn curveto(&mut self, x1: f64, y1: f64, x2: f64, y2: f64, x3: f64, y3: f64) {
-        if let Some(contour) = self.inner.contours.last_mut() {
+        if let Some(contour) = self.inner.contours_mut().last_mut() {
             contour.points.push(CorePathPoint {
                 point: CorePoint::new(x1, y1),
                 point_type: CorePointType::CurveTo,
@@ -133,7 +133,7 @@ impl PyPath {
 
     /// Close the current contour.
     pub fn close(&mut self) {
-        if let Some(contour) = self.inner.contours.last_mut() {
+        if let Some(contour) = self.inner.contours_mut().last_mut() {
             contour.closed = true;
         }
     }

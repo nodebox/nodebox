@@ -16,7 +16,7 @@ use crate::geometry::{Point, Path, Color, Contour};
 /// use nodebox_core::ops::ellipse;
 ///
 /// let path = ellipse(Point::ZERO, 100.0, 50.0);
-/// assert!(!path.contours.is_empty());
+/// assert!(!path.is_empty());
 /// ```
 pub fn ellipse(position: Point, width: f64, height: f64) -> Path {
     Path::ellipse(position.x, position.y, width, height)
@@ -36,7 +36,7 @@ pub fn ellipse(position: Point, width: f64, height: f64) -> Path {
 /// use nodebox_core::ops::rect;
 ///
 /// let path = rect(Point::ZERO, 100.0, 100.0, Point::ZERO);
-/// assert!(!path.contours.is_empty());
+/// assert!(!path.is_empty());
 /// ```
 pub fn rect(position: Point, width: f64, height: f64, roundness: Point) -> Path {
     if roundness == Point::ZERO {
@@ -124,7 +124,7 @@ fn rounded_rect(position: Point, width: f64, height: f64, rx: f64, ry: f64) -> P
 /// use nodebox_core::ops::line;
 ///
 /// let path = line(Point::ZERO, Point::new(100.0, 100.0), 2);
-/// assert_eq!(path.contours[0].points.len(), 2);
+/// assert_eq!(path.contours()[0].points.len(), 2);
 /// ```
 pub fn line(p1: Point, p2: Point, points: u32) -> Path {
     let points = points.max(2);
@@ -167,7 +167,7 @@ pub fn line(p1: Point, p2: Point, points: u32) -> Path {
 /// use nodebox_core::ops::line_angle;
 ///
 /// let path = line_angle(Point::ZERO, 45.0, 100.0, 2);
-/// assert!(!path.contours.is_empty());
+/// assert!(!path.is_empty());
 /// ```
 pub fn line_angle(point: Point, angle: f64, distance: f64, points: u32) -> Path {
     let p2 = coordinates(point, angle, distance);
@@ -204,7 +204,7 @@ pub fn coordinates(point: Point, angle: f64, distance: f64) -> Point {
 /// use nodebox_core::ops::arc;
 ///
 /// let path = arc(Point::ZERO, 100.0, 100.0, 0.0, 90.0, "pie");
-/// assert!(!path.contours.is_empty());
+/// assert!(!path.is_empty());
 /// ```
 pub fn arc(position: Point, width: f64, height: f64, start_angle: f64, degrees: f64, arc_type: &str) -> Path {
     let rx = width / 2.0;
@@ -287,7 +287,7 @@ fn arc_bezier_segment(contour: &mut Contour, center: Point, rx: f64, ry: f64, a1
 ///
 /// let path = polygon(Point::ZERO, 50.0, 6, false);
 /// // Hexagon has 7 points (6 + 1 to close)
-/// assert_eq!(path.contours[0].points.len(), 7);
+/// assert_eq!(path.contours()[0].points.len(), 7);
 /// ```
 pub fn polygon(position: Point, radius: f64, sides: u32, align: bool) -> Path {
     let sides = sides.max(3);
@@ -333,7 +333,7 @@ pub fn polygon(position: Point, radius: f64, sides: u32, align: bool) -> Path {
 ///
 /// let path = star(Point::ZERO, 5, 50.0, 25.0);
 /// // 5-pointed star has 11 points (2*5 + 1 to close)
-/// assert_eq!(path.contours[0].points.len(), 11);
+/// assert_eq!(path.contours()[0].points.len(), 11);
 /// ```
 pub fn star(position: Point, points: u32, outer: f64, inner: f64) -> Path {
     let points = points.max(2);
@@ -418,7 +418,7 @@ pub fn grid(columns: u32, rows: u32, width: f64, height: f64, position: Point) -
 ///
 /// let points = vec![Point::ZERO, Point::new(100.0, 0.0), Point::new(50.0, 100.0)];
 /// let path = connect(&points, true);
-/// assert!(path.contours[0].closed);
+/// assert!(path.contours()[0].closed);
 /// ```
 pub fn connect(points: &[Point], closed: bool) -> Path {
     if points.is_empty() {
@@ -470,8 +470,8 @@ mod tests {
     #[test]
     fn test_ellipse() {
         let path = ellipse(Point::ZERO, 100.0, 50.0);
-        assert_eq!(path.contours.len(), 1);
-        assert!(path.contours[0].closed);
+        assert_eq!(path.contour_count(), 1);
+        assert!(path.contours()[0].closed);
 
         let bounds = path.bounds().unwrap();
         assert_relative_eq!(bounds.width, 100.0, epsilon = 0.01);
@@ -481,8 +481,8 @@ mod tests {
     #[test]
     fn test_rect_simple() {
         let path = rect(Point::ZERO, 100.0, 50.0, Point::ZERO);
-        assert_eq!(path.contours.len(), 1);
-        assert!(path.contours[0].closed);
+        assert_eq!(path.contour_count(), 1);
+        assert!(path.contours()[0].closed);
 
         let bounds = path.bounds().unwrap();
         assert_relative_eq!(bounds.width, 100.0, epsilon = 0.01);
@@ -507,11 +507,11 @@ mod tests {
     #[test]
     fn test_rect_rounded() {
         let path = rect(Point::ZERO, 100.0, 50.0, Point::new(10.0, 10.0));
-        assert_eq!(path.contours.len(), 1);
-        assert!(path.contours[0].closed);
+        assert_eq!(path.contour_count(), 1);
+        assert!(path.contours()[0].closed);
 
         // Rounded rect should have curves
-        let has_curves = path.contours[0].points.iter()
+        let has_curves = path.contours()[0].points.iter()
             .any(|p| matches!(p.point_type, PointType::CurveTo | PointType::CurveData));
         assert!(has_curves);
     }
@@ -519,24 +519,24 @@ mod tests {
     #[test]
     fn test_line() {
         let path = line(Point::ZERO, Point::new(100.0, 0.0), 2);
-        assert_eq!(path.contours.len(), 1);
-        assert!(!path.contours[0].closed);
-        assert_eq!(path.contours[0].points.len(), 2);
+        assert_eq!(path.contour_count(), 1);
+        assert!(!path.contours()[0].closed);
+        assert_eq!(path.contours()[0].points.len(), 2);
     }
 
     #[test]
     fn test_line_with_points() {
         let path = line(Point::ZERO, Point::new(100.0, 0.0), 5);
-        assert_eq!(path.contours[0].points.len(), 5);
+        assert_eq!(path.contours()[0].points.len(), 5);
 
         // Check intermediate points
-        assert_relative_eq!(path.contours[0].points[2].point.x, 50.0, epsilon = 0.01);
+        assert_relative_eq!(path.contours()[0].points[2].point.x, 50.0, epsilon = 0.01);
     }
 
     #[test]
     fn test_line_angle() {
         let path = line_angle(Point::ZERO, 0.0, 100.0, 2);
-        let end = &path.contours[0].points[1].point;
+        let end = path.contours()[0].points[1].point;
         assert_relative_eq!(end.x, 100.0, epsilon = 0.01);
         assert_relative_eq!(end.y, 0.0, epsilon = 0.01);
     }
@@ -558,22 +558,22 @@ mod tests {
     fn test_polygon_triangle() {
         let path = polygon(Point::ZERO, 50.0, 3, false);
         // Triangle: 3 points + 1 close
-        assert_eq!(path.contours[0].points.len(), 4);
-        assert!(path.contours[0].closed);
+        assert_eq!(path.contours()[0].points.len(), 4);
+        assert!(path.contours()[0].closed);
     }
 
     #[test]
     fn test_polygon_hexagon() {
         let path = polygon(Point::ZERO, 50.0, 6, false);
         // Hexagon: 6 points + 1 close
-        assert_eq!(path.contours[0].points.len(), 7);
+        assert_eq!(path.contours()[0].points.len(), 7);
     }
 
     #[test]
     fn test_star() {
         let path = star(Point::ZERO, 5, 50.0, 25.0);
         // 5-pointed star: 10 points + 1 close
-        assert_eq!(path.contours[0].points.len(), 11);
+        assert_eq!(path.contours()[0].points.len(), 11);
     }
 
     #[test]
@@ -607,15 +607,15 @@ mod tests {
             Point::new(50.0, 100.0),
         ];
         let path = connect(&pts, true);
-        assert!(path.contours[0].closed);
-        assert_eq!(path.contours[0].points.len(), 3);
+        assert!(path.contours()[0].closed);
+        assert_eq!(path.contours()[0].points.len(), 3);
     }
 
     #[test]
     fn test_connect_open() {
         let pts = vec![Point::ZERO, Point::new(100.0, 0.0)];
         let path = connect(&pts, false);
-        assert!(!path.contours[0].closed);
+        assert!(!path.contours()[0].closed);
     }
 
     #[test]
@@ -628,12 +628,12 @@ mod tests {
     #[test]
     fn test_arc_pie() {
         let path = arc(Point::ZERO, 100.0, 100.0, 0.0, 90.0, "pie");
-        assert!(path.contours[0].closed);
+        assert!(path.contours()[0].closed);
     }
 
     #[test]
     fn test_arc_open() {
         let path = arc(Point::ZERO, 100.0, 100.0, 0.0, 90.0, "open");
-        assert!(!path.contours[0].closed);
+        assert!(!path.contours()[0].closed);
     }
 }

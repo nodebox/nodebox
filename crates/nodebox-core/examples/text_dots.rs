@@ -38,7 +38,7 @@ fn main() {
     let mut total_points = 0;
     let mut total_length = 0.0;
 
-    for contour in &text_path.contours {
+    for contour in text_path.contours().iter() {
         let length = contour.length();
         total_length += length;
 
@@ -74,7 +74,7 @@ fn main() {
         }
     }
 
-    eprintln!("Total contours: {}", text_path.contours.len());
+    eprintln!("Total contours: {}", text_path.contour_count());
     eprintln!("Total path length: {:.1}", total_length);
     eprintln!("Total dots: {}", total_points);
 

@@ -86,7 +86,7 @@ fn test_from_bytes_contours_are_closed() {
     let bytes = inter_font_bytes();
     let path = font::text_to_path_from_bytes("O", &bytes, 72.0, Point::ZERO).unwrap();
 
-    for contour in &path.contours {
+    for contour in path.contours().iter() {
         assert!(contour.closed, "Font contours should be closed");
     }
 }

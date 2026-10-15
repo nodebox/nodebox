@@ -239,7 +239,7 @@ fn golden_resample_count() {
     let ellipse = Path::ellipse(0.0, 0.0, 100.0, 100.0);
     let resampled = resample(&ellipse, 32);
 
-    assert_eq!(resampled.contours[0].points.len(), 32);
+    assert_eq!(resampled.contours()[0].points.len(), 32);
 }
 
 // ============================================================================
@@ -402,10 +402,10 @@ fn golden_wiggle_consistent() {
     let w2 = wiggle(&p, WiggleScope::Points, Point::new(10.0, 10.0), 12345);
 
     // Same seed should produce identical results
-    for i in 0..w1.contours[0].points.len() {
+    for i in 0..w1.contours()[0].points.len() {
         assert_eq!(
-            round_to(w1.contours[0].points[i].point.x, 6),
-            round_to(w2.contours[0].points[i].point.x, 6)
+            round_to(w1.contours()[0].points[i].point.x, 6),
+            round_to(w2.contours()[0].points[i].point.x, 6)
         );
     }
 }
@@ -471,13 +471,13 @@ fn golden_freehand_parsing() {
     let p = freehand("M 0,0 10,10 20,0 M 30,30 40,40");
 
     // Should create 2 contours
-    assert_eq!(p.contours.len(), 2);
+    assert_eq!(p.contour_count(), 2);
 
     // First contour has 3 points
-    assert_eq!(p.contours[0].points.len(), 3);
+    assert_eq!(p.contours()[0].points.len(), 3);
 
     // Second contour has 2 points
-    assert_eq!(p.contours[1].points.len(), 2);
+    assert_eq!(p.contours()[1].points.len(), 2);
 }
 
 #[test]

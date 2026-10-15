@@ -28,7 +28,7 @@ pub use rect::Rect;
 pub use transform::Transform;
 pub use color::Color;
 pub use contour::{Contour, Segment};
-pub use path::Path;
+pub use path::{Path, Shape};
 pub use grob::{Geometry, Grob};
 pub use text::{Text, TextAlign};
 pub use canvas::Canvas;
