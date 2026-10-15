@@ -5,10 +5,10 @@
 #
 # Mirrors pyvector.scatter / wiggle_* from NodeBox 3 on plain data, with
 # java.awt.geom.GeneralPath for contains() and NodeBox's Bezier.extrema for bounds.
-import random, struct, binascii, math
+import random, struct, binascii, math, jarray
 from org.python.core import Py
 from java.lang import Long
-from java.awt.geom import GeneralPath
+from java.awt.geom import GeneralPath, Ellipse2D, AffineTransform, PathIterator
 
 def h(x): return binascii.hexlify(struct.pack('>d', x))
 def seed(s): random.seed(Py.java2py(Long.valueOf(s)))
@@ -19,6 +19,19 @@ STAR = ([(0.0, -50.0, 'L'), (11.8, -16.2, 'L'), (47.6, -15.5, 'L'), (19.1, 6.2, 
 BLOB = ([(0.0, 0.0, 'L'), (40.0, -30.0, 'D'), (90.0, 10.0, 'D'), (80.0, 50.0, 'C'),
          (70.0, 90.0, 'D'), (10.0, 80.0, 'D'), (-10.0, 40.0, 'C')], True)
 HOLE = ([(20.0, 20.0, 'L'), (50.0, 20.0, 'L'), (50.0, 40.0, 'L'), (20.0, 40.0, 'L')], True)
+
+def ellipse(cx, cy, w, h):
+    # Path.ellipse in NodeBox 3: the segments of java.awt.geom.Ellipse2D.
+    it = Ellipse2D.Double(cx - w / 2, cy - h / 2, w, h).getPathIterator(AffineTransform())
+    pts = []
+    while not it.isDone():
+        c = jarray.zeros(6, 'd')
+        kind = it.currentSegment(c)
+        if kind == PathIterator.SEG_MOVETO: pts.append((c[0], c[1], 'L'))
+        elif kind == PathIterator.SEG_CUBICTO: pts.extend([(c[0], c[1], 'D'), (c[2], c[3], 'D'), (c[4], c[5], 'C')])
+        it.next()
+    return (pts, True)
+ELLIPSE = ellipse(5.0, -3.0, 80.0, 50.0)
 
 def general_path(contours):
     gp = GeneralPath(GeneralPath.WIND_NON_ZERO)
@@ -112,5 +125,6 @@ print 'bounds blob', ' '.join(h(v) for v in bounds([BLOB]))
 for s in (0, 42, -3):
     dump('scatter star %d' % s, scatter([STAR], 25, s))
     dump('scatter blob+hole %d' % s, scatter([BLOB, HOLE], 25, s))
+    dump('scatter ellipse %d' % s, scatter([ELLIPSE], 25, s))
     for scope in ('points', 'contours', 'paths'):
         dump('wiggle %s %d' % (scope, s), wiggle([BLOB, HOLE], scope, 10.0, 5.0, s))

@@ -55,12 +55,14 @@ fn scatter_and_wiggle_match_nodebox_3() {
     let star_path = Path::from_contours(vec![star()]);
     let blob_path = Path::from_contours(vec![blob()]);
     let blob_hole = Path::from_contours(vec![blob(), hole()]);
+    let ellipse = Path::ellipse(5.0, -3.0, 80.0, 50.0);
 
     let b = blob_path.curve_bounds().unwrap();
     let mut got = vec![format!("bounds blob {} {} {} {}", hex(b.x), hex(b.y), hex(b.width), hex(b.height))];
     for seed in [0, 42, -3] {
         got.push(line(&format!("scatter star {seed}"), &scatter(&star_path, 25, seed)));
         got.push(line(&format!("scatter blob+hole {seed}"), &scatter(&blob_hole, 25, seed)));
+        got.push(line(&format!("scatter ellipse {seed}"), &scatter(&ellipse, 25, seed)));
         for (name, scope) in [("points", WiggleScope::Points), ("contours", WiggleScope::Contours), ("paths", WiggleScope::Paths)] {
             let wiggled = wiggle(&blob_hole, scope, Point::new(10.0, 5.0), seed);
             got.push(line(&format!("wiggle {name} {seed}"), &all_points(&wiggled)));

@@ -191,21 +191,25 @@ impl Path {
 
     /// Creates an ellipse path.
     pub fn ellipse(cx: f64, cy: f64, width: f64, height: f64) -> Path {
-        // Approximate ellipse with 4 cubic Bezier curves
-        // Magic number for circle approximation: 0.5522847498
-        const KAPPA: f64 = 0.5522847498;
+        // Four cubic Bezier curves, with the handle length 4/3 * (sqrt(2) - 1)
+        // of the radius. The constant and the way each point is computed
+        // (corner plus a fraction of the size) give the same coordinates,
+        // bit for bit, as java.awt.geom.Ellipse2D, which NodeBox 3 used.
+        const KAPPA: f64 = 0.5522847498307933;
+        const PCV: f64 = 0.5 + KAPPA * 0.5;
+        const NCV: f64 = 0.5 - KAPPA * 0.5;
 
-        let rx = width / 2.0;
-        let ry = height / 2.0;
-        let kx = rx * KAPPA;
-        let ky = ry * KAPPA;
+        let x = cx - width / 2.0;
+        let y = cy - height / 2.0;
+        let px = |f: f64| x + f * width;
+        let py = |f: f64| y + f * height;
 
         let mut path = Path::new();
-        path.move_to(cx + rx, cy);
-        path.curve_to(cx + rx, cy + ky, cx + kx, cy + ry, cx, cy + ry);
-        path.curve_to(cx - kx, cy + ry, cx - rx, cy + ky, cx - rx, cy);
-        path.curve_to(cx - rx, cy - ky, cx - kx, cy - ry, cx, cy - ry);
-        path.curve_to(cx + kx, cy - ry, cx + rx, cy - ky, cx + rx, cy);
+        path.move_to(px(1.0), py(0.5));
+        path.curve_to(px(1.0), py(PCV), px(PCV), py(1.0), px(0.5), py(1.0));
+        path.curve_to(px(NCV), py(1.0), px(0.0), py(PCV), px(0.0), py(0.5));
+        path.curve_to(px(0.0), py(NCV), px(NCV), py(0.0), px(0.5), py(0.0));
+        path.curve_to(px(PCV), py(0.0), px(1.0), py(NCV), px(1.0), py(0.5));
         path.close();
         path
     }
@@ -657,6 +661,44 @@ mod tests {
         assert!((bounds.y - 20.0).abs() < 0.001);
         assert!((bounds.width - 100.0).abs() < 0.001);
         assert!((bounds.height - 60.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_path_ellipse_matches_java() {
+        // Coordinates (as f64 bits) of java.awt.geom.Ellipse2D's path
+        // iterator on OpenJDK 21: move, then three points per curve.
+        let cases: [((f64, f64, f64, f64), [&str; 26]); 2] = [
+            (
+                (12.5, -7.25, 33.3, 71.9),
+                [
+                    "403d266666666666", "c01d000000000000",
+                    "403d266666666666", "40293592f2ed8a8c", "4035b20efb03bc91", "403cb33333333334", "4029000000000000", "403cb33333333334",
+                    "400a6f8827e21b72", "403cb33333333334", "c010999999999998", "40293592f2ed8a8c", "c010999999999998", "c01d000000000000",
+                    "c010999999999998", "c03b1ac97976c548", "400a6f8827e21b72", "c04599999999999a", "4029000000000000", "c04599999999999a",
+                    "4035b20efb03bc91", "c04599999999999a", "403d266666666666", "c03b1ac97976c548", "403d266666666666", "c01d000000000000",
+                ],
+            ),
+            (
+                (-40.0, 60.0, 0.1, 250.0),
+                [
+                    "c043f99999999999", "404e000000000000",
+                    "c043f99999999999", "406021239575ab32", "c043fc7722fc88f1", "4067200000000000", "c044000000000000", "4067200000000000",
+                    "c0440388dd03770e", "4067200000000000", "c044066666666666", "406021239575ab32", "c044066666666666", "404e000000000000",
+                    "c044066666666666", "c0221239575ab320", "c0440388dd03770e", "c050400000000000", "c044000000000000", "c050400000000000",
+                    "c043fc7722fc88f1", "c050400000000000", "c043f99999999999", "c0221239575ab320", "c043f99999999999", "404e000000000000",
+                ],
+            ),
+        ];
+        for ((cx, cy, w, h), expected) in cases {
+            let path = Path::ellipse(cx, cy, w, h);
+            let got: Vec<String> = path.contours[0]
+                .points
+                .iter()
+                .flat_map(|p| [p.point.x, p.point.y])
+                .map(|v| format!("{:x}", v.to_bits()))
+                .collect();
+            assert_eq!(got, expected, "ellipse {cx} {cy} {w} {h}");
+        }
     }
 
     #[test]
