@@ -18,6 +18,7 @@ pub mod history;
 pub mod ndbx;
 pub mod svg;
 pub mod platform;
+pub mod random;
 
 // Re-export commonly used types at the crate root
 pub use geometry::{

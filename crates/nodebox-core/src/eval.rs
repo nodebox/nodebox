@@ -1270,7 +1270,7 @@ fn execute_node(
             let scope = ops::WiggleScope::from_str(&get_string(inputs, "scope", "points"));
             // Note: corevector.ndbx uses "offset" (Point), not offsetX/offsetY
             let offset = get_point(inputs, "offset", Point::new(10.0, 10.0));
-            let seed = get_int(inputs, "seed", 0) as u64;
+            let seed = get_int(inputs, "seed", 0);
             let path = ops::wiggle(&shape, scope, offset, seed);
             Ok(NodeOutput::Path(path))
         }
@@ -1383,7 +1383,7 @@ fn execute_node(
         "corevector.scatter" => {
             let shape = require_path(inputs, node_name, "shape")?;
             let amount = get_int(inputs, "amount", 10) as usize;
-            let seed = get_int(inputs, "seed", 0) as u64;
+            let seed = get_int(inputs, "seed", 0);
             let points = ops::scatter(&shape, amount, seed);
             Ok(NodeOutput::Points(points))
         }
@@ -1753,7 +1753,7 @@ fn execute_node(
             let amount = get_int(inputs, "amount", 10) as usize;
             let start = get_float(inputs, "start", 0.0);
             let end = get_float(inputs, "end", 100.0);
-            let seed = get_int(inputs, "seed", 0) as u64;
+            let seed = get_int(inputs, "seed", 0);
             Ok(NodeOutput::Floats(ops::math::random_numbers(amount, start, end, seed)))
         }
         "math.sample" => {
@@ -1876,7 +1876,7 @@ fn execute_node(
         "string.random_character" => {
             let chars = get_string(inputs, "characters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
             let amount = get_int(inputs, "amount", 10) as usize;
-            let seed = get_int(inputs, "seed", 0) as u64;
+            let seed = get_int(inputs, "seed", 0);
             Ok(NodeOutput::Strings(ops::string::random_character(&chars, amount, seed)))
         }
         "string.as_binary_list" => {
@@ -2028,7 +2028,7 @@ fn execute_node(
         }
 
         "list.shuffle" => {
-            let seed = get_int(inputs, "seed", 0) as u64;
+            let seed = get_int(inputs, "seed", 0);
             match inputs.get("list") {
                 Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Paths(ops::list::shuffle(v, seed))),
                 Some(NodeOutput::Points(v)) => Ok(NodeOutput::Points(ops::list::shuffle(v, seed))),
@@ -2043,7 +2043,7 @@ fn execute_node(
 
         "list.pick" => {
             let amount = get_int(inputs, "amount", 5) as usize;
-            let seed = get_int(inputs, "seed", 0) as u64;
+            let seed = get_int(inputs, "seed", 0);
             match inputs.get("list") {
                 Some(NodeOutput::Paths(v)) => Ok(NodeOutput::Paths(ops::list::pick(v, amount, seed))),
                 Some(NodeOutput::Points(v)) => Ok(NodeOutput::Points(ops::list::pick(v, amount, seed))),

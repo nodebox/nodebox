@@ -1,6 +1,6 @@
 //! Path - a shape made of contours with fill and stroke styling.
 
-use super::{Contour, Color, Transform, Rect, Point, PathPoint};
+use super::{Contour, Color, Transform, Rect, Point, PathPoint, PointType, Segment};
 
 /// A path is a shape made of one or more contours with fill and stroke styling.
 ///
@@ -343,6 +343,235 @@ impl Path {
             .flat_map(|c| c.on_curve_points())
             .collect()
     }
+
+    /// Returns the bounding box of the curves themselves, as NodeBox 3's
+    /// `Path.getBounds()` computes it: on-curve points plus the extrema of
+    /// each cubic segment. [`Path::bounds`] uses the control points instead,
+    /// which can be larger.
+    ///
+    /// Returns `None` if the path is empty.
+    pub fn curve_bounds(&self) -> Option<Rect> {
+        let mut min_x = f64::MAX;
+        let mut min_y = f64::MAX;
+        let mut max_x = -f64::MAX;
+        let mut max_y = -f64::MAX;
+        let mut any = false;
+        for contour in &self.contours {
+            let pts = &contour.points;
+            for (i, pp) in pts.iter().enumerate() {
+                let r = match pp.point_type {
+                    PointType::LineTo => Rect::new(pp.point.x, pp.point.y, 0.0, 0.0),
+                    PointType::CurveTo if i >= 3 => cubic_extrema(
+                        pts[i - 3].point,
+                        pts[i - 2].point,
+                        pts[i - 1].point,
+                        pp.point,
+                    ),
+                    PointType::QuadTo if i >= 2 => {
+                        let (c1, c2) = quad_to_cubic(pts[i - 2].point, pts[i - 1].point, pp.point);
+                        cubic_extrema(pts[i - 2].point, c1, c2, pp.point)
+                    }
+                    _ => continue,
+                };
+                any = true;
+                min_x = min_x.min(r.x);
+                min_y = min_y.min(r.y);
+                max_x = max_x.max(r.x + r.width);
+                max_y = max_y.max(r.y + r.height);
+            }
+        }
+        any.then(|| Rect::new(min_x, min_y, max_x - min_x, max_y - min_y))
+    }
+
+    /// Returns true if `point` lies inside the path, using the non-zero
+    /// winding rule. Open contours count as closed, as when filling.
+    pub fn contains(&self, point: Point) -> bool {
+        let mut winding = 0;
+        for contour in &self.contours {
+            let mut segments = contour.segments();
+            if !contour.closed {
+                if let (Some(first), Some(last)) = (contour.points.first(), contour.points.last()) {
+                    if first.point != last.point {
+                        segments.push(Segment::Line { start: last.point, end: first.point });
+                    }
+                }
+            }
+            for segment in segments {
+                winding += match segment {
+                    Segment::Line { start, end } => line_crossing(start, end, point),
+                    Segment::Cubic { start, ctrl1, ctrl2, end } => {
+                        cubic_crossings(start, ctrl1, ctrl2, end, point)
+                    }
+                    Segment::Quadratic { start, ctrl, end } => {
+                        let (c1, c2) = quad_to_cubic(start, ctrl, end);
+                        cubic_crossings(start, c1, c2, end, point)
+                    }
+                };
+            }
+        }
+        winding != 0
+    }
+}
+
+/// The two control points of the cubic that traces the same curve as a quad.
+fn quad_to_cubic(start: Point, ctrl: Point, end: Point) -> (Point, Point) {
+    (
+        Point::new(start.x + 2.0 / 3.0 * (ctrl.x - start.x), start.y + 2.0 / 3.0 * (ctrl.y - start.y)),
+        Point::new(end.x + 2.0 / 3.0 * (ctrl.x - end.x), end.y + 2.0 / 3.0 * (ctrl.y - end.y)),
+    )
+}
+
+/// Bounds of one cubic segment, computed as NodeBox 3's `Path.Bezier.extrema()`
+/// does, so `curve_bounds` returns the same numbers.
+fn cubic_extrema(p1: Point, p2: Point, p3: Point, p4: Point) -> Rect {
+    fn fuzzy_equal(a: f64, b: f64) -> bool {
+        (a - b).abs() <= 0.000000000001 * a.abs().min(b.abs())
+    }
+    fn point_at(p1: Point, p2: Point, p3: Point, p4: Point, t: f64) -> Point {
+        let m_t = 1.0 - t;
+        let mut b = m_t * m_t;
+        let mut c = t * t;
+        let d = c * t;
+        let a = b * m_t;
+        b *= 3.0 * t;
+        c *= 3.0 * m_t;
+        Point::new(
+            a * p1.x + b * p2.x + c * p3.x + d * p4.x,
+            a * p1.y + b * p2.y + c * p3.y + d * p4.y,
+        )
+    }
+    let (mut min_x, mut max_x) = if p1.x < p4.x { (p1.x, p4.x) } else { (p4.x, p1.x) };
+    let (mut min_y, mut max_y) = if p1.y < p4.y { (p1.y, p4.y) } else { (p4.y, p1.y) };
+    let mut check = |t: f64| {
+        if (0.0..=1.0).contains(&t) {
+            let p = point_at(p1, p2, p3, p4, t);
+            if p.x < min_x {
+                min_x = p.x;
+            } else if p.x > max_x {
+                max_x = p.x;
+            }
+            if p.y < min_y {
+                min_y = p.y;
+            } else if p.y > max_y {
+                max_y = p.y;
+            }
+        }
+    };
+    // Roots of the derivative, per axis. The x axis accepts a zero
+    // discriminant and the y axis does not, as in NodeBox 3.
+    for (v1, v2, v3, v4, allow_zero) in [(p1.x, p2.x, p3.x, p4.x, true), (p1.y, p2.y, p3.y, p4.y, false)] {
+        let a = 3.0 * (-v1 + 3.0 * v2 - 3.0 * v3 + v4);
+        let b = 6.0 * (v1 - 2.0 * v2 + v3);
+        let c = 3.0 * (-v1 + v2);
+        if fuzzy_equal(a + 1.0, 1.0) {
+            if !fuzzy_equal(b + 1.0, 1.0) {
+                check(-c / b);
+            }
+        } else {
+            let disc = b * b - 4.0 * a * c;
+            if disc > 0.0 || (allow_zero && disc == 0.0) {
+                let root = disc.sqrt();
+                let rcp = 1.0 / (2.0 * a);
+                check((-b + root) * rcp);
+                check((-b - root) * rcp);
+            }
+        }
+    }
+    Rect::new(min_x, min_y, max_x - min_x, max_y - min_y)
+}
+
+/// Signed crossing of a horizontal ray from `p` towards +x with a line:
+/// +1 going down the y axis, -1 going up, 0 if it misses. A segment
+/// includes its lower y end and excludes its upper end, so shared endpoints
+/// count once.
+fn line_crossing(a: Point, b: Point, p: Point) -> i32 {
+    let (dir, lo, hi) = if a.y < b.y {
+        (1, a, b)
+    } else if a.y > b.y {
+        (-1, b, a)
+    } else {
+        return 0;
+    };
+    if p.y < lo.y || p.y >= hi.y {
+        return 0;
+    }
+    let x = lo.x + (p.y - lo.y) * (hi.x - lo.x) / (hi.y - lo.y);
+    if p.x < x { dir } else { 0 }
+}
+
+/// Signed crossings of a horizontal ray from `p` towards +x with a cubic.
+/// The curve is split where it turns in y, and each monotonic piece is
+/// solved for `y(t) = p.y` by bisection.
+fn cubic_crossings(p0: Point, p1: Point, p2: Point, p3: Point, p: Point) -> i32 {
+    let coord = |v0: f64, v1: f64, v2: f64, v3: f64, t: f64| {
+        let m = 1.0 - t;
+        m * m * m * v0 + 3.0 * m * m * t * v1 + 3.0 * m * t * t * v2 + t * t * t * v3
+    };
+    let y = |t: f64| coord(p0.y, p1.y, p2.y, p3.y, t);
+    let x = |t: f64| coord(p0.x, p1.x, p2.x, p3.x, t);
+
+    // Quick reject: the curve stays within the hull of its control points.
+    let min_y = p0.y.min(p1.y).min(p2.y).min(p3.y);
+    let max_y = p0.y.max(p1.y).max(p2.y).max(p3.y);
+    let max_x = p0.x.max(p1.x).max(p2.x).max(p3.x);
+    if p.y < min_y || p.y > max_y || p.x >= max_x {
+        return 0;
+    }
+
+    // y'(t) / 3 = a t^2 + b t + c
+    let a = -p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y;
+    let b = 2.0 * (p0.y - 2.0 * p1.y + p2.y);
+    let c = p1.y - p0.y;
+    let mut ts = vec![0.0];
+    let mut add_root = |t: f64| {
+        if t > 0.0 && t < 1.0 {
+            ts.push(t);
+        }
+    };
+    if a.abs() < 1e-12 {
+        if b.abs() > 1e-12 {
+            add_root(-c / b);
+        }
+    } else {
+        let disc = b * b - 4.0 * a * c;
+        if disc >= 0.0 {
+            let root = disc.sqrt();
+            add_root((-b + root) / (2.0 * a));
+            add_root((-b - root) / (2.0 * a));
+        }
+    }
+    ts.push(1.0);
+    ts.sort_by(|u, v| u.total_cmp(v));
+
+    let mut winding = 0;
+    for w in ts.windows(2) {
+        let (t0, t1) = (w[0], w[1]);
+        let (y0, y1) = (y(t0), y(t1));
+        let (dir, lo_t, hi_t, lo_y, hi_y) = if y0 < y1 {
+            (1, t0, t1, y0, y1)
+        } else if y0 > y1 {
+            (-1, t1, t0, y1, y0)
+        } else {
+            continue;
+        };
+        if p.y < lo_y || p.y >= hi_y {
+            continue;
+        }
+        // Bisect between the t at the low end and the t at the high end.
+        let (mut lo, mut hi) = (lo_t, hi_t);
+        for _ in 0..64 {
+            let mid = 0.5 * (lo + hi);
+            if y(mid) < p.y {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+        if p.x < x(0.5 * (lo + hi)) {
+            winding += dir;
+        }
+    }
+    winding
 }
 
 #[cfg(test)]
