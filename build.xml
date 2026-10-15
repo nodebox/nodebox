@@ -276,6 +276,18 @@
             <arg line="--icon platform/mac/res/Resources/nodebox.icns"/>
             <arg line="--file-associations platform/fa-ndbx.properties"/>
         </exec>
+        <!-- jpackage's template says macOS 10.11. The bundled ffmpeg needs macOS 12 (its LC_BUILD_VERSION
+             minos; the Java runtime needs 11), so say so and let Finder refuse older systems up front.
+             Changing Info.plist breaks the bundle's signature, so re-sign it ad hoc (Apple Silicon won't open
+             an app with a broken signature); sign-mac replaces that with the Developer ID signature. -->
+        <exec executable="/usr/libexec/PlistBuddy" os="Mac OS X" failonerror="true">
+            <arg value="-c"/>
+            <arg value="Set :LSMinimumSystemVersion 12.0"/>
+            <arg value="${dist.mac}/NodeBox.app/Contents/Info.plist"/>
+        </exec>
+        <exec executable="codesign" os="Mac OS X" failonerror="true">
+            <arg line="--force --sign - ${dist.mac}/NodeBox.app"/>
+        </exec>
     </target>
 
     <target name="sign-mac" depends="init">
