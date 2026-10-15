@@ -61,10 +61,10 @@ The `nodebox-python` crate has pyo3 dependencies that may cause build issues. Al
 - **Rust:** `cargo test --workspace --exclude nodebox-python` for all crate tests.
 
 ## Branching Strategy
-- **Use `rewrite-in-rust` as the main branch.** All new development and PRs should target this branch.
-- **NEVER commit or merge directly into `master`.** The `master` branch exists for legacy reasons only and should not be modified.
-- **PRs should ALWAYS use `rewrite-in-rust` as the base branch**, not `master`, unless explicitly specified otherwise.
-- Create feature branches from `rewrite-in-rust` and merge back into it.
+- **Use `nodebox4` as the main branch.** All new development and PRs should target this branch.
+- **NEVER commit or merge directly into `master`.** The `master` branch holds NodeBox 3 (Java), which is still released from it; NodeBox 4 work does not go there.
+- **PRs should ALWAYS use `nodebox4` as the base branch**, not `master`, unless explicitly specified otherwise.
+- Create feature branches from `nodebox4` and merge back into it.
 
 ## Commit & Pull Request Guidelines
 - Recent history favors short, sentence-style commit messages (e.g., "Use Ctrl key on Windows."). Keep messages concise and specific.
