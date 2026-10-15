@@ -197,40 +197,46 @@ pub fn build_scene(paths: &[Path], transform: Affine) -> Scene {
 }
 
 /// Draw a single path to the scene.
-fn draw_path(scene: &mut Scene, vp: &VelloPath, transform: Affine) {
+///
+/// The fill draws the shared shape with the placement appended to the view
+/// transform. The stroke does the same when the placement keeps the stroke's
+/// shape, and otherwise strokes the placed points, so the stroke width is never
+/// scaled by the placement.
+pub fn draw_path(scene: &mut Scene, vp: &VelloPath, transform: Affine) {
     // Draw fill
     if let Some(fill_color) = vp.style.fill {
         scene.fill(
             Fill::NonZero,
-            transform,
+            transform * vp.placement,
             &Brush::Solid(fill_color),
             None,
-            &vp.bezpath,
+            &*vp.bezpath,
         );
     }
 
-    // Draw stroke
-    if let Some(stroke_color) = vp.style.stroke {
-        let stroke = Stroke::new(vp.style.stroke_width);
-        scene.stroke(
-            &stroke,
-            transform,
-            &Brush::Solid(stroke_color),
-            None,
-            &vp.bezpath,
-        );
-    }
-
-    // If no fill or stroke, draw default black stroke
-    if vp.style.fill.is_none() && vp.style.stroke.is_none() {
-        let stroke = Stroke::new(1.0);
-        scene.stroke(
-            &stroke,
-            transform,
-            &Brush::Solid(PenikoColor::BLACK),
-            None,
-            &vp.bezpath,
-        );
+    let stroke = match (vp.style.fill, vp.style.stroke) {
+        (_, Some(stroke_color)) => Some((stroke_color, vp.style.stroke_width)),
+        // If no fill or stroke, draw default black stroke
+        (None, None) => Some((PenikoColor::BLACK, 1.0)),
+        (Some(_), None) => None,
+    };
+    if let Some((color, width)) = stroke {
+        match vp.stroke_in_shape_space(width) {
+            Some((placement, shape_width)) => scene.stroke(
+                &Stroke::new(shape_width),
+                transform * placement,
+                &Brush::Solid(color),
+                None,
+                &*vp.bezpath,
+            ),
+            None => scene.stroke(
+                &Stroke::new(width),
+                transform,
+                &Brush::Solid(color),
+                None,
+                &vp.placed_bezpath(),
+            ),
+        }
     }
 }
 

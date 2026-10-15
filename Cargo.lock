@@ -2883,6 +2883,7 @@ dependencies = [
  "quick-xml 0.31.0",
  "rayon",
  "serde",
+ "serde_json",
  "tempfile",
  "thiserror 1.0.69",
  "ttf-parser 0.21.1",

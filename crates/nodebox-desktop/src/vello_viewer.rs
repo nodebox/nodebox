@@ -10,11 +10,9 @@ use eframe::egui;
 use egui_wgpu::RenderState;
 use nodebox_core::geometry::{Color, Path};
 use vello::kurbo::Affine;
-use vello::peniko::Color as PenikoColor;
 use vello::wgpu;
 use vello::{AaConfig, RenderParams, Renderer, RendererOptions, Scene};
 
-use crate::vello_convert::convert_paths;
 
 /// Error type for Vello viewer operations.
 #[derive(Debug)]
@@ -210,47 +208,7 @@ impl VelloViewer {
 
     /// Render paths to a scene.
     fn build_scene(&self, paths: &[Path], transform: Affine) -> Scene {
-        let mut scene = Scene::new();
-        let vello_paths = convert_paths(paths);
-
-        for vp in &vello_paths {
-            // Draw fill
-            if let Some(fill_color) = vp.style.fill {
-                scene.fill(
-                    vello::peniko::Fill::NonZero,
-                    transform,
-                    &vello::peniko::Brush::Solid(fill_color),
-                    None,
-                    &vp.bezpath,
-                );
-            }
-
-            // Draw stroke
-            if let Some(stroke_color) = vp.style.stroke {
-                let stroke = vello::kurbo::Stroke::new(vp.style.stroke_width);
-                scene.stroke(
-                    &stroke,
-                    transform,
-                    &vello::peniko::Brush::Solid(stroke_color),
-                    None,
-                    &vp.bezpath,
-                );
-            }
-
-            // Default stroke if no fill or stroke
-            if vp.style.fill.is_none() && vp.style.stroke.is_none() {
-                let stroke = vello::kurbo::Stroke::new(1.0);
-                scene.stroke(
-                    &stroke,
-                    transform,
-                    &vello::peniko::Brush::Solid(PenikoColor::BLACK),
-                    None,
-                    &vp.bezpath,
-                );
-            }
-        }
-
-        scene
+        nodebox_vello::build_scene(paths, transform)
     }
 
     /// Render and display in egui using the shared wgpu device.

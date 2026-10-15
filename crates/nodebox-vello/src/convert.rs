@@ -3,7 +3,10 @@
 //! This module provides conversions between NodeBox's internal geometry
 //! representation and Vello's kurbo-based types for GPU rendering.
 
-use nodebox_core::geometry::{Color, Contour, Path, PointType, Transform};
+use std::collections::HashMap;
+use std::sync::Arc;
+
+use nodebox_core::geometry::{Color, Contour, Path, PointType, Shape, Transform};
 use vello::kurbo::{Affine, BezPath, Point as KurboPoint};
 use vello::peniko::Color as PenikoColor;
 
@@ -26,7 +29,6 @@ pub fn color_to_peniko(c: &Color) -> PenikoColor {
 }
 
 /// Convert a NodeBox Transform to a kurbo Affine transform.
-#[allow(dead_code)]
 pub fn transform_to_affine(t: &Transform) -> Affine {
     // NodeBox Transform stores [m00, m10, m01, m11, m02, m12]
     // which matches kurbo Affine's [a, b, c, d, e, f] layout
@@ -127,17 +129,21 @@ pub fn contour_to_bezpath(contour: &Contour) -> BezPath {
     path
 }
 
-/// Convert a NodeBox Path to a kurbo BezPath.
+/// Convert a NodeBox Path to a kurbo BezPath, with its placement applied.
 ///
 /// This combines all contours into a single BezPath with multiple subpaths.
 pub fn path_to_bezpath(path: &Path) -> BezPath {
+    let mut bez = shape_to_bezpath(path.shape());
+    bez.apply_affine(transform_to_affine(&path.placement()));
+    bez
+}
+
+/// Convert a NodeBox Shape to a kurbo BezPath, in the shape's own coordinates.
+pub fn shape_to_bezpath(shape: &Shape) -> BezPath {
     let mut bez = BezPath::new();
-
-    for contour in path.contours().iter() {
-        let contour_path = contour_to_bezpath(contour);
-        bez.extend(contour_path.iter());
+    for contour in shape.contours() {
+        bez.extend(contour_to_bezpath(contour).iter());
     }
-
     bez
 }
 
@@ -166,8 +172,11 @@ impl PathStyle {
 /// A converted path ready for Vello rendering.
 #[derive(Clone, Debug)]
 pub struct VelloPath {
-    /// The kurbo BezPath geometry.
-    pub bezpath: BezPath,
+    /// The shape's geometry, in the shape's own coordinates. Paths that share
+    /// a shape share this.
+    pub bezpath: Arc<BezPath>,
+    /// Places the shape: the path's placement as an Affine.
+    pub placement: Affine,
     /// Style information for rendering.
     pub style: PathStyle,
 }
@@ -176,15 +185,55 @@ impl VelloPath {
     /// Convert a NodeBox Path to a VelloPath.
     pub fn from_nodebox_path(path: &Path) -> Self {
         VelloPath {
-            bezpath: path_to_bezpath(path),
+            bezpath: Arc::new(shape_to_bezpath(path.shape())),
+            placement: transform_to_affine(&path.placement()),
             style: PathStyle::from_path(path),
         }
     }
+
+    /// The geometry with the placement applied.
+    pub fn placed_bezpath(&self) -> BezPath {
+        let mut bez = (*self.bezpath).clone();
+        bez.apply_affine(self.placement);
+        bez
+    }
+
+    /// How to stroke this path so the stroke width is not scaled by the
+    /// placement (NodeBox strokes the placed points): a transform to append
+    /// to the view transform, and the width to stroke with in shape
+    /// coordinates. None when the placement scales unevenly, skews or mirrors, so the
+    /// caller strokes [`VelloPath::placed_bezpath`] instead.
+    pub fn stroke_in_shape_space(&self, width: f64) -> Option<(Affine, f64)> {
+        let [a, b, c, d, _, _] = self.placement.as_coeffs();
+        let scale = (a * d - b * c).abs().sqrt();
+        let tolerance = 1e-9 * scale.max(1.0);
+        // Rotation and uniform scale keep a stroke's shape. Reflections do
+        // too, but Vello draws their joins slightly differently, so they are
+        // stroked placed.
+        let similar = (a - d).abs() < tolerance && (b + c).abs() < tolerance;
+        (similar && scale > 1e-12).then(|| (self.placement, width / scale))
+    }
 }
 
-/// Convert a slice of NodeBox Paths to VelloPaths.
+/// Convert a slice of NodeBox Paths to VelloPaths. Paths that share a shape
+/// share one converted BezPath.
 pub fn convert_paths(paths: &[Path]) -> Vec<VelloPath> {
-    paths.iter().map(VelloPath::from_nodebox_path).collect()
+    let mut converted: HashMap<*const Shape, Arc<BezPath>> = HashMap::new();
+    paths
+        .iter()
+        .map(|path| {
+            let shape = path.shape();
+            let bezpath = converted
+                .entry(Arc::as_ptr(shape))
+                .or_insert_with(|| Arc::new(shape_to_bezpath(shape)))
+                .clone();
+            VelloPath {
+                bezpath,
+                placement: transform_to_affine(&path.placement()),
+                style: PathStyle::from_path(path),
+            }
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -255,5 +304,31 @@ mod tests {
         assert!(vello_path.style.fill.is_some());
         assert!(vello_path.style.stroke.is_some());
         assert_eq!(vello_path.style.stroke_width, 2.0);
+    }
+
+    #[test]
+    fn test_copies_share_one_bezpath() {
+        let path = Path::rect(0.0, 0.0, 10.0, 10.0);
+        let copies = vec![
+            path.transform(&Transform::translate(10.0, 0.0)),
+            path.transform(&Transform::rotate(45.0)),
+        ];
+        let converted = convert_paths(&copies);
+        assert!(Arc::ptr_eq(&converted[0].bezpath, &converted[1].bezpath));
+        assert_eq!(converted[0].placed_bezpath(), path_to_bezpath(&copies[0]));
+    }
+
+    #[test]
+    fn test_stroke_in_shape_space() {
+        let path = Path::rect(0.0, 0.0, 10.0, 10.0);
+        let rotated = VelloPath::from_nodebox_path(&path.transform(&Transform::rotate(30.0).then(&Transform::scale(2.0))));
+        let (_, width) = rotated.stroke_in_shape_space(4.0).unwrap();
+        assert!((width - 2.0).abs() < 1e-9);
+
+        let mirrored = VelloPath::from_nodebox_path(&path.transform(&Transform::scale_xy(-3.0, 3.0)));
+        assert!(mirrored.stroke_in_shape_space(3.0).is_none());
+
+        let squashed = VelloPath::from_nodebox_path(&path.transform(&Transform::scale_xy(2.0, 1.0)));
+        assert!(squashed.stroke_in_shape_space(1.0).is_none());
     }
 }

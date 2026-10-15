@@ -303,6 +303,17 @@ lib.root.connections.retain(|c| &c.output_node != name);
 - Read-only: `fn show(&self, library: &Arc<NodeLibrary>)`
 - Mutating: `fn show(&mut self, library: &mut Arc<NodeLibrary>)`
 
+## Paths: Shared Shapes, Placed Points
+
+A `Path` is an `Arc<Shape>` plus a `placement` transform and a style. A `Shape` holds the points in its own coordinates and never changes once shared. Cloning a path, or moving, rotating, scaling or copying it, shares the shape and only changes the placement.
+
+**Rule: every point you get from a `Path` is placed**, meaning the placement is applied and the points are where they are drawn. `contours()`, `all_points()`, `to_points()`, `bounds()`, `point_at()`, `length()`, serde, SVG export and the Python bridge all see placed points. Only `path.shape()` together with `path.placement()` exposes shape coordinates. Use those two only in renderers and caches that share work between copies, and apply the placement yourself.
+
+- To move, rotate, scale, skew, mirror or copy a path, use `path.transform(&t)`. Never rebuild the points for that.
+- To change points, build a new path from placed points with `path.with_contours(contours)`, which keeps the style. `contours_mut()` is for building a path in place: it applies the placement first and copies the shape if another path shares it, so it never edits a shape other paths use.
+- `contours()` returns a `Cow<[Contour]>`: borrowed when the placement is the identity, computed otherwise. Bind it once (`let contours = path.contours();`) instead of calling it in a loop. For counts, use `contour_count()`, `point_count()` and `is_empty()`, which compute nothing.
+- The placement never scales the stroke width (NodeBox strokes the placed points). A renderer may stroke the shared shape with the placement only when the placement is a rotation plus a uniform scale, dividing the width by the scale; otherwise it strokes the placed points. See `VelloPath::stroke_in_shape_space` in `nodebox-vello`.
+
 ---
 
 # Electron App (`electron-app/`)
