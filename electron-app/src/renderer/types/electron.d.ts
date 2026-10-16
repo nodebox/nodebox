@@ -18,12 +18,8 @@ interface ElectronAPI {
   exportPng(data: Uint8Array): Promise<SaveResult | null>;
   openAssetFile(
     filters: { name: string; extensions: string[] }[],
-    projectDir: string,
   ): Promise<{ path: string } | { error: string } | null>;
-  readAssetFile(
-    relativePath: string,
-    projectDir: string,
-  ): Promise<{ content: string } | { error: string }>;
+  readAssetFile(relativePath: string): Promise<{ content: string } | { error: string }>;
   onMenuAction(callback: (action: string) => void): void;
 }
 

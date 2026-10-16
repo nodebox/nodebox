@@ -9,10 +9,9 @@ const electronAPI = {
   saveFileAs: (data: string) => ipcRenderer.invoke(IPC.FILE_SAVE_AS, data),
   exportSvg: (data: string) => ipcRenderer.invoke(IPC.EXPORT_SVG, data),
   exportPng: (data: Uint8Array) => ipcRenderer.invoke(IPC.EXPORT_PNG, data),
-  openAssetFile: (filters: { name: string; extensions: string[] }[], projectDir: string) =>
-    ipcRenderer.invoke(IPC.ASSET_OPEN, { filters, projectDir }),
-  readAssetFile: (relativePath: string, projectDir: string) =>
-    ipcRenderer.invoke(IPC.ASSET_READ, { relativePath, projectDir }),
+  openAssetFile: (filters: { name: string; extensions: string[] }[]) =>
+    ipcRenderer.invoke(IPC.ASSET_OPEN, filters),
+  readAssetFile: (relativePath: string) => ipcRenderer.invoke(IPC.ASSET_READ, relativePath),
 
   // Fonts
 

@@ -429,7 +429,7 @@ A node type the evaluator does not implement comes back as an error that names t
 `wasm/` is the wasm-pack output of `crates/nodebox-electron/`. It is not committed. Building it needs `rustup target add wasm32-unknown-unknown` and `wasm-pack`; `./scripts/dev.sh` builds it and starts the app. Rebuild it after changing Rust code:
 
 ```bash
-cd crates && wasm-pack build nodebox-electron --target web --out-dir ../electron-app/wasm
+cd crates && wasm-pack build nodebox-electron --target web --out-dir "$PWD/../electron-app/wasm"
 ```
 
 `eval/wasm.ts` loads the module and wraps its exports: `evaluate_library`, `get_node_templates`, `create_node`, `WasmNodeLibrary` (parse and serialize `.ndbx`), `register_font`, `take_missing_fonts`, `export_svg`, and the viewer functions `viewer_init`, `viewer_render` and `viewer_render_pixels`.

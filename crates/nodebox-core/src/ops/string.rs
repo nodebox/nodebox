@@ -3,6 +3,8 @@
 //! This module provides functions for string manipulation including
 //! creation, properties, manipulation, testing, and encoding.
 
+use crate::random::JavaRandom;
+
 /// Identity function for strings.
 pub fn string(s: &str) -> String {
     s.to_string()
@@ -118,22 +120,16 @@ pub fn characters(s: &str) -> Vec<String> {
 }
 
 /// Generate random characters from a character set.
-pub fn random_character(character_set: &str, amount: usize, seed: u64) -> Vec<String> {
+pub fn random_character(character_set: &str, amount: usize, seed: i64) -> Vec<String> {
     if character_set.is_empty() {
         return Vec::new();
     }
 
     let chars: Vec<char> = character_set.chars().collect();
-    let mut state = seed.wrapping_mul(1000000000);
-    let mut result = Vec::with_capacity(amount);
-
-    for _ in 0..amount {
-        state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let index = ((state >> 16) & 0x7FFFFFFF) as usize % chars.len();
-        result.push(chars[index].to_string());
-    }
-
-    result
+    let mut r = JavaRandom::from_node_seed(seed);
+    (0..amount)
+        .map(|_| chars[(r.next_double() * chars.len() as f64) as usize].to_string())
+        .collect()
 }
 
 /// Convert a string to a binary representation.

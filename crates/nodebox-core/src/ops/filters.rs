@@ -1,6 +1,7 @@
 //! Geometry filters - functions that transform existing shapes.
 
 use crate::geometry::{Point, Path, Geometry, Color, Transform, Rect};
+use crate::random::JavaRandom;
 
 /// Horizontal alignment options.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -707,15 +708,15 @@ impl WiggleScope {
 /// * `scope` - What to wiggle: points, contours, or the whole path
 /// * `offset` - Maximum random offset in x and y
 /// * `seed` - Random seed for reproducibility
-pub fn wiggle(path: &Path, scope: WiggleScope, offset: Point, seed: u64) -> Path {
-    let mut state = seed.wrapping_mul(1000000000);
+pub fn wiggle(path: &Path, scope: WiggleScope, offset: Point, seed: i64) -> Path {
+    // NodeBox 3 ran wiggle in Python: random.seed(seed), then
+    // (uniform(0, 1) - 0.5) * offset * 2 for x and then y.
+    let mut state = JavaRandom::from_python_seed(seed);
 
-    let random_offset = |state: &mut u64| -> (f64, f64) {
-        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let rx = ((*state >> 16) & 0x7FFF) as f64 / 32767.0 - 0.5;
-        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let ry = ((*state >> 16) & 0x7FFF) as f64 / 32767.0 - 0.5;
-        (rx * offset.x * 2.0, ry * offset.y * 2.0)
+    let random_offset = |r: &mut JavaRandom| -> (f64, f64) {
+        let dx = (r.python_random() - 0.5) * offset.x * 2.0;
+        let dy = (r.python_random() - 0.5) * offset.y * 2.0;
+        (dx, dy)
     };
 
     match scope {
@@ -755,31 +756,29 @@ pub fn wiggle(path: &Path, scope: WiggleScope, offset: Point, seed: u64) -> Path
 /// * `amount` - Number of points to generate
 /// * `seed` - Random seed
 ///
-/// Note: Points are generated within the bounding box and filtered to be inside the shape.
-pub fn scatter(path: &Path, amount: usize, seed: u64) -> Vec<Point> {
-    let bounds = match path.bounds() {
+/// Points are drawn within the bounding box and kept only if they fall inside
+/// the shape. A point that misses 100 times in a row is dropped, as in NodeBox 3.
+pub fn scatter(path: &Path, amount: usize, seed: i64) -> Vec<Point> {
+    // NodeBox 3 ran scatter in Python: random.seed(seed), then up to 100
+    // tries per point at bx + uniform(0, 1) * bw, by + uniform(0, 1) * bh.
+    let bounds = match path.curve_bounds() {
         Some(b) => b,
         None => return Vec::new(),
     };
 
-    let mut state = seed.wrapping_mul(1000000000);
+    let mut r = JavaRandom::from_python_seed(seed);
     let mut points = Vec::with_capacity(amount);
-
-    let random_point = |state: &mut u64| -> Point {
-        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let rx = ((*state >> 16) & 0x7FFF) as f64 / 32768.0;
-        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let ry = ((*state >> 16) & 0x7FFF) as f64 / 32768.0;
-        Point::new(bounds.x + rx * bounds.width, bounds.y + ry * bounds.height)
-    };
-
-    // For simplicity, we generate points in the bounding box
-    // A full implementation would check if points are inside the actual path
     for _ in 0..amount {
-        let pt = random_point(&mut state);
-        points.push(pt);
+        for _ in 0..100 {
+            let x = bounds.x + r.python_random() * bounds.width;
+            let y = bounds.y + r.python_random() * bounds.height;
+            let pt = Point::new(x, y);
+            if path.contains(pt) {
+                points.push(pt);
+                break;
+            }
+        }
     }
-
     points
 }
 

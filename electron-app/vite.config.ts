@@ -36,7 +36,9 @@ export default defineConfig({
         },
       },
     ]),
-    renderer(),
+    // The renderer plugin turns Node built-ins into require() shims, which breaks unit
+    // tests of main-process code under Vitest.
+    process.env.VITEST ? null : renderer(),
   ],
   resolve: {
     alias: {
