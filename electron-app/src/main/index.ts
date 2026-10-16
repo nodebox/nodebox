@@ -1,8 +1,9 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu, session } from 'electron';
 import { readFile, writeFile } from 'fs/promises';
-import { join, resolve, relative, isAbsolute } from 'path';
+import { dirname, join } from 'path';
 import { IPC } from '../shared/ipc-channels';
 import { createMenu } from './menu';
+import { resolveAssetPath, toProjectRelative } from './project-sandbox';
 
 // Use app.getAppPath() for reliable path resolution in both dev and production
 const appPath = app.getAppPath();
@@ -101,46 +102,49 @@ ipcMain.handle(IPC.EXPORT_PNG, async (_event, data: Uint8Array) => {
   return { path: filePath };
 });
 
-ipcMain.handle(IPC.ASSET_READ, async (_event, { relativePath, projectDir }: { relativePath: string; projectDir: string }) => {
-  // Reject absolute paths outright — only relative paths are allowed
-  if (isAbsolute(relativePath)) {
-    return { error: 'sandbox' };
-  }
-  // Resolve the full path, collapsing any '..' segments, then verify it
-  // stays within the project directory
-  const resolvedDir = resolve(projectDir);
-  const absolutePath = resolve(resolvedDir, relativePath);
-  if (!absolutePath.startsWith(resolvedDir + '/')) {
-    return { error: 'sandbox' };
-  }
+// Assets are read from the folder of the open project. The main process decides which
+// folder that is; the renderer only names a path inside it.
+function currentProjectDir(): string | null {
+  return currentFilePath ? dirname(currentFilePath) : null;
+}
+
+ipcMain.handle(IPC.ASSET_READ, async (_event, relativePath: string) => {
+  const projectDir = currentProjectDir();
+  if (!projectDir) return { error: 'sandbox' };
+  const resolved = await resolveAssetPath(projectDir, relativePath);
+  if ('error' in resolved) return resolved;
   try {
-    const content = await readFile(absolutePath, 'utf-8');
+    const content = await readFile(resolved.path, 'utf-8');
     return { content };
   } catch {
     return { error: 'not_found' };
   }
 });
 
-ipcMain.handle(IPC.ASSET_OPEN, async (_event, { filters, projectDir }: { filters: { name: string; extensions: string[] }[]; projectDir: string }) => {
-  if (!mainWindow) return null;
+ipcMain.handle(IPC.ASSET_OPEN, async (_event, filters: { name: string; extensions: string[] }[]) => {
+  const projectDir = currentProjectDir();
+  if (!mainWindow || !projectDir) return null;
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
     defaultPath: projectDir,
     filters: filters.length > 0 ? filters : undefined,
     properties: ['openFile'],
   });
   if (canceled || filePaths.length === 0) return null;
-  const absolutePath = filePaths[0];
-  const relativePath = relative(projectDir, absolutePath);
-  // Reject files outside the project directory (sandbox)
-  if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
-    return { error: 'sandbox' };
-  }
-  return { path: relativePath };
+  const relativePath = await toProjectRelative(projectDir, filePaths[0]);
+  return relativePath === null ? { error: 'sandbox' } : { path: relativePath };
 });
 
 // The viewer draws with WebGPU on every platform.
 app.commandLine.appendSwitch('enable-unsafe-webgpu');
-app.commandLine.appendSwitch('enable-features', 'WebGPU');
+if (process.env.NODEBOX_SOFTWARE_GPU) {
+  // For CI machines without a GPU: WebGPU on SwiftShader, which goes through Vulkan.
+  app.commandLine.appendSwitch('enable-features', 'WebGPU,Vulkan');
+  app.commandLine.appendSwitch('use-vulkan', 'swiftshader');
+  app.commandLine.appendSwitch('use-webgpu-adapter', 'swiftshader');
+  app.commandLine.appendSwitch('enable-unsafe-swiftshader');
+} else {
+  app.commandLine.appendSwitch('enable-features', 'WebGPU');
+}
 
 app.whenReady().then(() => {
   // The renderer reads system fonts with the Local Font Access API.
@@ -151,6 +155,16 @@ app.whenReady().then(() => {
     callback(isLocalFonts(permission)),
   );
   createWindow();
+});
+
+// The window only ever shows the app itself. Links and window.open never load in it;
+// reloading the app (as the dev server does) still works.
+app.on('web-contents-created', (_event, contents) => {
+  contents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  contents.on('will-navigate', (event, url) => {
+    const withoutHash = (u: string) => u.split('#')[0];
+    if (withoutHash(url) !== withoutHash(contents.getURL())) event.preventDefault();
+  });
 });
 
 app.on('window-all-closed', () => {

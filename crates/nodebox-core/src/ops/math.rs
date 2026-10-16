@@ -4,6 +4,7 @@
 //! trigonometry, aggregation, and number generation.
 
 use crate::geometry::Point;
+use crate::random::JavaRandom;
 use std::f64::consts::{E, PI};
 
 /// Identity function for floating point numbers.
@@ -170,17 +171,11 @@ pub fn make_numbers(s: &str, separator: &str) -> Vec<f64> {
     }
 }
 
-/// Generate random numbers.
-pub fn random_numbers(amount: usize, start: f64, end: f64, seed: u64) -> Vec<f64> {
-    // Simple LCG random number generator for reproducibility
-    let mut state = seed.wrapping_mul(1000000000);
-    let mut result = Vec::with_capacity(amount);
-    for _ in 0..amount {
-        state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let normalized = ((state >> 16) & 0x7FFF) as f64 / 32767.0;
-        result.push(start + normalized * (end - start));
-    }
-    result
+/// Generate random numbers in `[start, end)`, the same ones NodeBox 3 gives
+/// for this seed.
+pub fn random_numbers(amount: usize, start: f64, end: f64, seed: i64) -> Vec<f64> {
+    let mut r = JavaRandom::from_node_seed(seed);
+    (0..amount).map(|_| start + r.next_double() * (end - start)).collect()
 }
 
 /// Generate evenly-spaced samples between start and end.

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { launchApp, getStoreState, waitForUpdate, type AppContext } from './helpers';
+import { launchApp, getStoreState, waitForUpdate, waitForViewer, type AppContext } from './helpers';
 
 let ctx: AppContext;
 
@@ -20,8 +20,10 @@ test('evaluator produces a render result with paths', async () => {
 });
 
 test('viewer draws the rect (dark pixel inside it, background outside)', async () => {
+  test.setTimeout(90000);
+  await waitForViewer(ctx.window);
   // The default rect is at (0,0) with width=100, height=100, black fill.
-  // Poll until the evaluator and the WebGPU device are ready.
+  // Poll until the evaluator is ready.
   // Vello draws the geometry on a WebGPU canvas, which has no getImageData,
   // so the test renders the same geometry offscreen and reads that.
   await expect(async () => {

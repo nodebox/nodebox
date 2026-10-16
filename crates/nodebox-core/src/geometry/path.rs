@@ -3,7 +3,7 @@
 use std::borrow::Cow;
 use std::sync::{Arc, OnceLock};
 
-use super::{Contour, Color, Transform, Rect, Point, PathPoint};
+use super::{Contour, Color, Transform, Rect, Point, PathPoint, PointType, Segment};
 
 /// The points of a path, in the path's own coordinates.
 ///
@@ -358,21 +358,25 @@ impl Path {
 
     /// Creates an ellipse path.
     pub fn ellipse(cx: f64, cy: f64, width: f64, height: f64) -> Path {
-        // Approximate ellipse with 4 cubic Bezier curves
-        // Magic number for circle approximation: 0.5522847498
-        const KAPPA: f64 = 0.5522847498;
+        // Four cubic Bezier curves, with the handle length 4/3 * (sqrt(2) - 1)
+        // of the radius. The constant and the way each point is computed
+        // (corner plus a fraction of the size) give the same coordinates,
+        // bit for bit, as java.awt.geom.Ellipse2D, which NodeBox 3 used.
+        const KAPPA: f64 = 0.5522847498307933;
+        const PCV: f64 = 0.5 + KAPPA * 0.5;
+        const NCV: f64 = 0.5 - KAPPA * 0.5;
 
-        let rx = width / 2.0;
-        let ry = height / 2.0;
-        let kx = rx * KAPPA;
-        let ky = ry * KAPPA;
+        let x = cx - width / 2.0;
+        let y = cy - height / 2.0;
+        let px = |f: f64| x + f * width;
+        let py = |f: f64| y + f * height;
 
         let mut path = Path::new();
-        path.move_to(cx + rx, cy);
-        path.curve_to(cx + rx, cy + ky, cx + kx, cy + ry, cx, cy + ry);
-        path.curve_to(cx - kx, cy + ry, cx - rx, cy + ky, cx - rx, cy);
-        path.curve_to(cx - rx, cy - ky, cx - kx, cy - ry, cx, cy - ry);
-        path.curve_to(cx + kx, cy - ry, cx + rx, cy - ky, cx + rx, cy);
+        path.move_to(px(1.0), py(0.5));
+        path.curve_to(px(1.0), py(PCV), px(PCV), py(1.0), px(0.5), py(1.0));
+        path.curve_to(px(NCV), py(1.0), px(0.0), py(PCV), px(0.0), py(0.5));
+        path.curve_to(px(0.0), py(NCV), px(NCV), py(0.0), px(0.5), py(0.0));
+        path.curve_to(px(PCV), py(0.0), px(1.0), py(NCV), px(1.0), py(0.5));
         path.close();
         path
     }
@@ -491,6 +495,235 @@ impl Path {
             .flat_map(|c| c.on_curve_points())
             .collect()
     }
+
+    /// Returns the bounding box of the curves themselves, as NodeBox 3's
+    /// `Path.getBounds()` computes it: on-curve points plus the extrema of
+    /// each cubic segment. [`Path::bounds`] uses the control points instead,
+    /// which can be larger.
+    ///
+    /// Returns `None` if the path is empty.
+    pub fn curve_bounds(&self) -> Option<Rect> {
+        let mut min_x = f64::MAX;
+        let mut min_y = f64::MAX;
+        let mut max_x = -f64::MAX;
+        let mut max_y = -f64::MAX;
+        let mut any = false;
+        for contour in self.contours().iter() {
+            let pts = &contour.points;
+            for (i, pp) in pts.iter().enumerate() {
+                let r = match pp.point_type {
+                    PointType::LineTo => Rect::new(pp.point.x, pp.point.y, 0.0, 0.0),
+                    PointType::CurveTo if i >= 3 => cubic_extrema(
+                        pts[i - 3].point,
+                        pts[i - 2].point,
+                        pts[i - 1].point,
+                        pp.point,
+                    ),
+                    PointType::QuadTo if i >= 2 => {
+                        let (c1, c2) = quad_to_cubic(pts[i - 2].point, pts[i - 1].point, pp.point);
+                        cubic_extrema(pts[i - 2].point, c1, c2, pp.point)
+                    }
+                    _ => continue,
+                };
+                any = true;
+                min_x = min_x.min(r.x);
+                min_y = min_y.min(r.y);
+                max_x = max_x.max(r.x + r.width);
+                max_y = max_y.max(r.y + r.height);
+            }
+        }
+        any.then(|| Rect::new(min_x, min_y, max_x - min_x, max_y - min_y))
+    }
+
+    /// Returns true if `point` lies inside the path, using the non-zero
+    /// winding rule. Open contours count as closed, as when filling.
+    pub fn contains(&self, point: Point) -> bool {
+        let mut winding = 0;
+        for contour in self.contours().iter() {
+            let mut segments = contour.segments();
+            if !contour.closed {
+                if let (Some(first), Some(last)) = (contour.points.first(), contour.points.last()) {
+                    if first.point != last.point {
+                        segments.push(Segment::Line { start: last.point, end: first.point });
+                    }
+                }
+            }
+            for segment in segments {
+                winding += match segment {
+                    Segment::Line { start, end } => line_crossing(start, end, point),
+                    Segment::Cubic { start, ctrl1, ctrl2, end } => {
+                        cubic_crossings(start, ctrl1, ctrl2, end, point)
+                    }
+                    Segment::Quadratic { start, ctrl, end } => {
+                        let (c1, c2) = quad_to_cubic(start, ctrl, end);
+                        cubic_crossings(start, c1, c2, end, point)
+                    }
+                };
+            }
+        }
+        winding != 0
+    }
+}
+
+/// The two control points of the cubic that traces the same curve as a quad.
+fn quad_to_cubic(start: Point, ctrl: Point, end: Point) -> (Point, Point) {
+    (
+        Point::new(start.x + 2.0 / 3.0 * (ctrl.x - start.x), start.y + 2.0 / 3.0 * (ctrl.y - start.y)),
+        Point::new(end.x + 2.0 / 3.0 * (ctrl.x - end.x), end.y + 2.0 / 3.0 * (ctrl.y - end.y)),
+    )
+}
+
+/// Bounds of one cubic segment, computed as NodeBox 3's `Path.Bezier.extrema()`
+/// does, so `curve_bounds` returns the same numbers.
+fn cubic_extrema(p1: Point, p2: Point, p3: Point, p4: Point) -> Rect {
+    fn fuzzy_equal(a: f64, b: f64) -> bool {
+        (a - b).abs() <= 0.000000000001 * a.abs().min(b.abs())
+    }
+    fn point_at(p1: Point, p2: Point, p3: Point, p4: Point, t: f64) -> Point {
+        let m_t = 1.0 - t;
+        let mut b = m_t * m_t;
+        let mut c = t * t;
+        let d = c * t;
+        let a = b * m_t;
+        b *= 3.0 * t;
+        c *= 3.0 * m_t;
+        Point::new(
+            a * p1.x + b * p2.x + c * p3.x + d * p4.x,
+            a * p1.y + b * p2.y + c * p3.y + d * p4.y,
+        )
+    }
+    let (mut min_x, mut max_x) = if p1.x < p4.x { (p1.x, p4.x) } else { (p4.x, p1.x) };
+    let (mut min_y, mut max_y) = if p1.y < p4.y { (p1.y, p4.y) } else { (p4.y, p1.y) };
+    let mut check = |t: f64| {
+        if (0.0..=1.0).contains(&t) {
+            let p = point_at(p1, p2, p3, p4, t);
+            if p.x < min_x {
+                min_x = p.x;
+            } else if p.x > max_x {
+                max_x = p.x;
+            }
+            if p.y < min_y {
+                min_y = p.y;
+            } else if p.y > max_y {
+                max_y = p.y;
+            }
+        }
+    };
+    // Roots of the derivative, per axis. The x axis accepts a zero
+    // discriminant and the y axis does not, as in NodeBox 3.
+    for (v1, v2, v3, v4, allow_zero) in [(p1.x, p2.x, p3.x, p4.x, true), (p1.y, p2.y, p3.y, p4.y, false)] {
+        let a = 3.0 * (-v1 + 3.0 * v2 - 3.0 * v3 + v4);
+        let b = 6.0 * (v1 - 2.0 * v2 + v3);
+        let c = 3.0 * (-v1 + v2);
+        if fuzzy_equal(a + 1.0, 1.0) {
+            if !fuzzy_equal(b + 1.0, 1.0) {
+                check(-c / b);
+            }
+        } else {
+            let disc = b * b - 4.0 * a * c;
+            if disc > 0.0 || (allow_zero && disc == 0.0) {
+                let root = disc.sqrt();
+                let rcp = 1.0 / (2.0 * a);
+                check((-b + root) * rcp);
+                check((-b - root) * rcp);
+            }
+        }
+    }
+    Rect::new(min_x, min_y, max_x - min_x, max_y - min_y)
+}
+
+/// Signed crossing of a horizontal ray from `p` towards +x with a line:
+/// +1 going down the y axis, -1 going up, 0 if it misses. A segment
+/// includes its lower y end and excludes its upper end, so shared endpoints
+/// count once.
+fn line_crossing(a: Point, b: Point, p: Point) -> i32 {
+    let (dir, lo, hi) = if a.y < b.y {
+        (1, a, b)
+    } else if a.y > b.y {
+        (-1, b, a)
+    } else {
+        return 0;
+    };
+    if p.y < lo.y || p.y >= hi.y {
+        return 0;
+    }
+    let x = lo.x + (p.y - lo.y) * (hi.x - lo.x) / (hi.y - lo.y);
+    if p.x < x { dir } else { 0 }
+}
+
+/// Signed crossings of a horizontal ray from `p` towards +x with a cubic.
+/// The curve is split where it turns in y, and each monotonic piece is
+/// solved for `y(t) = p.y` by bisection.
+fn cubic_crossings(p0: Point, p1: Point, p2: Point, p3: Point, p: Point) -> i32 {
+    let coord = |v0: f64, v1: f64, v2: f64, v3: f64, t: f64| {
+        let m = 1.0 - t;
+        m * m * m * v0 + 3.0 * m * m * t * v1 + 3.0 * m * t * t * v2 + t * t * t * v3
+    };
+    let y = |t: f64| coord(p0.y, p1.y, p2.y, p3.y, t);
+    let x = |t: f64| coord(p0.x, p1.x, p2.x, p3.x, t);
+
+    // Quick reject: the curve stays within the hull of its control points.
+    let min_y = p0.y.min(p1.y).min(p2.y).min(p3.y);
+    let max_y = p0.y.max(p1.y).max(p2.y).max(p3.y);
+    let max_x = p0.x.max(p1.x).max(p2.x).max(p3.x);
+    if p.y < min_y || p.y > max_y || p.x >= max_x {
+        return 0;
+    }
+
+    // y'(t) / 3 = a t^2 + b t + c
+    let a = -p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y;
+    let b = 2.0 * (p0.y - 2.0 * p1.y + p2.y);
+    let c = p1.y - p0.y;
+    let mut ts = vec![0.0];
+    let mut add_root = |t: f64| {
+        if t > 0.0 && t < 1.0 {
+            ts.push(t);
+        }
+    };
+    if a.abs() < 1e-12 {
+        if b.abs() > 1e-12 {
+            add_root(-c / b);
+        }
+    } else {
+        let disc = b * b - 4.0 * a * c;
+        if disc >= 0.0 {
+            let root = disc.sqrt();
+            add_root((-b + root) / (2.0 * a));
+            add_root((-b - root) / (2.0 * a));
+        }
+    }
+    ts.push(1.0);
+    ts.sort_by(|u, v| u.total_cmp(v));
+
+    let mut winding = 0;
+    for w in ts.windows(2) {
+        let (t0, t1) = (w[0], w[1]);
+        let (y0, y1) = (y(t0), y(t1));
+        let (dir, lo_t, hi_t, lo_y, hi_y) = if y0 < y1 {
+            (1, t0, t1, y0, y1)
+        } else if y0 > y1 {
+            (-1, t1, t0, y1, y0)
+        } else {
+            continue;
+        };
+        if p.y < lo_y || p.y >= hi_y {
+            continue;
+        }
+        // Bisect between the t at the low end and the t at the high end.
+        let (mut lo, mut hi) = (lo_t, hi_t);
+        for _ in 0..64 {
+            let mid = 0.5 * (lo + hi);
+            if y(mid) < p.y {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+        if p.x < x(0.5 * (lo + hi)) {
+            winding += dir;
+        }
+    }
+    winding
 }
 
 #[cfg(test)]
@@ -576,6 +809,44 @@ mod tests {
         assert!((bounds.y - 20.0).abs() < 0.001);
         assert!((bounds.width - 100.0).abs() < 0.001);
         assert!((bounds.height - 60.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_path_ellipse_matches_java() {
+        // Coordinates (as f64 bits) of java.awt.geom.Ellipse2D's path
+        // iterator on OpenJDK 21: move, then three points per curve.
+        let cases: [((f64, f64, f64, f64), [&str; 26]); 2] = [
+            (
+                (12.5, -7.25, 33.3, 71.9),
+                [
+                    "403d266666666666", "c01d000000000000",
+                    "403d266666666666", "40293592f2ed8a8c", "4035b20efb03bc91", "403cb33333333334", "4029000000000000", "403cb33333333334",
+                    "400a6f8827e21b72", "403cb33333333334", "c010999999999998", "40293592f2ed8a8c", "c010999999999998", "c01d000000000000",
+                    "c010999999999998", "c03b1ac97976c548", "400a6f8827e21b72", "c04599999999999a", "4029000000000000", "c04599999999999a",
+                    "4035b20efb03bc91", "c04599999999999a", "403d266666666666", "c03b1ac97976c548", "403d266666666666", "c01d000000000000",
+                ],
+            ),
+            (
+                (-40.0, 60.0, 0.1, 250.0),
+                [
+                    "c043f99999999999", "404e000000000000",
+                    "c043f99999999999", "406021239575ab32", "c043fc7722fc88f1", "4067200000000000", "c044000000000000", "4067200000000000",
+                    "c0440388dd03770e", "4067200000000000", "c044066666666666", "406021239575ab32", "c044066666666666", "404e000000000000",
+                    "c044066666666666", "c0221239575ab320", "c0440388dd03770e", "c050400000000000", "c044000000000000", "c050400000000000",
+                    "c043fc7722fc88f1", "c050400000000000", "c043f99999999999", "c0221239575ab320", "c043f99999999999", "404e000000000000",
+                ],
+            ),
+        ];
+        for ((cx, cy, w, h), expected) in cases {
+            let path = Path::ellipse(cx, cy, w, h);
+            let got: Vec<String> = path.contours()[0]
+                .points
+                .iter()
+                .flat_map(|p| [p.point.x, p.point.y])
+                .map(|v| format!("{:x}", v.to_bits()))
+                .collect();
+            assert_eq!(got, expected, "ellipse {cx} {cy} {w} {h}");
+        }
     }
 
     #[test]

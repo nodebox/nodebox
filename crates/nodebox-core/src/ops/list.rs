@@ -5,6 +5,8 @@
 
 use std::collections::{HashMap, HashSet};
 
+use crate::random::JavaRandom;
+
 /// Count the number of items in a list.
 pub fn count<T>(items: &[T]) -> usize {
     items.len()
@@ -148,27 +150,15 @@ pub fn sort_floats(items: &[f64]) -> Vec<f64> {
     result
 }
 
-/// Shuffle a list with a given seed.
-pub fn shuffle<T: Clone>(items: &[T], seed: u64) -> Vec<T> {
-    if items.is_empty() {
-        return Vec::new();
-    }
-
+/// Shuffle a list with a given seed, in the same order as NodeBox 3.
+pub fn shuffle<T: Clone>(items: &[T], seed: i64) -> Vec<T> {
     let mut result: Vec<T> = items.to_vec();
-    let mut state = seed.wrapping_mul(1000000000);
-
-    // Fisher-Yates shuffle
-    for i in (1..result.len()).rev() {
-        state = state.wrapping_mul(1103515245).wrapping_add(12345);
-        let j = ((state >> 16) & 0x7FFFFFFF) as usize % (i + 1);
-        result.swap(i, j);
-    }
-
+    JavaRandom::from_node_seed(seed).shuffle(&mut result);
     result
 }
 
 /// Pick a random subset of items from a list.
-pub fn pick<T: Clone>(items: &[T], amount: usize, seed: u64) -> Vec<T> {
+pub fn pick<T: Clone>(items: &[T], amount: usize, seed: i64) -> Vec<T> {
     if items.is_empty() || amount == 0 {
         return Vec::new();
     }

@@ -13,6 +13,7 @@ use nodebox_core::geometry::{Color, Path, Point};
 use nodebox_core::node::{Connection, NodeLibrary, PortType};
 use nodebox_core::ops::data::DataValue;
 use nodebox_core::platform::{Platform, ProjectContext};
+use nodebox_core::random::JavaRandom;
 use nodebox_core::Value;
 use nodebox_core::eval::{evaluate_network, NodeOutput};
 use nodebox_core::node::templates::{create_node_from_template, NODE_TEMPLATES};
@@ -424,6 +425,41 @@ fn describe_output(output: &NodeOutput) -> serde_json::Value {
             serde_json::json!({"type": "DataRow", "keys": row.keys().collect::<Vec<_>>()})
         }
         NodeOutput::DataRows(rows) => serde_json::json!({"type": "DataRows", "count": rows.len()}),
+    }
+}
+
+/// The generator behind Python's `random` module, so Python code and the
+/// built-in nodes share one generator. Seeding follows `random.seed(n)` in
+/// NodeBox 3 for integer seeds.
+#[wasm_bindgen]
+pub struct WasmRandom {
+    random: JavaRandom,
+}
+
+#[wasm_bindgen]
+impl WasmRandom {
+    /// A generator seeded with `seed`, an integer. JS numbers are exact up
+    /// to 2^53; larger seeds lose their low bits.
+    #[wasm_bindgen(constructor)]
+    pub fn new(seed: f64) -> WasmRandom {
+        WasmRandom {
+            random: JavaRandom::from_python_seed(seed as i64),
+        }
+    }
+
+    /// Restarts the sequence from `seed`.
+    pub fn seed(&mut self, seed: f64) {
+        self.random = JavaRandom::from_python_seed(seed as i64);
+    }
+
+    /// The next number in `[0, 1)`.
+    pub fn random(&mut self) -> f64 {
+        self.random.python_random()
+    }
+
+    /// The next `count` numbers in `[0, 1)`, in one call.
+    pub fn fill(&mut self, count: usize) -> Vec<f64> {
+        (0..count).map(|_| self.random.python_random()).collect()
     }
 }
 

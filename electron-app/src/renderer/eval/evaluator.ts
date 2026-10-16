@@ -31,15 +31,12 @@ function collectFilePaths(library: NodeLibrary): string[] {
  * Read file contents via Electron IPC for the given relative paths.
  * Returns a map of relative path -> file content.
  */
-async function readFiles(
-  filePaths: string[],
-  projectDir: string,
-): Promise<Record<string, string>> {
+async function readFiles(filePaths: string[]): Promise<Record<string, string>> {
   const files: Record<string, string> = {};
   if (!window.electronAPI) return files;
   const results = await Promise.all(
     filePaths.map(async (relativePath) => {
-      const result = await window.electronAPI.readAssetFile(relativePath, projectDir);
+      const result = await window.electronAPI.readAssetFile(relativePath);
       if ('content' in result) {
         return [relativePath, result.content] as const;
       }
@@ -103,7 +100,7 @@ export async function evaluate(
   if (projectDir) {
     const filePaths = collectFilePaths(library);
     if (filePaths.length > 0) {
-      const files = await readFiles(filePaths, projectDir);
+      const files = await readFiles(filePaths);
       filesJson = JSON.stringify(files);
     }
   }
