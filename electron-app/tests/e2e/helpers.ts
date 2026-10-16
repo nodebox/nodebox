@@ -1,5 +1,6 @@
 import {
   _electron as electron,
+  expect,
   type ElectronApplication,
   type Page,
 } from '@playwright/test';
@@ -28,6 +29,19 @@ export async function launchApp(): Promise<AppContext> {
   // Wait for the React app to mount
   await window.waitForSelector('#root > *', { timeout: 30000 });
   return { electronApp, window };
+}
+
+/**
+ * Wait until the viewer's WebGPU device is ready. On a GPU this is immediate.
+ * On the software GPU in CI, compiling Vello's shaders takes about 25 seconds
+ * and keeps the renderer busy, so callers need a longer test timeout.
+ */
+export async function waitForViewer(window: Page): Promise<void> {
+  await expect(async () => {
+    await window.evaluate(() =>
+      (window as any).__viewerPixels__({ width: 1, height: 1, offsetX: 0, offsetY: 0, scale: 1, background: [0, 0, 0] }),
+    );
+  }).toPass({ timeout: 60000 });
 }
 
 /**

@@ -136,7 +136,15 @@ ipcMain.handle(IPC.ASSET_OPEN, async (_event, filters: { name: string; extension
 
 // The viewer draws with WebGPU on every platform.
 app.commandLine.appendSwitch('enable-unsafe-webgpu');
-app.commandLine.appendSwitch('enable-features', 'WebGPU');
+if (process.env.NODEBOX_SOFTWARE_GPU) {
+  // For CI machines without a GPU: WebGPU on SwiftShader, which goes through Vulkan.
+  app.commandLine.appendSwitch('enable-features', 'WebGPU,Vulkan');
+  app.commandLine.appendSwitch('use-vulkan', 'swiftshader');
+  app.commandLine.appendSwitch('use-webgpu-adapter', 'swiftshader');
+  app.commandLine.appendSwitch('enable-unsafe-swiftshader');
+} else {
+  app.commandLine.appendSwitch('enable-features', 'WebGPU');
+}
 
 app.whenReady().then(() => {
   // The renderer reads system fonts with the Local Font Access API.

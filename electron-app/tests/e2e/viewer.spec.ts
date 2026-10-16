@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { launchApp, sendMenuAction, waitForUpdate, getStoreState, type AppContext } from './helpers';
+import { launchApp, sendMenuAction, waitForUpdate, waitForViewer, getStoreState, type AppContext } from './helpers';
 
 let ctx: AppContext;
 
@@ -170,6 +170,10 @@ test('viewer canvas exists and has dimensions', async () => {
 });
 
 test('viewer canvas zooms with wheel events', async () => {
+  // On the software GPU in CI the renderer is busy starting the viewer and
+  // drawing, so wheel events take a while to arrive.
+  test.setTimeout(90000);
+  await waitForViewer(ctx.window);
   const viewerCanvas = ctx.window.getByTestId('viewer-canvas');
   const box = await viewerCanvas.boundingBox();
   expect(box).not.toBeNull();
@@ -179,10 +183,10 @@ test('viewer canvas zooms with wheel events', async () => {
   // Scroll on the viewer canvas and confirm the viewer zoom changes.
   await ctx.window.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
   await ctx.window.mouse.wheel(0, -100);
-  await waitForUpdate(ctx.window);
 
-  const after = await getStoreState(ctx.window);
-  expect(after.viewerZoom).toBeGreaterThan(before.viewerZoom);
+  await expect
+    .poll(async () => (await getStoreState(ctx.window)).viewerZoom, { timeout: 30000 })
+    .toBeGreaterThan(before.viewerZoom);
 });
 
 test('viewer pane header is visible', async () => {
