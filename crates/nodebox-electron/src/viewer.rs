@@ -105,7 +105,7 @@ fn draw(
             nodebox_gpu::View { width, height, scale, offset },
             target,
             wgpu::Color { r, g, b, a: 1.0 },
-        );
+        )?;
         return Ok(());
     }
     let scene = build_scene(&paths, view_transform(offset.0, offset.1, scale));

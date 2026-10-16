@@ -83,18 +83,36 @@ fn roots(y1: f32, a: f32, b: f32) -> vec2f {
     return vec2f(q / a, y1 / q);
 }
 
-fn solve_horiz(p12: vec4f, p3: vec2f) -> vec2f {
+// Where the curve crosses the ray (xy: the other coordinate at both roots), and how
+// squarely it crosses there (zw: the sine of the angle between curve and ray, 0 to 1).
+fn solve_horiz(p12: vec4f, p3: vec2f) -> vec4f {
     let a = p12.xy - p12.zw * 2.0 + p3;
     let b = p12.xy - p12.zw;
     let t = roots(p12.y, a.y, b.y);
-    return vec2f((a.x * t.x - b.x * 2.0) * t.x + p12.x, (a.x * t.y - b.x * 2.0) * t.y + p12.x);
+    return vec4f(
+        (a.x * t.x - b.x * 2.0) * t.x + p12.x,
+        (a.x * t.y - b.x * 2.0) * t.y + p12.x,
+        steepness(a * t.x - b, 1u),
+        steepness(a * t.y - b, 1u),
+    );
 }
 
-fn solve_vert(p12: vec4f, p3: vec2f) -> vec2f {
+fn solve_vert(p12: vec4f, p3: vec2f) -> vec4f {
     let a = p12.xy - p12.zw * 2.0 + p3;
     let b = p12.xy - p12.zw;
     let t = roots(p12.x, a.x, b.x);
-    return vec2f((a.y * t.x - b.y * 2.0) * t.x + p12.y, (a.y * t.y - b.y * 2.0) * t.y + p12.y);
+    return vec4f(
+        (a.y * t.x - b.y * 2.0) * t.x + p12.y,
+        (a.y * t.y - b.y * 2.0) * t.y + p12.y,
+        steepness(a * t.x - b, 0u),
+        steepness(a * t.y - b, 0u),
+    );
+}
+
+// The share of the tangent across the ray: component `across` of the unit tangent.
+fn steepness(tangent: vec2f, across: u32) -> f32 {
+    let len = length(tangent);
+    return select(abs(tangent[across]) / len, 1.0, len == 0.0);
 }
 
 // Each ray returns the crossings, weighted by how much of the pixel lies past them, and how
@@ -117,14 +135,15 @@ fn ray_right(e: Entry, p: vec2f, ppu: f32) -> vec2f {
         }
         let code = root_code(p12.y, p12.w, p3.y);
         if code != 0u {
-            let r = solve_horiz(p12, p3) * ppu;
+            let s = solve_horiz(p12, p3);
+            let r = s.xy * ppu;
             if (code & 1u) != 0u {
                 sum += clamp(r.x + 0.5, 0.0, 1.0);
-                weight = max(weight, clamp(1.0 - abs(r.x) * 2.0, 0.0, 1.0));
+                weight = max(weight, clamp(1.0 - abs(r.x) * 2.0, 0.0, 1.0) * s.z);
             }
             if code > 1u {
                 sum -= clamp(r.y + 0.5, 0.0, 1.0);
-                weight = max(weight, clamp(1.0 - abs(r.y) * 2.0, 0.0, 1.0));
+                weight = max(weight, clamp(1.0 - abs(r.y) * 2.0, 0.0, 1.0) * s.w);
             }
         }
     }
@@ -149,31 +168,53 @@ fn ray_up(e: Entry, p: vec2f, ppu: f32) -> vec2f {
         }
         let code = root_code(p12.x, p12.z, p3.x);
         if code != 0u {
-            let r = solve_vert(p12, p3) * ppu;
+            let s = solve_vert(p12, p3);
+            let r = s.xy * ppu;
             if (code & 1u) != 0u {
                 sum -= clamp(r.x + 0.5, 0.0, 1.0);
-                weight = max(weight, clamp(1.0 - abs(r.x) * 2.0, 0.0, 1.0));
+                weight = max(weight, clamp(1.0 - abs(r.x) * 2.0, 0.0, 1.0) * s.z);
             }
             if code > 1u {
                 sum += clamp(r.y + 0.5, 0.0, 1.0);
-                weight = max(weight, clamp(1.0 - abs(r.y) * 2.0, 0.0, 1.0));
+                weight = max(weight, clamp(1.0 - abs(r.y) * 2.0, 0.0, 1.0) * s.w);
             }
         }
     }
     return vec2f(sum, weight);
 }
 
+// Coverage of the pixel (or sub-pixel) at p, `ppu` pixels per shape unit.
+fn coverage(e: Entry, p: vec2f, ppu: vec2f) -> f32 {
+    let h = ray_right(e, p, ppu.x);
+    let v = ray_up(e, p, ppu.y);
+    // Trust each ray in proportion to how close its nearest crossing is and how squarely
+    // it crosses: a ray running along an edge says little about this pixel. Away from edges
+    // both rays agree, and the smaller count keeps overlaps from going darker (nonzero).
+    let weighted = abs(h.x * h.y + v.x * v.y) / max(h.y + v.y, 1.0 / 65536.0);
+    return clamp(max(weighted, min(abs(h.x), abs(v.x))), 0.0, 1.0);
+}
+
 @fragment
 fn fs(i: Out) -> @location(0) vec4f {
     let e = entries[i.entry];
     let ppu = 1.0 / max(fwidth(i.p), vec2f(1.0 / 65536.0));
-    let h = ray_right(e, i.p, ppu.x);
-    let v = ray_up(e, i.p, ppu.y);
-    // Trust each ray in proportion to how close its nearest crossing is: a ray running
-    // along an edge crosses it far away and says little about this pixel. Away from edges
-    // both rays agree, and the smaller count keeps overlaps from going darker (nonzero).
-    let weighted = abs(h.x * h.y + v.x * v.y) / max(h.y + v.y, 1.0 / 65536.0);
-    let a = clamp(max(weighted, min(abs(h.x), abs(v.x))), 0.0, 1.0);
+    // Two rays measure coverage along two lines, which overstates it for details smaller
+    // than a pixel (a dot of 0.4 pixels covers 0.16 of it, but each ray sees 0.4). An outline
+    // a few pixels across is all such details, so it is sampled on a 4x4 grid of sub-pixels.
+    let pixels = (e.bbox.zw - e.bbox.xy) * ppu;
+    var a = 0.0;
+    if max(pixels.x, pixels.y) < 12.0 {
+        let step = 0.25 / ppu;
+        for (var sy = 0; sy < 4; sy++) {
+            for (var sx = 0; sx < 4; sx++) {
+                let o = (vec2f(f32(sx), f32(sy)) - 1.5) * step;
+                a += coverage(e, i.p + o, ppu * 4.0);
+            }
+        }
+        a /= 16.0;
+    } else {
+        a = coverage(e, i.p, ppu);
+    }
     if a <= 0.0 {
         discard;
     }

@@ -17,4 +17,4 @@ mod prepare;
 mod renderer;
 
 pub use prepare::{prepare, Prepared};
-pub use renderer::{Renderer, View};
+pub use renderer::{Renderer, TooLarge, View};

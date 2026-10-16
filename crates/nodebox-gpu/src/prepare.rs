@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
-use kurbo::{BezPath, CubicBez, PathEl, Point};
+use kurbo::{BezPath, CubicBez, PathEl, Point, Shape as _};
 use nodebox_core::geometry::{Color, Contour, Path, PointType, Shape, Transform};
 
 /// How far, in document units, curves may deviate when cubics become
@@ -44,10 +44,18 @@ pub struct Prepared {
     pub(crate) curves: Vec<[f32; 4]>,
     pub(crate) entries: Vec<Entry>,
     pub(crate) bands: Vec<u32>,
+    /// What each instance's `m` and `t` are rounded from: the renderer composes
+    /// them with the view in f64, so shapes far from the origin keep their precision.
+    pub(crate) placements: Vec<[f64; 6]>,
     pub(crate) instances: Vec<Instance>,
 }
 
 impl Prepared {
+    fn push(&mut self, entry: u32, placement: &Transform, color: Color) {
+        self.placements.push(placement.as_array());
+        self.instances.push(instance(entry, placement, color));
+    }
+
     /// The number of outlines drawn.
     pub fn instance_count(&self) -> usize {
         self.instances.len()
@@ -144,7 +152,7 @@ pub fn prepare(paths: &[Path]) -> Prepared {
                 out.add(&quads)
             });
             if let Some(entry) = entry {
-                out.instances.push(instance(entry, &placement, color));
+                out.push(entry, &placement, color);
             }
         }
 
@@ -170,17 +178,20 @@ pub fn prepare(paths: &[Path]) -> Prepared {
                     out.add(&quads)
                 });
                 if let Some(entry) = entry {
-                    out.instances.push(instance(entry, &placement, color));
+                    out.push(entry, &placement, color);
                 }
             }
             None => {
                 let mut placed = (*bezier(&mut beziers)).clone();
                 placed.apply_affine(affine(&placement));
-                let outline = stroke_outline(&placed, width, TOLERANCE);
+                let mut outline = stroke_outline(&placed, width, TOLERANCE);
+                // Stored around its centre, where f32 is precise, and placed back.
+                let center = outline.bounding_box().center();
+                outline.apply_affine(kurbo::Affine::translate(-center.to_vec2()));
                 quads.clear();
                 quads_of(&outline, &mut quads);
                 if let Some(entry) = out.add(&quads) {
-                    out.instances.push(instance(entry, &Transform::IDENTITY, color));
+                    out.push(entry, &Transform::translate(center.x, center.y), color);
                 }
             }
         }

@@ -26,10 +26,29 @@ struct ViewUniform {
 
 struct Uploaded {
     id: u64,
+    /// The scale and offset the instances were last composed with.
+    view: Option<(f64, f64, f64)>,
     bind_group: wgpu::BindGroup,
     instances: wgpu::Buffer,
     count: u32,
 }
+
+/// The prepared paths need a bigger buffer than the device allows.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TooLarge {
+    /// Bytes the largest buffer would need.
+    pub needed: u64,
+    /// Bytes the device allows.
+    pub limit: u64,
+}
+
+impl std::fmt::Display for TooLarge {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "too much geometry to draw: {} MiB, the GPU allows {} MiB", self.needed >> 20, self.limit >> 20)
+    }
+}
+
+impl std::error::Error for TooLarge {}
 
 /// Draws prepared paths into a texture of one format.
 pub struct Renderer {
@@ -86,6 +105,7 @@ impl Renderer {
 
     /// Clear `target` to `background` and draw `prepared` into it. Uploads the
     /// curves and instances only when `prepared` is not the one drawn last.
+    /// When they do not fit in the device's buffers, it only clears.
     pub fn render(
         &mut self,
         device: &wgpu::Device,
@@ -94,15 +114,36 @@ impl Renderer {
         view: View,
         target: &wgpu::TextureView,
         background: wgpu::Color,
-    ) {
-        if self.uploaded.as_ref().map(|u| u.id) != Some(prepared.id) {
+    ) -> Result<(), TooLarge> {
+        let fits = Self::fits(device, prepared);
+        if fits.is_err() {
+            self.uploaded = None;
+        } else if self.uploaded.as_ref().map(|u| u.id) != Some(prepared.id) {
             self.uploaded = Some(self.upload(device, prepared));
+        }
+        // Each placement is composed with the view here, in f64, and the shader gets
+        // pixels: in f32, a shape a million units out would land a few pixels off.
+        let key = (view.scale, view.offset.0, view.offset.1);
+        if let Some(uploaded) = self.uploaded.as_mut().filter(|u| u.view != Some(key) && u.count > 0) {
+            let (s, (ox, oy)) = (view.scale, view.offset);
+            let composed: Vec<Instance> = prepared
+                .instances
+                .iter()
+                .zip(&prepared.placements)
+                .map(|(i, [a, b, c, d, e, f])| Instance {
+                    m: [(a * s) as f32, (b * s) as f32, (c * s) as f32, (d * s) as f32],
+                    t: [(e * s + ox) as f32, (f * s + oy) as f32],
+                    ..*i
+                })
+                .collect();
+            queue.write_buffer(&uploaded.instances, 0, bytemuck::cast_slice(&composed));
+            uploaded.view = Some(key);
         }
         let uniform = ViewUniform {
             viewport: [view.width as f32, view.height as f32],
-            scale: view.scale as f32,
+            scale: 1.0,
             pad: 0.0,
-            t: [view.offset.0 as f32, view.offset.1 as f32],
+            t: [0.0, 0.0],
             pad2: [0.0; 2],
         };
         queue.write_buffer(&self.view, 0, bytemuck::bytes_of(&uniform));
@@ -119,8 +160,7 @@ impl Renderer {
                 })],
                 ..Default::default()
             });
-            let uploaded = self.uploaded.as_ref().unwrap();
-            if uploaded.count > 0 {
+            if let Some(uploaded) = self.uploaded.as_ref().filter(|u| u.count > 0) {
                 pass.set_pipeline(&self.pipeline);
                 pass.set_bind_group(0, &uploaded.bind_group, &[]);
                 pass.set_vertex_buffer(0, uploaded.instances.slice(..));
@@ -128,6 +168,24 @@ impl Renderer {
             }
         }
         queue.submit([encoder.finish()]);
+        fits
+    }
+
+    fn fits(device: &wgpu::Device, prepared: &Prepared) -> Result<(), TooLarge> {
+        let limits = device.limits();
+        let storage = u64::from(limits.max_storage_buffer_binding_size).min(limits.max_buffer_size);
+        let size = |n: usize, item: usize| (n * item) as u64;
+        let largest_storage = size(prepared.curves.len(), 16)
+            .max(size(prepared.entries.len(), std::mem::size_of::<crate::prepare::Entry>()))
+            .max(size(prepared.bands.len(), 4));
+        let instances = size(prepared.instances.len(), std::mem::size_of::<Instance>());
+        if largest_storage > storage {
+            return Err(TooLarge { needed: largest_storage, limit: storage });
+        }
+        if instances > limits.max_buffer_size {
+            return Err(TooLarge { needed: instances, limit: limits.max_buffer_size });
+        }
+        Ok(())
     }
 
     fn upload(&self, device: &wgpu::Device, prepared: &Prepared) -> Uploaded {
@@ -143,7 +201,7 @@ impl Renderer {
         let instances = init(
             "nodebox-gpu instances",
             bytemuck::cast_slice(&prepared.instances),
-            wgpu::BufferUsages::VERTEX,
+            wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
         );
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("nodebox-gpu"),
@@ -155,6 +213,6 @@ impl Renderer {
                 wgpu::BindGroupEntry { binding: 3, resource: bands.as_entire_binding() },
             ],
         });
-        Uploaded { id: prepared.id, bind_group, instances, count: prepared.instances.len() as u32 }
+        Uploaded { id: prepared.id, view: None, bind_group, instances, count: prepared.instances.len() as u32 }
     }
 }
