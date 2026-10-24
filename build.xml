@@ -192,6 +192,19 @@
         </junit>
     </target>
 
+    <target name="batch-render" depends="compile-tests"
+            description="Render every .ndbx under -Dbatch.in (default examples) to SVG in -Dbatch.out (default golden-master/java). Needs a display.">
+        <property name="batch.in" value="examples"/>
+        <property name="batch.out" value="golden-master/java"/>
+        <java classname="nodebox.BatchRenderer" fork="true" failonerror="true">
+            <jvmarg value="-Dnodebox.cache.verify=true"/>
+            <classpath refid="test.classpath"/>
+            <arg value="--dir"/>
+            <arg value="${batch.in}"/>
+            <arg value="${batch.out}"/>
+        </java>
+    </target>
+
     <target name="generate-test-reports" depends="test">
         <mkdir dir="${reports}"/>
         <junitreport todir="${reports}">
