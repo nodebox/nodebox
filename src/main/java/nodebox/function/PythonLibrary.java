@@ -187,14 +187,22 @@ public class PythonLibrary extends FunctionLibrary {
 
         private final String name;
         private final PyFunction fn;
+        private final boolean timeDependent;
 
         public PythonFunction(String name, PyFunction fn) {
             this.name = name;
             this.fn = fn;
+            // Declared in the script with: my_function.timeDependent = True
+            PyObject flag = fn.__findattr__("timeDependent");
+            this.timeDependent = flag != null && flag.__nonzero__();
         }
 
         public String getName() {
             return name;
+        }
+
+        public boolean isTimeDependent() {
+            return timeDependent;
         }
 
         public Object invoke(Object... args) throws Exception {
