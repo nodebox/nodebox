@@ -32,6 +32,7 @@ public class NetworkFunctions {
                 "httpGet", "queryJSON", "encodeURL");
     }
 
+    @TimeDependent
     public static synchronized Map<String, Object> httpGet(final String url, final String username, final String password, final long refreshTimeSeconds) {
         Integer cacheKey = Objects.hashCode(url, username, password);
         if (responseCache.containsKey(cacheKey)) {

@@ -156,6 +156,8 @@
     <target name="test" depends="compile-tests">
         <mkdir dir="${reports}"/>
         <junit haltonfailure="false">
+            <!-- Check every render cache hit against a fresh computation. -->
+            <sysproperty key="nodebox.cache.verify" value="true"/>
             <classpath refid="test.classpath"/>
             <formatter type="xml"/>
             <batchtest todir="${reports}">
@@ -167,6 +169,7 @@
     <target name="test-e2e" depends="compile-tests">
         <mkdir dir="${reports}"/>
         <junit haltonfailure="true">
+            <sysproperty key="nodebox.cache.verify" value="true"/>
             <classpath refid="test.classpath"/>
             <formatter type="xml"/>
             <batchtest todir="${reports}">

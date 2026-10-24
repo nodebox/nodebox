@@ -1,11 +1,19 @@
 package nodebox.node;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.MapMaker;
+import nodebox.function.FunctionLibrary;
+import nodebox.function.FunctionRepository;
 
+import java.io.File;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A cache of node render results that persists <i>across</i> renders.
@@ -35,12 +43,21 @@ import java.util.Map;
  * <i>context</i> ports (frame, mouse position, device input): a node reading the context can return a
  * different value on every render even though its node identity and connected inputs are unchanged.
  * Such nodes — and, transitively, any subnetwork that contains one — are excluded from the cache via
- * {@link #isCacheable(Node)}. A small denylist additionally excludes functions that are impure without
- * declaring a context port (network fetches, OSC sends).
+ * {@link #isCacheable(Node, FunctionRepository)}. So are always-rendered nodes, which exist for their
+ * side effect, and functions that declare themselves time-dependent (see
+ * {@link nodebox.function.Function#isTimeDependent()}): they read the clock, the network or a device,
+ * or act on the outside world, without a context port. Every other function, including user code in
+ * Python or Clojure, is assumed to be pure.
  *
- * <p>Feedback ("state") ports, which made a node depend on its <i>own previous output</i>, cannot be
- * expressed as a pure function of inputs and were removed from the engine; that removal is what makes
- * this cache sound.
+ * <p>A node with a state port receives its <i>own output of the previous render</i>. That is not a
+ * function of its inputs, so such a node is never cached; it behaves like a context node, and the
+ * nodes upstream of it stay cached. Its previous output is kept here as well (see
+ * {@link #stateSnapshot()}), so that state and cache share one lifetime.
+ *
+ * <p>Cached results belong to the functions they were computed with. When a library is added, removed or
+ * reloaded after the user edited its code, the results are dropped (see {@link #useFunctions}). Nodes that
+ * read files through file ports, and networks around them, record the modification time and size of those
+ * files with their result; a result whose files changed on disk is not used.
  *
  * <h2>Threading</h2>
  *
@@ -51,64 +68,161 @@ import java.util.Map;
 public final class RenderCache {
 
     /**
-     * Functions that are impure but do not declare a context input port, so they cannot be detected by
-     * the context-port rule. They must re-run on every render.
+     * Upper bound on the number of slots. A slot holds the latest result of one node path, so this only
+     * matters when many nodes are deleted or renamed over a long session. Evicted least-recently-used.
      */
-    private static final ImmutableSet<String> IMPURE_FUNCTIONS = ImmutableSet.of(
-            "network/httpGet",  // performs network I/O and refreshes on a time interval
-            "device/sendOSC"    // sends data as a side effect
-    );
+    private static final int MAX_SLOTS = 10000;
 
-    /** Upper bound on cached results, to keep memory bounded over a long session. Evicted least-recently-used. */
-    private static final int MAX_ENTRIES = 10000;
+    // When set, every cache hit is checked against a fresh computation (see NodeContext). Tests turn it on
+    // with -Dnodebox.cache.verify=true.
+    private static volatile boolean verifying = Boolean.getBoolean("nodebox.cache.verify");
 
-    /** Upper bound on the purity memo; cleared wholesale if exceeded (it is cheap to recompute). */
-    private static final int MAX_CACHEABLE_ENTRIES = 100000;
+    public static boolean isVerifying() {
+        return verifying;
+    }
 
-    private final LinkedHashMap<Key, List<?>> results = new LinkedHashMap<Key, List<?>>(256, 0.75f, true) {
+    public static void setVerifying(boolean verifying) {
+        RenderCache.verifying = verifying;
+    }
+
+    // Verify failures so far. A failure inside the application only shows up as a render error, so the
+    // end-to-end tests check this count.
+    private static final AtomicInteger verifyFailures = new AtomicInteger();
+
+    public static int getVerifyFailures() {
+        return verifyFailures.get();
+    }
+
+    static void recordVerifyFailure() {
+        verifyFailures.incrementAndGet();
+    }
+
+    // One slot per node path, holding only the latest key and result for that node. A result for older
+    // inputs can never be hit again once an input changed (every frame, every drag step), so keeping it
+    // would only grow memory: an animation would otherwise add one result per node per frame.
+    private final LinkedHashMap<String, Slot> slots = new LinkedHashMap<String, Slot>(256, 0.75f, true) {
         @Override
-        protected boolean removeEldestEntry(Map.Entry<Key, List<?>> eldest) {
-            return size() > MAX_ENTRIES;
+        protected boolean removeEldestEntry(Map.Entry<String, Slot> eldest) {
+            return size() > MAX_SLOTS;
         }
     };
 
-    // Memoizes transitive purity per node instance. Keyed by identity: purity is a pure function of the
-    // (immutable) node, and edited nodes are new instances that get recomputed on demand.
-    private final IdentityHashMap<Node, Boolean> cacheable = new IdentityHashMap<Node, Boolean>();
+    // Memoizes transitive purity per node instance. Weak identity keys: purity is a pure function of the
+    // (immutable) node, edited nodes are new instances, and old instances are dropped with the document
+    // state that referenced them.
+    private final Map<Node, Boolean> cacheable = new MapMaker().weakKeys().makeMap();
 
-    public List<?> get(Key key) {
-        return results.get(key);
+    // The function libraries the cached results were computed with, by identity, and the version of their
+    // code at the time.
+    private Map<FunctionLibrary, Long> libraryVersions = new IdentityHashMap<FunctionLibrary, Long>();
+
+    // The latest output of each node with a state port, by node path. Unlike a cached result, this is
+    // not derived data: it is the memory of a stateful node, and it lives as long as this cache (until
+    // the document rewinds, or for the length of an export).
+    private ImmutableMap<String, List<?>> state = ImmutableMap.of();
+
+    /**
+     * Prepare the cache for a render with the given functions. When the functions differ from the ones the
+     * cached results were computed with (a library was added, removed or loaded again, or reloaded after the
+     * user edited its code), those results are dropped. The state of stateful nodes is kept.
+     */
+    public void useFunctions(FunctionRepository functionRepository) {
+        Map<FunctionLibrary, Long> versions = new IdentityHashMap<FunctionLibrary, Long>();
+        for (FunctionLibrary library : functionRepository.getLibraries()) {
+            versions.put(library, library.getVersion());
+        }
+        if (sameVersions(versions, libraryVersions)) return;
+        slots.clear();
+        cacheable.clear();
+        libraryVersions = versions;
     }
 
-    public void put(Key key, List<?> value) {
-        results.put(key, value);
+    // IdentityHashMap.equals compares the values by reference too, which fails for boxed longs above 127.
+    private static boolean sameVersions(Map<FunctionLibrary, Long> a, Map<FunctionLibrary, Long> b) {
+        if (a.size() != b.size()) return false;
+        for (Map.Entry<FunctionLibrary, Long> entry : a.entrySet()) {
+            if (!entry.getValue().equals(b.get(entry.getKey()))) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Return the cached result for the node at {@code slot} (its path), if it was computed for this key.
+     */
+    public Result get(String slot, Key key) {
+        Slot s = slots.get(slot);
+        if (s == null || !s.key.equals(key)) return null;
+        for (FileStamp file : s.result.files) {
+            if (!file.isCurrent()) return null;
+        }
+        hits++;
+        return s.result;
+    }
+
+    /**
+     * Store the result for the node at {@code slot}. {@code files} are the files read while computing it,
+     * by the node itself or by nodes inside it; the result is valid while none of them changes on disk.
+     */
+    public void put(String slot, Key key, List<?> value, Set<FileStamp> files) {
+        slots.put(slot, new Slot(key, new Result(value, ImmutableSet.copyOf(files))));
+    }
+
+    /**
+     * The outputs of the stateful nodes as of now. A render reads this snapshot throughout, so a node
+     * that runs several times in one render sees the output of the previous render each time.
+     */
+    public ImmutableMap<String, List<?>> stateSnapshot() {
+        return state;
+    }
+
+    /** Replace the state with the outputs of the stateful nodes in a completed render, by node path. */
+    public void setState(Map<String, List<?>> state) {
+        this.state = ImmutableMap.copyOf(state);
+    }
+
+    // The number of results served, for tests.
+    private int hits;
+
+    int hits() {
+        return hits;
+    }
+
+    int size() {
+        return slots.size();
     }
 
     /**
      * Whether the given node's result may be cached across renders: true unless the node, or anything in
-     * its subtree, reads the execution context or is a known-impure function.
+     * its subtree, reads the execution context, has a state port, is always rendered or runs a
+     * time-dependent function. The answer is memoized per node until the functions change.
      */
-    public boolean isCacheable(Node node) {
+    public boolean isCacheable(Node node, FunctionRepository functionRepository) {
         Boolean known = cacheable.get(node);
         if (known != null) return known;
-        if (cacheable.size() > MAX_CACHEABLE_ENTRIES) cacheable.clear();
-        boolean result = computeCacheable(node);
+        boolean result = computeCacheable(node, functionRepository);
         cacheable.put(node, result);
         return result;
     }
 
-    private boolean computeCacheable(Node node) {
+    private boolean computeCacheable(Node node, FunctionRepository functionRepository) {
+        // Always-rendered nodes exist for their side effect, which has to happen on every render.
+        if (node.isAlwaysRendered()) return false;
         for (Port port : node.getInputs()) {
             String type = port.getType();
             if (type.equals(Port.TYPE_CONTEXT) || type.equals(Port.TYPE_STATE)) return false;
         }
-        if (IMPURE_FUNCTIONS.contains(node.getFunction())) return false;
+        if (isTimeDependent(node.getFunction(), functionRepository)) return false;
         if (node.isNetwork()) {
             for (Node child : node.getChildren()) {
-                if (!isCacheable(child)) return false;
+                if (!isCacheable(child, functionRepository)) return false;
             }
         }
         return true;
+    }
+
+    private static boolean isTimeDependent(String function, FunctionRepository functionRepository) {
+        // An unknown function fails when the node renders; there is nothing to cache.
+        return functionRepository.hasFunction(function) && functionRepository.getFunction(function).isTimeDependent();
     }
 
     /**
@@ -118,6 +232,58 @@ public final class RenderCache {
      */
     public static Key key(Node node, List<List<?>> connectedInputs) {
         return new Key(node, connectedInputs);
+    }
+
+    private static final class Slot {
+        private final Key key;
+        private final Result result;
+
+        private Slot(Key key, Result result) {
+            this.key = key;
+            this.result = result;
+        }
+    }
+
+    /** A cached result and the files it was computed from. */
+    public static final class Result {
+        public final List<?> value;
+        public final ImmutableSet<FileStamp> files;
+
+        private Result(List<?> value, ImmutableSet<FileStamp> files) {
+            this.value = value;
+            this.files = files;
+        }
+    }
+
+    /** A file as it was on disk when a node read it: its modification time and size. */
+    public static final class FileStamp {
+        private final String path;
+        private final long lastModified;
+        private final long length;
+
+        public FileStamp(String path) {
+            File f = new File(path);
+            this.path = path;
+            this.lastModified = f.lastModified();
+            this.length = f.length();
+        }
+
+        boolean isCurrent() {
+            File f = new File(path);
+            return f.lastModified() == lastModified && f.length() == length;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(path, lastModified, length);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof FileStamp)) return false;
+            FileStamp other = (FileStamp) o;
+            return path.equals(other.path) && lastModified == other.lastModified && length == other.length;
+        }
     }
 
     /**
