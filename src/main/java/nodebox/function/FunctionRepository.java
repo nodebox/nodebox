@@ -56,6 +56,7 @@ public class FunctionRepository {
         for (FunctionLibrary library : getLibraries()) {
             if (library == CoreFunctions.LIBRARY) continue;
             library.reload();
+            library.incrementVersion();
         }
     }
 

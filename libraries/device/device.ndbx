@@ -2,6 +2,11 @@
 <ndbx type="file" uuid="a779a96c-efec-4fbd-a804-7c12072bcb74">
     <link href="java:nodebox.function.DeviceFunctions" rel="functions"/>
     <node description="Real time nodes." name="root" prototype="core.network" renderedChild="mouse_position">
+        <node category="device" description="Buffer incoming points" function="device/bufferPoints" image="generic.png" name="buffer_points" outputRange="list" outputType="point" position="1.00,1.00">
+            <port name="point" range="value" type="point" value="0.00,0.00" widget="point"/>
+            <port name="size" range="value" type="int" value="100" widget="int"/>
+            <port name="state" range="value" type="state" widget="none"/>
+        </node>
         <node category="device" description="Get the most recent mouse position" function="device/mousePosition" image="mouse_position.png" name="mouse_position" outputType="point" position="1.00,2.00">
             <port name="context" range="value" type="context" widget="none"/>
         </node>
