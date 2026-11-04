@@ -43,3 +43,4 @@ Prereqs: Java JDK and Apache Ant are required; Maven is used for dependency reso
 
 ## Notes for Contributors
 - Versioning lives in `src/main/resources/version.properties`; update it when preparing a release build.
+- Every release also updates the website (nodebox/website: download page and release notes). The full checklist is in `docs/RELEASING.md`.
