@@ -27,7 +27,8 @@ import java.util.concurrent.*;
  * <p>
  * It needs a display (NodeBox's Python setup touches AWT); use xvfb-run on Linux.
  * <p>
- * Each document gets 60 seconds (-Dbatch.timeout=seconds to change it).
+ * Each document gets 60 seconds (-Dbatch.timeout=seconds to change it). The exit code is 1 when any document
+ * failed, timed out or gave a CACHE-DIFF, after all documents are rendered.
  */
 public class BatchRenderer {
 
@@ -36,7 +37,7 @@ public class BatchRenderer {
     private static int ok, failed, timedOut, cacheDiffs;
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
+        if (args.length < 2 || (args[0].equals("--dir") && args.length < 3)) {
             System.out.println("Usage: BatchRenderer <input.ndbx> <output.svg>");
             System.out.println("       BatchRenderer --dir <inputDir> <outputDir>");
             System.out.println("       BatchRenderer --all <outputDir>");
@@ -51,7 +52,9 @@ public class BatchRenderer {
             renderOne(new File(args[0]), new File(args[1]));
         }
         System.out.println("DONE ok=" + ok + " failed=" + failed + " timeout=" + timedOut + " cache-diff=" + cacheDiffs);
-        System.exit(0);
+        // Exit with 1 when any document failed, timed out or gave a cache difference, so a CI step can gate on it.
+        // Every document is still rendered first.
+        System.exit(failed > 0 || timedOut > 0 || cacheDiffs > 0 ? 1 : 0);
     }
 
     private static void renderDirectory(File dir, File baseDir, File outputDir) {
@@ -78,7 +81,7 @@ public class BatchRenderer {
         try {
             String status = future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
             if (status.equals("CACHE-DIFF")) cacheDiffs++;
-            ok++;
+            else ok++;
             System.out.println(status + " " + inFile.getPath());
         } catch (TimeoutException e) {
             future.cancel(true);
@@ -104,13 +107,13 @@ public class BatchRenderer {
         Rect bounds = library.getBounds();
         Rectangle2D rect = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
 
-        List<?> uncached = new NodeContext(library, functionRepository).renderNode("/");
+        ImmutableMap<String, Object> data = ImmutableMap.of("frame", 1.0);
+        List<?> uncached = new NodeContext(library, functionRepository, data, ImmutableMap.<String, Object>of(), null).renderNode("/");
         outFile.getParentFile().mkdirs();
         SVGRenderer.renderToFile(uncached, rect, outFile);
 
         RenderCache cache = new RenderCache();
         cache.useFunctions(functionRepository);
-        ImmutableMap<String, Object> data = ImmutableMap.of("frame", 1.0);
         new NodeContext(library, functionRepository, data, ImmutableMap.<String, Object>of(), cache).renderNode("/");
         List<?> cached = new NodeContext(library, functionRepository, data, ImmutableMap.<String, Object>of(), cache).renderNode("/");
         File cachedFile = new File(outFile.getPath() + ".cached");
