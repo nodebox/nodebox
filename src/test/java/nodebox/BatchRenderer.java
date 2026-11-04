@@ -27,6 +27,9 @@ import java.util.concurrent.*;
  * <p>
  * It needs a display (NodeBox's Python setup touches AWT); use xvfb-run on Linux.
  * <p>
+ * Documents that use network nodes are skipped, because they depend on remote services; -Dbatch.network=true
+ * renders them too.
+ * <p>
  * Each document gets 60 seconds (-Dbatch.timeout=seconds to change it). The exit code is 1 when any document
  * failed, timed out or gave a CACHE-DIFF, after all documents are rendered.
  */
@@ -34,7 +37,8 @@ public class BatchRenderer {
 
     private static final long TIMEOUT_SECONDS = Long.getLong("batch.timeout", 60);
     private static NodeRepository systemRepository;
-    private static int ok, failed, timedOut, cacheDiffs;
+    private static final boolean INCLUDE_NETWORK = Boolean.getBoolean("batch.network");
+    private static int ok, failed, timedOut, cacheDiffs, skipped;
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2 || (args[0].equals("--dir") && args.length < 3)) {
@@ -51,7 +55,7 @@ public class BatchRenderer {
         } else {
             renderOne(new File(args[0]), new File(args[1]));
         }
-        System.out.println("DONE ok=" + ok + " failed=" + failed + " timeout=" + timedOut + " cache-diff=" + cacheDiffs);
+        System.out.println("DONE ok=" + ok + " failed=" + failed + " timeout=" + timedOut + " cache-diff=" + cacheDiffs + " skipped=" + skipped);
         // Exit with 1 when any document failed, timed out or gave a cache difference, so a CI step can gate on it.
         // Every document is still rendered first.
         System.exit(failed > 0 || timedOut > 0 || cacheDiffs > 0 ? 1 : 0);
@@ -72,6 +76,11 @@ public class BatchRenderer {
     }
 
     private static void renderOne(final File inFile, final File outFile) {
+        if (!INCLUDE_NETWORK && usesNetworkNodes(inFile)) {
+            skipped++;
+            System.out.println("SKIP " + inFile.getPath() + ": uses network nodes");
+            return;
+        }
         ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r, "render " + inFile.getName());
             t.setDaemon(true);
@@ -122,6 +131,17 @@ public class BatchRenderer {
                 .equals(new String(Files.readAllBytes(cachedFile.toPath()), StandardCharsets.UTF_8));
         if (same) cachedFile.delete();
         return same ? "OK" : "CACHE-DIFF";
+    }
+
+    /**
+     * Documents with network nodes depend on remote services, so their result says nothing about NodeBox.
+     */
+    private static boolean usesNetworkNodes(File inFile) {
+        try {
+            return new String(Files.readAllBytes(inFile.toPath()), StandardCharsets.UTF_8).contains("prototype=\"network.");
+        } catch (java.io.IOException e) {
+            return false;
+        }
     }
 
     private static NodeLibrary loadLibrary(File inFile) {
