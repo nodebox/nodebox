@@ -24,6 +24,10 @@ arm64** app (no Rosetta) and `windows-latest` yields an x64 `.msi`.
 3. The workflow signs + notarizes the macOS build and creates the GitHub Release.
 4. Write the release notes on the GitHub Release. Running copies of NodeBox read them through the
    [appcast](../appcast/README.md) and offer the update within about an hour of the installer being attached.
+5. Update the website, [nodebox/website](https://github.com/nodebox/website): in `download/index.md`, set the
+   version and both installer links (`NodeBox-<version>.dmg`, `NodeBox-<version>.msi`); in `node/release-notes.md`,
+   add a section for the version at the top with a short form of the notes and a link to the GitHub Release.
+   Pushing to its `master` publishes the site.
 
 ## Required repository secrets (macOS signing & notarization)
 
