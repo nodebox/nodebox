@@ -8,31 +8,31 @@
         </node>
         <node name="combine1" position="1.00,12.00" prototype="list.combine"/>
         <node name="concatenate1" position="5.00,2.00" prototype="string.concatenate">
-            <port name="string1" type="string" value="http://maps.googleapis.com/maps/api/geocode/json?sensor=true&amp;address="/>
+            <port name="string1" type="string" value="https://geocoding-api.open-meteo.com/v1/search?count=1&amp;name="/>
         </node>
         <node name="ellipse1" position="5.00,9.00" prototype="corevector.ellipse">
             <port name="width" type="float" value="3.0"/>
             <port name="height" type="float" value="3.0"/>
         </node>
         <node name="encode_url1" position="5.00,1.00" prototype="network.encode_url">
-            <port name="value" type="string" value="Antwerp, Belgium"/>
+            <port name="value" type="string" value="Antwerp"/>
         </node>
         <node name="http_get1" position="5.00,3.00" prototype="network.http_get">
-            <port name="url" type="string" value="http://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway&amp;sensor=true"/>
+            <port name="url" type="string" value="https://geocoding-api.open-meteo.com/v1/search?count=1&amp;name=Antwerp"/>
         </node>
         <node name="import_svg1" position="1.00,8.00" prototype="corevector.import_svg">
             <port name="file" type="string" value="map-equirectangular.svg"/>
         </node>
         <node name="latitude" position="8.00,6.00" prototype="data.lookup">
-            <port name="key" type="string" value="lat"/>
+            <port name="key" type="string" value="latitude"/>
         </node>
         <node name="longitude" position="5.00,6.00" prototype="data.lookup">
-            <port name="key" type="string" value="lng"/>
+            <port name="key" type="string" value="longitude"/>
         </node>
         <node name="make_point1" position="5.00,8.00" prototype="corevector.make_point"/>
         <node name="negate1" position="8.00,7.00" prototype="math.negate"/>
         <node name="query_json1" position="5.00,4.00" prototype="network.query_json">
-            <port name="query" type="string" value="$.results[0].geometry.location"/>
+            <port name="query" type="string" value="$.results[0]"/>
         </node>
         <node name="scale1" position="1.00,9.00" prototype="corevector.scale">
             <port name="scale" type="point" value="100.00,-100.00"/>
