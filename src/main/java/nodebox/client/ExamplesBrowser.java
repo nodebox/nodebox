@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -179,6 +181,7 @@ public class ExamplesBrowser extends JFrame {
         });
 
         ArrayList<Category> categories = new ArrayList<Category>();
+        sortByName(directories);
         for (File d : directories) {
             String name = fileToTitle(d);
             List<SubCategory> subCategories = parseSubCategories(d);
@@ -196,6 +199,7 @@ public class ExamplesBrowser extends JFrame {
         });
 
         ArrayList<SubCategory> subCategories = new ArrayList<SubCategory>();
+        sortByName(directories);
         for (File d : directories) {
             String name = fileToTitle(d);
             List<Example> examples = parseExamples(d);
@@ -213,12 +217,19 @@ public class ExamplesBrowser extends JFrame {
         });
 
         ArrayList<Example> examples = new ArrayList<Example>();
+        sortByName(directories);
         for (File projectDirectory : directories) {
             File nodeBoxFile = nodeBoxFileForDirectory(projectDirectory);
             Map<String, String> propertyMap = NodeLibrary.parseHeader(nodeBoxFile);
             examples.add(Example.fromNodeLibrary(nodeBoxFile, propertyMap));
         }
         return examples;
+    }
+
+    // listFiles returns folders in no particular order (on macOS, often not by name), and the numbered
+    // prefixes ("01 Basics", "02 Topics") are what set the order.
+    private static void sortByName(File[] files) {
+        if (files != null) Arrays.sort(files, Comparator.comparing(File::getName));
     }
 
     public static String fileToTitle(File file) {
