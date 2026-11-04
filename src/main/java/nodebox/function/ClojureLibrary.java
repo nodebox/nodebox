@@ -67,7 +67,9 @@ final class ClojureLibrary extends FunctionLibrary {
                 if (var.ns.toString().equals(namespace)) {
                     String name = entry.getKey().toString();
                     if (var.deref() instanceof IFn) {
-                        Function f = new ClojureFunction(name, var.fn());
+                        // Declared in the script with: (defn ^:time-dependent my-function [...] ...)
+                        boolean timeDependent = RT.booleanCast(RT.get(var.meta(), Keyword.intern("time-dependent")));
+                        Function f = new ClojureFunction(name, var.fn(), timeDependent);
                         builder.put(name, f);
                     }
                 }
@@ -132,15 +134,21 @@ final class ClojureLibrary extends FunctionLibrary {
         private final String name;
         private final IFn fn;
         private final ImmutableList<Argument> arguments;
+        private final boolean timeDependent;
 
-        public ClojureFunction(String name, IFn fn) {
+        public ClojureFunction(String name, IFn fn, boolean timeDependent) {
             this.name = name;
             this.fn = fn;
             this.arguments = introspect(fn);
+            this.timeDependent = timeDependent;
         }
 
         public String getName() {
             return name;
+        }
+
+        public boolean isTimeDependent() {
+            return timeDependent;
         }
 
         public Object invoke(Object... args) throws Exception {

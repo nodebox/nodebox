@@ -2,6 +2,7 @@ package nodebox.function;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import nodebox.graphics.Point;
 import nodebox.node.Node;
 import nodebox.node.NodeContext;
 import nodebox.node.NodeLibrary;
@@ -182,5 +183,12 @@ public class DeviceFunctionsTest {
         assertEquals(expectedResult2, renderNode(oscReceiveNode2));
         assertEquals(expectedResult2, renderNode(oscReceiveNode2.withInputValue("args", "x ,y")));
         assertEquals(expectedResult2, renderNode(oscReceiveNode2.withInputValue("args", "x,  y")));
+    }
+
+    @Test
+    public void bufferPointsKeepsTheLatestPointsWhenSizeIsLowered() {
+        Point a = new Point(1, 1), b = new Point(2, 2), c = new Point(3, 3), d = new Point(4, 4);
+        assertEquals(ImmutableList.of(c, d), DeviceFunctions.bufferPoints(d, 2, ImmutableList.of(a, b, c)));
+        assertEquals(ImmutableList.<Point>of(), DeviceFunctions.bufferPoints(d, 0, ImmutableList.of(a, b)));
     }
 }

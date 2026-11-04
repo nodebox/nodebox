@@ -23,12 +23,16 @@ public interface Handle {
      * <p/>
      * Handles draw and hit-test in screen space: they project the document coordinates they
      * receive through this transform, then draw their decorations at a constant pixel size.
+     * <p/>
+     * The default does nothing. A handle that does not override it draws document coordinates as screen
+     * coordinates, so it appears offset when the view is panned or zoomed.
      *
      * @param viewX     The horizontal view offset, in screen pixels.
      * @param viewY     The vertical view offset, in screen pixels.
      * @param viewScale The current view scale (1.0 = 100%).
      */
-    public void setViewTransform(double viewX, double viewY, double viewScale);
+    public default void setViewTransform(double viewX, double viewY, double viewScale) {
+    }
 
     //// Mouse events ////
 

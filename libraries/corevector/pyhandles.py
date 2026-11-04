@@ -1,4 +1,5 @@
 from nodebox.handle import CombinedHandle, PointHandle, FourPointHandle, TranslateHandle, RotateHandle, ScaleHandle, CircleScaleHandle, FreehandHandle
+from nodebox.graphics import Rect
 from nodebox.util.Geometry import coordinates, angle, distance
 
 class LineHandle(CombinedHandle):
@@ -55,7 +56,10 @@ class ReflectHandle(CombinedHandle):
 class SnapHandle(PointHandle):
 
     def createHitRectangle(self, x, y):
-        return Rect(-1000, -1000, 2000, 2000)
+        # The whole grid is the grab area: its document extent, projected to the screen.
+        s0 = self.toScreen(-1000, -1000)
+        s1 = self.toScreen(1000, 1000)
+        return Rect(s0.x, s0.y, s1.x - s0.x, s1.y - s0.y)
 
     def draw(self, ctx):
         pos = self.getValue("position")
@@ -64,8 +68,13 @@ class SnapHandle(PointHandle):
         distance = self.getValue("distance")
         ctx.stroke(0.4, 0.4, 0.4, 0.5)
         ctx.strokewidth(1.0)
+        # Handles draw in screen space, so project the grid lines through the view transform.
         for i in xrange(-100, 100):
             x = -snap_x + (i * distance)
             y = -snap_y + (i * distance)
-            ctx.line(x, -1000, x, 1000)
-            ctx.line(-1000, y, 1000, y)
+            v0 = self.toScreen(x, -1000)
+            v1 = self.toScreen(x, 1000)
+            h0 = self.toScreen(-1000, y)
+            h1 = self.toScreen(1000, y)
+            ctx.line(v0.x, v0.y, v1.x, v1.y)
+            ctx.line(h0.x, h0.y, h1.x, h1.y)
